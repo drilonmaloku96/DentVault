@@ -513,8 +513,8 @@
 	const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 </script>
 
-<!-- ── Header ──────────────────────────────────────────────────────────── -->
-<div class="flex flex-col gap-3 mb-4">
+<!-- ── Header (sticky below patient header) ───────────────────────────── -->
+<div class="sticky top-[140px] z-10 bg-background flex flex-col gap-3 pt-3 pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] mb-4">
 	<!-- Title row + action buttons -->
 	<div class="flex items-center justify-between gap-2 flex-wrap">
 		<h2 class="font-semibold text-sm text-muted-foreground uppercase tracking-wide">

@@ -151,6 +151,9 @@
 {:else}
 	<div class="flex flex-col gap-0">
 
+		<!-- ── Sticky patient header (breadcrumb + patient row) ─────── -->
+		<div class="sticky top-0 z-20 bg-background pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]">
+
 		<!-- ── Breadcrumb + Actions ─────────────────────────────────── -->
 		<div class="flex items-start justify-between gap-4 mb-4">
 			<nav class="flex items-center gap-2 text-sm text-muted-foreground">
@@ -215,7 +218,7 @@
 		</div>
 
 		<!-- ── Patient header row ──────────────────────────────────── -->
-		<div class="flex items-center gap-2 w-full mb-3">
+		<div class="flex items-center gap-2 w-full">
 
 			<!-- Info toggle: avatar + name + chevron (flex-1) -->
 			<button
@@ -352,9 +355,11 @@
 			</div>
 		</div>
 
+		</div><!-- /sticky patient header -->
+
 		<!-- ── Expandable patient info panel ──────────────────────── -->
 		{#if showInfo}
-			<div id="patient-info-panel" transition:slide={{ duration: 180 }} class="mb-4">
+			<div id="patient-info-panel" transition:slide={{ duration: 180 }} class="mt-3 mb-4">
 				<div class="grid gap-4 md:grid-cols-2 pt-2 pb-1">
 					<!-- Personal Info -->
 					<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
@@ -410,7 +415,7 @@
 
 		<!-- ── Contextual panels (slide in when icon toggled) ──────── -->
 		{#if showAcute || showNotes || showMedical}
-			<div class="flex flex-col gap-2 mb-4">
+			<div class="flex flex-col gap-2 mt-3 mb-4">
 				{#if showAcute}
 					<div transition:slide={{ duration: 150 }}>
 						<AcuteProblemsBox
@@ -431,8 +436,6 @@
 				{/if}
 			</div>
 		{/if}
-
-		<Separator class="mb-4" />
 
 		<!-- ── Timeline (primary content) ─────────────────────────── -->
 		<TimelineView
