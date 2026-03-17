@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Vite (frontend only)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5174"],
+      "port": 5174
+    },
+    {
+      "name": "Tauri (full desktop app)",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source ~/.cargo/env && npm run tauri dev"],
+      "port": 5173
+    }
+  ]
+}

@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DentVault — Practitioner Handbook</title>
+<style>
+/* ── Reset & base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:    #2563eb;
+  --blue-lt: #eff6ff;
+  --green:   #059669;
+  --amber:   #d97706;
+  --red:     #dc2626;
+  --gray-50: #f9fafb;
+  --gray-100:#f3f4f6;
+  --gray-200:#e5e7eb;
+  --gray-400:#9ca3af;
+  --gray-600:#4b5563;
+  --gray-700:#374151;
+  --gray-900:#111827;
+  --body:    #1f2937;
+  --serif:   'Georgia', 'Times New Roman', serif;
+  --sans:    -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --mono:    'SF Mono', 'Fira Code', 'Consolas', monospace;
+  --radius:  6px;
+  --shadow:  0 1px 4px rgba(0,0,0,0.10);
+}
+
+html { font-size: 10pt; }
+body {
+  font-family: var(--sans);
+  color: var(--body);
+  line-height: 1.6;
+  background: #fff;
+}
+
+/* ── Print / A4 ──────────────────────────────────────────────────── */
+@page {
+  size: A4;
+  margin: 20mm 18mm 20mm 18mm;
+}
+@media print {
+  .no-print { display: none !important; }
+  a { color: inherit; text-decoration: none; }
+  .page-break { page-break-after: always; break-after: page; }
+  .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; break-after: avoid; }
+  figure { page-break-inside: avoid; break-inside: avoid; }
+}
+
+/* ── Screen preview wrapper ──────────────────────────────────────── */
+@media screen {
+  body { background: #e5e7eb; padding: 24px 0; }
+  .page {
+    background: #fff;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto 24px;
+    padding: 20mm 18mm;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  }
+}
+@media print {
+  .page { padding: 0; }
+}
+
+/* ── Cover page ──────────────────────────────────────────────────── */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 257mm;
+  text-align: center;
+  gap: 0;
+}
+.cover-logo {
+  font-size: 52pt;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--blue);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.cover-logo span { color: var(--gray-400); font-weight: 300; }
+.cover-subtitle {
+  font-size: 15pt;
+  color: var(--gray-600);
+  font-weight: 400;
+  margin-bottom: 48px;
+}
+.cover-divider {
+  width: 80px;
+  height: 3px;
+  background: var(--blue);
+  margin: 0 auto 48px;
+  border-radius: 2px;
+}
+.cover-desc {
+  font-size: 11pt;
+  color: var(--gray-600);
+  max-width: 340px;
+  margin: 0 auto 64px;
+  line-height: 1.7;
+}
+.cover-meta {
+  font-size: 9pt;
+  color: var(--gray-400);
+  letter-spacing: 0.05em;
+}
+
+/* ── TOC ─────────────────────────────────────────────────────────── */
+.toc h2 { margin-bottom: 20px; }
+.toc ol { list-style: none; padding: 0; }
+.toc li {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--gray-200);
+  font-size: 10pt;
+}
+.toc li .num { min-width: 24px; color: var(--blue); font-weight: 600; }
+.toc li .dots { flex: 1; border-bottom: 1px dotted var(--gray-300); margin: 0 6px 3px; }
+.toc li .pg { color: var(--gray-400); font-size: 9pt; min-width: 20px; text-align: right; }
+.toc li.sub { padding-left: 20px; font-size: 9.5pt; color: var(--gray-600); }
+
+/* ── Chapter headers ─────────────────────────────────────────────── */
+.chapter-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--blue);
+}
+.chapter-num {
+  font-size: 9pt;
+  color: var(--blue);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+}
+.chapter-title {
+  font-size: 16pt;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.2;
+}
+
+/* ── Headings ────────────────────────────────────────────────────── */
+h2 { font-size: 13pt; font-weight: 700; color: var(--gray-900); margin: 22px 0 8px; }
+h3 { font-size: 11pt; font-weight: 600; color: var(--gray-700); margin: 16px 0 6px; }
+h4 { font-size: 10pt; font-weight: 600; color: var(--gray-700); margin: 12px 0 4px; }
+
+p { margin: 0 0 10px; font-size: 10pt; }
+ul, ol { margin: 0 0 10px 20px; font-size: 10pt; }
+li { margin-bottom: 3px; }
+
+/* ── Screenshots ─────────────────────────────────────────────────── */
+figure {
+  margin: 14px 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--gray-200);
+}
+figcaption {
+  padding: 6px 10px;
+  font-size: 8.5pt;
+  color: var(--gray-600);
+  font-style: italic;
+  background: var(--gray-50);
+}
+
+/* Placeholder when screenshot is missing */
+figure.missing img { display: none; }
+figure.missing { background: var(--gray-100); border: 1.5px dashed var(--gray-300); }
+figure.missing::before {
+  display: block;
+  content: attr(data-label);
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 9pt;
+  color: var(--gray-400);
+  font-family: var(--mono);
+  line-height: 1.6;
+}
+
+figure.half { width: 65%; margin-left: auto; margin-right: auto; }
+figure.side { display: inline-block; width: 48%; vertical-align: top; margin: 4px 1%; }
+
+/* ── Callout boxes ───────────────────────────────────────────────── */
+.callout {
+  border-left: 3px solid var(--blue);
+  background: var(--blue-lt);
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 9.5pt;
+}
+.callout.tip  { border-color: var(--green);  background: #f0fdf4; }
+.callout.warn { border-color: var(--amber);  background: #fffbeb; }
+.callout.note { border-color: var(--blue);   background: var(--blue-lt); }
+.callout strong { display: block; font-size: 9pt; text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 3px; color: var(--gray-700); }
+
+/* ── Key/shortcut badges ─────────────────────────────────────────── */
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 8pt;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--gray-300);
+  white-space: nowrap;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+  margin: 10px 0;
+}
+th {
+  background: var(--gray-100);
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+  font-size: 9pt;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-700);
+}
+td {
+  padding: 5px 8px;
+  border: 1px solid var(--gray-200);
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: var(--gray-50); }
+
+/* ── Step list ───────────────────────────────────────────────────── */
+.steps { list-style: none; padding: 0; margin: 10px 0; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 10pt;
+}
+.steps li::before {
+  content: counter(step);
+  min-width: 20px; height: 20px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 8pt;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Inline code ─────────────────────────────────────────────────── */
+code {
+  font-family: var(--mono);
+  font-size: 8.5pt;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ── Shortcut reference table ────────────────────────────────────── */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 10px 0;
+}
+.shortcut-section h4 { margin-bottom: 4px; }
+.shortcut-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 9.5pt;
+}
+.shortcut-row .keys { min-width: 90px; flex-shrink: 0; }
+.shortcut-row .desc { color: var(--gray-600); }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.page-footer {
+  margin-top: 30px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  font-size: 8pt;
+  color: var(--gray-400);
+}
+
+/* ── Color pills ─────────────────────────────────────────────────── */
+.pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 8.5pt;
+  font-weight: 500;
+}
+.pill.green  { background: #dcfce7; color: #166534; }
+.pill.amber  { background: #fef9c3; color: #854d0e; }
+.pill.red    { background: #fee2e2; color: #991b1b; }
+.pill.blue   { background: #dbeafe; color: #1e40af; }
+.pill.purple { background: #f3e8ff; color: #6b21a8; }
+.pill.gray   { background: var(--gray-100); color: var(--gray-600); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     COVER PAGE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="cover">
+    <div class="cover-logo">Dent<span>Vault</span></div>
+    <div class="cover-subtitle">Practitioner Handbook</div>
+    <div class="cover-divider"></div>
+    <div class="cover-desc">
+      A complete guide to managing patients, clinical timelines, treatment plans,
+      dental charting, periodontal probing, and practice analytics.
+    </div>
+    <div class="cover-meta">
+      Version 1.0 &nbsp;·&nbsp; 2026
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>Practitioner Handbook</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><span class="num">1.</span><span>Introduction</span><span class="dots"></span><span class="pg">3</span></li>
+      <li><span class="num">2.</span><span>Getting Started</span><span class="dots"></span><span class="pg">4</span></li>
+      <li class="sub"><span class="num"></span><span>Vault Setup</span><span class="dots"></span><span class="pg">4</span></li>
+      <li class="sub"><span class="num"></span><span>Interface Overview</span><span class="dots"></span><span class="pg">4</span></li>
+      <li><span class="num">3.</span><span>Managing Patients</span><span class="dots"></span><span class="pg">5</span></li>
+      <li class="sub"><span class="num"></span><span>Creating a Patient</span><span class="dots"></span><span class="pg">5</span></li>
+      <li class="sub"><span class="num"></span><span>Searching &amp; Filtering</span><span class="dots"></span><span class="pg">6</span></li>
+      <li class="sub"><span class="num"></span><span>Patient Profile</span><span class="dots"></span><span class="pg">6</span></li>
+      <li><span class="num">4.</span><span>Clinical Timeline</span><span class="dots"></span><span class="pg">7</span></li>
+      <li class="sub"><span class="num"></span><span>Adding Entries</span><span class="dots"></span><span class="pg">7</span></li>
+      <li class="sub"><span class="num"></span><span>Treatment Categories &amp; Outcomes</span><span class="dots"></span><span class="pg">8</span></li>
+      <li class="sub"><span class="num"></span><span>Smart Tag Suggestions</span><span class="dots"></span><span class="pg">8</span></li>
+      <li class="sub"><span class="num"></span><span>Doctor &amp; Colleague Tagging</span><span class="dots"></span><span class="pg">9</span></li>
+      <li><span class="num">5.</span><span>Treatment Plans</span><span class="dots"></span><span class="pg">10</span></li>
+      <li><span class="num">6.</span><span>Dental Chart</span><span class="dots"></span><span class="pg">11</span></li>
+      <li class="sub"><span class="num"></span><span>Reading the Chart</span><span class="dots"></span><span class="pg">11</span></li>
+      <li class="sub"><span class="num"></span><span>Charting Mode</span><span class="dots"></span><span class="pg">12</span></li>
+      <li class="sub"><span class="num"></span><span>Bridges &amp; Prosthetics</span><span class="dots"></span><span class="pg">13</span></li>
+      <li><span class="num">7.</span><span>Periodontal Probing</span><span class="dots"></span><span class="pg">14</span></li>
+      <li class="sub"><span class="num"></span><span>Reading the Perio Chart</span><span class="dots"></span><span class="pg">14</span></li>
+      <li class="sub"><span class="num"></span><span>Guided Charting Mode</span><span class="dots"></span><span class="pg">15</span></li>
+      <li class="sub"><span class="num"></span><span>Comparing Records</span><span class="dots"></span><span class="pg">15</span></li>
+      <li><span class="num">8.</span><span>Documents &amp; Attachments</span><span class="dots"></span><span class="pg">16</span></li>
+      <li><span class="num">9.</span><span>Dashboard &amp; Analytics</span><span class="dots"></span><span class="pg">17</span></li>
+      <li><span class="num">10.</span><span>Reports &amp; CSV Export</span><span class="dots"></span><span class="pg">18</span></li>
+      <li><span class="num">11.</span><span>Settings</span><span class="dots"></span><span class="pg">19</span></li>
+      <li><span class="num">12.</span><span>Keyboard Shortcuts Reference</span><span class="dots"></span><span class="pg">21</span></li>
+    </ol>
+  </div>
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>Table of Contents</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 1 — INTRODUCTION
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 1</span>
+    <span class="chapter-title">Introduction</span>
+  </div>
+
+  <p>DentVault is a cross-platform desktop application for independent dental practitioners and small clinics. All data is stored locally on your device in a secure vault folder you control — no cloud, no subscriptions, no third-party servers.</p>
+
+  <h2>What DentVault Does</h2>
+  <ul>
+    <li><strong>Patient management</strong> — demographics, medical history, status tracking</li>
+    <li><strong>Clinical timeline</strong> — chronological treatment history with structured categories and outcomes</li>
+    <li><strong>Treatment plans</strong> — multi-step plans with cost tracking and completion progress</li>
+    <li><strong>Dental chart</strong> — visual SVG tooth chart with per-surface tagging, bridges, prosthetics</li>
+    <li><strong>Periodontal probing</strong> — full 6-point probing with recession, CAL, BOP, mobility, furcation</li>
+    <li><strong>Documents</strong> — file attachments organised by configurable categories</li>
+    <li><strong>Analytics</strong> — practice-level outcome statistics, provider performance, trend reports</li>
+  </ul>
+
+  <h2>Clinical Intelligence Philosophy</h2>
+  <p>DentVault is not just a record system — it is a <strong>clinical outcome engine</strong>. Every treatment entry is tagged with a structured category and outcome so you can ask questions like:</p>
+  <ul>
+    <li><em>"Of all root canals performed in the last 3 years, what percentage were retreated?"</em></li>
+    <li><em>"Show all Class II patients — what was the post-treatment occlusal result?"</em></li>
+    <li><em>"Which provider has the highest extraction rate after crown placement?"</em></li>
+  </ul>
+  <p>This is only possible because every piece of clinical data is <strong>structured and queryable</strong> — never buried in free-text notes.</p>
+
+  <h2>Data Ownership</h2>
+  <div class="callout tip">
+    <strong>Your data, your vault</strong>
+    All records are stored in a single folder on your computer called the <em>vault</em>. You can back it up, move it to an external drive, or archive it. DentVault never transmits your patient data anywhere.
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>1 — Introduction</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 2 — GETTING STARTED
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 2</span>
+    <span class="chapter-title">Getting Started</span>
+  </div>
+
+  <h2>First Launch — Vault Setup</h2>
+  <p>The first time you open DentVault, you will be prompted to choose a vault location. This is the folder where all patient data, documents, and the audit log will be stored.</p>
+
+  <ol class="steps">
+    <li>Click <strong>Choose Vault Folder</strong> in the welcome screen.</li>
+    <li>Navigate to a folder on your computer (e.g. <code>Documents/DentVault</code>).</li>
+    <li>Click <strong>Select</strong>. DentVault initialises the database inside that folder.</li>
+    <li>The main interface loads. You are ready to add your first patient.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/vault-setup.png&#10;     Welcome screen with vault folder picker">
+    <img src="screenshots/vault-setup.png" alt="Vault setup screen" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>First-launch vault configuration screen</figcaption>
+  </figure>
+
+  <div class="callout warn">
+    <strong>Backup Recommendation</strong>
+    Store your vault on a folder that is synced by iCloud, Dropbox, or a similar service — or schedule regular manual backups. DentVault does not backup automatically.
+  </div>
+
+  <h2>Interface Overview</h2>
+  <p>The app has a persistent left sidebar with navigation to all major sections.</p>
+
+  <figure data-label="📸  screenshots/sidebar.png&#10;     Left sidebar with Patients, Dashboard, Reports, Settings">
+    <img src="screenshots/sidebar.png" alt="Sidebar navigation" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Left sidebar — Patients, Dashboard, Reports, and Settings</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>Section</th><th>Purpose</th></tr>
+    <tr><td><strong>Patients</strong></td><td>List of all patients — search, filter by status, open profiles</td></tr>
+    <tr><td><strong>Dashboard</strong></td><td>Practice-wide outcome statistics and analytics</td></tr>
+    <tr><td><strong>Reports</strong></td><td>Filterable entry table with CSV export</td></tr>
+    <tr><td><strong>Settings</strong></td><td>Customise categories, tags, staff, shortcuts, and more</td></tr>
+  </table>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>2 — Getting Started</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 3 — MANAGING PATIENTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 3</span>
+    <span class="chapter-title">Managing Patients</span>
+  </div>
+
+  <h2>The Patient List</h2>
+  <p>The Patients page is your main directory. It shows all patients with their status, last visit date, and a quick search bar.</p>
+
+  <figure data-label="📸  screenshots/patients-list.png&#10;     Patient list with search bar, status badges, and patient cards">
+    <img src="screenshots/patients-list.png" alt="Patient list" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Patient list with search, status filter, and patient cards</figcaption>
+  </figure>
+
+  <h3>Patient Statuses</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td><span class="pill green">Active</span></td><td>Currently receiving treatment or on recall</td></tr>
+    <tr><td><span class="pill amber">Inactive</span></td><td>Not seen recently; may need recall contact</td></tr>
+    <tr><td><span class="pill gray">Archived</span></td><td>No longer a patient; record retained for history</td></tr>
+    <tr><td><span class="pill red">Deceased</span></td><td>Deceased patient; record locked</td></tr>
+  </table>
+
+  <h2>Creating a New Patient</h2>
+  <ol class="steps">
+    <li>Click the <strong>New Patient</strong> button (top-right of the Patients page).</li>
+    <li>Enter the patient's <strong>first and last name</strong> (required).</li>
+    <li>Fill in demographics: date of birth, gender, contact details, address.</li>
+    <li>Add medical history flags, allergies, and any relevant conditions.</li>
+    <li>Click <strong>Save Patient</strong>. The patient profile opens immediately.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/new-patient-form.png&#10;     New patient form with name, DOB, contact fields">
+    <img src="screenshots/new-patient-form.png" alt="New patient form" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>New patient form — required fields are marked with an asterisk</figcaption>
+  </figure>
+
+  <h2>Patient Profile Overview</h2>
+  <p>Each patient profile is divided into tabs accessible from the toolbar at the top of the patient page:</p>
+
+  <table>
+    <tr><th>Tab / Section</th><th>Contents</th></tr>
+    <tr><td><strong>Timeline</strong></td><td>Chronological clinical entries, inline images, document links</td></tr>
+    <tr><td><strong>Treatment Plans</strong></td><td>Multi-step planned procedures with cost and status</td></tr>
+    <tr><td><strong>Dental Chart</strong></td><td>Visual tooth chart — conditions, surfaces, bridges</td></tr>
+    <tr><td><strong>Perio</strong></td><td>Periodontal probing records over time</td></tr>
+    <tr><td><strong>Documents</strong></td><td>Attached files, X-rays, referral letters, photos</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <strong>Quick search tip</strong>
+    The patient search bar matches on name, ID, and phone number. Press <kbd>/</kbd> anywhere in the app to focus the search bar instantly.
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>3 — Managing Patients</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 4 — CLINICAL TIMELINE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 4</span>
+    <span class="chapter-title">Clinical Timeline</span>
+  </div>
+
+  <p>The timeline is the heart of a patient's record — a chronological log of every clinical encounter, observation, and treatment. Each entry is a structured record, not just a free-text note.</p>
+
+  <figure data-label="📸  screenshots/timeline-overview.png&#10;     Patient timeline showing multiple entries with category badges">
+    <img src="screenshots/timeline-overview.png" alt="Timeline overview" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Patient timeline — entries displayed newest first with category and outcome badges</figcaption>
+  </figure>
+
+  <h2>Adding a New Entry</h2>
+  <ol class="steps">
+    <li>Click the <strong>+ Add Entry</strong> button in the timeline toolbar.</li>
+    <li>Type your clinical note in the text field. As you type, the smart tag suggestion bar appears below if it detects clinical keywords.</li>
+    <li>Select a <strong>treatment category</strong> from the dropdown (or accept the suggestion).</li>
+    <li>Optionally set a <strong>treatment outcome</strong> and <strong>tooth numbers</strong>.</li>
+    <li>Tag the <strong>primary doctor</strong> and any colleagues involved.</li>
+    <li>Click <strong>Save</strong> or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/add-entry.png&#10;     Add entry form with text field, category dropdown, and tag suggestion bar">
+    <img src="screenshots/add-entry.png" alt="Add entry form" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>New entry form — note the smart tag suggestion bar below the text field</figcaption>
+  </figure>
+
+  <h2>Treatment Categories</h2>
+  <p>Every entry must be tagged with one of the following categories. These are used for analytics and outcome tracking.</p>
+
+  <table>
+    <tr><th>Category</th><th>Typical Procedures</th></tr>
+    <tr><td><span class="pill blue">Endodontics</span></td><td>Root canal, retreatment, apicoectomy, pulpotomy, pulp cap</td></tr>
+    <tr><td><span class="pill purple">Orthodontics</span></td><td>Fixed appliances, aligners, retainers, space maintainers</td></tr>
+    <tr><td><span class="pill amber">Prosthodontics</span></td><td>Crowns, bridges, dentures, veneers, implant prosthetics</td></tr>
+    <tr><td><span class="pill green">Periodontics</span></td><td>Scaling, root planing, flap surgery, implant placement</td></tr>
+    <tr><td><span class="pill red">Oral Surgery</span></td><td>Extractions, biopsies, frenectomy, impacted third molars</td></tr>
+    <tr><td><span class="pill gray">Restorative</span></td><td>Composite, amalgam fillings, inlays, onlays</td></tr>
+    <tr><td><span class="pill gray">Preventive</span></td><td>Cleaning, sealants, fluoride, check-ups</td></tr>
+    <tr><td><span class="pill gray">Imaging</span></td><td>Periapical, panoramic, CBCT, cephalometric</td></tr>
+  </table>
+
+  <h2>Treatment Outcomes</h2>
+  <p>Recording outcomes is what makes DentVault's analytics meaningful. Set the outcome when treatment is complete or at follow-up:</p>
+
+  <table>
+    <tr><th>Outcome</th><th>When to use</th></tr>
+    <tr><td><span class="pill green">Successful</span></td><td>Treatment achieved its goal; tooth/area is stable</td></tr>
+    <tr><td><span class="pill amber">Ongoing</span></td><td>Treatment in progress or too early to evaluate</td></tr>
+    <tr><td><span class="pill amber">Retreated</span></td><td>Same procedure had to be repeated on the same tooth</td></tr>
+    <tr><td><span class="pill red">Failed → Extracted</span></td><td>Treatment failed; tooth was subsequently extracted</td></tr>
+    <tr><td><span class="pill red">Failed → Other</span></td><td>Treatment failed; alternative treatment was performed</td></tr>
+  </table>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>4 — Clinical Timeline</span>
+  </div>
+</div>
+
+<div class="page page-break">
+  <h2>Smart Tag Suggestions</h2>
+  <p>As you type a clinical note, DentVault scans for keywords and surfaces non-intrusive tag chips below the text field. You can <strong>Accept</strong> or <strong>Dismiss</strong> each suggestion — tags are never applied automatically.</p>
+
+  <figure data-label="📸  screenshots/tag-suggestions.png&#10;     Tag suggestion bar with chips for 'Endodontics' and tooth number">
+    <img src="screenshots/tag-suggestions.png" alt="Tag suggestion bar" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Smart tag suggestion bar — click a chip to accept; click × to dismiss</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>If you type…</th><th>Suggested tag</th></tr>
+    <tr><td><code>root canal</code>, <code>RCT</code>, <code>endodontic</code></td><td>Category: Endodontics</td></tr>
+    <tr><td><code>crown</code>, <code>bridge</code>, <code>veneer</code></td><td>Category: Prosthodontics</td></tr>
+    <tr><td><code>extraction</code>, <code>surgical extract</code></td><td>Category: Oral Surgery</td></tr>
+    <tr><td><code>retreatment</code>, <code>re-treatment</code></td><td>Outcome: Retreated + Related Entry chip</td></tr>
+    <tr><td><code>extracted due to</code></td><td>Outcome: Failed → Extracted + Related Entry chip</td></tr>
+    <tr><td><code>tooth 14</code>, <code>#14</code>, <code>FDI 24</code></td><td>Tooth number tag</td></tr>
+  </table>
+
+  <div class="callout note">
+    <strong>Negation detection</strong>
+    Phrases like <em>"no signs of caries"</em> or <em>"ruled out periodontitis"</em> suppress the corresponding suggestion — DentVault will not suggest a Periodontics tag if the note says there is no periodontal involvement.
+  </div>
+
+  <h2>Doctor &amp; Colleague Tagging</h2>
+  <p>Each entry can be attributed to a primary doctor (selected from a dropdown) and one or more colleagues (using the <code>@</code> mention palette in the text field).</p>
+
+  <ol class="steps">
+    <li>In the entry text field, type <code>@</code> followed by the first letters of a staff member's name.</li>
+    <li>A palette appears — click the name or press <kbd>Enter</kbd> to insert the mention.</li>
+    <li>The mentioned colleague is tagged on the entry and appears in doctor attribution reports.</li>
+  </ol>
+
+  <h2>Text Block Shortcuts</h2>
+  <p>Pre-defined text blocks can be inserted into any entry using the <code>/</code> command palette. For example, typing <code>/postop</code> might expand to your standard post-operative instructions. Manage text blocks in <strong>Settings → Text Blocks</strong>.</p>
+
+  <h2>Attachments on Entries</h2>
+  <p>Drag an image file onto an entry or use the attachment button to add X-rays, intraoral photos, or scanned documents directly to a timeline entry. Images display as inline thumbnails that can be expanded with a click.</p>
+
+  <figure data-label="📸  screenshots/entry-with-image.png&#10;     Timeline entry showing an expanded intraoral photograph">
+    <img src="screenshots/entry-with-image.png" alt="Entry with image" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Timeline entry with an attached image expanded inline</figcaption>
+  </figure>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>4 — Clinical Timeline (continued)</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 5 — TREATMENT PLANS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 5</span>
+    <span class="chapter-title">Treatment Plans</span>
+  </div>
+
+  <p>Treatment plans allow you to outline a proposed sequence of procedures for a patient, track completion, and record estimated costs. A plan is separate from the timeline — it represents <em>planned</em> work, while timeline entries record what has <em>actually been done</em>.</p>
+
+  <figure data-label="📸  screenshots/treatment-plans.png&#10;     Treatment plan list showing plan name, progress bar, and cost total">
+    <img src="screenshots/treatment-plans.png" alt="Treatment plans" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Treatment plan list — each plan shows its items, completion status, and total cost</figcaption>
+  </figure>
+
+  <h2>Creating a Treatment Plan</h2>
+  <ol class="steps">
+    <li>In the patient profile, open the <strong>Treatment Plans</strong> section.</li>
+    <li>Click <strong>New Plan</strong> and give it a descriptive name (e.g. <em>"Full mouth rehabilitation Q2 2026"</em>).</li>
+    <li>Add plan items — each item has a description, tooth number(s), estimated cost, and ordering.</li>
+    <li>Save the plan. Items are listed in sequence with checkboxes.</li>
+  </ol>
+
+  <h2>Completing Plan Items</h2>
+  <p>When a procedure from the plan is carried out, mark the plan item as complete by clicking its checkbox. You can optionally link it to the corresponding timeline entry — this creates a permanent connection between the planned procedure and the clinical record of its execution.</p>
+
+  <figure data-label="📸  screenshots/plan-items.png&#10;     Plan items list with checkboxes, tooth numbers, and cost column">
+    <img src="screenshots/plan-items.png" alt="Plan items" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Plan items — check off each item as it is completed; link to a timeline entry for traceability</figcaption>
+  </figure>
+
+  <h2>Plan Statuses</h2>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td><span class="pill blue">Draft</span></td><td>Plan created, not yet presented to patient</td></tr>
+    <tr><td><span class="pill amber">Active</span></td><td>Plan accepted; treatment in progress</td></tr>
+    <tr><td><span class="pill green">Completed</span></td><td>All items marked complete</td></tr>
+    <tr><td><span class="pill gray">Cancelled</span></td><td>Plan abandoned; retained for history</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <strong>Cost tracking</strong>
+    The plan automatically totals item costs and shows how much has been "completed" vs. still outstanding. This is for reference only — DentVault does not issue invoices.
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>5 — Treatment Plans</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 6 — DENTAL CHART
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 6</span>
+    <span class="chapter-title">Dental Chart</span>
+  </div>
+
+  <p>The dental chart is a fully interactive SVG diagram of all 32 teeth. Click any tooth to view and edit its condition, surface tags, notes, and history. The chart uses <strong>FDI notation</strong> throughout.</p>
+
+  <figure data-label="📸  screenshots/dental-chart-overview.png&#10;     Full dental chart with two-column layout — SVG on left, detail panel on right">
+    <img src="screenshots/dental-chart-overview.png" alt="Dental chart" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Dental chart — SVG chart on the left, tooth detail panel on the right</figcaption>
+  </figure>
+
+  <h2>Reading the Chart</h2>
+  <p>Each tooth is drawn with a crown (divided into 5 surfaces) and roots. The fill colour of each surface reflects the assigned clinical tag:</p>
+
+  <table>
+    <tr><th>Condition / Tag</th><th>Visual appearance</th></tr>
+    <tr><td>Healthy</td><td>White crown, no fill</td></tr>
+    <tr><td>Caries</td><td>Surface filled with the caries colour (default: dark amber)</td></tr>
+    <tr><td>Filling</td><td>Surface filled with the filling colour (default: blue)</td></tr>
+    <tr><td>Crown</td><td>Full crown fill, outlined border</td></tr>
+    <tr><td>Root Canal</td><td>Light purple crown + purple obturated canal line in roots</td></tr>
+    <tr><td>Implant</td><td>Gray fixture rectangle with thread lines; no roots drawn</td></tr>
+    <tr><td>Extracted</td><td>Diagonal X across the tooth outline</td></tr>
+    <tr><td>Missing</td><td>Dashed tooth outline</td></tr>
+  </table>
+
+  <h2>Selecting and Editing a Tooth</h2>
+  <ol class="steps">
+    <li>Click any tooth in the SVG chart. It highlights in blue and the detail panel opens on the right.</li>
+    <li>In the detail panel, click the <strong>overall condition</strong> button that matches the tooth's status.</li>
+    <li>To tag individual surfaces, click a surface cell in the 3×3 grid (Buccal, Occlusal, Lingual, Mesial, Distal). Multiple surfaces can be selected by dragging.</li>
+    <li>With surfaces selected, click a tag button to apply that tag to all selected surfaces.</li>
+    <li>Add freeform <strong>notes</strong> and a <strong>last examined date</strong>. These auto-save after a short pause.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/tooth-detail-panel.png&#10;     Right-side tooth detail panel showing surface grid, condition buttons, notes">
+    <img src="screenshots/tooth-detail-panel.png" alt="Tooth detail panel" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Tooth detail panel — surface grid (top), condition buttons, notes, and condition history</figcaption>
+  </figure>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>6 — Dental Chart</span>
+  </div>
+</div>
+
+<div class="page page-break">
+  <h2>Charting Mode</h2>
+  <p>Charting mode guides you tooth by tooth in FDI order (18 → 11 → 21 → 28 → 38 → 31 → 41 → 48), so you can chart the whole mouth without using a mouse.</p>
+
+  <ol class="steps">
+    <li>Click <strong>Charting starten</strong> in the chart toolbar. The progress bar appears.</li>
+    <li>The first tooth (FDI 18) is highlighted in amber on the chart. Its detail panel opens automatically.</li>
+    <li>Press a <strong>letter shortcut</strong> (e.g. <kbd>k</kbd> for Karies, <kbd>f</kbd> for Füllung) to apply a condition.</li>
+    <li>Press <kbd>Enter</kbd> to advance to the next tooth, or <kbd>Shift</kbd>+<kbd>Enter</kbd> to go back.</li>
+    <li>Click <strong>Fertig</strong> or press <kbd>Escape</kbd> to end charting at any time.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/charting-mode.png&#10;     Dental chart in charting mode with amber highlighted tooth and progress bar">
+    <img src="screenshots/charting-mode.png" alt="Charting mode" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Charting mode — progress bar at top, current tooth highlighted in amber</figcaption>
+  </figure>
+
+  <h3>Default Keyboard Shortcuts</h3>
+  <table>
+    <tr><th>Key</th><th>Condition</th><th>Key</th><th>Condition</th></tr>
+    <tr><td><kbd>g</kbd></td><td>Gesund (Healthy)</td><td><kbd>o</kbd></td><td>Krone (Crown)</td></tr>
+    <tr><td><kbd>k</kbd></td><td>Karies (Caries)</td><td><kbd>w</kbd></td><td>Wurzelbehandlung (Root Canal)</td></tr>
+    <tr><td><kbd>f</kbd></td><td>Füllung (Filling)</td><td><kbd>i</kbd></td><td>Implantat (Implant)</td></tr>
+    <tr><td><kbd>x</kbd></td><td>Fehlend (Missing)</td><td><kbd>b</kbd></td><td>Brücke (Bridge)</td></tr>
+    <tr><td><kbd>e</kbd></td><td>Extrahiert (Extracted)</td><td><kbd>r</kbd></td><td>Fraktur (Fracture)</td></tr>
+  </table>
+  <p>All shortcuts are user-configurable in <strong>Settings → Edit Tags</strong>.</p>
+
+  <h2>Bridges &amp; Prosthetics</h2>
+  <p>To record a bridge, drag across the abutment and pontic teeth on the SVG chart:</p>
+
+  <ol class="steps">
+    <li>Hold and drag from the first abutment to the last abutment tooth in the chart.</li>
+    <li>The Restoration Editor panel opens. Toggle each tooth between <strong>Abutment</strong> and <strong>Pontic</strong> (middle teeth default to Pontic).</li>
+    <li>For implant-supported bridges, click the abutment tooth and toggle <strong>Implant abutment</strong>.</li>
+    <li>Click <strong>Confirm</strong>. The bridge bar appears on the chart connecting the selected teeth.</li>
+  </ol>
+
+  <p>To dissolve a bridge, select any tooth in the group and click <strong>Brücke auflösen</strong> in the detail panel.</p>
+
+  <h2>Chart Snapshots</h2>
+  <p>Click the <strong>Snapshot</strong> button in the chart toolbar to record the current state of all teeth against a timeline entry. Snapshots are viewable from the timeline and allow you to see how the dentition changed over time.</p>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>6 — Dental Chart (continued)</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 7 — PERIODONTAL PROBING
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 7</span>
+    <span class="chapter-title">Periodontal Probing</span>
+  </div>
+
+  <p>The periodontal probing chart records a full 6-point examination for all 32 teeth. Each exam session is stored as a separate record, allowing you to track pocket depth changes over time.</p>
+
+  <p>Open the probing chart by clicking <strong>Perio</strong> in the patient timeline toolbar.</p>
+
+  <figure data-label="📸  screenshots/perio-overview.png&#10;     Full perio chart — SVG bar graph on left, data entry panel on right">
+    <img src="screenshots/perio-overview.png" alt="Periodontal probing chart" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Periodontal probing chart — bar graph visualization on the left, single-tooth data entry on the right</figcaption>
+  </figure>
+
+  <h2>Reading the Probing Chart</h2>
+  <p>The SVG chart displays all 32 teeth with vertical bars representing pocket depths. The upper arch (buccal above, lingual below) is separated from the lower arch by a horizontal line.</p>
+
+  <table>
+    <tr><th>Bar colour</th><th>Pocket depth</th><th>Clinical significance</th></tr>
+    <tr><td><span class="pill green">Green</span></td><td>1–3 mm</td><td>Within normal limits</td></tr>
+    <tr><td><span class="pill amber">Amber</span></td><td>4–5 mm</td><td>Increased probing depth; monitor</td></tr>
+    <tr><td><span class="pill red">Red</span></td><td>≥ 6 mm</td><td>Deep pocket; active periodontitis likely</td></tr>
+  </table>
+
+  <p>Each bar can carry additional markers:</p>
+  <ul>
+    <li><strong>Red dot</strong> at bar tip — Bleeding on probing (BOP) is positive</li>
+    <li><strong>Yellow dot</strong> at bar base — Plaque present at that site</li>
+    <li><strong>Purple segment</strong> below the bar — Recession depth (the bar + purple segment = CAL)</li>
+  </ul>
+
+  <h2>The Data Entry Panel</h2>
+  <p>Click any tooth on the SVG chart to open its data entry panel on the right. The panel shows one tooth at a time with all six sites arranged in two groups:</p>
+
+  <figure data-label="📸  screenshots/perio-entry-panel.png&#10;     Data entry panel for FDI 16 showing buccal/lingual rows with PD, recession, BOP, plaque inputs">
+    <img src="screenshots/perio-entry-panel.png" alt="Perio data entry panel" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Single-tooth data entry panel — Buccal (top) and Lingual (bottom) with PD, Recession, BOP, and Plaque per site</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>Row</th><th>Input type</th><th>Description</th></tr>
+    <tr><td><strong>PD</strong></td><td>Number (0–15 mm)</td><td>Pocket depth at each site</td></tr>
+    <tr><td><strong>Rec</strong></td><td>Number (0–15 mm)</td><td>Recession depth (leave blank if not measuring)</td></tr>
+    <tr><td><strong>CAL</strong></td><td>Computed</td><td>Clinical Attachment Level = PD + Recession (auto-calculated)</td></tr>
+    <tr><td><strong>BOP</strong></td><td>Toggle circle</td><td>Red = bleeding on probing at that site</td></tr>
+    <tr><td><strong>Plq</strong></td><td>Toggle circle</td><td>Yellow = plaque visible at that site</td></tr>
+  </table>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>7 — Periodontal Probing</span>
+  </div>
+</div>
+
+<div class="page page-break">
+  <h2>Mobility &amp; Furcation</h2>
+  <p>Below the site measurements, the panel shows additional tooth-level findings:</p>
+
+  <table>
+    <tr><th>Field</th><th>Values</th><th>Notes</th></tr>
+    <tr><td><strong>Mobility</strong></td><td>0, I, II, III</td><td>Shown for all teeth</td></tr>
+    <tr><td><strong>Furcation</strong></td><td>0, I, II, III</td><td>Shown only for multi-rooted teeth (molars, upper premolars)</td></tr>
+    <tr><td><strong>Furcation sites</strong></td><td>B / ML / DL (upper); B / L (lower)</td><td>Appears when furcation grade &gt; 0</td></tr>
+  </table>
+
+  <h2>Guided Charting Mode</h2>
+  <p>For full-mouth recordings, use guided charting mode to move systematically through all 32 teeth without touching the mouse.</p>
+
+  <ol class="steps">
+    <li>Click <strong>▶ Start Charting</strong> in the toolbar. The progress bar shows <em>0/32</em>.</li>
+    <li>The first tooth (FDI 18) is highlighted in amber on the chart and its panel opens.</li>
+    <li>Enter PD values by <strong>tabbing</strong> through the six site inputs (MB → B → DB → ML → L → DL).</li>
+    <li>After the last input (DL), press <kbd>Enter</kbd> to advance to the next tooth automatically.</li>
+    <li>Use <kbd>Shift</kbd>+<kbd>Enter</kbd> to go back to the previous tooth.</li>
+    <li>Press <kbd>Escape</kbd> or click <strong>✓ Fertig</strong> to exit charting at any time.</li>
+  </ol>
+
+  <div class="callout tip">
+    <strong>Assistant-aided charting</strong>
+    With guided charting mode, a dental assistant can call out values while the operator enters them — the flow matches the clinical sequence exactly (upper right → upper left → lower left → lower right).
+  </div>
+
+  <h2>Comparing Records Over Time</h2>
+  <p>Use the <strong>Compare</strong> dropdown in the toolbar to overlay a previous exam's data as ghost bars on the SVG chart.</p>
+
+  <ol class="steps">
+    <li>Open the probing chart for the patient.</li>
+    <li>Use <strong>Load</strong> to load the most recent exam record.</li>
+    <li>Use <strong>Compare</strong> to select an earlier record as the baseline.</li>
+    <li>The SVG chart now shows ghost gray bars (previous) behind the coloured bars (current).</li>
+    <li>The <strong>comparison strip</strong> at the bottom shows: <em>X sites improved, Y worsened, Z unchanged</em> with a per-tooth breakdown.</li>
+  </ol>
+
+  <figure data-label="📸  screenshots/perio-comparison.png&#10;     Perio chart with ghost bars and comparison delta strip at bottom">
+    <img src="screenshots/perio-comparison.png" alt="Perio comparison view" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Comparison view — ghost bars show the previous record; the strip at the bottom shows per-site deltas</figcaption>
+  </figure>
+
+  <h2>Summary Statistics Bar</h2>
+  <p>The bar at the very bottom of the probing chart dialog shows live statistics for the current record:</p>
+
+  <table>
+    <tr><th>Statistic</th><th>Description</th></tr>
+    <tr><td><strong>Sites</strong></td><td>Number of sites recorded out of 192 total</td></tr>
+    <tr><td><strong>Mean PD</strong></td><td>Average pocket depth across all recorded sites</td></tr>
+    <tr><td><strong>PD ≥ 4</strong></td><td>Count and percentage of sites with PD 4 mm or more</td></tr>
+    <tr><td><strong>PD ≥ 6</strong></td><td>Count and percentage of sites with PD 6 mm or more</td></tr>
+    <tr><td><strong>BOP</strong></td><td>Percentage of recorded sites with bleeding on probing</td></tr>
+    <tr><td><strong>Teeth</strong></td><td>Number of teeth with at least one recorded site</td></tr>
+  </table>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>7 — Periodontal Probing (continued)</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 8 — DOCUMENTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 8</span>
+    <span class="chapter-title">Documents &amp; Attachments</span>
+  </div>
+
+  <p>The Documents section stores any file type associated with a patient — X-rays, photographs, referral letters, consent forms, lab reports, and more. Files are stored inside the vault folder in a structured directory.</p>
+
+  <figure data-label="📸  screenshots/documents.png&#10;     Documents grid showing thumbnails, category pills, and file names">
+    <img src="screenshots/documents.png" alt="Documents section" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Documents grid — thumbnails for images, file icons for other types, category filter pills at top</figcaption>
+  </figure>
+
+  <h2>Adding Documents</h2>
+  <ol class="steps">
+    <li>In the Documents section, click <strong>Add Document</strong> or drag files directly into the grid.</li>
+    <li>Select a <strong>category</strong> for the document (e.g. X-ray, Referral, Photo).</li>
+    <li>Optionally add a title and date.</li>
+    <li>The file is copied into the vault and a thumbnail is generated for images.</li>
+  </ol>
+
+  <h2>Viewing Documents</h2>
+  <p>Click any document thumbnail to open a full-screen viewer. Images are displayed inline; other file types are opened in your system's default application.</p>
+
+  <h2>Document Categories</h2>
+  <p>Categories are fully configurable in <strong>Settings → Document Categories</strong>. The filter pills at the top of the Documents grid update automatically when you add or rename categories.</p>
+
+  <div class="callout note">
+    <strong>Vault folder structure</strong>
+    Documents are stored at <code>vault/patients/[patient-id]/documents/[category]/filename</code>. You can open the vault folder in Finder/Explorer to access files directly.
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>8 — Documents &amp; Attachments</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 9 — DASHBOARD & ANALYTICS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 9</span>
+    <span class="chapter-title">Dashboard &amp; Analytics</span>
+  </div>
+
+  <p>The Dashboard provides a practice-wide overview of clinical outcomes. All statistics are computed from the structured data in your timeline entries — this is why accurate category and outcome tagging matters.</p>
+
+  <figure data-label="📸  screenshots/dashboard.png&#10;     Dashboard showing stat cards, category bar chart, and outcome table">
+    <img src="screenshots/dashboard.png" alt="Dashboard" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Practice dashboard — summary cards, category bar chart, and outcome breakdown table</figcaption>
+  </figure>
+
+  <h2>Summary Cards</h2>
+  <p>The top row shows key practice metrics at a glance: total patients, entries this month, overall success rate, and active treatment plans.</p>
+
+  <h2>Category Bar Chart</h2>
+  <p>Shows the volume of entries per treatment category over the selected time period. Click any bar to drill down into the individual entries for that category.</p>
+
+  <h2>Outcome Table</h2>
+  <p>A matrix of treatment categories (rows) vs. outcomes (columns). Each cell shows a count. Click any cell to see the individual entries matching that category+outcome combination.</p>
+
+  <figure data-label="📸  screenshots/dashboard-drilldown.png&#10;     Drill-down entry list after clicking a cell in the outcome table">
+    <img src="screenshots/dashboard-drilldown.png" alt="Dashboard drill-down" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Drill-down view — click any cell in the outcome table to see matching entries</figcaption>
+  </figure>
+
+  <h2>Filtering the Dashboard</h2>
+  <p>Use the filter bar at the top of the Dashboard to restrict statistics to a date range or a specific doctor. This allows per-provider outcome analysis.</p>
+
+  <div class="callout tip">
+    <strong>Example analyses</strong>
+    <ul style="margin-top:4px; padding-left:16px;">
+      <li>Filter by <em>Endodontics</em> + date range → see your root canal success rate over time</li>
+      <li>Filter by doctor name → compare outcomes between providers</li>
+      <li>Click <em>Failed → Extracted</em> in the Prosthodontics row → see which crowned teeth were eventually lost</li>
+    </ul>
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>9 — Dashboard &amp; Analytics</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 10 — REPORTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 10</span>
+    <span class="chapter-title">Reports &amp; CSV Export</span>
+  </div>
+
+  <p>The Reports page gives you a filterable flat table of all timeline entries across all patients. Use it to generate practice activity reports, audit exports, or referral letters.</p>
+
+  <figure data-label="📸  screenshots/reports.png&#10;     Reports page with filter bar and entry table below">
+    <img src="screenshots/reports.png" alt="Reports page" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Reports page — filter bar (top), entry table (bottom), CSV export button (top right)</figcaption>
+  </figure>
+
+  <h2>Available Filters</h2>
+  <table>
+    <tr><th>Filter</th><th>Description</th></tr>
+    <tr><td><strong>Date range</strong></td><td>Show entries between two dates</td></tr>
+    <tr><td><strong>Categories</strong></td><td>One or more treatment categories</td></tr>
+    <tr><td><strong>Outcomes</strong></td><td>One or more outcome types</td></tr>
+    <tr><td><strong>Doctor</strong></td><td>Entries attributed to a specific provider</td></tr>
+    <tr><td><strong>Tooth numbers</strong></td><td>Entries involving specific FDI tooth numbers</td></tr>
+  </table>
+
+  <h2>Exporting to CSV</h2>
+  <ol class="steps">
+    <li>Apply filters to narrow the entries as needed.</li>
+    <li>Click <strong>Export CSV</strong> at the top right.</li>
+    <li>A <code>.csv</code> file is saved to your Downloads folder. It can be opened in Excel, Numbers, or any spreadsheet application.</li>
+  </ol>
+
+  <p>The CSV includes: patient name, date, category, outcome, tooth numbers, doctor, and the entry text.</p>
+
+  <div class="callout note">
+    <strong>Use case: insurance reporting</strong>
+    Filter by date range + category (e.g. Endodontics), then export to CSV to prepare treatment summaries for insurance submissions.
+  </div>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>10 — Reports &amp; CSV Export</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 11 — SETTINGS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 11</span>
+    <span class="chapter-title">Settings</span>
+  </div>
+
+  <p>Settings is where you customise DentVault for your practice. Everything that has a "type", "category", or "label" can be renamed, extended, or removed here. Changes take effect immediately across the whole app.</p>
+
+  <figure data-label="📸  screenshots/settings-overview.png&#10;     Settings page with sections listed in sidebar">
+    <img src="screenshots/settings-overview.png" alt="Settings overview" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Settings page — all configurable systems are accessible from the left column</figcaption>
+  </figure>
+
+  <h2>Document Categories</h2>
+  <p>The categories available when attaching a document (e.g. X-ray, Referral, Consent Form). Changes here automatically update the category filter pills in the Documents section and the vault folder structure.</p>
+
+  <h2>Clinical Tags</h2>
+  <p>Two separate tag lists:</p>
+  <ul>
+    <li><strong>Acute Problem Tags</strong> — used in the Acute Problems box on the patient profile (e.g. Pain, Swelling, Abscess)</li>
+    <li><strong>Medical History Tags</strong> — used in the Medical History box (e.g. Diabetes, Hypertension, Anticoagulants)</li>
+  </ul>
+
+  <h2>Staff Roles</h2>
+  <p>The role labels that appear next to staff names throughout the app (e.g. Principal Dentist, Associate, Hygienist, Oral Surgeon). Rename or add roles to match your practice structure.</p>
+
+  <h2>Text Blocks</h2>
+  <p>Reusable text snippets inserted with the <code>/</code> command palette in any entry text field. Add standard templates for post-operative instructions, recall reminders, referral language, and more.</p>
+
+  <figure data-label="📸  screenshots/settings-text-blocks.png&#10;     Text blocks list with name, trigger keyword, and preview text">
+    <img src="screenshots/settings-text-blocks.png" alt="Text blocks settings" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Text blocks — each block has a trigger keyword (typed after <code>/</code>) and an expandable body</figcaption>
+  </figure>
+
+  <h2>Complication Types</h2>
+  <p>The structured complication types that can be logged against a timeline entry (e.g. Post-operative Pain, Instrument Separation, Allergic Reaction). 13 defaults are provided. You can rename, add, or delete types.</p>
+
+  <h2>Dental Tag Shortcuts</h2>
+  <p>Accessible via <strong>Edit Tags</strong> in the dental chart toolbar. Each tag has a configurable single-letter keyboard shortcut for use during charting mode. Duplicate shortcuts are blocked on save.</p>
+
+  <figure data-label="📸  screenshots/settings-edit-tags.png&#10;     Edit Tags dialog showing tag colours, patterns, and keyboard shortcut inputs">
+    <img src="screenshots/settings-edit-tags.png" alt="Edit tags dialog" onerror="this.closest('figure').classList.add('missing')">
+    <figcaption>Edit Tags dialog — customise colours, fill patterns, and keyboard shortcuts for each dental condition</figcaption>
+  </figure>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>11 — Settings</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CH 12 — KEYBOARD SHORTCUTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 12</span>
+    <span class="chapter-title">Keyboard Shortcuts Reference</span>
+  </div>
+
+  <div class="shortcut-grid">
+    <div class="shortcut-section avoid-break">
+      <h4>Global</h4>
+      <div class="shortcut-row"><span class="keys"><kbd>/</kbd></span><span class="desc">Focus patient search</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Esc</kbd></span><span class="desc">Close dialog / deselect</span></div>
+    </div>
+
+    <div class="shortcut-section avoid-break">
+      <h4>Timeline Entry</h4>
+      <div class="shortcut-row"><span class="keys"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span><span class="desc">Save entry</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>/</kbd> + keyword</span><span class="desc">Insert text block</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>@</kbd> + name</span><span class="desc">Mention / tag colleague</span></div>
+    </div>
+
+    <div class="shortcut-section avoid-break">
+      <h4>Dental Chart — Navigation</h4>
+      <div class="shortcut-row"><span class="keys"><kbd>Enter</kbd></span><span class="desc">Next tooth (charting mode)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Shift</kbd>+<kbd>Enter</kbd></span><span class="desc">Previous tooth</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Esc</kbd></span><span class="desc">Exit charting / deselect tooth</span></div>
+    </div>
+
+    <div class="shortcut-section avoid-break">
+      <h4>Dental Chart — Tag Shortcuts</h4>
+      <div class="shortcut-row"><span class="keys"><kbd>g</kbd></span><span class="desc">Gesund (Healthy)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>k</kbd></span><span class="desc">Karies (Caries)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>f</kbd></span><span class="desc">Füllung (Filling)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>o</kbd></span><span class="desc">Krone (Crown)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>w</kbd></span><span class="desc">Wurzelbehandlung (RCT)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>i</kbd></span><span class="desc">Implantat (Implant)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>b</kbd></span><span class="desc">Brücke (Bridge)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>x</kbd></span><span class="desc">Fehlend (Missing)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>e</kbd></span><span class="desc">Extrahiert (Extracted)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>p</kbd></span><span class="desc">Impaktiert (Impacted)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>r</kbd></span><span class="desc">Fraktur (Fracture)</span></div>
+    </div>
+
+    <div class="shortcut-section avoid-break">
+      <h4>Periodontal Chart — Navigation</h4>
+      <div class="shortcut-row"><span class="keys"><kbd>Tab</kbd></span><span class="desc">Next PD input site (MB→B→DB→ML→L→DL)</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Enter</kbd></span><span class="desc">Advance to next tooth</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Shift</kbd>+<kbd>Enter</kbd></span><span class="desc">Go back to previous tooth</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>↑</kbd> / <kbd>↓</kbd></span><span class="desc">Increment / decrement PD value by 1 mm</span></div>
+      <div class="shortcut-row"><span class="keys"><kbd>Esc</kbd></span><span class="desc">Deselect tooth / exit charting</span></div>
+    </div>
+
+    <div class="shortcut-section avoid-break">
+      <h4>Dental Chart — Surface Grid</h4>
+      <div class="shortcut-row"><span class="keys">Click surface</span><span class="desc">Select / toggle surface</span></div>
+      <div class="shortcut-row"><span class="keys">Drag across</span><span class="desc">Multi-select surfaces</span></div>
+      <div class="shortcut-row"><span class="keys">Letter key</span><span class="desc">Apply tag to selected surfaces (or whole tooth)</span></div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:20px;">FDI Charting Order</h2>
+  <p>Both the dental chart and perio chart advance through teeth in this sequence:</p>
+
+  <table>
+    <tr><th>Quadrant</th><th>FDI Numbers</th><th>Universal Numbers</th></tr>
+    <tr><td>Q1 — Upper Right</td><td>18, 17, 16, 15, 14, 13, 12, 11</td><td>1 → 8</td></tr>
+    <tr><td>Q2 — Upper Left</td><td>21, 22, 23, 24, 25, 26, 27, 28</td><td>9 → 16</td></tr>
+    <tr><td>Q3 — Lower Left</td><td>38, 37, 36, 35, 34, 33, 32, 31</td><td>17 → 24</td></tr>
+    <tr><td>Q4 — Lower Right</td><td>41, 42, 43, 44, 45, 46, 47, 48</td><td>25 → 32</td></tr>
+  </table>
+
+  <div class="page-footer">
+    <span>DentVault</span>
+    <span>12 — Keyboard Shortcuts Reference</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SCREENSHOT INDEX (screen-only helper, hidden when printing)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="page no-print" style="background:#fffbeb; border:2px dashed #d97706;">
+  <h2 style="color:#92400e; margin-bottom:12px;">📸 Screenshot Checklist</h2>
+  <p style="color:#78350f; margin-bottom:16px; font-size:9.5pt;">
+    Place each screenshot in <code>docs/screenshots/</code> with the filename below.
+    Reload this page in a browser to see the handbook fill in. Run <code>node docs/generate-pdf.js</code> to export the final PDF.
+  </p>
+  <table>
+    <tr><th>Filename</th><th>What to capture</th></tr>
+    <tr><td><code>vault-setup.png</code></td><td>First-launch vault folder picker screen</td></tr>
+    <tr><td><code>sidebar.png</code></td><td>Left sidebar with all nav items visible</td></tr>
+    <tr><td><code>patients-list.png</code></td><td>Patient list with several patients, showing status badges and search bar</td></tr>
+    <tr><td><code>new-patient-form.png</code></td><td>New patient form with fields visible</td></tr>
+    <tr><td><code>timeline-overview.png</code></td><td>Patient timeline with 3–5 entries of different categories</td></tr>
+    <tr><td><code>add-entry.png</code></td><td>Add entry form open, tag suggestion bar visible</td></tr>
+    <tr><td><code>tag-suggestions.png</code></td><td>Tag suggestion bar with chips below a text entry</td></tr>
+    <tr><td><code>entry-with-image.png</code></td><td>Timeline entry with an image expanded inline</td></tr>
+    <tr><td><code>treatment-plans.png</code></td><td>Treatment plan list with at least one plan showing items</td></tr>
+    <tr><td><code>plan-items.png</code></td><td>Plan items list with some checked, showing cost column</td></tr>
+    <tr><td><code>dental-chart-overview.png</code></td><td>Full dental chart with some conditions set, detail panel open on right</td></tr>
+    <tr><td><code>tooth-detail-panel.png</code></td><td>Tooth detail panel with surface grid and condition buttons visible</td></tr>
+    <tr><td><code>charting-mode.png</code></td><td>Chart in charting mode — amber highlighted tooth, progress bar visible</td></tr>
+    <tr><td><code>perio-overview.png</code></td><td>Full perio chart dialog with some data entered (bars visible on SVG)</td></tr>
+    <tr><td><code>perio-entry-panel.png</code></td><td>Perio data entry panel for a single tooth showing all rows</td></tr>
+    <tr><td><code>perio-comparison.png</code></td><td>Perio chart with comparison ghost bars and delta strip visible</td></tr>
+    <tr><td><code>documents.png</code></td><td>Documents grid with a few thumbnails and category filter pills</td></tr>
+    <tr><td><code>dashboard.png</code></td><td>Dashboard with stat cards, bar chart, and outcome table</td></tr>
+    <tr><td><code>dashboard-drilldown.png</code></td><td>Drill-down entry list after clicking a dashboard cell</td></tr>
+    <tr><td><code>reports.png</code></td><td>Reports page with filter bar and populated entry table</td></tr>
+    <tr><td><code>settings-overview.png</code></td><td>Settings page showing all section headings</td></tr>
+    <tr><td><code>settings-text-blocks.png</code></td><td>Text Blocks settings section with a few blocks listed</td></tr>
+    <tr><td><code>settings-edit-tags.png</code></td><td>Edit Tags dialog with colour swatches and shortcut key inputs</td></tr>
+  </table>
+</div>
+
+</body>
+</html>
