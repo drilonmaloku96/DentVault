@@ -9,6 +9,7 @@
 		active: { label: i18n.t.patients.status.active, class: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' },
 		inactive: { label: i18n.t.patients.status.inactive, class: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400' },
 		archived: { label: i18n.t.patients.status.archived, class: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
+		deceased: { label: i18n.t.patients.status.deceased, class: 'bg-zinc-800 text-zinc-200 border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300' },
 	});
 
 	const status = $derived(statusConfig[patient.status] ?? statusConfig.active);

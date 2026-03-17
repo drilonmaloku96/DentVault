@@ -7,7 +7,6 @@
 	import type { Patient, PatientStatus } from '$lib/types';
 	import { listVaultFiles, type VaultFileInfo } from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '$lib/components/ui/dialog';
 	import TimelineView from '$lib/components/timeline/TimelineView.svelte';
 	import PatientNotesBox from '$lib/components/patient/PatientNotesBox.svelte';
@@ -121,6 +120,7 @@
 		active:   { label: i18n.t.patients.status.active,   class: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' },
 		inactive: { label: i18n.t.patients.status.inactive, class: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400' },
 		archived: { label: i18n.t.patients.status.archived, class: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
+		deceased: { label: i18n.t.patients.status.deceased, class: 'bg-zinc-800 text-zinc-200 border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300' },
 	});
 
 	const selectClass =
@@ -169,6 +169,7 @@
 					<option value="active">{i18n.t.patients.status.active}</option>
 					<option value="inactive">{i18n.t.patients.status.inactive}</option>
 					<option value="archived">{i18n.t.patients.status.archived}</option>
+					<option value="deceased">{i18n.t.patients.status.deceased}</option>
 				</select>
 				<Button href="/patients/{patient.patient_id}/edit" variant="outline" size="sm">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
@@ -360,54 +361,104 @@
 		<!-- ── Expandable patient info panel ──────────────────────── -->
 		{#if showInfo}
 			<div id="patient-info-panel" transition:slide={{ duration: 180 }} class="mt-3 mb-4">
-				<div class="grid gap-4 md:grid-cols-2 pt-2 pb-1">
-					<!-- Personal Info -->
-					<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-						<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Personal Information</h2>
-						<Separator />
-						<div class="grid grid-cols-2 gap-4">
-							<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.firstName}</span><span class={infoValueClass}>{patient.firstname || '—'}</span></div>
-							<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.lastName}</span><span class={infoValueClass}>{patient.lastname || '—'}</span></div>
-							<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.dob}</span><span class={infoValueClass}>{formatDate(patient.dob)}</span></div>
-							<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.gender}</span><span class={infoValueClass}>{formatGender(patient.gender)}</span></div>
-						</div>
-					</div>
-					<!-- Contact -->
-					<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-						<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contact</h2>
-						<Separator />
-						<div class="flex flex-col gap-3">
-							<div class={infoRowClass}>
-								<span class={infoLabelClass}>{i18n.t.patients.fields.phone}</span>
-								{#if patient.phone}<a href="tel:{patient.phone}" class="text-sm text-primary hover:underline">{patient.phone}</a>{:else}<span class={infoValueClass}>—</span>{/if}
-							</div>
-							<div class={infoRowClass}>
-								<span class={infoLabelClass}>{i18n.t.patients.fields.email}</span>
-								{#if patient.email}<a href="mailto:{patient.email}" class="text-sm text-primary hover:underline">{patient.email}</a>{:else}<span class={infoValueClass}>—</span>{/if}
+				<div class="flex flex-col gap-3 pt-3 pb-1">
+					<!-- Row 1: Personal + Contact -->
+					<div class="grid gap-3 md:grid-cols-2">
+						<!-- Personal -->
+						<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.personal}</h3>
+							<div class="grid grid-cols-2 gap-3">
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.firstName}</span><span class={infoValueClass}>{patient.firstname || '—'}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.lastName}</span><span class={infoValueClass}>{patient.lastname || '—'}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.dob}</span><span class={infoValueClass}>{formatDate(patient.dob)}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.gender}</span><span class={infoValueClass}>{formatGender(patient.gender)}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.maritalStatus}</span><span class={infoValueClass}>{patient.marital_status || '—'}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.bloodGroup}</span><span class={infoValueClass}>{patient.blood_group || '—'}</span></div>
 							</div>
 						</div>
-					</div>
-					<!-- Insurance -->
-					<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-						<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Insurance</h2>
-						<Separator />
-						<div class="grid grid-cols-2 gap-4">
-							<div class={infoRowClass}><span class={infoLabelClass}>Provider</span><span class={infoValueClass}>{patient.insurance_provider || '—'}</span></div>
-							<div class={infoRowClass}><span class={infoLabelClass}>Policy ID</span><span class={infoValueClass}>{patient.insurance_id || '—'}</span></div>
+						<!-- Contact -->
+						<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.contact}</h3>
+							<div class="flex flex-col gap-2">
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.phone}</span>
+									{#if patient.phone}<a href="tel:{patient.phone}" class="text-sm text-primary hover:underline">{patient.phone}</a>{:else}<span class={infoValueClass}>—</span>{/if}
+								</div>
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.email}</span>
+									{#if patient.email}<a href="mailto:{patient.email}" class="text-sm text-primary hover:underline">{patient.email}</a>{:else}<span class={infoValueClass}>—</span>{/if}
+								</div>
+								{#if patient.address || patient.city || patient.postal_code || patient.country}
+									<div class={infoRowClass}>
+										<span class={infoLabelClass}>{i18n.t.patients.formSections.address}</span>
+										<span class={infoValueClass}>
+											{[patient.address, [patient.postal_code, patient.city].filter(Boolean).join(' '), patient.country].filter(Boolean).join(', ') || '—'}
+										</span>
+									</div>
+								{/if}
+							</div>
 						</div>
 					</div>
-					<!-- Appointment -->
-					<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-						<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Appointment</h2>
-						<Separator />
-						<div class={infoRowClass}>
-							<span class={infoLabelClass}>Next Appointment</span>
-							<span class={infoValueClass}>{formatDate(patient.next_appointment)}</span>
+
+					<!-- Row 2: Emergency Contact + Insurance -->
+					<div class="grid gap-3 md:grid-cols-2">
+						<!-- Emergency Contact -->
+						<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.emergencyContact}</h3>
+							<div class="flex flex-col gap-2">
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.emergencyContactName}</span>
+									<span class={infoValueClass}>{patient.emergency_contact_name || '—'}</span>
+								</div>
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.emergencyContactRelation}</span>
+									<span class={infoValueClass}>{patient.emergency_contact_relation || '—'}</span>
+								</div>
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.emergencyContactPhone}</span>
+									{#if patient.emergency_contact_phone}<a href="tel:{patient.emergency_contact_phone}" class="text-sm text-primary hover:underline">{patient.emergency_contact_phone}</a>{:else}<span class={infoValueClass}>—</span>{/if}
+								</div>
+							</div>
 						</div>
-						<div class="grid grid-cols-2 gap-4">
-							<div class={infoRowClass}><span class={infoLabelClass}>Created</span><span class="text-sm text-muted-foreground">{formatDate(patient.created_at)}</span></div>
-							<div class={infoRowClass}><span class={infoLabelClass}>Last Updated</span><span class="text-sm text-muted-foreground">{formatDate(patient.updated_at)}</span></div>
+						<!-- Insurance + Clinical -->
+						<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.insurance}</h3>
+							<div class="grid grid-cols-2 gap-3">
+								<div class={infoRowClass}><span class={infoLabelClass}>Provider</span><span class={infoValueClass}>{patient.insurance_provider || '—'}</span></div>
+								<div class={infoRowClass}><span class={infoLabelClass}>Policy ID</span><span class={infoValueClass}>{patient.insurance_id || '—'}</span></div>
+							</div>
+							{#if patient.primary_physician}
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>{i18n.t.patients.fields.primaryPhysician}</span>
+									<span class={infoValueClass}>{patient.primary_physician}</span>
+								</div>
+							{/if}
+							{#if patient.next_appointment}
+								<div class={infoRowClass}>
+									<span class={infoLabelClass}>Next Appointment</span>
+									<span class={infoValueClass}>{formatDate(patient.next_appointment)}</span>
+								</div>
+							{/if}
 						</div>
+					</div>
+
+					<!-- Row 3: Demographics (compact) - only show if any values exist -->
+					{#if patient.referral_source || patient.smoking_status || patient.occupation}
+						<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.demographics}</h3>
+							<div class="grid grid-cols-3 gap-3">
+								{#if patient.referral_source}<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.referralSource}</span><span class={infoValueClass}>{patient.referral_source}</span></div>{/if}
+								{#if patient.smoking_status}<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.smokingStatus}</span><span class={infoValueClass}>{patient.smoking_status}</span></div>{/if}
+								{#if patient.occupation}<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.occupation}</span><span class={infoValueClass}>{patient.occupation}</span></div>{/if}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Dates row -->
+					<div class="flex items-center gap-4 px-1 text-xs text-muted-foreground/60">
+						<span>ID: <span class="font-mono">{patient.patient_id}</span></span>
+						<span>Created: {formatDateShort(patient.created_at)}</span>
+						<span>Updated: {formatDateShort(patient.updated_at)}</span>
 					</div>
 				</div>
 			</div>

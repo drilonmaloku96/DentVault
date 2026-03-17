@@ -1,4 +1,4 @@
-export type PatientStatus = 'active' | 'inactive' | 'archived';
+export type PatientStatus = 'active' | 'inactive' | 'archived' | 'deceased';
 
 export interface Patient {
 	id: number;
@@ -20,6 +20,16 @@ export interface Patient {
 	referral_source: string;
 	smoking_status: string;
 	occupation: string;
+	address: string;
+	city: string;
+	postal_code: string;
+	country: string;
+	emergency_contact_name: string;
+	emergency_contact_phone: string;
+	emergency_contact_relation: string;
+	blood_group: string;
+	primary_physician: string;
+	marital_status: string;
 	created_at: string;
 	updated_at: string;
 }
@@ -36,6 +46,17 @@ export interface PatientFormData {
 	referral_source?: string;
 	smoking_status?: string;
 	occupation?: string;
+	allergies?: string;
+	address?: string;
+	city?: string;
+	postal_code?: string;
+	country?: string;
+	emergency_contact_name?: string;
+	emergency_contact_phone?: string;
+	emergency_contact_relation?: string;
+	blood_group?: string;
+	primary_physician?: string;
+	marital_status?: string;
 }
 
 export type TimelineEntryType = 'visit' | 'procedure' | 'note' | 'lab' | 'imaging' | 'referral' | 'document' | 'plan' | 'chart_snapshot';

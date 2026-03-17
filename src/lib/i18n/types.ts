@@ -44,16 +44,24 @@ export interface Translations {
 		fields: {
 			firstName: string; lastName: string; dob: string; gender: string;
 			phone: string; email: string; address: string;
+			city: string; postalCode: string; country: string;
 			referralSource: string; smokingStatus: string; occupation: string;
 			allergies: string; bloodGroup: string;
+			emergencyContactName: string; emergencyContactPhone: string; emergencyContactRelation: string;
+			primaryPhysician: string; maritalStatus: string;
 		};
 		tabs: {
 			timeline: string; plans: string; chart: string;
 			perio: string; documents: string;
 		};
+		maritalStatus: { single: string; married: string; divorced: string; widowed: string; partnered: string; };
 		medicalHistory: string; acuteProblems: string; conditions: string;
 		editPatient: string; deletePatient: string;
 		deleteConfirm: string; deleteWarning: string;
+		formSections: {
+			personal: string; contact: string; address: string;
+			emergencyContact: string; insurance: string; clinical: string; demographics: string;
+		};
 	};
 
 	// ── Timeline ──────────────────────────────────────────────────────

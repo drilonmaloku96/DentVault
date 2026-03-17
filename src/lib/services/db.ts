@@ -454,9 +454,20 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 		version: 30,
 		sql: `CREATE INDEX IF NOT EXISTS idx_probing_tooth_data_record ON probing_tooth_data(record_id, tooth_number)`,
 	},
+	// v31 – expanded patient fields
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN address TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN city TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN postal_code TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN country TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN emergency_contact_name TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN emergency_contact_phone TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN emergency_contact_relation TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN blood_group TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN primary_physician TEXT DEFAULT ''` },
+	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN marital_status TEXT DEFAULT ''` },
 ];
 
-const LATEST_VERSION = 30;
+const LATEST_VERSION = 31;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -638,8 +649,12 @@ export async function insertPatient(data: PatientFormData): Promise<Patient> {
 
 	await conn.execute(
 		`INSERT INTO patients (patient_id, firstname, lastname, dob, gender, phone, email,
-		  insurance_provider, insurance_id, referral_source, smoking_status, occupation, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+		  insurance_provider, insurance_id, referral_source, smoking_status, occupation,
+		  address, city, postal_code, country,
+		  emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
+		  blood_group, primary_physician, marital_status,
+		  created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
 		[
 			patientId,
 			data.firstname,
@@ -653,6 +668,16 @@ export async function insertPatient(data: PatientFormData): Promise<Patient> {
 			data.referral_source ?? '',
 			data.smoking_status ?? '',
 			data.occupation ?? '',
+			data.address ?? '',
+			data.city ?? '',
+			data.postal_code ?? '',
+			data.country ?? '',
+			data.emergency_contact_name ?? '',
+			data.emergency_contact_phone ?? '',
+			data.emergency_contact_relation ?? '',
+			data.blood_group ?? '',
+			data.primary_physician ?? '',
+			data.marital_status ?? '',
 			now,
 			now,
 		],

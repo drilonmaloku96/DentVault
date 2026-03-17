@@ -593,7 +593,7 @@
 										>
 											<option value="">Select type…</option>
 											{#each complicationTypes.list as ct}
-												<option value={ct}>{ct}</option>
+												<option value={ct.key}>{complicationTypes.displayLabel(ct)}</option>
 											{/each}
 										</select>
 									</div>
