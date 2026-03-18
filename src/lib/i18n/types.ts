@@ -200,7 +200,7 @@ export interface Translations {
 		sections: {
 			general: string; vault: string; appearance: string;
 			docCategories: string; clinicalTags: string; staffRoles: string;
-			textBlocks: string; complicationTypes: string; about: string;
+			textBlocks: string; complicationTypes: string; backup: string; about: string;
 		};
 		vault: { path: string; changePath: string; backup: string };
 		theme: { label: string; light: string; dark: string; system: string };
@@ -226,6 +226,16 @@ export interface Translations {
 		};
 		complicationTypes: {
 			title: string; description: string; add: string; deleteConfirm: string;
+		};
+		backup: {
+			title: string; description: string;
+			exportSettings: string; exportSettingsDesc: string;
+			importSettings: string; importSettingsDesc: string;
+			backupDatabase: string; backupDatabaseDesc: string;
+			backupVault: string; backupVaultDesc: string;
+			importWarning: string; importConfirm: string;
+			importSuccess: string; importError: string;
+			backupSuccess: string; backupError: string;
 		};
 		about: { title: string; version: string; description: string };
 	};

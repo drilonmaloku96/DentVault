@@ -1736,6 +1736,24 @@ export async function setSetting(key: string, value: string): Promise<void> {
 	);
 }
 
+export async function getAllSettings(): Promise<{ key: string; value: string }[]> {
+	const conn = await getDb();
+	return conn.select<{ key: string; value: string }[]>(
+		'SELECT key, value FROM settings ORDER BY key',
+		[],
+	);
+}
+
+export async function bulkSetSettings(entries: { key: string; value: string }[]): Promise<void> {
+	const conn = await getDb();
+	for (const { key, value } of entries) {
+		await conn.execute(
+			'INSERT OR REPLACE INTO settings (key, value) VALUES ($1, $2)',
+			[key, value],
+		);
+	}
+}
+
 // ── Patient Note Entries CRUD ──────────────────────────────────────────
 
 export async function getNoteEntries(patientId: string): Promise<PatientNoteEntry[]> {

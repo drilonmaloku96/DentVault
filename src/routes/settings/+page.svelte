@@ -7,8 +7,10 @@
 	import { vault } from '$lib/stores/vault.svelte';
 	import { docCategories, DEFAULT_CATEGORIES, type DocCategory } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { resetDb } from '$lib/services/db';
+	import { resetDb, getAllSettings, bulkSetSettings } from '$lib/services/db';
 	import { pickDirectory } from '$lib/services/files';
+	import { downloadJson } from '$lib/services/export';
+	import { invoke } from '@tauri-apps/api/core';
 	import { staffLabel, roleLabel, roleBadge } from '$lib/utils/staff';
 	import { staffRoles, DEFAULT_ROLES, type StaffRole } from '$lib/stores/staffRoles.svelte';
 	import { dentalTags, DEFAULT_DENTAL_TAGS } from '$lib/stores/dentalTags.svelte';
@@ -513,6 +515,112 @@
 		if (!t || draftComplicationTypes.some(ct => complicationTypes.displayLabel(ct) === t)) return;
 		draftComplicationTypes = [...draftComplicationTypes, { key: 'custom_' + Date.now(), label: t }];
 		newComplicationTypeLabel = '';
+	}
+
+	// ── Backup & Export ─────────────────────────────────────────────────────
+	let importFileEl          = $state<HTMLInputElement | null>(null);
+	let isBackingUpDb         = $state(false);
+	let isBackingUpVault      = $state(false);
+	let dbBackupMsg           = $state('');
+	let dbBackupError         = $state(false);
+	let vaultBackupMsg        = $state('');
+	let vaultBackupError      = $state(false);
+	let showImportConfirm     = $state(false);
+	let pendingImportEntries  = $state<{ key: string; value: string }[]>([]);
+	let importMsg             = $state('');
+	let importError           = $state(false);
+
+	async function handleExportSettings() {
+		try {
+			const settings = await getAllSettings();
+			const payload = {
+				version: 1,
+				exportedAt: new Date().toISOString(),
+				app: 'DentVault',
+				settings,
+			};
+			const dateStr = new Date().toISOString().slice(0, 10);
+			downloadJson(payload, `dentvault-settings-${dateStr}.json`);
+		} catch (e) {
+			console.error('Settings export failed:', e);
+		}
+	}
+
+	function handleImportFile(e: Event) {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = (ev) => {
+			try {
+				const raw = JSON.parse(ev.target?.result as string);
+				if (!Array.isArray(raw?.settings) || !raw.settings.every((s: unknown) =>
+					typeof (s as Record<string, unknown>)?.key === 'string' &&
+					typeof (s as Record<string, unknown>)?.value === 'string'
+				)) {
+					importMsg = i18n.t.settings.backup.importError;
+					importError = true;
+					return;
+				}
+				pendingImportEntries = raw.settings;
+				showImportConfirm = true;
+			} catch {
+				importMsg = i18n.t.settings.backup.importError;
+				importError = true;
+			}
+		};
+		reader.readAsText(file);
+		// Reset the file input so the same file can be picked again
+		(e.target as HTMLInputElement).value = '';
+	}
+
+	async function confirmImport() {
+		showImportConfirm = false;
+		try {
+			await bulkSetSettings(pendingImportEntries);
+			importMsg = i18n.t.settings.backup.importSuccess;
+			importError = false;
+			setTimeout(() => window.location.reload(), 1200);
+		} catch (e) {
+			importMsg = i18n.t.settings.backup.importError + ' ' + String(e);
+			importError = true;
+		}
+		pendingImportEntries = [];
+	}
+
+	async function handleBackupDatabase() {
+		const dir = await pickDirectory();
+		if (!dir) return;
+		isBackingUpDb = true;
+		dbBackupMsg = '';
+		try {
+			const dateStr = new Date().toISOString().slice(0, 10);
+			const destPath = `${dir}/dentvault-backup-${dateStr}.db`;
+			await invoke('backup_database', { vaultPath: vault.path, destPath });
+			dbBackupMsg = `${i18n.t.settings.backup.backupSuccess} ${destPath}`;
+			dbBackupError = false;
+		} catch (e) {
+			dbBackupMsg = `${i18n.t.settings.backup.backupError} ${String(e)}`;
+			dbBackupError = true;
+		} finally {
+			isBackingUpDb = false;
+		}
+	}
+
+	async function handleBackupVault() {
+		const dir = await pickDirectory();
+		if (!dir) return;
+		isBackingUpVault = true;
+		vaultBackupMsg = '';
+		try {
+			const backupPath = await invoke<string>('backup_vault_to', { vaultPath: vault.path, destDir: dir });
+			vaultBackupMsg = `${i18n.t.settings.backup.backupSuccess} ${backupPath}`;
+			vaultBackupError = false;
+		} catch (e) {
+			vaultBackupMsg = `${i18n.t.settings.backup.backupError} ${String(e)}`;
+			vaultBackupError = true;
+		} finally {
+			isBackingUpVault = false;
+		}
 	}
 </script>
 
@@ -1586,6 +1694,124 @@
 					{i18n.t.actions.add}
 				</Button>
 			</div>
+		</div>
+	</section>
+
+	<!-- ── Backup & Export ── -->
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.sections.backup}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.backup.description}</p>
+		</div>
+		<Separator />
+
+		<!-- Hidden file input for import -->
+		<input bind:this={importFileEl} type="file" accept=".json" class="hidden" onchange={handleImportFile} />
+
+		<!-- Import confirmation dialog -->
+		{#if showImportConfirm}
+			<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+				<div class="w-full max-w-sm rounded-xl border border-border bg-popover p-6 shadow-xl flex flex-col gap-4">
+					<p class="text-sm font-semibold">{i18n.t.settings.backup.importSettings}</p>
+					<p class="text-sm text-muted-foreground">{i18n.t.settings.backup.importWarning}</p>
+					<div class="flex items-center gap-3 justify-end">
+						<Button variant="outline" size="sm" onclick={() => { showImportConfirm = false; pendingImportEntries = []; }}>
+							{i18n.t.actions.cancel}
+						</Button>
+						<Button size="sm" onclick={confirmImport}>
+							{i18n.t.settings.backup.importConfirm}
+						</Button>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+			<!-- Export Settings -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<div class="flex items-start gap-3">
+					<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 dark:bg-blue-950/40">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-blue-600 dark:text-blue-400">
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{i18n.t.settings.backup.exportSettings}</p>
+						<p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{i18n.t.settings.backup.exportSettingsDesc}</p>
+					</div>
+				</div>
+				<Button size="sm" variant="outline" onclick={handleExportSettings}>
+					{i18n.t.settings.backup.exportSettings}
+				</Button>
+				{#if importMsg && !importError}
+					<p class="text-xs text-emerald-600 dark:text-emerald-400">{importMsg}</p>
+				{/if}
+			</div>
+
+			<!-- Import Settings -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<div class="flex items-start gap-3">
+					<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-50 dark:bg-amber-950/40">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-amber-600 dark:text-amber-400">
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{i18n.t.settings.backup.importSettings}</p>
+						<p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{i18n.t.settings.backup.importSettingsDesc}</p>
+					</div>
+				</div>
+				<Button size="sm" variant="outline" onclick={() => importFileEl?.click()}>
+					{i18n.t.settings.backup.importSettings}
+				</Button>
+				{#if importMsg && importError}
+					<p class="text-xs text-destructive">{importMsg}</p>
+				{/if}
+			</div>
+
+			<!-- Backup Database -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<div class="flex items-start gap-3">
+					<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 dark:bg-emerald-950/40">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-emerald-600 dark:text-emerald-400">
+							<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{i18n.t.settings.backup.backupDatabase}</p>
+						<p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{i18n.t.settings.backup.backupDatabaseDesc}</p>
+					</div>
+				</div>
+				<Button size="sm" variant="outline" onclick={handleBackupDatabase} disabled={isBackingUpDb}>
+					{isBackingUpDb ? i18n.t.common.loading : i18n.t.settings.backup.backupDatabase}
+				</Button>
+				{#if dbBackupMsg}
+					<p class="text-xs {dbBackupError ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'} break-all">{dbBackupMsg}</p>
+				{/if}
+			</div>
+
+			<!-- Backup Vault -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<div class="flex items-start gap-3">
+					<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-purple-50 dark:bg-purple-950/40">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-purple-600 dark:text-purple-400">
+							<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{i18n.t.settings.backup.backupVault}</p>
+						<p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{i18n.t.settings.backup.backupVaultDesc}</p>
+					</div>
+				</div>
+				<Button size="sm" variant="outline" onclick={handleBackupVault} disabled={isBackingUpVault}>
+					{isBackingUpVault ? i18n.t.common.loading : i18n.t.settings.backup.backupVault}
+				</Button>
+				{#if vaultBackupMsg}
+					<p class="text-xs {vaultBackupError ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'} break-all">{vaultBackupMsg}</p>
+				{/if}
+			</div>
+
 		</div>
 	</section>
 

@@ -200,6 +200,72 @@ fn file_exists(path: String) -> bool {
     std::path::Path::new(&path).exists()
 }
 
+// ── Backup commands ────────────────────────────────────────────────────
+
+/// Copy dentvault.db to the given destination path.
+#[tauri::command]
+fn backup_database(vault_path: String, dest_path: String) -> Result<(), String> {
+    let db_src = PathBuf::from(&vault_path).join("dentvault.db");
+    if !db_src.exists() {
+        return Err("Database file not found".to_string());
+    }
+    if let Some(parent) = PathBuf::from(&dest_path).parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::copy(&db_src, &dest_path).map_err(|e| format!("Backup failed: {e}"))?;
+    Ok(())
+}
+
+fn copy_dir_all(src: &PathBuf, dst: &PathBuf) -> Result<u64, String> {
+    std::fs::create_dir_all(dst).map_err(|e| e.to_string())?;
+    let mut count = 0u64;
+    for entry in std::fs::read_dir(src).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let file_name = entry.file_name();
+        let dst_child = dst.join(&file_name);
+        let file_type = entry.file_type().map_err(|e| e.to_string())?;
+        if file_type.is_dir() {
+            count += copy_dir_all(&entry.path(), &dst_child)?;
+        } else if file_type.is_file() {
+            std::fs::copy(entry.path(), &dst_child).map_err(|e| e.to_string())?;
+            count += 1;
+        }
+    }
+    Ok(count)
+}
+
+/// Recursively copy the entire vault directory into dest_dir/DentVault-Backup-{date}/.
+/// Returns the absolute path of the created backup folder.
+#[tauri::command]
+fn backup_vault_to(vault_path: String, dest_dir: String) -> Result<String, String> {
+    let src = PathBuf::from(&vault_path);
+    if !src.exists() {
+        return Err("Vault directory not found".to_string());
+    }
+    // Derive YYYY-MM-DD from UNIX timestamp without external crates
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_secs();
+    let days = (secs / 86400) as u32;
+    let z = days + 719468;
+    let era = z / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y2 = if m <= 2 { y + 1 } else { y };
+    let date_str = format!("{:04}-{:02}-{:02}", y2, m, d);
+
+    let folder_name = format!("DentVault-Backup-{}", date_str);
+    let dest = PathBuf::from(&dest_dir).join(&folder_name);
+    copy_dir_all(&src, &dest)?;
+    Ok(dest.to_string_lossy().to_string())
+}
+
 // ── Audit log helpers ──────────────────────────────────────────────────
 
 /// Append a single line to <vault_path>/audit.jsonl (creates file if needed).
@@ -292,6 +358,8 @@ pub fn run() {
             delete_document_file,
             list_vault_files,
             file_exists,
+            backup_database,
+            backup_vault_to,
             append_audit_line,
             read_audit_log,
             read_last_audit_line,
