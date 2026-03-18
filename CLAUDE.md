@@ -512,15 +512,9 @@ Stores like `complicationTypes`, `clinicalTags`, `docCategories`, `staffRoles`, 
 
 `complicationTypes` and `clinicalTags` need migration from bare `string[]` to `{ key: string; label?: string }[]` on first load. Text blocks have `resetToLanguageDefaults()` that pulls from `i18n.t.defaults.textBlocks`.
 
-### Implementation steps (see `LANG_PLAN.md` for full detail)
-1. Create `src/lib/i18n/` infrastructure (types → de → en → store)
-2. Init `i18n` first in `+layout.svelte`
-3. Update `dentalTags` store + dental chart components
-4. Update all other user-configurable stores
-5. Add language switcher to Settings page (top section, flag buttons)
-6. Component sweep — replace hardcoded strings in all 45+ components and 8 routes
-7. Category/outcome label helpers (`getCategoryLabel`, `getOutcomeLabel`)
-8. Final `npm run check` — 0 errors
+### Implementation status: **complete**
+
+All steps are done — `npm run check` passes 0 errors. The i18n infrastructure, language switcher, dental tag label decoupling, store migrations, and full component sweep are all implemented.
 
 ---
 
@@ -644,10 +638,36 @@ if (scrollToBottom) {
 `.github/workflows/release.yml` — manual `workflow_dispatch` workflow that builds distributable installers on GitHub-hosted runners.
 
 - **`windows-latest`** runner → produces `.msi` / `.exe` via `tauri-apps/tauri-action@v0`
-- **`macos-latest`** runner → produces `.dmg`
+- **`macos-latest`** runner → produces `.dmg` (native ARM64 / Apple Silicon)
 - Triggered manually: **Actions → Release → Run workflow**, enter a version tag (e.g. `v0.1.0`)
 - Creates a **draft GitHub Release** with installers attached — review and publish when ready
 - Cannot cross-compile Windows from macOS locally (only `aarch64-apple-darwin` Rust target is installed); GitHub Actions is the correct path
+- **`frontendDist` must be `"../build"`** in `src-tauri/tauri.conf.json` — relative to the `src-tauri/` directory, so it points to the project-root `build/` output. Using `"build"` (no `../`) caused CI failures because it resolved to `src-tauri/build/` instead.
+- Universal macOS binary (`--target universal-apple-darwin`) was attempted but DMG bundling (`bundle_dmg.sh`) fails on GitHub Actions runners. Native ARM64 build is used instead.
+
+---
+
+## Vault Storage Structure
+
+Everything lives in the single vault folder the user picks during onboarding:
+
+```
+{vault_folder}/
+  dentvault.db              ← SQLite: all patients, timeline entries, treatment plans,
+                               dental chart, perio, complications, AND all settings
+  audit.jsonl               ← immutable append-only audit trail
+  {Lastname_Firstname_ID}/  ← one folder per patient
+    xrays/
+    photos/
+    documents/
+    lab_results/
+    consents/
+    referrals/
+```
+
+The vault folder location is stored outside the vault in `{app_data_dir}/vault_path.txt` (e.g. `~/Library/Application Support/com.dentvault.app/vault_path.txt` on macOS). This is just a pointer — not patient data.
+
+**A full backup = copy the vault folder.** The Backup Vault button automates this. Restoring = Settings → Change Vault → point to the backup folder.
 
 ---
 
@@ -655,14 +675,13 @@ if (scrollToBottom) {
 
 **Phase 7 — Settings, Export & Multi-User Prep (remaining)**
 
-1. **Vault management UI** — vault path display, change vault location, backup/restore buttons in Settings
-2. **PDF patient summary export** — printable per-patient report (demographics + timeline + chart snapshot)
-3. **Multi-user roles** — map existing `doctors` table to login/session concept; per-entry doctor attribution already in DB (`doctor_id` + `colleague_ids`)
+1. **PDF patient summary export** — printable per-patient report (demographics + timeline + chart snapshot)
+2. **Multi-user roles** — map existing `doctors` table to login/session concept; per-entry doctor attribution already in DB (`doctor_id` + `colleague_ids`)
 
 **Clinical intelligence — remaining items**
 
-4. **Make keyword mappings user-configurable** in Settings — practitioners add custom keyword→tag rules (the engine is in `src/lib/services/keyword-engine.ts`, just needs a Settings UI)
-5. **Appointments & Recall** — appointment scheduling, recall reminders (deferred from Phase 7)
-6. **Cost / Billing module** — per-treatment cost tracking, invoice generation (deferred)
-7. **Time-series outcome survival curves** — 1/3/5-year tooth survival rates in Reports page
-8. **Cohort comparison** — side-by-side group analysis (e.g., extraction vs non-extraction ortho)
+3. **Make keyword mappings user-configurable** in Settings — practitioners add custom keyword→tag rules (the engine is in `src/lib/services/keyword-engine.ts`, just needs a Settings UI)
+4. **Appointments & Recall** — appointment scheduling, recall reminders (deferred from Phase 7)
+5. **Cost / Billing module** — per-treatment cost tracking, invoice generation (deferred)
+6. **Time-series outcome survival curves** — 1/3/5-year tooth survival rates in Reports page
+7. **Cohort comparison** — side-by-side group analysis (e.g., extraction vs non-extraction ortho)
