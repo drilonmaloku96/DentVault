@@ -25,24 +25,22 @@
 	// ── State ─────────────────────────────────────────────────────────────
 	function todayISO() { return new Date().toISOString().slice(0, 10); }
 
-	let entryDate        = $state(todayISO());
-	let entryTitle       = $state('');
-	let description      = $state('');
+	let entryDate            = $state(todayISO());
+	let entryTitle           = $state('');
+	let description          = $state('');  // stores innerHTML via bind:innerHTML
 	let selectedDoctorId     = $state<number | null>(null);
 	let selectedColleagueIds = $state<number[]>([]);
 	let showColleaguePicker  = $state(false);
 	let showMentionPalette   = $state(false);
 	let mentionQuery         = $state('');
-	let mentionStart         = $state(-1);
 	let mentionPaletteRef    = $state<ReturnType<typeof StaffMentionPalette> | null>(null);
 	let inputError           = $state('');
 
 	// ── Text block palette ────────────────────────────────────────────────
 	let showPalette  = $state(false);
 	let paletteQuery = $state('');
-	let slashStart   = $state(-1);
-	let textareaEl   = $state<HTMLTextAreaElement | null>(null);
 	let paletteRef   = $state<ReturnType<typeof TextBlockPalette> | null>(null);
+	let editorEl     = $state<HTMLDivElement | null>(null);
 
 	// ── Reset (called by parent after the form opens) ─────────────────────
 	export function reset() {
@@ -53,15 +51,16 @@
 		selectedColleagueIds = [];
 		showColleaguePicker  = false;
 		showMentionPalette   = false;
-		mentionStart         = -1;
 		mentionQuery         = '';
 		inputError           = '';
+		showPalette          = false;
+		paletteQuery         = '';
 	}
 
 	// ── Submit → open full form ───────────────────────────────────────────
-	function autoTitle(desc: string, date: string): string {
-		if (desc.trim()) {
-			const first = desc.split('\n')[0].trim();
+	function autoTitle(plain: string, date: string): string {
+		if (plain.trim()) {
+			const first = plain.split('\n')[0].trim();
 			return first.length > 80 ? first.slice(0, 77) + '…' : first;
 		}
 		const d = new Date(date);
@@ -70,68 +69,112 @@
 	}
 
 	function handleSubmit() {
-		if (!description.trim() && !entryTitle.trim()) {
+		const plainText = editorEl?.innerText?.trim() ?? '';
+		const html = description;
+		if (!plainText && !entryTitle.trim()) {
 			inputError = 'Bitte Titel oder Beschreibung eingeben.';
 			return;
 		}
 		inputError = '';
 		onOpen({
-			title:           entryTitle.trim() || autoTitle(description, entryDate),
-			description:     description.trim(),
-			entry_date:      entryDate,
-			doctor_id:       selectedDoctorId,
-			colleague_ids:   selectedColleagueIds,
+			title:         entryTitle.trim() || autoTitle(plainText, entryDate),
+			description:   html,
+			entry_date:    entryDate,
+			doctor_id:     selectedDoctorId,
+			colleague_ids: selectedColleagueIds,
 		});
 	}
 
+	// ── Selection / caret helpers ─────────────────────────────────────────
+	function getTextBeforeCaret(): string {
+		const sel = window.getSelection();
+		if (!sel || !sel.rangeCount || !editorEl) return '';
+		const range = sel.getRangeAt(0);
+		const preRange = document.createRange();
+		preRange.selectNodeContents(editorEl);
+		preRange.setEnd(range.startContainer, range.startOffset);
+		return preRange.toString();
+	}
+
+	function selectTextRange(start: number, end: number) {
+		if (!editorEl) return;
+		const range = document.createRange();
+		let charIndex = 0;
+		let startNode: Node | null = null, startOff = 0;
+		let endNode: Node | null = null, endOff = 0;
+		const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT);
+		let node: Node | null;
+		while ((node = walker.nextNode())) {
+			const len = (node as Text).length;
+			if (!startNode && charIndex + len >= start) {
+				startNode = node; startOff = start - charIndex;
+			}
+			if (!endNode && charIndex + len >= end) {
+				endNode = node; endOff = end - charIndex;
+			}
+			charIndex += len;
+		}
+		if (startNode && endNode) {
+			range.setStart(startNode, startOff);
+			range.setEnd(endNode, endOff);
+			const sel = window.getSelection();
+			sel?.removeAllRanges();
+			sel?.addRange(range);
+		}
+	}
+
+	function getCurrentWord(): { word: string; start: number; end: number } {
+		const textBefore = getTextBeforeCaret();
+		const end = textBefore.length;
+		let start = end;
+		while (start > 0 && textBefore[start - 1] !== '\n' && textBefore[start - 1] !== ' ') start--;
+		return { word: textBefore.slice(start), start, end };
+	}
+
+	// ── Formatting ────────────────────────────────────────────────────────
+	function applyFormat(format: 'bold' | 'italic' | 'underline') {
+		editorEl?.focus();
+		document.execCommand(format, false);
+		description = editorEl?.innerHTML ?? description;
+	}
+
 	// ── Text block palette + mention palette ─────────────────────────────
-	function handleDescriptionInput(e: Event) {
-		const ta = e.target as HTMLTextAreaElement;
-		const val = ta.value;
-		const pos = ta.selectionStart ?? val.length;
-		let wordStart = pos;
-		while (wordStart > 0 && val[wordStart - 1] !== '\n' && val[wordStart - 1] !== ' ') wordStart--;
-		const word = val.slice(wordStart, pos);
+	function handleDescriptionInput() {
+		description = editorEl?.innerHTML ?? '';
+		const { word } = getCurrentWord();
 		if (word.startsWith('@')) {
-			mentionStart = wordStart; mentionQuery = word.slice(1); showMentionPalette = true;
-			showPalette = false; slashStart = -1;
+			mentionQuery = word.slice(1); showMentionPalette = true;
+			showPalette = false;
 		} else if (word.startsWith('/')) {
-			slashStart = wordStart; paletteQuery = word.slice(1); showPalette = true;
-			showMentionPalette = false; mentionStart = -1;
+			paletteQuery = word.slice(1); showPalette = true;
+			showMentionPalette = false;
 		} else {
-			showPalette = false; slashStart = -1;
-			showMentionPalette = false; mentionStart = -1;
+			showPalette = false;
+			showMentionPalette = false;
 		}
 	}
 
 	function insertMention(doc: Doctor) {
-		if (!textareaEl) return;
-		const pos    = textareaEl.selectionStart ?? description.length;
-		const before = description.slice(0, mentionStart);
-		const after  = description.slice(pos);
-		const label  = `@${doc.name}`;
-		description  = before + label + after;
-		showMentionPalette = false; mentionStart = -1; mentionQuery = '';
-		// Also add to selected colleagues
+		if (!editorEl) return;
+		editorEl.focus();
+		const { start, end } = getCurrentWord();
+		selectTextRange(start, end);
+		document.execCommand('insertText', false, `@${doc.name}`);
+		description = editorEl.innerHTML;
+		showMentionPalette = false; mentionQuery = '';
 		if (!selectedColleagueIds.includes(doc.id)) {
 			selectedColleagueIds = [...selectedColleagueIds, doc.id];
 		}
-		setTimeout(() => { textareaEl?.focus(); textareaEl?.setSelectionRange(before.length + label.length, before.length + label.length); }, 0);
 	}
 
 	function insertBlock(block: import('$lib/stores/textBlocks.svelte').TextBlock) {
-		if (!textareaEl) return;
-		const pos    = textareaEl.selectionStart ?? description.length;
-		const before = description.slice(0, slashStart);
-		const after  = description.slice(pos);
-		const body   = block.body;
-		description  = before + body + after;
-		const pi     = body.indexOf('__');
-		const base   = before.length;
-		const nc     = pi >= 0 ? base + pi : base + body.length;
-		const se     = pi >= 0 ? nc + 2 : nc;
-		showPalette = false; slashStart = -1; paletteQuery = '';
-		setTimeout(() => { textareaEl?.focus(); textareaEl?.setSelectionRange(nc, se); }, 0);
+		if (!editorEl) return;
+		editorEl.focus();
+		const { start, end } = getCurrentWord();
+		selectTextRange(start, end);
+		document.execCommand('insertText', false, block.body);
+		description = editorEl.innerHTML;
+		showPalette = false; paletteQuery = '';
 	}
 
 	function handleDescriptionKeydown(e: KeyboardEvent) {
@@ -139,11 +182,29 @@
 		if (showPalette && paletteRef?.handleKeydown(e)) return;
 		if (e.key === 'Escape' && showMentionPalette) { showMentionPalette = false; return; }
 		if (e.key === 'Escape' && showPalette) { showPalette = false; return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormat('bold'); return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormat('italic'); return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormat('underline'); return; }
 		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSubmit(); }
 	}
-
-
 </script>
+
+<style>
+	.editor-content:empty::before {
+		content: attr(data-placeholder);
+		color: hsl(var(--muted-foreground) / 0.5);
+		pointer-events: none;
+		position: absolute;
+		top: 0.625rem;
+		left: 1rem;
+	}
+	.editor-content {
+		position: relative;
+	}
+	.editor-content :global(b), .editor-content :global(strong) { font-weight: 600; }
+	.editor-content :global(i), .editor-content :global(em) { font-style: italic; }
+	.editor-content :global(u) { text-decoration: underline; }
+</style>
 
 <!-- ── Fixed chatbox bar ──────────────────────────────────────────────── -->
 <div class="fixed bottom-0 left-56 right-0 z-40 px-6 pt-3 pb-4 bg-background/98 backdrop-blur-sm border-t border-border shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.08)]">
@@ -252,17 +313,44 @@
 		class="w-full mb-1.5 rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/40 focus:border-border focus:bg-muted/20 transition-all"
 	/>
 
-	<!-- ── Description textarea + palette ────────────────────────────── -->
+	<!-- ── Description editor + palette ──────────────────────────────── -->
 	<div class="relative">
-		<textarea
-			bind:this={textareaEl}
-			rows={3}
-			placeholder="Dokumentation… (/ für Textbausteine)"
-			bind:value={description}
+
+		<!-- Formatting toolbar -->
+		<div class="flex items-center gap-0.5 mb-1">
+			<button
+				type="button"
+				onmousedown={(e) => { e.preventDefault(); applyFormat('bold'); }}
+				class="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+				title="Fett (⌘B)"
+			>B</button>
+			<button
+				type="button"
+				onmousedown={(e) => { e.preventDefault(); applyFormat('italic'); }}
+				class="h-6 w-6 rounded text-xs italic text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+				title="Kursiv (⌘I)"
+			>I</button>
+			<button
+				type="button"
+				onmousedown={(e) => { e.preventDefault(); applyFormat('underline'); }}
+				class="h-6 w-6 rounded text-xs underline text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+				title="Unterstrichen (⌘U)"
+			>U</button>
+		</div>
+
+		<!-- Contenteditable editor -->
+		<!-- svelte-ignore a11y_interactive_supports_focus -->
+		<div
+			bind:this={editorEl}
+			bind:innerHTML={description}
+			contenteditable="true"
+			role="textbox"
+			aria-multiline="true"
+			data-placeholder="Dokumentation… (/ für Textbausteine)"
 			oninput={handleDescriptionInput}
 			onkeydown={handleDescriptionKeydown}
-			class="w-full resize-none rounded-xl border border-border bg-muted/30 px-4 py-2.5 pr-40 text-sm outline-none placeholder:text-muted-foreground/50 focus:border-ring focus:ring-2 focus:ring-ring/20 focus:bg-background transition-all"
-		></textarea>
+			class="editor-content w-full min-h-[72px] rounded-xl border border-border bg-muted/30 px-4 py-2.5 pr-40 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 focus:bg-background transition-all"
+		></div>
 
 		<!-- Add button -->
 		<div class="absolute right-2 bottom-2 flex items-center gap-1.5">
@@ -279,7 +367,7 @@
 			</button>
 		</div>
 
-		<!-- Text block palette — floats above textarea -->
+		<!-- Text block palette — floats above editor -->
 		{#if showPalette}
 			<div class="absolute bottom-full left-0 mb-1.5 z-50">
 				<TextBlockPalette
@@ -309,6 +397,6 @@
 	{/if}
 
 	<p class="mt-1 text-[10px] text-muted-foreground/40 text-right">
-		<kbd class="font-mono">/</kbd> für Textbausteine · <kbd class="font-mono">@</kbd> für Mitarbeiter · <kbd class="font-mono">⌘↵</kbd> zum Öffnen
+		<kbd class="font-mono">/</kbd> für Textbausteine · <kbd class="font-mono">@</kbd> für Mitarbeiter · <kbd class="font-mono">⌘B/I/U</kbd> Formatierung · <kbd class="font-mono">⌘↵</kbd> zum Öffnen
 	</p>
 </div>

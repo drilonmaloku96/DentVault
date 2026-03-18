@@ -281,6 +281,9 @@ When adding a new feature, always ask:
 - **`provider` field deprecated**: The free-text `provider` column on `timeline_entries` is no longer shown in the UI. All provider attribution is done via `doctor_id` (primary doctor chips) + `colleague_ids` (colleague chips). Legacy `provider` text is shown with a "(legacy)" label in the expanded entry view only.
 - **`entry_teeth` sync**: whenever you insert or update a `timeline_entries` row with a `tooth_numbers` value, call `syncEntryTeeth(entryId, toothNumbers)` to keep the junction table in sync.
 - **CSV export**: use `entriesToCSV(entries)` + `downloadCSV(csv, filename)` from `src/lib/services/export.ts`.
+- **Rich text in timeline entries**: `timeline_entries.description` stores raw HTML (bold `<b>`, italic `<i>`, underline `<u>`). Both the entry bar (`TimelineEntryBar.svelte`) and form (`TimelineEntryForm.svelte`) use `contenteditable="true"` divs with `bind:innerHTML={description}`. Card display uses `{@html entry.description}`. Formatting shortcuts: Cmd/Ctrl+B/I/U. Toolbar buttons use `onmousedown` + `e.preventDefault()` to preserve editor focus. `execCommand('bold'/'italic'/'underline')` applies formatting. Selection API (`getTextBeforeCaret`, `selectTextRange` via TreeWalker) replaces textarea-based caret tracking for `@` mention and `/` text block detection.
+- **Sticky patient header**: Breadcrumb + patient info row wrapped in `<div class="sticky top-0 z-20 bg-background pb-3 border-b ...">` in `src/routes/patients/[patient_id]/+page.svelte`. Timeline toolbar sticky at `top-[140px]` (breadcrumb ~52px + patient header ~76px + pb-3 12px). Scroll container is `<main class="flex-1 overflow-auto">`.
+- **Extended patient data model**: v31 DB migration adds 10 columns: `address`, `city`, `postal_code`, `country`, `emergency_contact_name`, `emergency_contact_phone`, `emergency_contact_relation`, `blood_group`, `primary_physician`, `marital_status`. `PatientStatus` includes `'deceased'`. `PatientForm` has 7 sections: Personal, Contact, Address, Emergency Contact, Insurance, Clinical Background, Additional Demographics.
 
 ---
 
@@ -311,6 +314,7 @@ The left sidebar (`src/routes/+layout.svelte`) uses a **vertical stacked nav** a
 - [x] Phase 6c — Analytics Infrastructure (entry_teeth junction table, complications, dental chart history snapshots, probing chart dialog, dashboard provider outcomes + filters, reports page with CSV export, patient demographics, dated patient conditions, keyword engine, TagSuggestionBar, related entry linking — see `ANALYTICS_PLAN.md`)
 - [x] Phase 6d — Perio Chart UX Overhaul (SVG bar-graph visualization, single-tooth data entry panel, guided charting mode, recession/CAL tracking, mobility/furcation, comparison view, summary stats bar — see `PERIO_OVERHAUL_PLAN.md`)
 - [x] Phase 6e — First-run Onboarding Wizard, Patient Sidebar File Tree, Timeline scroll fix, Vault path change fix (see Onboarding Wizard section below)
+- [x] Phase 6f — Sticky patient header + timeline toolbar, expanded patient data model (address, emergency contact, blood group, marital status, primary physician, deceased status), redesigned 7-section PatientForm, rich text formatting in timeline entry bar and form (Bold/Italic/Underline via Cmd/Ctrl+B/I/U, contenteditable editor, HTML stored in DB, `{@html}` rendering in card)
 - [ ] Phase 7 — Settings, Export & Multi-User Prep *(partial: complication types settings, extended demographics, patient conditions done)*
 
 ### Dental Chart Architecture

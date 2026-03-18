@@ -519,7 +519,7 @@
 			{#if expanded}
 				<div class="border-t px-4 pb-4 pt-3 flex flex-col gap-3">
 					{#if entry.description}
-						<p class="text-sm text-foreground whitespace-pre-wrap">{entry.description}</p>
+						<p class="text-sm text-foreground whitespace-pre-wrap">{@html entry.description}</p>
 					{:else}
 						<p class="text-sm text-muted-foreground italic">{i18n.t.common.notes}</p>
 					{/if}

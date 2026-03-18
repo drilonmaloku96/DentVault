@@ -15,7 +15,6 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Textarea } from '$lib/components/ui/textarea';
 	import {
 		Dialog,
 		DialogContent,
@@ -85,73 +84,113 @@
 	// ── Text block palette ───────────────────────────────────────────────
 	let showPalette      = $state(false);
 	let paletteQuery     = $state('');
-	let slashStart       = $state(-1);
-	let descTextareaEl   = $state<HTMLTextAreaElement | null>(null);
+	let descEditorEl     = $state<HTMLDivElement | null>(null);
 	let formPaletteRef   = $state<ReturnType<typeof TextBlockPalette> | null>(null);
 
 	// ── Staff mention palette ────────────────────────────────────────────
 	let showMentionPalette = $state(false);
 	let mentionQuery       = $state('');
-	let mentionStart       = $state(-1);
 	let mentionPaletteRef  = $state<ReturnType<typeof StaffMentionPalette> | null>(null);
 
-	function handleDescInput(e: Event) {
-		const ta = e.target as HTMLTextAreaElement;
-		const val = ta.value;
-		const pos = ta.selectionStart ?? val.length;
-		let wordStart = pos;
-		while (wordStart > 0 && val[wordStart - 1] !== '\n' && val[wordStart - 1] !== ' ') wordStart--;
-		const word = val.slice(wordStart, pos);
+	// ── Selection / caret helpers ────────────────────────────────────────
+	function getTextBeforeCaretForm(): string {
+		const sel = window.getSelection();
+		if (!sel || !sel.rangeCount || !descEditorEl) return '';
+		const range = sel.getRangeAt(0);
+		const preRange = document.createRange();
+		preRange.selectNodeContents(descEditorEl);
+		preRange.setEnd(range.startContainer, range.startOffset);
+		return preRange.toString();
+	}
+
+	function selectTextRangeForm(start: number, end: number) {
+		if (!descEditorEl) return;
+		const range = document.createRange();
+		let charIndex = 0;
+		let startNode: Node | null = null, startOff = 0;
+		let endNode: Node | null = null, endOff = 0;
+		const walker = document.createTreeWalker(descEditorEl, NodeFilter.SHOW_TEXT);
+		let node: Node | null;
+		while ((node = walker.nextNode())) {
+			const len = (node as Text).length;
+			if (!startNode && charIndex + len >= start) { startNode = node; startOff = start - charIndex; }
+			if (!endNode && charIndex + len >= end) { endNode = node; endOff = end - charIndex; }
+			charIndex += len;
+		}
+		if (startNode && endNode) {
+			range.setStart(startNode, startOff);
+			range.setEnd(endNode, endOff);
+			const sel = window.getSelection();
+			sel?.removeAllRanges();
+			sel?.addRange(range);
+		}
+	}
+
+	function getCurrentWordForm(): { word: string; start: number; end: number } {
+		const textBefore = getTextBeforeCaretForm();
+		const end = textBefore.length;
+		let start = end;
+		while (start > 0 && textBefore[start - 1] !== '\n' && textBefore[start - 1] !== ' ') start--;
+		return { word: textBefore.slice(start), start, end };
+	}
+
+	function applyFormatForm(format: 'bold' | 'italic' | 'underline') {
+		descEditorEl?.focus();
+		document.execCommand(format, false);
+		description = descEditorEl?.innerHTML ?? description;
+	}
+
+	function handleDescInput() {
+		description = descEditorEl?.innerHTML ?? '';
+		const { word } = getCurrentWordForm();
 		if (word.startsWith('@')) {
-			mentionStart = wordStart; mentionQuery = word.slice(1); showMentionPalette = true;
-			showPalette = false; slashStart = -1;
+			mentionQuery = word.slice(1); showMentionPalette = true;
+			showPalette = false;
 		} else if (word.startsWith('/')) {
-			slashStart = wordStart; paletteQuery = word.slice(1); showPalette = true;
-			showMentionPalette = false; mentionStart = -1;
+			paletteQuery = word.slice(1); showPalette = true;
+			showMentionPalette = false;
 		} else {
-			showPalette = false; slashStart = -1;
-			showMentionPalette = false; mentionStart = -1;
+			showPalette = false;
+			showMentionPalette = false;
 		}
 	}
 
 	function insertMentionInForm(doc: Doctor) {
-		if (!descTextareaEl) return;
-		const pos    = descTextareaEl.selectionStart ?? description.length;
-		const before = description.slice(0, mentionStart);
-		const after  = description.slice(pos);
-		const label  = `@${doc.name}`;
-		description  = before + label + after;
-		showMentionPalette = false; mentionStart = -1; mentionQuery = '';
+		if (!descEditorEl) return;
+		descEditorEl.focus();
+		const { start, end } = getCurrentWordForm();
+		selectTextRangeForm(start, end);
+		document.execCommand('insertText', false, `@${doc.name}`);
+		description = descEditorEl.innerHTML;
+		showMentionPalette = false; mentionQuery = '';
 		if (!colleagueIds.includes(doc.id)) {
 			colleagueIds = [...colleagueIds, doc.id];
 		}
-		setTimeout(() => { descTextareaEl?.focus(); descTextareaEl?.setSelectionRange(before.length + label.length, before.length + label.length); }, 0);
 	}
 
 	function insertBlockInForm(block: TextBlock) {
-		if (!descTextareaEl) return;
-		const pos    = descTextareaEl.selectionStart ?? description.length;
-		const before = description.slice(0, slashStart);
-		const after  = description.slice(pos);
-		const body   = block.body;
-		description  = before + body + after;
-		const pi  = body.indexOf('__');
-		const base = before.length;
-		const nc = pi >= 0 ? base + pi : base + body.length;
-		const se = pi >= 0 ? nc + 2 : nc;
-		showPalette = false; slashStart = -1; paletteQuery = '';
-		setTimeout(() => { descTextareaEl?.focus(); descTextareaEl?.setSelectionRange(nc, se); }, 0);
+		if (!descEditorEl) return;
+		descEditorEl.focus();
+		const { start, end } = getCurrentWordForm();
+		selectTextRangeForm(start, end);
+		document.execCommand('insertText', false, block.body);
+		description = descEditorEl.innerHTML;
+		showPalette = false; paletteQuery = '';
 	}
 
 	function handleDescKeydown(e: KeyboardEvent) {
 		if (showMentionPalette && mentionPaletteRef?.handleKeydown(e)) return;
 		if (showPalette && formPaletteRef?.handleKeydown(e)) return;
 		if (e.key === 'Escape' && showMentionPalette) { showMentionPalette = false; return; }
-		if (e.key === 'Escape' && showPalette) { showPalette = false; }
+		if (e.key === 'Escape' && showPalette) { showPalette = false; return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormatForm('bold'); return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormatForm('italic'); return; }
+		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormatForm('underline'); return; }
 	}
 
 	// Text fed to the keyword scanner: title + description combined
-	const scanText = $derived(`${entryTitle} ${description}`);
+	const descPlainText = $derived(descEditorEl?.innerText ?? description.replace(/<[^>]*>/g, ''));
+	const scanText = $derived(`${entryTitle} ${descPlainText}`);
 
 	// Reset form when dialog opens/entry changes
 	$effect(() => {
@@ -446,15 +485,40 @@
 			<div class="flex flex-col gap-2">
 				<Label for="description">{i18n.t.common.notes}</Label>
 				<div class="relative">
-					<textarea
+					<!-- Formatting toolbar -->
+					<div class="flex items-center gap-0.5 mb-1">
+						<button
+							type="button"
+							onmousedown={(e) => { e.preventDefault(); applyFormatForm('bold'); }}
+							class="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+							title="Fett (⌘B)"
+						>B</button>
+						<button
+							type="button"
+							onmousedown={(e) => { e.preventDefault(); applyFormatForm('italic'); }}
+							class="h-6 w-6 rounded text-xs italic text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+							title="Kursiv (⌘I)"
+						>I</button>
+						<button
+							type="button"
+							onmousedown={(e) => { e.preventDefault(); applyFormatForm('underline'); }}
+							class="h-6 w-6 rounded text-xs underline text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
+							title="Unterstrichen (⌘U)"
+						>U</button>
+					</div>
+					<!-- svelte-ignore a11y_interactive_supports_focus -->
+					<div
 						id="description"
-						bind:this={descTextareaEl}
-						placeholder="Additional details… (/ for text blocks, @ for staff)"
-						bind:value={description}
+						bind:this={descEditorEl}
+						bind:innerHTML={description}
+						contenteditable="true"
+						role="textbox"
+						aria-multiline="true"
+						data-placeholder="Notizen… (/ für Textbausteine, @ für Mitarbeiter)"
 						oninput={handleDescInput}
 						onkeydown={handleDescKeydown}
-						class="border-input bg-background flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/60 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] resize-y"
-					></textarea>
+						class="form-editor border-input bg-background flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+					></div>
 					{#if showPalette}
 						<div class="absolute bottom-full left-0 mb-1.5 z-50">
 							<TextBlockPalette
@@ -585,3 +649,14 @@
 		</form>
 	</DialogContent>
 </Dialog>
+
+<style>
+	.form-editor:empty::before {
+		content: attr(data-placeholder);
+		color: hsl(var(--muted-foreground) / 0.6);
+		pointer-events: none;
+	}
+	.form-editor :global(b), .form-editor :global(strong) { font-weight: 600; }
+	.form-editor :global(i), .form-editor :global(em) { font-style: italic; }
+	.form-editor :global(u) { text-decoration: underline; }
+</style>
