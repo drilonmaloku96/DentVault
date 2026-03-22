@@ -12,6 +12,7 @@
 		insertTreatmentPlan,
 		getChartData,
 		updateSnapshotChartData,
+		syncAppointmentFromTimelineEntry,
 	} from '$lib/services/db';
 	import type { ToothChartEntry } from '$lib/types';
 	import {
@@ -37,14 +38,20 @@
 	import type { FormPrefill } from './TimelineEntryForm.svelte';
 	import PlanTimelineCard from './PlanTimelineCard.svelte';
 	import ChartSnapshotCard from './ChartSnapshotCard.svelte';
+	import OrthoSnapshotCard from './OrthoSnapshotCard.svelte';
+	import DocTemplatePickerDialog from '$lib/components/documents/DocTemplatePickerDialog.svelte';
 	import TreatmentPlanList from '$lib/components/treatment/TreatmentPlanList.svelte';
 	import DentalChartView from '$lib/components/dental/DentalChartView.svelte';
 	import ProbingChartDialog from '$lib/components/perio/ProbingChartDialog.svelte';
+	import OrthoChartDialog from '$lib/components/ortho/OrthoChartDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
+	import { generateChartReport } from '$lib/services/chart-report';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
+	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	let {
 		patientId,
@@ -59,129 +66,72 @@
 	let isLoading  = $state(true);
 	let error      = $state('');
 
-	// ── Filter chips ─────────────────────────────────────────────────────
-	// Empty set = show all; otherwise only show entry types in the set
-	let activeFilters = $state<Set<string>>(new Set());
-
-	const FILTER_CHIPS = $derived([
-		{ key: 'all',            label: i18n.t.common.all,    icon: '' },
-		{ key: 'visit',          label: 'Visit',              icon: '🏥' },
-		{ key: 'procedure',      label: 'Procedure',          icon: '🔧' },
-		{ key: 'note',           label: 'Note',               icon: '📝' },
-		{ key: 'lab',            label: 'Lab',                icon: '🧪' },
-		{ key: 'imaging',        label: i18n.t.categories.imaging, icon: '📷' },
-		{ key: 'referral',       label: 'Referral',           icon: '📋' },
-		{ key: 'document',       label: i18n.t.documents.title,   icon: '📎' },
-		{ key: 'plan',           label: i18n.t.plans.title,   icon: '📋' },
-		{ key: 'chart_snapshot', label: i18n.t.chart.title,   icon: '🦷' },
-	]);
-
-	// Doc category sub-chips (shown when 'document' filter is active)
-	const docSubChips = $derived([
-		{ key: '__all_docs__', label: `${i18n.t.common.all} ${i18n.t.documents.title}` },
-		...docCategories.list.map((c) => ({ key: vault.categoryFolder(c.key), label: `${c.icon} ${c.label}` })),
-	]);
-	let activeDocFolder = $state<string>('__all_docs__');
-
-	function toggleFilter(key: string) {
-		if (key === 'all') {
-			activeFilters = new Set();
-			activeDocFolder = '__all_docs__';
-			return;
-		}
-		const next = new Set(activeFilters);
-		if (next.has(key)) {
-			next.delete(key);
-		} else {
-			next.add(key);
-		}
-		activeFilters = next;
-		if (!next.has('document')) activeDocFolder = '__all_docs__';
-	}
-
-	function isFilterActive(key: string): boolean {
-		if (key === 'all') return activeFilters.size === 0;
-		return activeFilters.has(key);
-	}
-
-	// Doctor filter — null = show all, otherwise filter to entries with that doctor_id
+	// ── Filters ──────────────────────────────────────────────────────────
+	let activeFilters  = $state<Set<string>>(new Set());
 	let activeDoctorId = $state<number | null>(null);
 
-	// Clinical filters
-	let showClinicalFilters = $state(false);
-	let activeCategoryFilter = $state('');
-	let activeOutcomeFilter = $state('');
+	// Dropdown state
+	let filterDropdownOpen = $state(false);
+	let filterSearch       = $state('');
 
-	const CATEGORY_CHIP_CLASSES: Record<string, string> = {
-		endodontics:    'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-		orthodontics:   'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400',
-		prosthodontics: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400',
-		periodontics:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-		oral_surgery:   'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-		restorative:    'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400',
-		preventive:     'bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400',
-		imaging:        'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400',
-		other:          'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400',
-	};
+	// Text / date search
+	let searchQuery = $state('');
 
-	const CATEGORY_LABELS_MAP = $derived<Record<string, string>>({
-		endodontics:    i18n.t.categories.endodontics,
-		orthodontics:   i18n.t.categories.orthodontics,
-		prosthodontics: i18n.t.categories.prosthodontics,
-		periodontics:   i18n.t.categories.periodontics,
-		oral_surgery:   i18n.t.categories.oral_surgery,
-		restorative:    i18n.t.categories.restorative,
-		preventive:     i18n.t.categories.preventive,
-		imaging:        i18n.t.categories.imaging,
-		other:          i18n.t.categories.other,
-	});
+	// All type options available for the filter dropdown
+	const TYPE_OPTIONS = $derived([
+		...entryTypes.list.map(t => ({ key: t.key, label: t.label, color: t.color })),
+		{ key: 'document',       label: i18n.t.documents.title,    color: undefined },
+		{ key: 'plan',           label: i18n.t.plans.title,        color: undefined },
+		{ key: 'chart_snapshot', label: i18n.t.chart.title,        color: undefined },
+		{ key: 'ortho_snapshot', label: i18n.t.ortho.button,       color: undefined },
+	]);
 
-	const OUTCOME_CHIP_CLASSES: Record<string, string> = {
-		successful:       'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-		retreated:        'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-		failed_extracted: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-		failed_other:     'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-		ongoing:          'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-		unknown:          'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-500',
-	};
-
-	const OUTCOME_LABELS_MAP = $derived<Record<string, string>>({
-		successful:       i18n.t.outcomes.successful,
-		retreated:        i18n.t.outcomes.retreated,
-		failed_extracted: i18n.t.outcomes.failed_extracted,
-		failed_other:     i18n.t.outcomes.failed_other,
-		ongoing:          i18n.t.outcomes.ongoing,
-		unknown:          i18n.t.outcomes.unknown,
-	});
-
-	const uniqueCategories = $derived(
-		[...new Set(entries.map(e => e.treatment_category).filter(Boolean))].sort()
+	const visibleTypeOptions = $derived(
+		filterSearch.trim()
+			? TYPE_OPTIONS.filter(o => o.label.toLowerCase().includes(filterSearch.toLowerCase()))
+			: TYPE_OPTIONS
+	);
+	const visibleDoctorOptions = $derived(
+		filterSearch.trim()
+			? doctors.list.filter(d => d.name.toLowerCase().includes(filterSearch.toLowerCase()))
+			: doctors.list
 	);
 
-	const uniqueOutcomes = $derived(
-		[...new Set(entries.map(e => e.treatment_outcome).filter(Boolean))].sort()
+	function toggleFilter(key: string) {
+		const next = new Set(activeFilters);
+		if (next.has(key)) next.delete(key); else next.add(key);
+		activeFilters = next;
+	}
+
+	function clearAllFilters() {
+		activeFilters  = new Set();
+		activeDoctorId = null;
+	}
+
+	const activeFilterCount = $derived(activeFilters.size + (activeDoctorId !== null ? 1 : 0));
+
+	// Label lookup for active filter chips shown in trigger
+	const activeTypeLabels = $derived(
+		[...activeFilters].map(k => TYPE_OPTIONS.find(o => o.key === k)?.label ?? k)
+	);
+	const activeDoctorName = $derived(
+		activeDoctorId !== null ? (doctors.list.find(d => d.id === activeDoctorId)?.name ?? '') : ''
 	);
 
 	const filteredEntries = $derived((() => {
 		let list = activeFilters.size === 0 ? entries : entries.filter(e => activeFilters.has(e.entry_type));
-		// Apply doc sub-filter
-		if (activeFilters.has('document') && activeDocFolder !== '__all_docs__') {
-			list = list.filter(e =>
-				e.entry_type !== 'document' ||
-				vault.categoryFolder(e.treatment_category) === activeDocFolder,
-			);
-		}
 		// Apply doctor filter
 		if (activeDoctorId !== null) {
 			list = list.filter(e => e.doctor_id === activeDoctorId);
 		}
-		// Apply clinical category filter
-		if (activeCategoryFilter) {
-			list = list.filter(e => e.treatment_category === activeCategoryFilter);
-		}
-		// Apply clinical outcome filter
-		if (activeOutcomeFilter) {
-			list = list.filter(e => e.treatment_outcome === activeOutcomeFilter);
+		// Apply text/date search
+		if (searchQuery.trim()) {
+			const q = searchQuery.trim().toLowerCase();
+			list = list.filter(e =>
+				(e.title ?? '').toLowerCase().includes(q) ||
+				(e.description ?? '').replace(/<[^>]*>/g, '').toLowerCase().includes(q) ||
+				(e.entry_date ?? '').includes(q)
+			);
 		}
 		return list;
 	})());
@@ -205,28 +155,17 @@
 	let bannerDismissed = $state(false);
 	let isImporting    = $state(false);
 
-	// ── Upload dialog ─────────────────────────────────────────────────────
-	let showUploadDialog = $state(false);
-	let pickedPath       = $state<string | null>(null);
-	let pickedName       = $state('');
-	let uploadCategory   = $state<string>('other');
-	let uploadNotes      = $state('');
-	let isUploading      = $state(false);
-	let uploadError      = $state('');
-
 	// ── Plan sheet ────────────────────────────────────────────────────────
 	let planSheetOpen = $state(false);
-	// (TreatmentPlanList uses patientId, no extra state needed)
-
-	// ── Plan create dialog ────────────────────────────────────────────────
-	let createPlanOpen  = $state(false);
-	let newPlanTitle    = $state('');
-	let newPlanDesc     = $state('');
-	let isCreatingPlan  = $state(false);
-	let createPlanError = $state('');
 
 	// ── Probing chart ─────────────────────────────────────────────────────
 	let showProbingChart = $state(false);
+
+	// ── Ortho / KIG dialog ────────────────────────────────────────────────
+	let showOrthoDialog = $state(false);
+
+	// ── Document template picker ──────────────────────────────────────────
+	let showDocTemplatePicker = $state(false);
 
 	// ── Chart sheet ───────────────────────────────────────────────────────
 	let chartSheetOpen    = $state(false);
@@ -246,11 +185,21 @@
 			(async () => {
 				const data = await getChartData(patientId);
 				const today = new Date().toISOString().slice(0, 10);
+				const report = generateChartReport(data);
+
+				// Same-day dedup: delete any existing chart_snapshot for today
+				const existing = entries.filter(
+					e => e.entry_type === 'chart_snapshot' && e.entry_date === today
+				);
+				for (const old of existing) {
+					await deleteTimelineEntry(old.id);
+				}
+
 				await insertTimelineEntry(patientId, {
 					entry_date: today,
 					entry_type: 'chart_snapshot',
-					title: 'Dental Chart Snapshot',
-					description: '',
+					title: i18n.t.timeline.snapshot.title,
+					description: report,
 					chart_data: JSON.stringify(data),
 					is_locked: 1,
 				});
@@ -266,6 +215,15 @@
 		loadEntries(false);
 	}
 
+	// ── Appointment sync toast ────────────────────────────────────────────
+	let syncedToast = $state(false);
+	let syncedTimer: ReturnType<typeof setTimeout> | null = null;
+	function showSyncedToast() {
+		if (syncedTimer) clearTimeout(syncedTimer);
+		syncedToast = true;
+		syncedTimer = setTimeout(() => (syncedToast = false), 3000);
+	}
+
 	// ── Loading ───────────────────────────────────────────────────────────
 
 	async function loadEntries(scrollToBottom = true) {
@@ -276,10 +234,18 @@
 		try {
 			if (showSkeleton) isLoading = true;
 			error = '';
-			entries = await getTimelineEntries(patientId);
+			const freshEntries = await getTimelineEntries(patientId);
+			// Only reassign if something actually changed to avoid re-rendering all
+			// entry cards on every poll tick when nothing has changed (visible flicker).
+			if (JSON.stringify(freshEntries) !== JSON.stringify(entries)) {
+				entries = freshEntries;
+			}
 			// Also (re)load treatment plans so plan cards can render
 			const plans = await getTreatmentPlans(patientId);
-			plansMap = new Map(plans.map(p => [p.plan_id, p]));
+			const freshMap = new Map(plans.map(p => [p.plan_id, p]));
+			if (JSON.stringify([...freshMap]) !== JSON.stringify([...plansMap])) {
+				plansMap = freshMap;
+			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load timeline';
 		} finally {
@@ -388,9 +354,19 @@
 		if (editingEntry) {
 			await updateTimelineEntry(editingEntry.id, data);
 			await loadEntries(false);
+			// Sync appointment type if entry has a type and a date
+			if (data.entry_type && data.entry_date) {
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(editingEntry.id), data.entry_type);
+				if (synced) showSyncedToast();
+			}
 		} else {
-			await insertTimelineEntry(patientId, data);
+			const newEntry = await insertTimelineEntry(patientId, data);
 			await loadEntries();
+			// Sync appointment type for new entries too
+			if (data.entry_type && data.entry_date) {
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+				if (synced) showSyncedToast();
+			}
 		}
 	}
 
@@ -412,99 +388,6 @@
 		await loadEntries(false);
 	}
 
-	// ── Upload file ───────────────────────────────────────────────────────
-
-	async function handlePickFile() {
-		uploadError = '';
-		const path = await pickFile();
-		if (!path) return;
-		pickedPath = path;
-		const parts = path.replace(/\\/g, '/').split('/');
-		pickedName = parts[parts.length - 1];
-		const mime = getMimeType(pickedName);
-		uploadCategory = inferCategory(pickedName, mime);
-		showUploadDialog = true;
-	}
-
-	async function handleUpload() {
-		if (!pickedPath) return;
-		if (!vault.isConfigured || !vault.path) {
-			uploadError = 'Vault not configured. Please set up your vault in Settings.';
-			return;
-		}
-		isUploading = true;
-		uploadError = '';
-		try {
-			const destFilename  = generateDestFilename(pickedPath);
-			const mime          = getMimeType(pickedName);
-			const categoryFolder = vault.categoryFolder(uploadCategory);
-
-			const { absPath, relPath, fileSize } = await saveDocumentFile({
-				srcPath: pickedPath, vaultPath: vault.path,
-				patientFolder, categoryFolder, destFilename,
-			});
-
-			const doc = await insertDocument(patientId, {
-				filename: destFilename, original_name: pickedName,
-				category: uploadCategory, mime_type: mime,
-				file_size: fileSize, abs_path: absPath, rel_path: relPath, notes: uploadNotes.trim(),
-			});
-
-			const today = new Date().toISOString().slice(0, 10);
-			await insertTimelineEntry(patientId, {
-				entry_date: today, entry_type: 'document',
-				title: pickedName, description: uploadNotes.trim(),
-				treatment_category: uploadCategory, document_id: doc.id,
-				attachments: JSON.stringify([{ path: relPath, name: pickedName, mime, size: fileSize }]),
-			});
-
-			await loadEntries();
-			showUploadDialog = false;
-			pickedPath = null; pickedName = ''; uploadNotes = '';
-			uploadCategory = docCategories.list[0]?.key ?? 'other';
-		} catch (e) {
-			uploadError = String(e);
-		} finally {
-			isUploading = false;
-		}
-	}
-
-	function handleCancelUpload() {
-		showUploadDialog = false;
-		pickedPath = null; pickedName = ''; uploadNotes = ''; uploadError = '';
-	}
-
-	// ── Treatment Plans ───────────────────────────────────────────────────
-
-	async function handleCreatePlan() {
-		if (!newPlanTitle.trim()) { createPlanError = i18n.t.common.required; return; }
-		createPlanError = '';
-		isCreatingPlan = true;
-		try {
-			const planData: TreatmentPlanFormData = { title: newPlanTitle.trim(), description: newPlanDesc.trim() || undefined };
-			const plan = await insertTreatmentPlan(patientId, planData);
-			// Create a timeline entry for this plan
-			const today = new Date().toISOString().slice(0, 10);
-			await insertTimelineEntry(patientId, {
-				entry_date: today,
-				entry_type: 'plan',
-				title: plan.title,
-				description: plan.description || '',
-				plan_id: plan.plan_id,
-			});
-			createPlanOpen = false;
-			newPlanTitle = ''; newPlanDesc = '';
-			await loadEntries();
-			// Open the plan sheet so user can add procedures immediately
-			planSheetOpen = true;
-		} catch (err) {
-			createPlanError = err instanceof Error ? err.message : 'Failed to create plan';
-		} finally {
-			isCreatingPlan = false;
-		}
-	}
-
-
 	// ── Grouping ──────────────────────────────────────────────────────────
 	function getYear(entry: TimelineEntry): string {
 		return entry.entry_date?.slice(0, 4) ?? '—';
@@ -514,42 +397,41 @@
 </script>
 
 <!-- ── Header (sticky below patient header) ───────────────────────────── -->
-<div class="sticky top-[52px] z-10 bg-background flex flex-col gap-3 pt-3 pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] mb-4">
+<div class="sticky top-[76px] z-10 bg-background flex flex-col gap-3 pt-3 pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] mb-4">
 	<!-- Title row + action buttons -->
 	<div class="flex items-center justify-between gap-2 flex-wrap">
-		<h2 class="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-			{i18n.t.timeline.title}
-			{#if !isLoading}
-				<span class="ml-1 normal-case font-normal">({filteredEntries.length})</span>
+		<div class="flex items-center gap-3">
+			<h2 class="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+				{i18n.t.timeline.title}
+				{#if !isLoading}
+					<span class="ml-1 normal-case font-normal">({filteredEntries.length})</span>
+				{/if}
+			</h2>
+			{#if syncedToast}
+				<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
+					{i18n.t.timeline.entry.typeSynced}
+				</span>
 			{/if}
-		</h2>
+		</div>
 
 		<div class="flex items-center gap-1.5 flex-wrap">
-			<!-- Upload File -->
-			<Button
-				size="sm"
-				variant="outline"
-				onclick={handlePickFile}
-				disabled={!vault.isConfigured}
-				title={vault.isConfigured ? undefined : 'Vault not configured'}
+			<!-- Add document from template — visually distinct, left-anchored -->
+			<button
+				type="button"
+				onclick={() => (showDocTemplatePicker = true)}
+				class="inline-flex items-center gap-1.5 h-8 rounded-md border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 px-3 text-xs font-medium text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-					<polyline points="17 8 12 3 7 8"/>
-					<line x1="12" y1="3" x2="12" y2="15"/>
-				</svg>
-				{i18n.t.documents.uploadTitle}
-			</Button>
-
-			<!-- New Plan -->
-			<Button size="sm" variant="outline" onclick={() => (createPlanOpen = true)}>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
 					<polyline points="14 2 14 8 20 8"/>
 					<line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
 				</svg>
-				{i18n.t.plans.new}
-			</Button>
+				{i18n.t.docTemplates.button}
+			</button>
+
+			<!-- Visual separator between template button and chart buttons -->
+			<span class="w-px h-5 bg-border/60 mx-0.5"></span>
 
 			<!-- Open Chart editor -->
 			<Button size="sm" variant="outline" onclick={() => (chartSheetOpen = true)}>
@@ -567,143 +449,165 @@
 				{i18n.t.perio.title}
 			</Button>
 
+			<!-- Open KIG / Ortho assessment -->
+			<Button size="sm" variant="outline" onclick={() => (showOrthoDialog = true)}>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
+					<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
+					<polyline points="9 2 9 9 16 9"/>
+					<line x1="12" y1="13" x2="12" y2="17"/>
+					<line x1="10" y1="15" x2="14" y2="15"/>
+				</svg>
+				{i18n.t.ortho.button}
+			</Button>
+
 
 </div>
 	</div>
 
-	<!-- Filter chip row -->
-	<div class="flex flex-wrap gap-1.5">
-		{#each FILTER_CHIPS as chip}
+	<!-- Filter bar -->
+	<div class="flex items-center gap-2">
+
+		<!-- "Filter by" label + dropdown trigger -->
+		<div class="relative">
 			<button
 				type="button"
-				onclick={() => toggleFilter(chip.key)}
-				class={[
-					'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors border',
-					isFilterActive(chip.key)
-						? 'bg-primary text-primary-foreground border-primary'
-						: 'bg-transparent text-muted-foreground border-border hover:border-foreground/40 hover:text-foreground',
-				].join(' ')}
+				onclick={() => { filterDropdownOpen = !filterDropdownOpen; filterSearch = ''; }}
+				class="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted/50 transition-colors max-w-[340px]"
 			>
-				{#if chip.icon}<span>{chip.icon}</span>{/if}
-				{chip.label}
+				<!-- Filter icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground">
+					<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+				</svg>
+				{#if activeFilterCount === 0}
+					<span class="text-muted-foreground">{i18n.t.timeline.filter}</span>
+				{:else}
+					<div class="flex items-center gap-1 flex-wrap">
+						{#each activeTypeLabels as lbl}
+							<span class="rounded bg-primary/10 text-primary px-1.5 py-px text-[10px] font-semibold">{lbl}</span>
+						{/each}
+						{#if activeDoctorName}
+							<span class="rounded bg-muted text-foreground px-1.5 py-px text-[10px] font-semibold">{activeDoctorName}</span>
+						{/if}
+					</div>
+				{/if}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0 text-muted-foreground ml-0.5">
+					<polyline points="6 9 12 15 18 9"/>
+				</svg>
 			</button>
-		{/each}
+
+			{#if filterDropdownOpen}
+				<!-- Backdrop -->
+				<div class="fixed inset-0 z-40" role="presentation" onclick={() => (filterDropdownOpen = false)}></div>
+
+				<!-- Dropdown panel -->
+				<div class="absolute top-full left-0 mt-1 z-50 w-60 rounded-lg border border-border bg-background shadow-lg overflow-hidden">
+					<!-- Search within dropdown -->
+					<div class="flex items-center gap-1.5 border-b border-border px-2.5 py-2">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-muted-foreground shrink-0">
+							<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+						</svg>
+						<input
+							type="text"
+							bind:value={filterSearch}
+							placeholder="Suchen…"
+							class="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground/50"
+						/>
+					</div>
+
+					<div class="max-h-72 overflow-y-auto py-1">
+						<!-- Entry types group -->
+						{#if visibleTypeOptions.length > 0}
+							<div class="px-2 pt-1 pb-0.5">
+								<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.settings.sections.entryTypes}</span>
+							</div>
+							{#each visibleTypeOptions as opt}
+								<button
+									type="button"
+									onclick={() => toggleFilter(opt.key)}
+									class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
+								>
+									<!-- Checkmark or empty box -->
+									<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${activeFilters.has(opt.key) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+										{#if activeFilters.has(opt.key)}
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
+										{/if}
+									</span>
+									{#if opt.color}
+										<span class="h-2 w-2 rounded-full shrink-0" style="background:{opt.color}"></span>
+									{/if}
+									<span class="truncate">{opt.label}</span>
+								</button>
+							{/each}
+						{/if}
+
+						<!-- Doctors group -->
+						{#if visibleDoctorOptions.length > 0}
+							<div class="px-2 pt-2 pb-0.5 border-t border-border/40 mt-1">
+								<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.staff.title}</span>
+							</div>
+							{#each visibleDoctorOptions as doc (doc.id)}
+								<button
+									type="button"
+									onclick={() => (activeDoctorId = activeDoctorId === doc.id ? null : doc.id)}
+									class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
+								>
+									<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${activeDoctorId === doc.id ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+										{#if activeDoctorId === doc.id}
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
+										{/if}
+									</span>
+									<span class="h-2 w-2 rounded-full shrink-0" style="background:{doc.color}"></span>
+									<span class="truncate">{doc.name}</span>
+								</button>
+							{/each}
+						{/if}
+
+						{#if visibleTypeOptions.length === 0 && visibleDoctorOptions.length === 0}
+							<p class="px-3 py-3 text-xs text-muted-foreground text-center">Keine Ergebnisse</p>
+						{/if}
+					</div>
+
+					<!-- Clear button -->
+					{#if activeFilterCount > 0}
+						<div class="border-t border-border px-2 py-1.5">
+							<button
+								type="button"
+								onclick={clearAllFilters}
+								class="w-full text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors py-0.5"
+							>
+								Filter zurücksetzen
+							</button>
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
+
+		<!-- Text / date search -->
+		<div class="relative flex-1 min-w-0">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground">
+				<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+			</svg>
+			<input
+				type="text"
+				bind:value={searchQuery}
+				placeholder="Text oder Datum suchen…"
+				class="h-8 w-full rounded-md border border-input bg-background pl-8 pr-3 text-xs outline-none focus:border-ring placeholder:text-muted-foreground/50 transition-[border-color]"
+			/>
+			{#if searchQuery}
+				<button
+					type="button"
+					onclick={() => (searchQuery = '')}
+					class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3">
+						<path d="M18 6L6 18M6 6l12 12"/>
+					</svg>
+				</button>
+			{/if}
+		</div>
+
 	</div>
-
-	<!-- Doc sub-category chips (only when document filter active) -->
-	{#if activeFilters.has('document')}
-		<div class="flex flex-wrap gap-1 pl-2 border-l-2 border-border/50 ml-1">
-			{#each docSubChips as sub}
-				<button
-					type="button"
-					onclick={() => (activeDocFolder = sub.key)}
-					class={[
-						'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors',
-						activeDocFolder === sub.key
-							? 'bg-primary/10 text-primary border border-primary/30'
-							: 'bg-muted text-muted-foreground hover:text-foreground',
-					].join(' ')}
-				>
-					{sub.label}
-				</button>
-			{/each}
-		</div>
-	{/if}
-
-	<!-- Doctor filter chips (only when doctors exist) -->
-	{#if doctors.list.length > 0}
-		<div class="flex flex-wrap gap-1 items-center">
-			<span class="text-[10px] text-muted-foreground/50 uppercase tracking-wide mr-0.5">Dr.</span>
-			{#each doctors.list as doc (doc.id)}
-				<button
-					type="button"
-					onclick={() => (activeDoctorId = activeDoctorId === doc.id ? null : doc.id)}
-					style="--doc-color: {doc.color}"
-					class={[
-						'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border',
-						activeDoctorId === doc.id
-							? 'border-[var(--doc-color)] bg-[var(--doc-color)] text-white'
-							: 'border-border bg-transparent text-muted-foreground hover:border-[var(--doc-color)] hover:text-foreground',
-					].join(' ')}
-				>
-					{doc.name}
-				</button>
-			{/each}
-		</div>
-	{/if}
-
-	<!-- Clinical filters toggle -->
-	<button
-		type="button"
-		onclick={() => (showClinicalFilters = !showClinicalFilters)}
-		class="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors self-start"
-	>
-		{i18n.t.timeline.filter} {showClinicalFilters ? '▾' : '▸'}
-	</button>
-
-	{#if showClinicalFilters}
-		<!-- Category chips -->
-		{#if uniqueCategories.length > 0}
-			<div class="flex flex-wrap gap-1 items-center pl-2 border-l-2 border-border/50 ml-1">
-				<span class="text-[10px] text-muted-foreground/50 uppercase tracking-wide mr-0.5 shrink-0">{i18n.t.timeline.entry.category}</span>
-				<button
-					type="button"
-					onclick={() => (activeCategoryFilter = '')}
-					class={[
-						'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border',
-						activeCategoryFilter === ''
-							? 'bg-primary text-primary-foreground border-primary'
-							: 'bg-transparent text-muted-foreground border-border hover:border-foreground/40',
-					].join(' ')}
-				>{i18n.t.common.all}</button>
-				{#each uniqueCategories as cat}
-					<button
-						type="button"
-						onclick={() => (activeCategoryFilter = activeCategoryFilter === cat ? '' : cat)}
-						class={[
-							'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border',
-							activeCategoryFilter === cat
-								? (CATEGORY_CHIP_CLASSES[cat] ?? 'bg-primary text-primary-foreground') + ' border-transparent'
-								: 'bg-transparent text-muted-foreground border-border hover:border-foreground/40',
-						].join(' ')}
-					>
-						{CATEGORY_LABELS_MAP[cat] ?? cat}
-					</button>
-				{/each}
-			</div>
-		{/if}
-
-		<!-- Outcome chips -->
-		{#if uniqueOutcomes.length > 0}
-			<div class="flex flex-wrap gap-1 items-center pl-2 border-l-2 border-border/50 ml-1">
-				<span class="text-[10px] text-muted-foreground/50 uppercase tracking-wide mr-0.5 shrink-0">{i18n.t.timeline.entry.outcome}</span>
-				<button
-					type="button"
-					onclick={() => (activeOutcomeFilter = '')}
-					class={[
-						'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border',
-						activeOutcomeFilter === ''
-							? 'bg-primary text-primary-foreground border-primary'
-							: 'bg-transparent text-muted-foreground border-border hover:border-foreground/40',
-					].join(' ')}
-				>{i18n.t.common.all}</button>
-				{#each uniqueOutcomes as out}
-					<button
-						type="button"
-						onclick={() => (activeOutcomeFilter = activeOutcomeFilter === out ? '' : out)}
-						class={[
-							'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border',
-							activeOutcomeFilter === out
-								? (OUTCOME_CHIP_CLASSES[out] ?? 'bg-primary text-primary-foreground') + ' border-transparent'
-								: 'bg-transparent text-muted-foreground border-border hover:border-foreground/40',
-						].join(' ')}
-					>
-						{OUTCOME_LABELS_MAP[out] ?? out}
-					</button>
-				{/each}
-			</div>
-		{/if}
-	{/if}
 </div>
 
 <!-- ── Vault auto-scan banner ──────────────────────────────────────────── -->
@@ -805,6 +709,8 @@
 							{entry}
 							onView={() => (viewingSnapshot = entry)}
 						/>
+					{:else if entry.entry_type === 'ortho_snapshot'}
+						<OrthoSnapshotCard {entry} />
 					{:else}
 						<TimelineEntryCard
 							{entry}
@@ -856,76 +762,6 @@
 	</DialogContent>
 </Dialog>
 
-<!-- ── Upload File dialog ──────────────────────────────────────────────── -->
-<Dialog bind:open={showUploadDialog}>
-	<DialogContent class="max-w-md">
-		<DialogHeader>
-			<DialogTitle>{i18n.t.documents.uploadTitle}</DialogTitle>
-			<DialogDescription>Add a file to this patient's vault folder.</DialogDescription>
-		</DialogHeader>
-		<div class="flex flex-col gap-4 py-2">
-			<div class="flex flex-col gap-1.5">
-				<Label class="text-xs">Selected File</Label>
-				<div class="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground truncate">{pickedName || '—'}</div>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label class="text-xs">{i18n.t.documents.category}</Label>
-				<select class={inputClass} bind:value={uploadCategory}>
-					{#each docCategories.list as cat}
-						<option value={cat.key}>{cat.icon} {cat.label}</option>
-					{/each}
-				</select>
-				<p class="text-[10px] text-muted-foreground/60">
-					Folder: <code>{vault.categoryFolder(uploadCategory)}/</code>
-					· <a href="/settings" class="underline hover:text-foreground">Manage categories</a>
-				</p>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label class="text-xs">{i18n.t.common.notes} <span class="text-muted-foreground">({i18n.t.common.optional})</span></Label>
-				<input type="text" class={inputClass} placeholder="Brief description…" bind:value={uploadNotes} />
-			</div>
-			{#if uploadError}
-				<p class="text-xs text-destructive rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2">{uploadError}</p>
-			{/if}
-		</div>
-		<DialogFooter>
-			<Button variant="outline" onclick={handleCancelUpload} disabled={isUploading}>{i18n.t.actions.cancel}</Button>
-			<Button onclick={handleUpload} disabled={isUploading || !pickedPath}>
-				{isUploading ? i18n.t.common.loading : i18n.t.actions.save}
-			</Button>
-		</DialogFooter>
-	</DialogContent>
-</Dialog>
-
-<!-- ── New Plan dialog ──────────────────────────────────────────────────── -->
-<Dialog bind:open={createPlanOpen}>
-	<DialogContent class="max-w-md">
-		<DialogHeader>
-			<DialogTitle>{i18n.t.plans.new}</DialogTitle>
-			<DialogDescription>Create a plan to track multi-step treatment for this patient.</DialogDescription>
-		</DialogHeader>
-		<div class="flex flex-col gap-4 py-2">
-			{#if createPlanError}
-				<p class="text-sm text-destructive">{createPlanError}</p>
-			{/if}
-			<div class="flex flex-col gap-1.5">
-				<Label>{i18n.t.plans.fields.name} <span class="text-destructive">*</span></Label>
-				<Input placeholder="e.g. Full mouth rehabilitation" bind:value={newPlanTitle} />
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<Label>{i18n.t.plans.fields.description}</Label>
-				<Textarea placeholder="Optional notes…" class="min-h-[70px]" bind:value={newPlanDesc} />
-			</div>
-		</div>
-		<DialogFooter>
-			<Button variant="outline" onclick={() => (createPlanOpen = false)} disabled={isCreatingPlan}>{i18n.t.actions.cancel}</Button>
-			<Button onclick={handleCreatePlan} disabled={isCreatingPlan}>
-				{isCreatingPlan ? i18n.t.common.loading : i18n.t.actions.confirm}
-			</Button>
-		</DialogFooter>
-	</DialogContent>
-</Dialog>
-
 <!-- ── Treatment Plans sheet ───────────────────────────────────────────── -->
 <Sheet bind:open={planSheetOpen}>
 	<SheetContent side="right" class="sm:max-w-2xl overflow-y-auto p-6">
@@ -950,6 +786,17 @@
 <!-- ── Perio probing chart dialog ──────────────────────────────────────── -->
 <ProbingChartDialog bind:open={showProbingChart} {patientId} onRecordSaved={() => {}} />
 
+<!-- ── KIG / Ortho assessment dialog ──────────────────────────────────── -->
+<OrthoChartDialog bind:open={showOrthoDialog} {patientId} onSaved={() => loadEntries(false)} />
+
+<!-- ── Document template picker ──────────────────────────────────────── -->
+<DocTemplatePickerDialog
+	bind:open={showDocTemplatePicker}
+	{patientId}
+	{patientFolder}
+	onAdded={() => loadEntries(false)}
+/>
+
 <!-- ── Chart snapshot viewer / editor ──────────────────────────────────── -->
 <Dialog open={viewingSnapshot !== null} onOpenChange={(o) => { if (!o) { viewingSnapshot = null; viewingSnapshotEdit = false; } }}>
 	<DialogContent class="max-w-[1100px] sm:max-w-[1100px] h-[92vh] flex flex-col overflow-hidden p-0">
@@ -957,7 +804,7 @@
 			<DialogHeader class="px-6 pt-5 pb-3 shrink-0 border-b border-border">
 				<div class="flex items-center justify-between gap-3">
 					<DialogTitle class="text-sm font-semibold">
-						{i18n.t.timeline.snapshot.title} — {new Date(viewingSnapshot.entry_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+						{i18n.t.timeline.snapshot.title} — {formatDate(viewingSnapshot.entry_date)}
 					</DialogTitle>
 					{#if !viewingSnapshotEdit}
 						<Button size="sm" variant="outline" onclick={() => (viewingSnapshotEdit = true)}>
@@ -973,6 +820,7 @@
 				<DentalChartView
 					{patientId}
 					snapshotData={snapshotChartData()}
+					snapshotDescription={viewingSnapshot?.description ?? ''}
 					snapshotEditMode={viewingSnapshotEdit}
 					onSnapshotSave={handleSnapshotSave}
 				/>

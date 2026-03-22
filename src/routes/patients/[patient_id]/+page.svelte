@@ -1,20 +1,24 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getPatient, updatePatient, deletePatient, getDocuments } from '$lib/services/db';
+	import { getPatient, getDocuments, getAppointmentsForPatient, getAcuteText } from '$lib/services/db';
+	import type { Appointment } from '$lib/types';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
-	import type { Patient, PatientStatus } from '$lib/types';
+	import type { Patient } from '$lib/types';
 	import { listVaultFiles, type VaultFileInfo } from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '$lib/components/ui/dialog';
 	import TimelineView from '$lib/components/timeline/TimelineView.svelte';
 	import PatientNotesBox from '$lib/components/patient/PatientNotesBox.svelte';
 	import MedicalHistoryBox from '$lib/components/patient/MedicalHistoryBox.svelte';
 	import AcuteProblemsBox from '$lib/components/patient/AcuteProblemsBox.svelte';
 	import NewFilesDialog from '$lib/components/documents/NewFilesDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
+	import PatientExportDialog from '$lib/components/export/PatientExportDialog.svelte';
+
 	import { vault } from '$lib/stores/vault.svelte';
+	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate, formatDateTime } from '$lib/utils';
 
 	const patientId = $derived(page.params.patient_id ?? '');
 
@@ -34,15 +38,39 @@
 	let pendingFiles       = $state<VaultFileInfo[]>([]);
 	let showNewFilesDialog = $state(false);
 
-	// Status
-	let statusSaving = $state(false);
-
-	// Delete dialog
-	let showDeleteDialog = $state(false);
-	let isDeleting       = $state(false);
 
 	// Audit log dialog
 	let showAuditDialog = $state(false);
+
+	// Export dialog
+	let showExportDialog = $state(false);
+
+	// Appointments dropdown
+	let appointments     = $state<Appointment[]>([]);
+	let apptDropdownOpen = $state(false);
+	let pillWrapperEl    = $state<HTMLElement | null>(null);
+
+	$effect(() => {
+		if (!apptDropdownOpen) return;
+		function handleDocClick(e: MouseEvent) {
+			if (pillWrapperEl && !pillWrapperEl.contains(e.target as Node)) {
+				apptDropdownOpen = false;
+			}
+		}
+		document.addEventListener('click', handleDocClick);
+		return () => document.removeEventListener('click', handleDocClick);
+	});
+
+	const now = new Date().toISOString();
+	const futureAppointments = $derived(
+		appointments.filter(a => a.status === 'scheduled' && a.start_time >= now)
+			.sort((a, b) => a.start_time.localeCompare(b.start_time))
+	);
+	const nextAppointment  = $derived(futureAppointments[0] ?? null);
+	const pastAppointments = $derived(
+		appointments.filter(a => a.start_time < now || a.status !== 'scheduled')
+			.sort((a, b) => b.start_time.localeCompare(a.start_time))
+	);
 
 	$effect(() => { loadPatient(); });
 
@@ -52,6 +80,14 @@
 		if (!result) { notFound = true; }
 		else {
 			patient = result;
+			activePatient.set(result.patient_id, result.firstname, result.lastname);
+			const [appts, acute] = await Promise.all([
+				getAppointmentsForPatient(patientId),
+				getAcuteText(patientId),
+			]);
+			appointments = appts;
+			acuteContent = acute;
+			if (acute.trim()) showAcute = true;
 			setTimeout(() => checkNewVaultFiles(), 300);
 		}
 		isLoading = false;
@@ -73,39 +109,17 @@
 		}
 	}
 
-	async function handleStatusChange(e: Event) {
-		if (!patient) return;
-		const newStatus = (e.target as HTMLSelectElement).value as PatientStatus;
-		statusSaving = true;
-		await updatePatient(patient.patient_id, { status: newStatus });
-		patient = { ...patient, status: newStatus };
-		statusSaving = false;
-		patientBus.invalidate();
-	}
-
-	async function handleDelete() {
-		if (!patient) return;
-		isDeleting = true;
-		await deletePatient(patient.patient_id);
-		patientBus.invalidate();
-		goto('/patients');
-	}
-
 	function formatDateShort(val: string): string {
-		if (!val) return '—';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+		return formatDate(val);
 	}
 
-	const statusConfig = $derived<Record<PatientStatus, { label: string; class: string }>>({
-		active:   { label: i18n.t.patients.status.active,   class: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' },
-		inactive: { label: i18n.t.patients.status.inactive, class: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400' },
-		archived: { label: i18n.t.patients.status.archived, class: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
-		deceased: { label: i18n.t.patients.status.deceased, class: 'bg-zinc-800 text-zinc-200 border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300' },
-	});
+	function formatApptDateTime(iso: string): string {
+		const d = new Date(iso);
+		if (isNaN(d.getTime())) return iso;
+		const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+		return weekday + ' ' + formatDate(d) + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+	}
 
-	const selectClass =
-		'border-input bg-background flex h-8 rounded-md border px-2.5 py-1 text-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50';
 </script>
 
 <!-- Loading -->
@@ -129,7 +143,7 @@
 	<div class="flex flex-col gap-0">
 
 		<!-- ── Sticky patient header ───────────────────────────────── -->
-		<div class="sticky top-0 z-20 bg-background pb-2 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]">
+		<div class="sticky top-0 z-20 bg-background pb-2 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] -mx-6 px-6 -mt-6 pt-6">
 
 			<!-- Single compact row: breadcrumb + patient identity + actions -->
 			<div class="flex items-center gap-3 min-w-0">
@@ -155,13 +169,89 @@
 						{patient.firstname[0]?.toUpperCase()}{patient.lastname[0]?.toUpperCase()}
 					</div>
 					<div class="flex-1 min-w-0">
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 flex-wrap">
 							<span class="text-sm font-semibold truncate">{patient.firstname} {patient.lastname}</span>
-							{#if patient.status !== 'active'}
-								<span class={`rounded-full border px-1.5 py-px text-[10px] font-medium shrink-0 ${statusConfig[patient.status]?.class ?? ''}`}>
-									{statusConfig[patient.status]?.label ?? patient.status}
-								</span>
-							{/if}
+							<!-- Next appointment pill (click → past appointments list) + Book button -->
+							<div class="relative flex items-center gap-1.5 shrink-0" bind:this={pillWrapperEl} onclick={(e) => e.preventDefault()}>
+								<!-- Pill button -->
+								<button
+									type="button"
+									class="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 hover:bg-muted px-2 py-1 text-[11px] transition-colors"
+									onclick={() => apptDropdownOpen = !apptDropdownOpen}
+									title={i18n.t.schedule.previousAppointments}
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-muted-foreground shrink-0">
+										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+									</svg>
+									{#if nextAppointment}
+										<span class="text-foreground font-medium">{formatApptDateTime(nextAppointment.start_time)}</span>
+									{:else}
+										<span class="text-muted-foreground italic">{i18n.t.schedule.noUpcoming}</span>
+									{/if}
+								</button>
+								<!-- Book new appointment button -->
+								<button
+									type="button"
+									class="flex items-center justify-center h-6 w-6 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
+									title={i18n.t.schedule.bookNew}
+									onclick={(e) => { e.preventDefault(); e.stopPropagation(); goto('/schedule?patient=' + patient?.patient_id); }}
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>
+									</svg>
+								</button>
+								{#if apptDropdownOpen}
+									<!-- Dropdown: all appointments -->
+									<div class="absolute left-0 top-full mt-1 z-50 w-72 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+										<div class="max-h-72 overflow-y-auto">
+											<!-- Upcoming section -->
+											<div class="px-3 py-1.5 border-b border-border bg-muted/30 sticky top-0">
+												<p class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.schedule.upcomingAppointments}</p>
+											</div>
+											{#if futureAppointments.length === 0}
+												<p class="text-xs text-muted-foreground italic px-3 py-2.5">{i18n.t.schedule.noUpcoming}</p>
+											{:else}
+												{#each futureAppointments as appt}
+													<button
+														type="button"
+														class="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-accent transition-colors text-left"
+														onclick={(e) => { e.preventDefault(); e.stopPropagation(); apptDropdownOpen = false; goto('/schedule?date=' + appt.start_time.slice(0, 10)); }}
+													>
+														<span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {appt.type_color ?? '#6366f1'}"></span>
+														<div class="flex-1 min-w-0">
+															<span class="block font-medium truncate">{formatApptDateTime(appt.start_time)}</span>
+															{#if appt.type_name}<span class="text-muted-foreground">{appt.type_name}</span>{/if}
+														</div>
+														<span class="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0 font-medium">scheduled</span>
+													</button>
+												{/each}
+											{/if}
+											<!-- Previous section -->
+											<div class="px-3 py-1.5 border-y border-border bg-muted/30 sticky top-0">
+												<p class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.schedule.previousAppointments}</p>
+											</div>
+											{#if pastAppointments.length === 0}
+												<p class="text-xs text-muted-foreground italic px-3 py-2.5">{i18n.t.schedule.noPrevious}</p>
+											{:else}
+												{#each pastAppointments as appt}
+													<button
+														type="button"
+														class="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-accent transition-colors text-left"
+														onclick={(e) => { e.preventDefault(); e.stopPropagation(); apptDropdownOpen = false; goto('/schedule?date=' + appt.start_time.slice(0, 10)); }}
+													>
+														<span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: {appt.type_color ?? '#6366f1'}"></span>
+														<div class="flex-1 min-w-0">
+															<span class="block font-medium truncate">{formatApptDateTime(appt.start_time)}</span>
+															{#if appt.type_name}<span class="text-muted-foreground">{appt.type_name}</span>{/if}
+														</div>
+														<span class="text-[10px] text-muted-foreground shrink-0 capitalize">{appt.status.replace('_', ' ')}</span>
+													</button>
+												{/each}
+											{/if}
+										</div>
+									</div>
+								{/if}
+							</div>
 						</div>
 						<div class="flex items-center gap-2.5 text-[11px] text-muted-foreground flex-wrap">
 							<span class="font-mono">{patient.patient_id}</span>
@@ -170,9 +260,6 @@
 							{/if}
 							{#if patient.phone}
 								<span>{patient.phone}</span>
-							{/if}
-							{#if patient.next_appointment}
-								<span>Next: {formatDateShort(patient.next_appointment)}</span>
 							{/if}
 						</div>
 					</div>
@@ -185,95 +272,112 @@
 				</a>
 
 				<!-- Actions -->
-				<div class="flex items-center gap-1 shrink-0">
-
-					<!-- Status select -->
-					<select class={selectClass} value={patient.status} onchange={handleStatusChange} disabled={statusSaving}>
-						<option value="active">{i18n.t.patients.status.active}</option>
-						<option value="inactive">{i18n.t.patients.status.inactive}</option>
-						<option value="archived">{i18n.t.patients.status.archived}</option>
-						<option value="deceased">{i18n.t.patients.status.deceased}</option>
-					</select>
-
-					<!-- Edit -->
-					<Button href="/patients/{patient.patient_id}/edit" variant="outline" size="sm" class="h-8 px-2.5 text-xs">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-							<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-						</svg>
-					</Button>
-
-					<!-- Delete -->
-					<Button variant="destructive" size="sm" class="h-8 px-2.5" onclick={() => (showDeleteDialog = true)}>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-							<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-						</svg>
-					</Button>
-
-					<!-- Separator -->
-					<div class="w-px h-5 bg-border/60 mx-0.5"></div>
+				<div class="flex items-center gap-1.5 shrink-0">
 
 					<!-- Acute problems -->
-					<button
-						type="button"
-						onclick={() => (showAcute = !showAcute)}
-						title="Akute Probleme"
-						aria-pressed={showAcute}
-						class={[
-							'flex items-center gap-1 rounded-md px-2 py-1.5 transition-colors max-w-[160px]',
-							showAcute || acuteContent.trim()
-								? 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400'
-								: 'text-red-400/70 hover:bg-red-50 hover:text-red-600 dark:text-red-700 dark:hover:text-red-400',
-						].join(' ')}
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
-							<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-							<line x1="12" y1="9" x2="12" y2="13"/>
-							<line x1="12" y1="17" x2="12.01" y2="17"/>
-						</svg>
-						{#if acuteContent.trim() && !showAcute}
-							<span class="text-[10px] font-medium leading-tight truncate">
-								{acuteContent.trim().slice(0, 30)}{acuteContent.trim().length > 30 ? '…' : ''}
-							</span>
+					<div class="relative">
+						<button
+							type="button"
+							onclick={() => (showAcute = !showAcute)}
+							title="Akute Probleme"
+							aria-pressed={showAcute}
+							class={[
+								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+								acuteContent.trim()
+									? 'border-red-500 bg-red-500 text-white shadow-sm shadow-red-500/30 hover:bg-red-600'
+									: showAcute
+										? 'border-red-300 bg-red-50 text-red-600 dark:bg-red-950/40 dark:border-red-700 dark:text-red-400'
+										: 'border-transparent text-red-400/60 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-800 dark:hover:text-red-400',
+							].join(' ')}
+						>
+							<!-- filled triangle when has content, outline when empty -->
+							{#if acuteContent.trim()}
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 shrink-0">
+									<path d="M12 2L2 22h20L12 2z"/>
+									<rect x="11" y="9" width="2" height="5" fill="white"/>
+									<rect x="11" y="16" width="2" height="2" fill="white"/>
+								</svg>
+							{:else}
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+									<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+									<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+								</svg>
+							{/if}
+							<span>Akut</span>
+						</button>
+						{#if showAcute}
+							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showAcute = false)}></div>
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+								<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
+							</div>
 						{/if}
-					</button>
+					</div>
 
 					<!-- Medical history -->
-					<button
-						type="button"
-						onclick={() => (showMedical = !showMedical)}
-						title="Medical History"
-						aria-pressed={showMedical}
-						class={[
-							'rounded-md p-1.5 transition-colors',
-							showMedical
-								? 'bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
-								: 'text-amber-400/70 hover:bg-amber-50 hover:text-amber-600 dark:text-amber-700 dark:hover:text-amber-400',
-						].join(' ')}
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-							<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-							<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-							<line x1="8" y1="12" x2="16" y2="12"/>
-							<line x1="8" y1="16" x2="16" y2="16"/>
-						</svg>
-					</button>
+					<div class="relative">
+						<button
+							type="button"
+							onclick={() => (showMedical = !showMedical)}
+							title="Medical History"
+							aria-pressed={showMedical}
+							class={[
+								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+								showMedical
+									? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-400'
+									: 'border-transparent text-amber-500/60 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:hover:border-amber-800 dark:hover:text-amber-400',
+							].join(' ')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+								<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+								<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+								<line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/>
+							</svg>
+							<span>Anamnese</span>
+						</button>
+						{#if showMedical}
+							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showMedical = false)}></div>
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+								<MedicalHistoryBox patientId={patient.patient_id} />
+							</div>
+						{/if}
+					</div>
 
 					<!-- Notes -->
+					<div class="relative">
+						<button
+							type="button"
+							onclick={() => (showNotes = !showNotes)}
+							title="Notes"
+							aria-pressed={showNotes}
+							class={[
+								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+								showNotes
+									? 'border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:border-violet-700 dark:text-violet-400'
+									: 'border-transparent text-violet-400/60 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:hover:border-violet-800 dark:hover:text-violet-400',
+							].join(' ')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+								<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+							</svg>
+							<span>Notizen</span>
+						</button>
+						{#if showNotes}
+							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showNotes = false)}></div>
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+								<PatientNotesBox patientId={patient.patient_id} />
+							</div>
+						{/if}
+					</div>
+
+					<!-- Export -->
 					<button
 						type="button"
-						onclick={() => (showNotes = !showNotes)}
-						title="Notes"
-						aria-pressed={showNotes}
-						class={[
-							'rounded-md p-1.5 transition-colors',
-							showNotes
-								? 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400'
-								: 'text-violet-400/70 hover:bg-violet-50 hover:text-violet-600 dark:text-violet-700 dark:hover:text-violet-400',
-						].join(' ')}
+						onclick={() => (showExportDialog = true)}
+						title={i18n.t.export.title}
+						class="rounded-md p-1.5 transition-colors text-muted-foreground/50 hover:bg-muted hover:text-foreground"
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-							<path d="M12 20h9"/>
-							<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
 						</svg>
 					</button>
 
@@ -294,24 +398,6 @@
 
 		</div><!-- /sticky header -->
 
-		<!-- ── Contextual panels ───────────────────────────────────── -->
-		{#if showAcute || showNotes || showMedical}
-			<div class="flex flex-col gap-2 mt-3 mb-4">
-				{#if showAcute}
-					<AcuteProblemsBox
-						patientId={patient.patient_id}
-						onContentChange={(v) => (acuteContent = v)}
-					/>
-				{/if}
-				{#if showMedical}
-					<MedicalHistoryBox patientId={patient.patient_id} />
-				{/if}
-				{#if showNotes}
-					<PatientNotesBox patientId={patient.patient_id} />
-				{/if}
-			</div>
-		{/if}
-
 		<!-- ── Timeline ────────────────────────────────────────────── -->
 		<TimelineView
 			patientId={patient.patient_id}
@@ -331,25 +417,6 @@
 	/>
 {/if}
 
-<!-- Delete confirmation -->
-<Dialog bind:open={showDeleteDialog}>
-	<DialogContent>
-		<DialogHeader>
-			<DialogTitle>{i18n.t.patients.deletePatient}</DialogTitle>
-			<DialogDescription>
-				{i18n.t.patients.deleteConfirm} <strong>{patient?.firstname} {patient?.lastname}</strong>.
-				{i18n.t.patients.deleteWarning}
-			</DialogDescription>
-		</DialogHeader>
-		<DialogFooter>
-			<Button variant="outline" onclick={() => (showDeleteDialog = false)} disabled={isDeleting}>{i18n.t.actions.cancel}</Button>
-			<Button variant="destructive" onclick={handleDelete} disabled={isDeleting}>
-				{isDeleting ? 'Deleting…' : i18n.t.patients.deletePatient}
-			</Button>
-		</DialogFooter>
-	</DialogContent>
-</Dialog>
-
 {#if patient}
 	<AuditLogDialog
 		bind:open={showAuditDialog}
@@ -357,3 +424,8 @@
 		patientName="{patient.firstname} {patient.lastname}"
 	/>
 {/if}
+
+{#if showExportDialog && patient}
+	<PatientExportDialog bind:open={showExportDialog} {patient} />
+{/if}
+

@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { untrack, tick } from 'svelte';
-	import type { TimelineEntry, TimelineEntryType, Complication } from '$lib/types';
+	import type { TimelineEntry, TimelineEntryType } from '$lib/types';
 	import { i18n } from '$lib/i18n';
 	import { Button } from '$lib/components/ui/button';
 	import { openDocumentFile, fileToAssetUrl, isImageMime, formatFileSize, toAbsPath } from '$lib/services/files';
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { complicationTypes } from '$lib/stores/complicationTypes.svelte';
 	import { staffLabel } from '$lib/utils/staff';
+	import { formatDate } from '$lib/utils';
 	import { vault } from '$lib/stores/vault.svelte';
-	import { getComplications, insertComplication, resolveComplication, deleteComplication } from '$lib/services/db';
+	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
+	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 
 	let {
 		entry,
@@ -27,6 +28,7 @@
 	} = $props();
 
 	let expanded = $state(true);
+	let menuOpen = $state(false);
 
 	// ── Inline date editing ──────────────────────────────────────────────
 	let editingDate = $state(false);
@@ -63,81 +65,47 @@
 	}
 
 	// ── Entry type config ────────────────────────────────────────────────
-	const typeConfig: Record<
-		TimelineEntryType,
-		{ icon: string; label: string; dotClass: string; bgClass: string; textClass: string }
-	> = {
-		visit: {
-			icon: '🏥',
-			label: 'Visit',
-			dotClass: 'bg-blue-500',
-			bgClass: 'bg-blue-50 dark:bg-blue-950/30',
-			textClass: 'text-blue-700 dark:text-blue-400',
-		},
-		procedure: {
-			icon: '🔧',
-			label: 'Procedure',
-			dotClass: 'bg-violet-500',
-			bgClass: 'bg-violet-50 dark:bg-violet-950/30',
-			textClass: 'text-violet-700 dark:text-violet-400',
-		},
-		note: {
-			icon: '📝',
-			label: 'Note',
-			dotClass: 'bg-zinc-400',
-			bgClass: 'bg-zinc-50 dark:bg-zinc-800/40',
-			textClass: 'text-zinc-600 dark:text-zinc-400',
-		},
-		lab: {
-			icon: '🧪',
-			label: 'Lab',
-			dotClass: 'bg-amber-500',
-			bgClass: 'bg-amber-50 dark:bg-amber-950/30',
-			textClass: 'text-amber-700 dark:text-amber-400',
-		},
-		imaging: {
-			icon: '📷',
-			label: 'Imaging',
-			dotClass: 'bg-teal-500',
-			bgClass: 'bg-teal-50 dark:bg-teal-950/30',
-			textClass: 'text-teal-700 dark:text-teal-400',
-		},
-		referral: {
-			icon: '📋',
-			label: 'Referral',
-			dotClass: 'bg-rose-500',
-			bgClass: 'bg-rose-50 dark:bg-rose-950/30',
-			textClass: 'text-rose-700 dark:text-rose-400',
-		},
-		document: {
-			icon: '📎',
-			label: 'File',
-			dotClass: 'bg-sky-500',
-			bgClass: 'bg-sky-50 dark:bg-sky-950/30',
-			textClass: 'text-sky-700 dark:text-sky-400',
-		},
-		plan: {
-			icon: '📋',
-			label: 'Plan',
-			dotClass: 'bg-primary',
-			bgClass: 'bg-primary/5',
-			textClass: 'text-primary',
-		},
-		chart_snapshot: {
-			icon: '🦷',
-			label: 'Chart',
-			dotClass: 'bg-indigo-500',
-			bgClass: 'bg-indigo-50 dark:bg-indigo-950/30',
-			textClass: 'text-indigo-700 dark:text-indigo-400',
-		},
+	// System / legacy types have fixed Tailwind colours; user-defined appointment
+	// types use the hex colour stored in the appointment_types table.
+	type StaticCfg = { icon: string; label: string; dotClass: string; bgClass: string; textClass: string; color?: undefined };
+	type DynamicCfg = { icon: string; label: string; dotClass?: undefined; bgClass?: undefined; textClass?: undefined; color: string };
+
+	const STATIC_TYPE_CONFIG: Record<string, StaticCfg> = {
+		visit:          { icon: '🏥', label: 'Visit',     dotClass: 'bg-blue-500',   bgClass: 'bg-blue-50 dark:bg-blue-950/30',     textClass: 'text-blue-700 dark:text-blue-400'   },
+		procedure:      { icon: '🔧', label: 'Procedure', dotClass: 'bg-violet-500', bgClass: 'bg-violet-50 dark:bg-violet-950/30', textClass: 'text-violet-700 dark:text-violet-400' },
+		note:           { icon: '📝', label: 'Note',      dotClass: 'bg-zinc-400',   bgClass: 'bg-zinc-50 dark:bg-zinc-800/40',     textClass: 'text-zinc-600 dark:text-zinc-400'   },
+		lab:            { icon: '🧪', label: 'Lab',       dotClass: 'bg-amber-500',  bgClass: 'bg-amber-50 dark:bg-amber-950/30',   textClass: 'text-amber-700 dark:text-amber-400' },
+		imaging:        { icon: '📷', label: 'Imaging',   dotClass: 'bg-teal-500',   bgClass: 'bg-teal-50 dark:bg-teal-950/30',     textClass: 'text-teal-700 dark:text-teal-400'   },
+		referral:       { icon: '📋', label: 'Referral',  dotClass: 'bg-rose-500',   bgClass: 'bg-rose-50 dark:bg-rose-950/30',     textClass: 'text-rose-700 dark:text-rose-400'   },
+		document:       { icon: '📎', label: 'File',      dotClass: 'bg-sky-500',    bgClass: 'bg-sky-50 dark:bg-sky-950/30',       textClass: 'text-sky-700 dark:text-sky-400'     },
+		plan:           { icon: '📋', label: 'Plan',      dotClass: 'bg-primary',    bgClass: 'bg-primary/5',                       textClass: 'text-primary'                       },
+		chart_snapshot: { icon: '🦷', label: 'Chart',     dotClass: 'bg-indigo-500', bgClass: 'bg-indigo-50 dark:bg-indigo-950/30', textClass: 'text-indigo-700 dark:text-indigo-400' },
 	};
+
+	const cfg = $derived.by<StaticCfg | DynamicCfg>(() => {
+		if (!entry.entry_type) return {
+			icon: '—', label: i18n.t.timeline.entry.typePlaceholder,
+			dotClass: 'bg-border', bgClass: 'bg-muted', textClass: 'text-muted-foreground',
+		} satisfies StaticCfg;
+		const staticCfg = STATIC_TYPE_CONFIG[entry.entry_type];
+		if (staticCfg) return staticCfg;
+		const appt = appointmentTypes.active.find(t => t.name === entry.entry_type);
+		if (appt) return { icon: appt.short_name, label: appt.name, color: appt.color };
+		return { ...STATIC_TYPE_CONFIG.note, label: entry.entry_type };
+	});
+
+	/** Inline style string for dynamic (appointment-type) badge colours */
+	const cfgStyle = $derived(
+		cfg.color
+			? `background-color: ${cfg.color}18; color: ${cfg.color}; border: 1px solid ${cfg.color}40;`
+			: undefined
+	);
+	const cfgDotStyle = $derived(cfg.color ? `background-color: ${cfg.color};` : undefined);
 
 	// ── Document category metadata — driven by configurable categories store ──
 	const docCatLabel = $derived(docCategories.getLabel(entry.treatment_category));
 	const docCatIcon  = $derived(docCategories.getIcon(entry.treatment_category));
 	const docCatColor = $derived(docCategories.getColor(entry.treatment_category));
-
-	const cfg = $derived(typeConfig[entry.entry_type] ?? typeConfig.note);
 
 	// ── Treatment category & outcome labels (clinical entries) ────────────
 	const categoryLabels = $derived<Record<string, { label: string; icon: string }>>({
@@ -161,12 +129,7 @@
 		unknown:          { label: i18n.t.outcomes.unknown,           colorClass: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
 	});
 
-	function formatDate(val: string): string {
-		if (!val) return '—';
-		const [y, m, d] = val.split('-').map(Number);
-		const date = new Date(y, m - 1, d);
-		return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
+
 
 	// ── Document attachment helpers ──────────────────────────────────────
 
@@ -249,65 +212,15 @@
 		await openDocumentFile(resolvedDocPath);
 	}
 
-	// ── Complications ─────────────────────────────────────────────────────
-	let complications = $state<Complication[]>([]);
-	let showComplicationForm = $state(false);
-	let newComplicationType = $state('');
-	let newComplicationNotes = $state('');
-	let isSavingComplication = $state(false);
 
-	const isComplicationEntry = $derived(
-		entry.entry_type === 'procedure' || entry.entry_type === 'visit',
-	);
-
-	async function loadComplications() {
-		if (isComplicationEntry) {
-			complications = await getComplications(entry.id);
-		}
-	}
-
-	$effect(() => {
-		if (expanded && isComplicationEntry) {
-			loadComplications();
-		}
-	});
-
-	async function handleAddComplication() {
-		if (!newComplicationType.trim()) return;
-		isSavingComplication = true;
-		try {
-			const today = new Date().toISOString().slice(0, 10);
-			await insertComplication(entry.id, entry.patient_id, {
-				complication_type: newComplicationType,
-				description: newComplicationNotes,
-				date_reported: today,
-			});
-			newComplicationType = '';
-			newComplicationNotes = '';
-			showComplicationForm = false;
-			await loadComplications();
-		} finally {
-			isSavingComplication = false;
-		}
-	}
-
-	async function handleResolveComplication(id: number) {
-		await resolveComplication(id, true);
-		await loadComplications();
-	}
-
-	async function handleDeleteComplication(id: number) {
-		await deleteComplication(id);
-		await loadComplications();
-	}
 </script>
 
 <div class="relative flex gap-4">
 	<!-- Timeline dot -->
 	<div class="flex flex-col items-center">
 		<div
-			class={`mt-1.5 h-3 w-3 rounded-full border-2 border-background ring-2 ring-offset-0 shrink-0 ${cfg.dotClass}`}
-			style="box-shadow: 0 0 0 2px white;"
+			class={`mt-1.5 h-3 w-3 rounded-full border-2 border-background ring-2 ring-offset-0 shrink-0 ${cfg.dotClass ?? ''}`}
+			style={`box-shadow: 0 0 0 2px white;${cfgDotStyle ? ' ' + cfgDotStyle : ''}`}
 		></div>
 	</div>
 
@@ -340,7 +253,10 @@
 				<div class="flex-1 min-w-0">
 					<!-- Badges row -->
 					<div class="flex flex-wrap items-center gap-1.5 mb-1">
-						<span class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass} ${cfg.textClass}`}>
+						<span
+							class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass ?? ''} ${cfg.textClass ?? ''}`}
+							style={cfgStyle}
+						>
 							{cfg.icon} {cfg.label}
 						</span>
 						{#if entry.treatment_category}
@@ -450,7 +366,10 @@
 			>
 				<div class="flex items-start gap-3 min-w-0">
 					<!-- Entry type badge -->
-					<span class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass} ${cfg.textClass}`}>
+					<span
+						class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass ?? ''} ${cfg.textClass ?? ''}`}
+						style={cfgStyle}
+					>
 						{cfg.icon} {cfg.label}
 					</span>
 					<div class="min-w-0 flex-1">
@@ -534,95 +453,6 @@
 						</p>
 					{/if}
 
-					<!-- Complications section (procedure/visit only) -->
-					{#if isComplicationEntry}
-						<div class="border-t pt-3">
-							<div class="flex items-center justify-between mb-2">
-								<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.complications.title}</span>
-								<button
-									type="button"
-									onclick={() => (showComplicationForm = !showComplicationForm)}
-									class="text-[10px] text-primary hover:underline"
-								>
-									{showComplicationForm ? i18n.t.actions.cancel : `+ ${i18n.t.actions.add}`}
-								</button>
-							</div>
-
-							{#if complications.length > 0}
-								<div class="flex flex-col gap-1.5 mb-2">
-									{#each complications as comp}
-										<div class="flex items-start justify-between gap-2 rounded-md border bg-muted/30 px-2.5 py-1.5">
-											<div class="flex-1 min-w-0">
-												<span class="text-xs font-medium">{comp.complication_type}</span>
-												{#if comp.description}
-													<span class="text-xs text-muted-foreground ml-1.5">{comp.description}</span>
-												{/if}
-												{#if comp.resolved}
-													<span class="ml-1.5 text-[10px] text-emerald-600">{i18n.t.complications.resolved} {comp.date_resolved}</span>
-												{/if}
-											</div>
-											<div class="flex items-center gap-1 shrink-0">
-												{#if !comp.resolved}
-													<button
-														type="button"
-														onclick={() => handleResolveComplication(comp.id)}
-														class="text-[10px] text-emerald-600 hover:underline"
-														title="Mark as resolved"
-													>{i18n.t.complications.resolve}</button>
-												{/if}
-												<button
-													type="button"
-													onclick={() => handleDeleteComplication(comp.id)}
-													class="text-[10px] text-destructive hover:underline"
-													title="Delete"
-												>✕</button>
-											</div>
-										</div>
-									{/each}
-								</div>
-							{:else if !showComplicationForm}
-								<p class="text-xs text-muted-foreground/60 italic">{i18n.t.common.noData}</p>
-							{/if}
-
-							{#if showComplicationForm}
-								<div class="flex flex-col gap-2 rounded-md border bg-muted/20 p-2.5">
-									<div class="flex gap-2">
-										<select
-											bind:value={newComplicationType}
-											class="flex-1 h-7 rounded border border-input bg-background px-2 text-xs outline-none focus:border-ring"
-										>
-											<option value="">Select type…</option>
-											{#each complicationTypes.list as ct}
-												<option value={ct.key}>{complicationTypes.displayLabel(ct)}</option>
-											{/each}
-										</select>
-									</div>
-									<input
-										type="text"
-										bind:value={newComplicationNotes}
-										placeholder="Notes (optional)"
-										class="h-7 w-full rounded border border-input bg-background px-2 text-xs outline-none focus:border-ring"
-									/>
-									<div class="flex gap-2">
-										<button
-											type="button"
-											onclick={handleAddComplication}
-											disabled={isSavingComplication || !newComplicationType}
-											class="h-6 rounded bg-primary px-3 text-[10px] font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-										>
-											{isSavingComplication ? i18n.t.common.loading : i18n.t.actions.save}
-										</button>
-										<button
-											type="button"
-											onclick={() => (showComplicationForm = false)}
-											class="h-6 rounded border px-3 text-[10px] hover:bg-muted"
-										>{i18n.t.actions.cancel}</button>
-									</div>
-								</div>
-							{/if}
-						</div>
-					{/if}
-
 					<!-- Inline date editor (only shown when caller supports date changes) -->
 					{#if onDateChange}
 						<div class="flex items-center gap-2 text-xs text-muted-foreground border-t pt-2">
@@ -683,17 +513,34 @@
 								{i18n.t.audit.title}
 							</Button>
 						{/if}
-						<Button
-							variant="ghost"
-							size="sm"
-							onclick={() => onDelete(entry)}
-							class="h-7 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 h-3 w-3">
-								<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-							</svg>
-							{i18n.t.actions.delete}
-						</Button>
+						<!-- 3-dot menu -->
+						<div class="relative">
+							<button
+								type="button"
+								onclick={() => (menuOpen = !menuOpen)}
+								class="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+								title="More options"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+									<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+								</svg>
+							</button>
+							{#if menuOpen}
+								<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
+								<div class="absolute right-0 bottom-full mb-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
+									<button
+										type="button"
+										onclick={() => { menuOpen = false; onDelete(entry); }}
+										class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+											<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+										</svg>
+										{i18n.t.actions.delete}
+									</button>
+								</div>
+							{/if}
+						</div>
 					</div>
 				</div>
 			{/if}

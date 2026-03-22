@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { ToothChartEntry } from '$lib/types';
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
+	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
+	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
 	import { toFDI } from '$lib/utils';
+	import { i18n } from '$lib/i18n';
 
 	let {
 		chartData,
@@ -20,6 +23,16 @@
 		chartingTooth?: number | null;
 		shiftSelectedTeeth?: number[];
 	} = $props();
+
+	// ── Legend groups (derived so they react to i18n changes) ──────────
+	const LEGEND_GROUPS = $derived([
+		{ label: i18n.t.chart.tagGroups.general,          keys: ['healthy', 'watch', 'impacted', 'fractured'] },
+		{ label: i18n.t.chart.tagGroups.restorative,      keys: ['decayed', 'filled'] },
+		{ label: i18n.t.chart.tagGroups.endodontic,       keys: ['root_canal'] },
+		{ label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
+		{ label: i18n.t.chart.tagGroups.removable,        keys: ['prosthesis'] },
+		{ label: i18n.t.chart.tagGroups.absent,           keys: ['missing', 'extracted'] },
+	]);
 
 	// ── Layout constants ────────────────────────────────────────────────
 	const SW = 46;
@@ -48,7 +61,7 @@
 	};
 
 	// Conditions that have no natural roots
-	const NO_ROOT = new Set(['extracted', 'missing', 'implant']);
+	const NO_ROOT = new Set(['extracted', 'missing']);
 
 	// ── Root geometry ───────────────────────────────────────────────────
 	interface RootInfo { points: string; centerX: number; apexY: number; }
@@ -129,8 +142,25 @@
 		maxSlot: number;
 		isUpper: boolean;
 		kind: 'bridge' | 'prosthesis';
-		// For prosthesis: anchor tooth slots (telescope/clasp/attachment)
 		anchorSlots: number[];
+		/** All slot indices that are actual members of this group */
+		memberSlots: number[];
+		/** Dominant prosthesis_type of anchor members (for connector color) */
+		prosthesisType: string | null;
+	}
+
+	/** Returns runs of consecutive slot indices, e.g. [1,2,3,7,8] → [[1,3],[7,8]] */
+	function slotRuns(slots: number[]): [number, number][] {
+		if (slots.length === 0) return [];
+		const sorted = [...slots].sort((a, b) => a - b);
+		const runs: [number, number][] = [];
+		let start = sorted[0], end = sorted[0];
+		for (let i = 1; i < sorted.length; i++) {
+			if (sorted[i] === end + 1) { end = sorted[i]; }
+			else { runs.push([start, end]); start = end = sorted[i]; }
+		}
+		runs.push([start, end]);
+		return runs;
 	}
 
 	const bridgeGroups = $derived.by<Map<string, BridgeGroupRender>>(() => {
@@ -142,20 +172,26 @@
 			const isUpper = upperSlot !== -1;
 			const slot = isUpper ? upperSlot : lowerSlot;
 			if (slot === -1) continue;
-			const isProsthesis = entry.condition === 'prosthesis';
-			const isAnchor = isProsthesis && entry.prosthesis_type !== 'replaced';
+			const isProsthesis = !!entry.prosthesis_type;
+			const isAnchor = isProsthesis && entry.bridge_role === 'abutment';
 			if (!map.has(entry.bridge_group_id)) {
 				map.set(entry.bridge_group_id, {
 					minSlot: slot, maxSlot: slot, isUpper,
 					kind: isProsthesis ? 'prosthesis' : 'bridge',
 					anchorSlots: isAnchor ? [slot] : [],
+					memberSlots: [slot],
+					prosthesisType: isAnchor ? (entry.prosthesis_type ?? null) : null,
 				});
 			} else {
 				const g = map.get(entry.bridge_group_id)!;
 				g.minSlot = Math.min(g.minSlot, slot);
 				g.maxSlot = Math.max(g.maxSlot, slot);
+				g.memberSlots.push(slot);
 				if (isProsthesis) g.kind = 'prosthesis';
-				if (isAnchor) g.anchorSlots.push(slot);
+				if (isAnchor) {
+					g.anchorSlots.push(slot);
+					if (!g.prosthesisType) g.prosthesisType = entry.prosthesis_type ?? null;
+				}
 			}
 		}
 		return map;
@@ -296,6 +332,66 @@
 					</pattern>
 				{/if}
 			{/each}
+			<!-- Per-prosthesis-type SVG fill patterns (only for non-solid fills) -->
+			{#each prosthesisTypes.configs as cfg}
+				{#if cfg.fillPattern === 'diagonal'}
+					<pattern id="ptpat-{cfg.key}" patternUnits="userSpaceOnUse" width="6" height="6">
+						<rect width="6" height="6" fill={cfg.fillColor}/>
+						<path d="M -1 1 l 2 -2 M 0 6 l 6 -6 M 5 7 l 2 -2" stroke={cfg.color} stroke-width="1.2" stroke-linecap="round"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'crosshatch'}
+					<pattern id="ptpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="8">
+						<rect width="8" height="8" fill={cfg.fillColor}/>
+						<line x1="4" y1="0" x2="4" y2="8" stroke={cfg.color} stroke-width="0.9"/>
+						<line x1="0" y1="4" x2="8" y2="4" stroke={cfg.color} stroke-width="0.9"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'horizontal'}
+					<pattern id="ptpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="6">
+						<rect width="8" height="6" fill={cfg.fillColor}/>
+						<line x1="0" y1="3" x2="8" y2="3" stroke={cfg.color} stroke-width="1.2"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'vertical'}
+					<pattern id="ptpat-{cfg.key}" patternUnits="userSpaceOnUse" width="6" height="8">
+						<rect width="6" height="8" fill={cfg.fillColor}/>
+						<line x1="3" y1="0" x2="3" y2="8" stroke={cfg.color} stroke-width="1.2"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'dots'}
+					<pattern id="ptpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="8">
+						<rect width="8" height="8" fill={cfg.fillColor}/>
+						<circle cx="4" cy="4" r="1.7" fill={cfg.color}/>
+					</pattern>
+				{/if}
+			{/each}
+			<!-- Per-bridge-role SVG fill patterns (only for non-solid fills) -->
+			{#each bridgeRoles.configs as cfg}
+				{#if cfg.fillPattern === 'diagonal'}
+					<pattern id="brpat-{cfg.key}" patternUnits="userSpaceOnUse" width="6" height="6">
+						<rect width="6" height="6" fill={cfg.fillColor}/>
+						<path d="M -1 1 l 2 -2 M 0 6 l 6 -6 M 5 7 l 2 -2" stroke={cfg.color} stroke-width="1.2" stroke-linecap="round"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'crosshatch'}
+					<pattern id="brpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="8">
+						<rect width="8" height="8" fill={cfg.fillColor}/>
+						<line x1="4" y1="0" x2="4" y2="8" stroke={cfg.color} stroke-width="0.9"/>
+						<line x1="0" y1="4" x2="8" y2="4" stroke={cfg.color} stroke-width="0.9"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'horizontal'}
+					<pattern id="brpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="6">
+						<rect width="8" height="6" fill={cfg.fillColor}/>
+						<line x1="0" y1="3" x2="8" y2="3" stroke={cfg.color} stroke-width="1.2"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'vertical'}
+					<pattern id="brpat-{cfg.key}" patternUnits="userSpaceOnUse" width="6" height="8">
+						<rect width="6" height="8" fill={cfg.fillColor}/>
+						<line x1="3" y1="0" x2="3" y2="8" stroke={cfg.color} stroke-width="1.2"/>
+					</pattern>
+				{:else if cfg.fillPattern === 'dots'}
+					<pattern id="brpat-{cfg.key}" patternUnits="userSpaceOnUse" width="8" height="8">
+						<rect width="8" height="8" fill={cfg.fillColor}/>
+						<circle cx="4" cy="4" r="1.7" fill={cfg.color}/>
+					</pattern>
+				{/if}
+			{/each}
 		</defs>
 
 		<!-- Arch gap separator -->
@@ -316,40 +412,29 @@
 				{@const t1 = SLOT_TYPE[group.maxSlot]}
 				{@const x1 = cx(group.minSlot) - CROWN_W[t0] / 2}
 				{@const x2 = cx(group.maxSlot) + CROWN_W[t1] / 2}
-				{@const bridgeTag = dentalTags.list.find(t => t.key === 'bridge')}
-				{@const barFill = bridgeTag?.color ?? '#fed7aa'}
-				{@const barStroke = bridgeTag?.strokeColor ?? '#f97316'}
+				{@const connCfg = bridgeRoles.getConfig('connector')}
 				{#if group.isUpper}
 					<rect x={x1} y={UPPER_BASE - 1} width={x2 - x1} height={7}
-						fill={barFill} stroke={barStroke} stroke-width="1" rx="2"
+						fill={connCfg.fillColor} stroke={connCfg.color} stroke-width="1" rx="2"
 						pointer-events="none"/>
 				{:else}
 					<rect x={x1} y={LOWER_TOP - 6} width={x2 - x1} height={7}
-						fill={barFill} stroke={barStroke} stroke-width="1" rx="2"
+						fill={connCfg.fillColor} stroke={connCfg.color} stroke-width="1" rx="2"
 						pointer-events="none"/>
 				{/if}
 			{:else}
-				<!-- Prosthesis: dashed connecting line between anchor teeth -->
-				{@const anchorSlotsSorted = [...group.anchorSlots].sort((a, b) => a - b)}
-				{#if anchorSlotsSorted.length >= 2}
-					{@const aMin = anchorSlotsSorted[0]}
-					{@const aMax = anchorSlotsSorted[anchorSlotsSorted.length - 1]}
-					{@const lx1 = cx(aMin)}
-					{@const lx2 = cx(aMax)}
-					{#if group.isUpper}
-						<line x1={lx1} y1={UPPER_BASE + 3} x2={lx2} y2={UPPER_BASE + 3}
-							stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4"
-							pointer-events="none"/>
-					{:else}
-						<line x1={lx1} y1={LOWER_TOP - 3} x2={lx2} y2={LOWER_TOP - 3}
-							stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4"
-							pointer-events="none"/>
-					{/if}
-				{:else if anchorSlotsSorted.length === 1}
-					<!-- single anchor: just a dot -->
-					<circle cx={cx(anchorSlotsSorted[0])} cy={group.isUpper ? UPPER_BASE + 3 : LOWER_TOP - 3}
-						r="3" fill="#3b82f6" opacity="0.6" pointer-events="none"/>
-				{/if}
+				<!-- Removable prosthesis: one pink rect per run of consecutive member teeth -->
+				{@const pry = group.isUpper ? UPPER_BASE - 44 : LOWER_TOP - 3}
+				{#each slotRuns(group.memberSlots) as [runStart, runEnd]}
+					{@const t0r = SLOT_TYPE[runStart]}
+					{@const t1r = SLOT_TYPE[runEnd]}
+					{@const px1 = cx(runStart) - CROWN_W[t0r] / 2 - 2}
+					{@const px2 = cx(runEnd)   + CROWN_W[t1r] / 2 + 2}
+					<rect x={px1} y={pry} width={px2 - px1} height={48}
+						fill="#fda4af" fill-opacity="0.20"
+						stroke="#f43f5e" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4,3"
+						rx="4" pointer-events="none"/>
+				{/each}
 			{/if}
 		{/each}
 
@@ -387,11 +472,19 @@
 			{@const isPontic          = entry?.bridge_role === 'pontic'}
 			{@const isProsthesisReplaced = entry?.condition === 'prosthesis' && entry?.prosthesis_type === 'replaced'}
 			{@const isImplantAbutment = entry?.bridge_role === 'abutment' && entry?.abutment_type === 'implant'}
-			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !isProsthesisReplaced}
-			{@const sc        = sel ? '#2563eb' : dentalTags.getStroke(cond)}
+			{@const isBridgeMember    = cond === 'bridge'}
+			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !(cond === 'prosthesis' && entry?.prosthesis_type === 'replaced')}
+			{@const sc        = sel ? '#2563eb' : (isBridgeMember ? (isPontic ? bridgeRoles.getConfig('pontic').color : bridgeRoles.getConfig('abutment').color) : dentalTags.getStroke(cond))}
 			{@const divOp     = sel ? '0.9' : '0.55'}
 			{@const leftSurf  = slot < 8 ? 'D' : 'M'}
 			{@const rightSurf = slot < 8 ? 'M' : 'D'}
+			{@const prosthesisBodyFill = cond === 'prosthesis'
+				? prosthesisTypes.getFill(entry?.prosthesis_type ?? 'telescope')
+				: null}
+			{@const bridgeBodyFill   = isBridgeMember ? (isPontic ? bridgeRoles.getFill('pontic') : bridgeRoles.getFill('abutment')) : null}
+			{@const crownFallback    = cond === 'root_canal' ? 'healthy' : cond}
+			{@const isAbsent         = cond === 'missing' || cond === 'extracted'}
+			{@const infraOffset      = cond === 'impacted' ? -14 : 0}
 
 			<text x={cx(slot)} y="20" font-size="8"
 				fill={sel ? '#2563eb' : '#94a3b8'}
@@ -400,18 +493,20 @@
 				class="pointer-events-none select-none"
 			>{toFDI(tooth)}</text>
 
+			<g transform={infraOffset ? `translate(0,${infraOffset})` : undefined}>
 			<!-- ── Upper roots / implant fixture ── -->
 			{#if showRoot}
-				{#if isImplantAbutment}
-					{@const fw = Math.max(8, CROWN_W[SLOT_TYPE[slot]] * 0.38)}
+				{#if cond === 'implant' || isImplantAbutment}
+					<!-- Single canonical implant fixture rendering (covers standalone + legacy abutment data) -->
+					{@const fw = Math.max(10, CROWN_W[SLOT_TYPE[slot]] * 0.48)}
 					{@const fx = cx(slot) - fw / 2}
 					{@const fy = g.oy - ROOT_H}
 					<rect x={fx} y={fy} width={fw} height={ROOT_H}
-						fill="#e5e7eb" stroke="#9ca3af" stroke-width="0.9" rx="2" class="cursor-pointer"/>
-					{#each [0.28, 0.52, 0.76] as ratio}
+						fill="#6b7280" stroke="#374151" stroke-width="1" rx="3" class="cursor-pointer"/>
+					{#each [0.2, 0.4, 0.6, 0.8] as ratio}
 						<line x1={fx + 2} y1={fy + ROOT_H * ratio}
 							x2={fx + fw - 2} y2={fy + ROOT_H * ratio}
-							stroke="#9ca3af" stroke-width="0.8" pointer-events="none"/>
+							stroke="#4b5563" stroke-width="0.9" pointer-events="none"/>
 					{/each}
 				{:else}
 					{#each makeRoots(cx(slot), CROWN_W[SLOT_TYPE[slot]], ROOT_COUNTS[tooth] ?? 1, g.oy, true) as root}
@@ -441,12 +536,13 @@
 				filter={sel ? 'url(#tooth-selected)' : undefined}
 				aria-label="Tooth {toFDI(tooth)}"
 			>
+				{#if !isAbsent}
 				<!-- 5 surface polygons -->
-				<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'B', cond))} stroke="none"/>
-				<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'L', cond))} stroke="none"/>
-				<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, cond))} stroke="none"/>
-				<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, cond))} stroke="none"/>
-				<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', cond))} stroke="none"/>
+				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
+				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
+				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
+				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
+				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
 
 				<!-- Structural lines -->
 				<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity={divOp}/>
@@ -454,10 +550,13 @@
 				<line x1={g.ox + g.ow}  y1={g.oy}         x2={g.ix + g.iw}  y2={g.iy}         stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox + g.ow}  y1={g.oy + g.oh}  x2={g.ix + g.iw}  y2={g.iy + g.ih}  stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox}         y1={g.oy + g.oh}  x2={g.ix}         y2={g.iy + g.ih}  stroke={sc} stroke-width="0.7" opacity={divOp}/>
+				{/if}
+				<!-- Outline: ghost for absent, normal for others -->
 				<rect x={g.ox} y={g.oy} width={g.ow} height={g.oh}
-					fill="none" stroke={isProsthesisReplaced ? '#3b82f6' : isPontic ? (dentalTags.list.find(t => t.key === 'bridge')?.strokeColor ?? sc) : sc}
-					stroke-width={sel ? 2 : 1.5}
-					stroke-dasharray={dashed || isPontic || isProsthesisReplaced ? '4,3' : undefined}/>
+					fill="none"
+					stroke={isAbsent ? '#b0bec5' : (cond === 'prosthesis' ? prosthesisTypes.getConfig(entry?.prosthesis_type ?? 'telescope').color : sc)}
+					stroke-width={isAbsent ? 1 : (sel ? 2 : 1.5)}
+					stroke-dasharray={isAbsent ? '3,3' : (isPontic || isProsthesisReplaced ? '4,3' : undefined)}/>
 
 				<!-- Selected surface highlight -->
 				{#if sel && selectedSurface}
@@ -474,16 +573,16 @@
 					/>
 				{/if}
 
-				<!-- Extracted X -->
+				<!-- Absent indicators -->
 				{#if cond === 'extracted'}
-					<line x1={g.ox+3} y1={g.oy+3} x2={g.ox+g.ow-3} y2={g.oy+g.oh-3} stroke="#94a3b8" stroke-width="1.5"/>
-					<line x1={g.ox+g.ow-3} y1={g.oy+3} x2={g.ox+3} y2={g.oy+g.oh-3} stroke="#94a3b8" stroke-width="1.5"/>
+					<line x1={g.ox+4} y1={g.oy+4} x2={g.ox+g.ow-4} y2={g.oy+g.oh-4} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					<line x1={g.ox+g.ow-4} y1={g.oy+4} x2={g.ox+4} y2={g.oy+g.oh-4} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+				{:else if cond === 'missing'}
+					<line x1={g.ox + g.ow*0.25} y1={g.oy + g.oh*0.5} x2={g.ox + g.ow*0.75} y2={g.oy + g.oh*0.5}
+						stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
 				{/if}
 				<!-- Implant post line -->
-				{#if cond === 'implant'}
-					<line x1={g.ix + g.iw/2} y1={g.iy + 2} x2={g.ix + g.iw/2} y2={g.iy + g.ih - 2} stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
-				{/if}
-				<!-- Charting mode highlight ring -->
+					<!-- Charting mode highlight ring -->
 				{#if charting}
 					<rect x={g.ox - 4} y={g.oy - 4} width={g.ow + 8} height={g.oh + 8}
 						fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5" rx="3"
@@ -499,12 +598,19 @@
 						pointer-events="none"/>
 				{/if}
 				<!-- Prosthesis type badge -->
-				{#if entry?.condition === 'prosthesis' && entry?.prosthesis_type}
-					{@const pBadge = entry.prosthesis_type === 'telescope' ? 'T' : entry.prosthesis_type === 'clasp' ? 'K' : entry.prosthesis_type === 'attachment' ? 'A' : 'E'}
-					<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke="#3b82f6" stroke-width="0.9" pointer-events="none"/>
-					<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill="#3b82f6" font-family="sans-serif" pointer-events="none">{pBadge}</text>
+				{#if entry?.prosthesis_type && !isAbsent}
+					{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
+					<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke={ptCfg.color} stroke-width="0.9" pointer-events="none"/>
+					<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={ptCfg.color} font-family="sans-serif" pointer-events="none">{ptCfg.badge}</text>
+				{:else if isBridgeMember && !isAbsent}
+					{@const brCfg = bridgeRoles.getConfig(isPontic ? 'pontic' : 'abutment')}
+					{#if brCfg.badge}
+						<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke={brCfg.color} stroke-width="0.9" pointer-events="none"/>
+						<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={brCfg.color} font-family="sans-serif" pointer-events="none">{brCfg.badge}</text>
+					{/if}
 				{/if}
 			</g>
+			</g><!-- end infraOffset wrapper -->
 		{/each}
 
 		<!-- ── Lower teeth ── -->
@@ -520,25 +626,35 @@
 				{@const isPontic          = entry?.bridge_role === 'pontic'}
 			{@const isProsthesisReplaced = entry?.condition === 'prosthesis' && entry?.prosthesis_type === 'replaced'}
 			{@const isImplantAbutment = entry?.bridge_role === 'abutment' && entry?.abutment_type === 'implant'}
-			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !isProsthesisReplaced}
-			{@const sc        = sel ? '#2563eb' : dentalTags.getStroke(cond)}
+			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !(cond === 'prosthesis' && entry?.prosthesis_type === 'replaced')}
+			{@const isBridgeMember = cond === 'bridge'}
+			{@const sc        = sel ? '#2563eb' : (isBridgeMember ? (isPontic ? bridgeRoles.getConfig('pontic').color : bridgeRoles.getConfig('abutment').color) : dentalTags.getStroke(cond))}
 			{@const divOp     = sel ? '0.9' : '0.55'}
 			{@const leftSurf  = slot < 8 ? 'D' : 'M'}
 			{@const rightSurf = slot < 8 ? 'M' : 'D'}
 			{@const t         = SLOT_TYPE[slot]}
+			{@const prosthesisBodyFill = cond === 'prosthesis'
+				? prosthesisTypes.getFill(entry?.prosthesis_type ?? 'telescope')
+				: null}
+			{@const bridgeBodyFill   = isBridgeMember ? (isPontic ? bridgeRoles.getFill('pontic') : bridgeRoles.getFill('abutment')) : null}
+			{@const crownFallback    = cond === 'root_canal' ? 'healthy' : cond}
+			{@const isAbsent         = cond === 'missing' || cond === 'extracted'}
+			{@const infraOffset      = cond === 'impacted' ? 14 : 0}
 
+			<g transform={infraOffset ? `translate(0,${infraOffset})` : undefined}>
 			<!-- Lower roots / implant fixture: grow DOWNWARD from crown base -->
 			{#if showRoot}
-				{#if isImplantAbutment}
-					{@const fw = Math.max(8, CROWN_W[t] * 0.38)}
+				{#if cond === 'implant' || isImplantAbutment}
+					<!-- Single canonical implant fixture rendering (covers standalone + legacy abutment data) -->
+					{@const fw = Math.max(10, CROWN_W[t] * 0.48)}
 					{@const fx = cx(slot) - fw / 2}
 					{@const fy = LOWER_TOP + CROWN_H[t]}
 					<rect x={fx} y={fy} width={fw} height={ROOT_H}
-						fill="#e5e7eb" stroke="#9ca3af" stroke-width="0.9" rx="2" class="cursor-pointer"/>
-					{#each [0.28, 0.52, 0.76] as ratio}
+						fill="#6b7280" stroke="#374151" stroke-width="1" rx="3" class="cursor-pointer"/>
+					{#each [0.2, 0.4, 0.6, 0.8] as ratio}
 						<line x1={fx + 2} y1={fy + ROOT_H * ratio}
 							x2={fx + fw - 2} y2={fy + ROOT_H * ratio}
-							stroke="#9ca3af" stroke-width="0.8" pointer-events="none"/>
+							stroke="#4b5563" stroke-width="0.9" pointer-events="none"/>
 					{/each}
 				{:else}
 					{#each makeRoots(cx(slot), CROWN_W[t], ROOT_COUNTS[tooth] ?? 1, LOWER_TOP + CROWN_H[t], false) as root}
@@ -568,21 +684,25 @@
 				filter={sel ? 'url(#tooth-selected)' : undefined}
 				aria-label="Tooth {toFDI(tooth)}"
 			>
-				<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'L', cond))} stroke="none"/>
-				<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'B', cond))} stroke="none"/>
-				<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, cond))} stroke="none"/>
-				<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, cond))} stroke="none"/>
-				<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', cond))} stroke="none"/>
+				{#if !isAbsent}
+				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
+				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
+				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
+				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
+				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
 
 				<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox}         y1={g.oy}         x2={g.ix}         y2={g.iy}         stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox + g.ow}  y1={g.oy}         x2={g.ix + g.iw}  y2={g.iy}         stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox + g.ow}  y1={g.oy + g.oh}  x2={g.ix + g.iw}  y2={g.iy + g.ih}  stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox}         y1={g.oy + g.oh}  x2={g.ix}         y2={g.iy + g.ih}  stroke={sc} stroke-width="0.7" opacity={divOp}/>
+				{/if}
+				<!-- Outline: ghost for absent, normal for others -->
 				<rect x={g.ox} y={g.oy} width={g.ow} height={g.oh}
-					fill="none" stroke={isProsthesisReplaced ? '#3b82f6' : isPontic ? (dentalTags.list.find(t => t.key === 'bridge')?.strokeColor ?? sc) : sc}
-					stroke-width={sel ? 2 : 1.5}
-					stroke-dasharray={dashed || isPontic || isProsthesisReplaced ? '4,3' : undefined}/>
+					fill="none"
+					stroke={isAbsent ? '#b0bec5' : (cond === 'prosthesis' ? prosthesisTypes.getConfig(entry?.prosthesis_type ?? 'telescope').color : sc)}
+					stroke-width={isAbsent ? 1 : (sel ? 2 : 1.5)}
+					stroke-dasharray={isAbsent ? '3,3' : (isPontic || isProsthesisReplaced ? '4,3' : undefined)}/>
 
 				{#if sel && selectedSurface}
 					<polygon
@@ -599,13 +719,13 @@
 				{/if}
 
 				{#if cond === 'extracted'}
-					<line x1={g.ox+3} y1={g.oy+3} x2={g.ox+g.ow-3} y2={g.oy+g.oh-3} stroke="#94a3b8" stroke-width="1.5"/>
-					<line x1={g.ox+g.ow-3} y1={g.oy+3} x2={g.ox+3} y2={g.oy+g.oh-3} stroke="#94a3b8" stroke-width="1.5"/>
+					<line x1={g.ox+4} y1={g.oy+4} x2={g.ox+g.ow-4} y2={g.oy+g.oh-4} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					<line x1={g.ox+g.ow-4} y1={g.oy+4} x2={g.ox+4} y2={g.oy+g.oh-4} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+				{:else if cond === 'missing'}
+					<line x1={g.ox + g.ow*0.25} y1={g.oy + g.oh*0.5} x2={g.ox + g.ow*0.75} y2={g.oy + g.oh*0.5}
+						stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
 				{/if}
-				{#if cond === 'implant'}
-					<line x1={g.ix + g.iw/2} y1={g.iy + 2} x2={g.ix + g.iw/2} y2={g.iy + g.ih - 2} stroke="#6366f1" stroke-width="1.5" opacity="0.6"/>
-				{/if}
-				<!-- Charting mode highlight ring -->
+					<!-- Charting mode highlight ring -->
 				{#if charting}
 					<rect x={g.ox - 4} y={g.oy - 4} width={g.ow + 8} height={g.oh + 8}
 						fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5" rx="3"
@@ -621,12 +741,19 @@
 						pointer-events="none"/>
 				{/if}
 				<!-- Prosthesis type badge -->
-				{#if entry?.condition === 'prosthesis' && entry?.prosthesis_type}
-					{@const pBadge = entry.prosthesis_type === 'telescope' ? 'T' : entry.prosthesis_type === 'clasp' ? 'K' : entry.prosthesis_type === 'attachment' ? 'A' : 'E'}
-					<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke="#3b82f6" stroke-width="0.9" pointer-events="none"/>
-					<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill="#3b82f6" font-family="sans-serif" pointer-events="none">{pBadge}</text>
+				{#if entry?.prosthesis_type && !isAbsent}
+					{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
+					<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke={ptCfg.color} stroke-width="0.9" pointer-events="none"/>
+					<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={ptCfg.color} font-family="sans-serif" pointer-events="none">{ptCfg.badge}</text>
+				{:else if isBridgeMember && !isAbsent}
+					{@const brCfg = bridgeRoles.getConfig(isPontic ? 'pontic' : 'abutment')}
+					{#if brCfg.badge}
+						<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke={brCfg.color} stroke-width="0.9" pointer-events="none"/>
+						<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={brCfg.color} font-family="sans-serif" pointer-events="none">{brCfg.badge}</text>
+					{/if}
 				{/if}
 			</g>
+			</g><!-- end infraOffset wrapper -->
 
 			<text x={cx(slot)} y={LOWER_TOP + CROWN_H[t] + ROOT_H + 12} font-size="8"
 				fill={sel ? '#2563eb' : '#94a3b8'}
@@ -638,24 +765,65 @@
 	</svg>
 </div>
 
-<!-- ── Condition legend — driven by dentalTags store ── -->
-<div class="mt-3 flex flex-wrap gap-2 px-1">
-	{#each dentalTags.list as tag}
-		<span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-			<svg width="13" height="13" viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
-				<polygon points="0,0 13,0 10,3 3,3"     fill={tag.color}/>
-				<polygon points="0,13 3,10 10,10 13,13" fill={tag.color}/>
-				<polygon points="0,0 3,3 3,10 0,13"     fill={tag.color}/>
-				<polygon points="13,0 13,13 10,10 10,3" fill={tag.color}/>
-				<polygon points="3,3 10,3 10,10 3,10"   fill={tag.color}/>
-				<rect x="0" y="0" width="13" height="13" fill="none" stroke={tag.strokeColor} stroke-width="1"/>
-				<rect x="3" y="3" width="7"  height="7"  fill="none" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
-				<line x1="0" y1="0"  x2="3"  y2="3"  stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
-				<line x1="13" y1="0" x2="10" y2="3"  stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
-				<line x1="13" y1="13" x2="10" y2="10" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
-				<line x1="0" y1="13" x2="3"  y2="10" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
-			</svg>
-			{dentalTags.getLabel(tag.key)}
-		</span>
+<!-- ── Condition legend — grouped by clinical category ── -->
+<div class="mt-3 px-1 flex flex-col gap-1.5">
+	{#each LEGEND_GROUPS as group}
+		{@const groupTags = dentalTags.list.filter(t => group.keys.includes(t.key))}
+		{#if groupTags.length > 0}
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+				<span class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60 w-full">{group.label}</span>
+				{#each groupTags as tag}
+					{@const displayColor = tag.key === 'bridge'
+						? bridgeRoles.getConfig('abutment').fillColor
+						: tag.key === 'prosthesis'
+							? prosthesisTypes.getConfig('telescope').fillColor
+							: tag.color}
+					{@const displayStroke = tag.key === 'bridge'
+						? bridgeRoles.getConfig('abutment').color
+						: tag.key === 'prosthesis'
+							? prosthesisTypes.getConfig('telescope').color
+							: tag.strokeColor}
+					<span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+						<svg width="13" height="13" viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+							<polygon points="0,0 13,0 10,3 3,3"     fill={displayColor}/>
+							<polygon points="0,13 3,10 10,10 13,13" fill={displayColor}/>
+							<polygon points="0,0 3,3 3,10 0,13"     fill={displayColor}/>
+							<polygon points="13,0 13,13 10,10 10,3" fill={displayColor}/>
+							<polygon points="3,3 10,3 10,10 3,10"   fill={displayColor}/>
+							<rect x="0" y="0" width="13" height="13" fill="none" stroke={displayStroke} stroke-width="1"/>
+							<rect x="3" y="3" width="7"  height="7"  fill="none" stroke={displayStroke} stroke-width="0.6" opacity="0.6"/>
+							<line x1="0" y1="0"  x2="3"  y2="3"  stroke={displayStroke} stroke-width="0.6" opacity="0.6"/>
+							<line x1="13" y1="0" x2="10" y2="3"  stroke={displayStroke} stroke-width="0.6" opacity="0.6"/>
+							<line x1="13" y1="13" x2="10" y2="10" stroke={displayStroke} stroke-width="0.6" opacity="0.6"/>
+							<line x1="0" y1="13" x2="3"  y2="10" stroke={displayStroke} stroke-width="0.6" opacity="0.6"/>
+						</svg>
+						{dentalTags.getLabel(tag.key)}{#if tag.shortcut} <span class="text-muted-foreground/50">({tag.shortcut})</span>{/if}
+					</span>
+				{/each}
+			</div>
+		{/if}
 	{/each}
+	{#if dentalTags.list.some(t => t.key.startsWith('custom_'))}
+		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+			<span class="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60 w-full">{i18n.t.chart.tagGroups.custom}</span>
+			{#each dentalTags.list.filter(t => t.key.startsWith('custom_')) as tag}
+				<span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+					<svg width="13" height="13" viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+						<polygon points="0,0 13,0 10,3 3,3"     fill={tag.color}/>
+						<polygon points="0,13 3,10 10,10 13,13" fill={tag.color}/>
+						<polygon points="0,0 3,3 3,10 0,13"     fill={tag.color}/>
+						<polygon points="13,0 13,13 10,10 10,3" fill={tag.color}/>
+						<polygon points="3,3 10,3 10,10 3,10"   fill={tag.color}/>
+						<rect x="0" y="0" width="13" height="13" fill="none" stroke={tag.strokeColor} stroke-width="1"/>
+						<rect x="3" y="3" width="7"  height="7"  fill="none" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
+						<line x1="0" y1="0"  x2="3"  y2="3"  stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
+						<line x1="13" y1="0" x2="10" y2="3"  stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
+						<line x1="13" y1="13" x2="10" y2="10" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
+						<line x1="0" y1="13" x2="3"  y2="10" stroke={tag.strokeColor} stroke-width="0.6" opacity="0.6"/>
+					</svg>
+					{dentalTags.getLabel(tag.key)}{#if tag.shortcut} <span class="text-muted-foreground/50">({tag.shortcut})</span>{/if}
+				</span>
+			{/each}
+		</div>
+	{/if}
 </div>

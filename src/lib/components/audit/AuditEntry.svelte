@@ -1,23 +1,12 @@
 <script lang="ts">
 	import type { AuditRecord } from '$lib/types';
+	import { formatDateTime } from '$lib/utils';
+	import { i18n } from '$lib/i18n';
 
 	let { record }: { record: AuditRecord } = $props();
 
-	const ENTITY_LABELS: Record<string, string> = {
-		timeline_entry:    'Timeline entry',
-		treatment_plan:    'Treatment plan',
-		treatment_plan_item: 'Treatment plan item',
-		dental_chart:      'Dental chart',
-		patient:           'Patient',
-		document:          'Document',
-	};
-
 	function formatTimestamp(ts: string): string {
-		const d = new Date(ts);
-		return d.toLocaleString('de-DE', {
-			day: '2-digit', month: '2-digit', year: 'numeric',
-			hour: '2-digit', minute: '2-digit',
-		});
+		return formatDateTime(ts);
 	}
 
 	function formatFieldKey(key: string): string {
@@ -98,7 +87,7 @@
 					{record.action === 'delete' ? 'Deleted' : 'Edited'}
 				</span>
 				{#if record.entity_type !== 'timeline_entry'}
-					<span>· {ENTITY_LABELS[record.entity_type] ?? record.entity_type}</span>
+					<span>· {(i18n.t.audit.entityTypes as Record<string, string>)[record.entity_type] ?? record.entity_type}</span>
 				{/if}
 			</div>
 		</div>

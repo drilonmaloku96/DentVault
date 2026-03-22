@@ -2,9 +2,9 @@
 	import { fly } from 'svelte/transition';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { resetDb, insertDoctor } from '$lib/services/db';
-	import { pickDirectory } from '$lib/services/files';
+	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder } from '$lib/services/files';
 	import { i18n, type LangCode } from '$lib/i18n';
-	import { docCategories } from '$lib/stores/categories.svelte';
+	import { docCategories, DEFAULT_CATEGORIES } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffRoles } from '$lib/stores/staffRoles.svelte';
 	import { textBlocks } from '$lib/stores/textBlocks.svelte';
@@ -69,6 +69,13 @@
 			// Configure vault now (deferred from step 1 to avoid unmounting the wizard)
 			await vault.configure(selectedPath.trim());
 			resetDb();
+			// Create !TEMPLATE with default category folders
+			await ensureTemplateStructure(
+				selectedPath.trim(),
+				DEFAULT_CATEGORIES.map(c => vault.categoryFolder(c.key)),
+			);
+			// Create !Documents template folder
+			await ensureDocTemplatesFolder(selectedPath.trim());
 			// Persist the language choice (setLang failed earlier because vault was not ready)
 			await i18n.setLang(i18n.code);
 			// Save staff members

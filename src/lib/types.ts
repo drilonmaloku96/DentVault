@@ -59,7 +59,9 @@ export interface PatientFormData {
 	marital_status?: string;
 }
 
-export type TimelineEntryType = 'visit' | 'procedure' | 'note' | 'lab' | 'imaging' | 'referral' | 'document' | 'plan' | 'chart_snapshot';
+export type TimelineEntryType = string;
+/** System-only entry types — never shown in user-configurable dropdowns */
+export const SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot']);
 
 export type TreatmentCategory =
 	| 'endodontics'
@@ -133,6 +135,10 @@ export type CrossbiteType = 'none' | 'anterior' | 'posterior_unilateral' | 'post
 export type OpenBiteType = 'none' | 'anterior' | 'posterior' | '';
 export type OrthoTreatmentType = 'fixed_appliances' | 'aligners' | 'functional' | 'headgear' | 'surgical_ortho' | 'retainer_only' | 'other' | '';
 export type ExtractionPattern = 'non_extraction' | '4_premolars' | '2_upper_premolars' | '2_lower_premolars' | 'other' | '';
+export type FacialProfile = 'straight' | 'convex' | 'concave' | '';
+export type LipCompetence = 'competent' | 'incompetent' | 'potentially_competent' | '';
+export type NasalBreathing = 'normal' | 'impaired' | 'mouth_breathing' | '';
+export type GrowthPotential = 'high' | 'medium' | 'low' | 'completed' | '';
 
 export interface OrthoClassification {
 	id: number;
@@ -158,7 +164,62 @@ export interface OrthoClassification {
 	treatment_start_date: string;
 	treatment_end_date: string;
 	notes: string;
+	// Extended fields (v37+)
+	exam_date: string;
+	pre_canine_class: AngleClass;
+	post_canine_class: AngleClass;
+	pre_crowding_upper_mm: number;
+	post_crowding_upper_mm: number;
+	pre_crowding_lower_mm: number;
+	post_crowding_lower_mm: number;
+	facial_profile: FacialProfile;
+	lip_competence: LipCompetence;
+	nasal_breathing: NasalBreathing;
+	oral_habits: string; // JSON array: 'thumb_sucking' | 'finger_sucking' | 'lip_biting' | 'nail_biting' | 'tongue_thrust' | 'bruxism'
+	cvm_stage: number; // Cervical Vertebral Maturation 1–6
+	growth_potential: GrowthPotential;
+	retention_protocol: string;
 	updated_at: string;
+}
+
+// ── KIG (Kieferorthopädische Indikationsgruppen) ────────────────────────
+
+export type KigGroupCode = 'A' | 'U' | 'S' | 'D' | 'M' | 'O' | 'T' | 'B' | 'K' | 'E' | 'P';
+
+/** One KIG group finding within an assessment snapshot */
+export interface OrthoKigEntry {
+	group: KigGroupCode;
+	grade: number; // valid grades depend on group
+	measured_value: number | null; // mm for D, M, O, T, E, P
+}
+
+/** A single KIG assessment snapshot (like dental_chart_history) */
+export interface OrthoAssessment {
+	id: number;
+	patient_id: string;
+	exam_date: string; // ISO date
+	doctor_id: number | null;
+	findings: OrthoKigEntry[]; // stored as JSON
+	notes: string;
+	// Optional clinical context fields (v40)
+	dentition_stage: string;   // 'primary' | 'mixed' | 'permanent'
+	treatment_phase: string;   // 'expectative' | 'early' | 'main' | 'adult'
+	angle_class: string;       // 'class_I' | 'class_II_div1' | 'class_II_div2' | 'class_III'
+	cvm_stage: number;         // 0 = not set, 1–6
+	facial_profile: string;    // 'straight' | 'convex' | 'concave'
+	treatment_recommendation: string; // free text
+	created_at: string;
+}
+
+/** @deprecated use OrthoAssessment instead */
+export interface KigFinding {
+	id: number;
+	patient_id: string;
+	kig_group: KigGroupCode;
+	kig_level: number;
+	measured_value: number | null;
+	notes: string;
+	created_at: string;
 }
 
 // ── Patient Clinical Classification ───────────────────────────────────
@@ -296,7 +357,7 @@ export interface ToothChartEntry {
 	bridge_group_id: string | null;
 	bridge_role: 'abutment' | 'pontic' | null;
 	abutment_type: 'tooth' | 'implant' | null;
-	prosthesis_type: 'telescope' | 'clasp' | 'attachment' | 'replaced' | null;
+	prosthesis_type: 'telescope' | 'replaced' | null;
 	updated_at: string;
 }
 
@@ -308,7 +369,7 @@ export interface ToothChartFormData {
 	bridge_group_id?: string | null;
 	bridge_role?: 'abutment' | 'pontic' | null;
 	abutment_type?: 'tooth' | 'implant' | null;
-	prosthesis_type?: 'telescope' | 'clasp' | 'attachment' | 'replaced' | null;
+	prosthesis_type?: 'telescope' | 'replaced' | null;
 }
 
 // ── Clinical Exams ──────────────────────────────────────────────────────
@@ -598,6 +659,207 @@ export interface ReportEntry {
 	tooth_numbers: string;
 	description: string;
 	doctor_name: string;
+}
+
+// ── Appointment Scheduling ────────────────────────────────────────────
+
+export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+
+export interface AppointmentRoom {
+	id: string;
+	name: string;
+	short_name: string;
+	color: string;
+	sort_order: number;
+	is_active: number;
+	created_at: string;
+}
+
+export interface AppointmentRoomFormData {
+	name: string;
+	short_name: string;
+	color: string;
+	sort_order: number;
+	is_active: boolean;
+}
+
+export interface AppointmentType {
+	id: string;
+	name: string;
+	short_name: string;
+	default_duration_min: number;
+	color: string;
+	treatment_category: string;
+	sort_order: number;
+	is_active: number;
+	created_at: string;
+}
+
+export interface AppointmentTypeFormData {
+	name: string;
+	short_name: string;
+	default_duration_min: number;
+	color: string;
+	treatment_category: string;
+	sort_order: number;
+	is_active: boolean;
+}
+
+export interface Appointment {
+	id: string;
+	patient_id: string;
+	doctor_id: string | null;
+	room_id: string;
+	type_id: string | null;
+	start_time: string;
+	end_time: string;
+	duration_min: number;
+	title: string | null;
+	notes: string | null;
+	status: AppointmentStatus;
+	timeline_entry_id: string | null;
+	created_at: string;
+	updated_at: string;
+	// Joined display fields
+	patient_firstname: string | null;
+	patient_lastname: string | null;
+	doctor_name: string | null;
+	type_name: string | null;
+	type_color: string | null;
+	type_short_name: string | null;
+	room_name: string | null;
+	room_color: string | null;
+}
+
+export interface AppointmentFormData {
+	patient_id: string;
+	doctor_id: string;
+	room_id: string;
+	type_id: string;
+	start_time: string;
+	end_time: string;
+	duration_min: number;
+	title: string;
+	notes: string;
+	status: AppointmentStatus;
+}
+
+export interface WorkingHoursEntry {
+	day_of_week: number; // 0=Sun, 1=Mon, ..., 6=Sat
+	start_time: string; // HH:MM
+	end_time: string; // HH:MM
+	break_start: string | null;
+	break_end: string | null;
+	is_active: boolean;
+}
+
+// ── Doctor Working Hours (per-doctor schedule) ──────────────────────────
+
+export interface DoctorWorkingHours {
+	id: string;
+	doctor_id: string;
+	day_of_week: number; // 0=Sun, 1=Mon, ..., 6=Sat
+	start_time: string;
+	end_time: string;
+	break_start: string | null;
+	break_end: string | null;
+	is_active: number; // 0 | 1
+	created_at: string;
+}
+
+export interface DoctorWorkingHoursFormData {
+	day_of_week: number;
+	start_time: string;
+	end_time: string;
+	break_start: string;
+	break_end: string;
+	is_active: boolean;
+}
+
+// ── Staff Analytics ──────────────────────────────────────────────────────
+
+export interface AbsenceStat {
+	doctor_id: string;
+	doctor_name: string;
+	doctor_color: string;
+	vacation_days: number;
+	sick_days: number;
+	conference_days: number;
+	training_days: number;
+	other_days: number;
+}
+
+export interface AppointmentDoctorStat {
+	doctor_id: string;
+	doctor_name: string;
+	doctor_color: string;
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+	scheduled: number;
+	avg_duration_min: number;
+}
+
+// ── Schedule Blocks ───────────────────────────────────────────────────
+
+export interface ScheduleBlock {
+	id: string;
+	room_id: string;
+	doctor_id: string | null;
+	title: string;
+	start_time: string;
+	end_time: string;
+	color: string;
+	notes: string | null;
+	created_at: string;
+	updated_at: string;
+	// Joined
+	doctor_name: string | null;
+	room_name: string | null;
+}
+
+export interface ScheduleBlockFormData {
+	room_id: string;
+	doctor_id: string;
+	title: string;
+	start_time: string;
+	end_time: string;
+	color: string;
+	notes: string;
+}
+
+// ── Staff Blockouts ───────────────────────────────────────────────────
+
+export type BlockoutReason = 'vacation' | 'sick' | 'conference' | 'training' | 'other';
+
+export interface StaffBlockout {
+	id: string;
+	doctor_id: string;
+	start_date: string;
+	end_date: string;
+	start_time: string | null;
+	end_time: string | null;
+	is_all_day: number; // 0 | 1
+	reason: BlockoutReason;
+	notes: string | null;
+	color: string;
+	created_at: string;
+	// Joined
+	doctor_name: string | null;
+	doctor_color: string | null;
+}
+
+export interface StaffBlockoutFormData {
+	doctor_id: string;
+	start_date: string;
+	end_date: string;
+	start_time: string;
+	end_time: string;
+	is_all_day: boolean;
+	reason: BlockoutReason;
+	notes: string;
+	color: string;
 }
 
 // ── Patient sidebar summary ────────────────────────────────────────────

@@ -111,6 +111,109 @@ export async function initPatientFolder(vaultPath: string, patientFolder: string
 	await invoke<void>('init_patient_folder', { vaultPath, patientFolder });
 }
 
+// ── !TEMPLATE folder ───────────────────────────────────────────────────
+
+/** The special vault-root folder that acts as a template for new patients. */
+export const TEMPLATE_FOLDER = '!TEMPLATE';
+
+// ── !Documents folder (document templates) ────────────────────────────
+
+/** The vault-root folder holding reusable document templates. */
+export const DOC_TEMPLATES_FOLDER = '!Documents';
+
+export interface DocTemplateInfo {
+	filename: string;
+	abs_path: string;
+	file_size: number;
+}
+
+/** Create `<vault>/!Documents/` if it does not exist. */
+export async function ensureDocTemplatesFolder(vaultPath: string): Promise<void> {
+	await invoke<void>('ensure_doc_templates_folder', { vaultPath });
+}
+
+/** List all files in `<vault>/!Documents/`, sorted alphabetically. */
+export async function listDocTemplates(vaultPath: string): Promise<DocTemplateInfo[]> {
+	return invoke<DocTemplateInfo[]>('list_doc_templates', { vaultPath });
+}
+
+/** Copy a picked file into `<vault>/!Documents/<destFilename>`. */
+export async function saveDocTemplate(vaultPath: string, srcPath: string, destFilename: string): Promise<void> {
+	await invoke<void>('save_doc_template', { vaultPath, srcPath, destFilename });
+}
+
+/**
+ * Copy `<vault>/!Documents/<templateFilename>` into the patient's subfolder.
+ * Returns [absPath, relPath, fileSize].
+ */
+export async function copyDocTemplateToPatient(
+	vaultPath: string,
+	templateFilename: string,
+	patientFolder: string,
+	categoryFolder: string,
+	destFilename: string,
+): Promise<[string, string, number]> {
+	return invoke<[string, string, number]>('copy_doc_template_to_patient', {
+		vaultPath, templateFilename, patientFolder, categoryFolder, destFilename,
+	});
+}
+
+/** Delete a file from `<vault>/!Documents/<filename>`. */
+export async function deleteDocTemplate(vaultPath: string, filename: string): Promise<void> {
+	await invoke<void>('delete_doc_template', { vaultPath, filename });
+}
+
+/**
+ * Create `<vault>/!TEMPLATE/` and one subfolder per category folder name.
+ * Safe to call on every save — it only creates, never deletes.
+ */
+export async function ensureTemplateStructure(vaultPath: string, categoryFolders: string[]): Promise<void> {
+	await invoke<void>('ensure_template_structure', { vaultPath, categoryFolders });
+}
+
+/**
+ * Return subfolder names found inside `<vault>/!TEMPLATE/`.
+ * Empty array if the template folder does not exist yet.
+ */
+export async function getTemplateCategories(vaultPath: string): Promise<string[]> {
+	return invoke<string[]>('get_template_categories', { vaultPath });
+}
+
+/**
+ * Create a new patient folder by copying the `!TEMPLATE` tree into it.
+ * Each template subfolder is recreated and its files are copied.
+ * If no `!TEMPLATE` exists, creates empty folders from `fallbackFolders`.
+ */
+export async function copyTemplateToPatient(
+	vaultPath: string,
+	patientFolder: string,
+	fallbackFolders: string[],
+): Promise<void> {
+	await invoke<void>('copy_template_to_patient', { vaultPath, patientFolder, fallbackFolders });
+}
+
+/** Recursively delete a patient's folder from the vault. No-op if not found. */
+export async function deletePatientFolder(vaultPath: string, patientFolder: string): Promise<void> {
+	await invoke<void>('delete_patient_folder', { vaultPath, patientFolder });
+}
+
+/** Write a UTF-8 string to a file, creating parent directories as needed. */
+export async function writeTextFile(destPath: string, content: string): Promise<void> {
+	await invoke<void>('write_text_file', { destPath, content });
+}
+
+/**
+ * Copy a patient's vault category subfolders into destDir.
+ * Each subfolder (xrays, photos, etc.) is copied directly into destDir.
+ */
+export async function copyPatientFolderTo(
+	vaultPath: string,
+	patientFolder: string,
+	destDir: string,
+): Promise<void> {
+	await invoke<void>('copy_patient_folder_to', { vaultPath, patientFolder, destDir });
+}
+
 /** Open a file with the default OS application. */
 export async function openDocumentFile(absPath: string): Promise<void> {
 	await invoke<void>('open_file_native', { path: absPath });

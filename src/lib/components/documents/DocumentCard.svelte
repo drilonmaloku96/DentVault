@@ -4,6 +4,7 @@
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	let {
 		doc,
@@ -23,11 +24,7 @@
 	const categoryColor = $derived(docCategories.getColor(doc.category));
 	const categoryIcon  = $derived(docCategories.getIcon(doc.category));
 
-	function formatDate(val: string): string {
-		if (!val) return '—';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
+
 
 	async function handleOpen() {
 		try {

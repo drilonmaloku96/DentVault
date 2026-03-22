@@ -19,10 +19,16 @@ export const vault = {
 		return !!_vaultPath;
 	},
 
-	/** Read the stored vault path from the Rust side. Call once at app start. */
+	/** Read the stored vault path from the Rust side. Call once at app start.
+	 *  If the stored path no longer exists on disk, treats the vault as unconfigured. */
 	async init(): Promise<void> {
 		const path = await invoke<string | null>('get_vault_path');
-		_vaultPath = path || null;
+		if (path) {
+			const exists = await invoke<boolean>('file_exists', { path });
+			_vaultPath = exists ? path : null;
+		} else {
+			_vaultPath = null;
+		}
 		_initialized = true;
 	},
 

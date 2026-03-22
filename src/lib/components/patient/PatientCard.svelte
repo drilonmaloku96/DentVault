@@ -1,32 +1,11 @@
 <script lang="ts">
-	import type { Patient, PatientStatus } from '$lib/types';
-	import { cn } from '$lib/utils';
+	import type { Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	let { patient }: { patient: Patient } = $props();
 
-	const statusConfig = $derived<Record<PatientStatus, { label: string; class: string }>>({
-		active: { label: i18n.t.patients.status.active, class: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' },
-		inactive: { label: i18n.t.patients.status.inactive, class: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400' },
-		archived: { label: i18n.t.patients.status.archived, class: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
-		deceased: { label: i18n.t.patients.status.deceased, class: 'bg-zinc-800 text-zinc-200 border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300' },
-	});
 
-	const status = $derived(statusConfig[patient.status] ?? statusConfig.active);
-
-	function formatDob(dob: string): string {
-		if (!dob) return '—';
-		const d = new Date(dob);
-		if (isNaN(d.getTime())) return dob;
-		return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
-
-	function formatDate(dt: string): string {
-		if (!dt) return '—';
-		const d = new Date(dt);
-		if (isNaN(d.getTime())) return dt;
-		return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
 </script>
 
 <a
@@ -41,14 +20,6 @@
 			</p>
 			<p class="text-xs text-muted-foreground">{patient.patient_id}</p>
 		</div>
-		<span
-			class={cn(
-				'shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium',
-				status.class,
-			)}
-		>
-			{status.label}
-		</span>
 	</div>
 
 	<!-- Info rows -->
@@ -58,7 +29,7 @@
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
 					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
 				</svg>
-				<span>{i18n.t.patients.fields.dob}: {formatDob(patient.dob)}</span>
+				<span>{i18n.t.patients.fields.dob}: {formatDate(patient.dob)}</span>
 			</div>
 		{/if}
 		{#if patient.phone}

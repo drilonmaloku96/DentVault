@@ -11,9 +11,13 @@
 	import { textBlocks } from '$lib/stores/textBlocks.svelte';
 	import { acuteTagOptions, medicalTagOptions } from '$lib/stores/clinicalTags.svelte';
 	import { complicationTypes } from '$lib/stores/complicationTypes.svelte';
+	import { rooms } from '$lib/stores/rooms.svelte';
+	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
+	import { workingHours } from '$lib/stores/workingHours.svelte';
 	import PatientSidebar from '$lib/components/sidebar/PatientSidebar.svelte';
 	import OnboardingWizard from '$lib/components/onboarding/OnboardingWizard.svelte';
 	import { i18n } from '$lib/i18n';
+	import { activePatient } from '$lib/stores/activePatient.svelte';
 
 	let { children } = $props();
 
@@ -37,6 +41,10 @@
 		await medicalTagOptions.load();
 		// Load complication types
 		await complicationTypes.load();
+		// Load appointment scheduling stores
+		await rooms.load();
+		await appointmentTypes.load();
+		await workingHours.load();
 	});
 
 	// Sidebar ref (so other parts of the app can trigger a reload)
@@ -55,14 +63,14 @@
 			icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
 		},
 		{
+			label: i18n.t.nav.schedule,
+			href: '/schedule',
+			icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+		},
+		{
 			label: i18n.t.nav.dashboard,
 			href: '/dashboard',
 			icon: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
-		},
-		{
-			label: i18n.t.nav.reports,
-			href: '/reports',
-			icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
 		},
 	]);
 </script>
@@ -82,21 +90,28 @@
 		<!-- ── Left Sidebar ────────────────────────────────────────── -->
 		<aside class="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">
 
-			<!-- App branding -->
-			<div class="flex h-12 shrink-0 items-center gap-2 px-4">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="h-5 w-5 text-sidebar-primary shrink-0"
+			<!-- Back button / branding -->
+			<div class="flex h-12 shrink-0 items-center px-2">
+				<button
+					type="button"
+					onclick={() => { activePatient.clear(); goto('/patients'); }}
+					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+					title="Back to patients"
 				>
-					<path d="M12 2C8 2 6 5 6 8c0 2 .5 3.5 1 5 .5 1.5 1 3.5 1 6 0 1.5 1 3 2 3s2-1.5 2-3v-2c0-1 1-1 1-1s1 0 1 1v2c0 1.5 1 3 2 3s2-1.5 2-3c0-2.5.5-4.5 1-6s1-3 1-5c0-3-2-6-6-6z" />
-				</svg>
-				<span class="text-sm font-bold text-sidebar-foreground tracking-tight">DentVault</span>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="h-4 w-4 shrink-0"
+					>
+						<path d="M19 12H5M12 19l-7-7 7-7" />
+					</svg>
+					<span class="text-sm font-semibold tracking-tight">DentVault</span>
+				</button>
 			</div>
 
 			<!-- Patient Explorer (takes all remaining vertical space) -->

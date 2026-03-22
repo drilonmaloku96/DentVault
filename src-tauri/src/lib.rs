@@ -200,6 +200,106 @@ fn file_exists(path: String) -> bool {
     std::path::Path::new(&path).exists()
 }
 
+/// Recursively delete a patient folder from the vault. No-op if it doesn't exist.
+#[tauri::command]
+fn delete_patient_folder(vault_path: String, patient_folder: String) -> Result<(), String> {
+    let target = PathBuf::from(&vault_path).join(&patient_folder);
+    if target.exists() {
+        std::fs::remove_dir_all(&target).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+// ── !TEMPLATE folder commands ──────────────────────────────────────────
+
+/// Create `<vault>/!TEMPLATE/` (and one subfolder per category) plus
+/// `<vault>/!Documents/` — both special vault-root folders, always together.
+/// Safe to call repeatedly — only creates, never deletes.
+#[tauri::command]
+fn ensure_template_structure(vault_path: String, category_folders: Vec<String>) -> Result<(), String> {
+    let template = PathBuf::from(&vault_path).join("!TEMPLATE");
+    std::fs::create_dir_all(&template).map_err(|e| e.to_string())?;
+    for folder in &category_folders {
+        std::fs::create_dir_all(template.join(folder)).map_err(|e| e.to_string())?;
+    }
+    // !Documents is always created alongside !TEMPLATE — they are both vault-root
+    // special folders and must always exist together.
+    let documents = PathBuf::from(&vault_path).join("!Documents");
+    std::fs::create_dir_all(&documents).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Return the names of all non-hidden subdirectories inside `<vault>/!TEMPLATE/`.
+/// Returns an empty list if the template folder does not exist yet.
+#[tauri::command]
+fn get_template_categories(vault_path: String) -> Result<Vec<String>, String> {
+    let template = PathBuf::from(&vault_path).join("!TEMPLATE");
+    if !template.exists() {
+        return Ok(vec![]);
+    }
+    let mut folders: Vec<String> = std::fs::read_dir(&template)
+        .map_err(|e| e.to_string())?
+        .flatten()
+        .filter_map(|e| {
+            let path = e.path();
+            if !path.is_dir() { return None; }
+            let name = path.file_name()?.to_str()?.to_string();
+            if name.starts_with('.') { return None; }
+            Some(name)
+        })
+        .collect();
+    folders.sort();
+    Ok(folders)
+}
+
+/// Copy the entire `!TEMPLATE` folder tree to a new patient folder.
+/// For each subfolder in `!TEMPLATE/`, creates the matching subfolder in the patient
+/// directory and copies all regular files into it.
+/// Falls back to creating empty folders from `fallback_folders` if no template exists.
+#[tauri::command]
+fn copy_template_to_patient(
+    vault_path: String,
+    patient_folder: String,
+    fallback_folders: Vec<String>,
+) -> Result<(), String> {
+    let vault = PathBuf::from(&vault_path);
+    let template = vault.join("!TEMPLATE");
+    let patient = vault.join(&patient_folder);
+    std::fs::create_dir_all(&patient).map_err(|e| e.to_string())?;
+
+    if template.exists() {
+        for entry in std::fs::read_dir(&template).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let src_dir = entry.path();
+            if !src_dir.is_dir() { continue; }
+            let folder_name = match src_dir.file_name().and_then(|n| n.to_str()) {
+                Some(n) if !n.starts_with('.') => n.to_string(),
+                _ => continue,
+            };
+            let dest_dir = patient.join(&folder_name);
+            std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
+            if let Ok(files) = std::fs::read_dir(&src_dir) {
+                for file_entry in files.flatten() {
+                    let src_file = file_entry.path();
+                    if !src_file.is_file() { continue; }
+                    let filename = match src_file.file_name().and_then(|n| n.to_str()) {
+                        Some(n) if !n.starts_with('.') => n.to_string(),
+                        _ => continue,
+                    };
+                    // Non-fatal: skip files that fail to copy
+                    let _ = std::fs::copy(&src_file, dest_dir.join(&filename));
+                }
+            }
+        }
+    } else {
+        // No template yet — create empty folders from the fallback list
+        for folder in &fallback_folders {
+            std::fs::create_dir_all(patient.join(folder)).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 // ── Backup commands ────────────────────────────────────────────────────
 
 /// Copy dentvault.db to the given destination path.
@@ -266,6 +366,43 @@ fn backup_vault_to(vault_path: String, dest_dir: String) -> Result<String, Strin
     Ok(dest.to_string_lossy().to_string())
 }
 
+// ── Export commands ────────────────────────────────────────────────────
+
+/// Write a UTF-8 string to a file, creating parent directories as needed.
+#[tauri::command]
+fn write_text_file(dest_path: String, content: String) -> Result<(), String> {
+    let path = PathBuf::from(&dest_path);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, content.as_bytes()).map_err(|e| e.to_string())
+}
+
+/// Copy a patient's vault category subfolders into dest_dir.
+/// Each category subfolder (xrays/, photos/, etc.) is copied directly into dest_dir.
+/// No-op if the patient folder doesn't exist.
+#[tauri::command]
+fn copy_patient_folder_to(vault_path: String, patient_folder: String, dest_dir: String) -> Result<(), String> {
+    let src = PathBuf::from(&vault_path).join(&patient_folder);
+    if !src.exists() {
+        return Ok(());
+    }
+    let dest = PathBuf::from(&dest_dir);
+    std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+    for entry in std::fs::read_dir(&src).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_dir() {
+            let folder_name = match path.file_name().and_then(|n| n.to_str()) {
+                Some(n) if !n.starts_with('.') => n.to_string(),
+                _ => continue,
+            };
+            copy_dir_all(&path, &dest.join(&folder_name))?;
+        }
+    }
+    Ok(())
+}
+
 // ── Audit log helpers ──────────────────────────────────────────────────
 
 /// Append a single line to <vault_path>/audit.jsonl (creates file if needed).
@@ -319,6 +456,92 @@ fn open_file_native(path: String) -> Result<(), String> {
     Ok(())
 }
 
+// ── Document Templates (!Documents folder) ───────────────────────────────
+
+const DOC_TEMPLATES_FOLDER: &str = "!Documents";
+
+#[derive(serde::Serialize)]
+struct DocTemplateInfo {
+    filename: String,
+    abs_path: String,
+    file_size: u64,
+}
+
+/// Create `<vault>/!Documents/` if it does not exist yet.
+#[tauri::command]
+fn ensure_doc_templates_folder(vault_path: String) -> Result<(), String> {
+    let dir = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())
+}
+
+/// List all regular files directly inside `<vault>/!Documents/`.
+#[tauri::command]
+fn list_doc_templates(vault_path: String) -> Result<Vec<DocTemplateInfo>, String> {
+    let dir = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER);
+    if !dir.exists() {
+        return Ok(vec![]);
+    }
+    let mut results = Vec::new();
+    for entry in std::fs::read_dir(&dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if !path.is_file() { continue; }
+        let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+        if filename.starts_with('.') { continue; }
+        let file_size = path.metadata().map(|m| m.len()).unwrap_or(0);
+        results.push(DocTemplateInfo {
+            abs_path: path.to_string_lossy().to_string(),
+            filename,
+            file_size,
+        });
+    }
+    results.sort_by(|a, b| a.filename.to_lowercase().cmp(&b.filename.to_lowercase()));
+    Ok(results)
+}
+
+/// Copy a file from `src_path` into `<vault>/!Documents/<dest_filename>`.
+#[tauri::command]
+fn save_doc_template(vault_path: String, src_path: String, dest_filename: String) -> Result<(), String> {
+    let dir = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER);
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let dest = dir.join(&dest_filename);
+    std::fs::copy(&src_path, &dest).map_err(|e| format!("Copy failed: {e}"))?;
+    Ok(())
+}
+
+/// Copy `<vault>/!Documents/<template_filename>` into
+/// `<vault>/<patient_folder>/<category_folder>/<dest_filename>`.
+/// Returns (abs_path, rel_path, file_size).
+#[tauri::command]
+fn copy_doc_template_to_patient(
+    vault_path: String,
+    template_filename: String,
+    patient_folder: String,
+    category_folder: String,
+    dest_filename: String,
+) -> Result<(String, String, u64), String> {
+    let src = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER).join(&template_filename);
+    if !src.exists() {
+        return Err(format!("Template file not found: {template_filename}"));
+    }
+    let dest_dir = PathBuf::from(&vault_path).join(&patient_folder).join(&category_folder);
+    std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
+    let dest = dest_dir.join(&dest_filename);
+    let file_size = std::fs::copy(&src, &dest).map_err(|e| format!("Copy failed: {e}"))?;
+    let rel_path = format!("{}/{}/{}", patient_folder, category_folder, dest_filename);
+    Ok((dest.to_string_lossy().to_string(), rel_path, file_size))
+}
+
+/// Delete a file from `<vault>/!Documents/<filename>`.
+#[tauri::command]
+fn delete_doc_template(vault_path: String, filename: String) -> Result<(), String> {
+    let path = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER).join(&filename);
+    if path.exists() {
+        std::fs::remove_file(&path).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// Read only the last non-empty line of audit.jsonl (for checksum chaining).
 #[tauri::command]
 fn read_last_audit_line(vault_path: String) -> Result<String, String> {
@@ -364,6 +587,17 @@ pub fn run() {
             read_audit_log,
             read_last_audit_line,
             open_file_native,
+            ensure_template_structure,
+            get_template_categories,
+            copy_template_to_patient,
+            delete_patient_folder,
+            write_text_file,
+            copy_patient_folder_to,
+            ensure_doc_templates_folder,
+            list_doc_templates,
+            save_doc_template,
+            copy_doc_template_to_patient,
+            delete_doc_template,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

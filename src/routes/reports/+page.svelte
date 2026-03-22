@@ -3,6 +3,7 @@
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { getFilteredEntries, getFilteredSummary } from '$lib/services/db';
 	import { i18n } from '$lib/i18n';
+	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { downloadCSV, entriesToCSV } from '$lib/services/export';
 	import { Separator } from '$lib/components/ui/separator';
 	import type { CategoryStat, ReportFilters, ReportEntry } from '$lib/types';
@@ -108,9 +109,22 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<div>
-		<h1 class="text-2xl font-bold tracking-tight">{i18n.t.nav.reports}</h1>
-		<p class="text-sm text-muted-foreground mt-0.5">{i18n.t.reports.title}</p>
+	<div class="flex items-start justify-between gap-4">
+		<div>
+			<h1 class="text-2xl font-bold tracking-tight">{i18n.t.nav.reports}</h1>
+			<p class="text-sm text-muted-foreground mt-0.5">{i18n.t.reports.title}</p>
+		</div>
+		{#if activePatient.id}
+			<a
+				href="/patients/{activePatient.id}"
+				class="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors mt-1"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-muted-foreground">
+					<path d="M19 12H5M12 19l-7-7 7-7"/>
+				</svg>
+				{activePatient.displayName}
+			</a>
+		{/if}
 	</div>
 
 	<!-- Filter panel -->

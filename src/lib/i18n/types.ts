@@ -27,6 +27,7 @@ export interface Translations {
 	// ── Navigation ────────────────────────────────────────────────────
 	nav: {
 		patients: string; dashboard: string; reports: string; settings: string;
+		schedule: string;
 	};
 
 	// ── Vault / app init ──────────────────────────────────────────────
@@ -73,6 +74,7 @@ export interface Translations {
 			doctor: string; colleagues: string; relatedEntry: string;
 			addImage: string; viewImage: string; openExternal: string;
 			legacyProvider: string; complications: string; addComplication: string;
+			type: string; typePlaceholder: string; typeSynced: string;
 		};
 		snapshot: { take: string; view: string; title: string };
 		tagSuggestion: {
@@ -117,9 +119,20 @@ export interface Translations {
 		lastExamined: string; toothNotes: string;
 		selectSurfaces: string; clearSurfaces: string;
 		prosthesisTypes: {
-			telescope: string; clasp: string; attachment: string; replaced: string;
+			telescope: string; replaced: string;
 		};
-		bridgeRoles: { abutment: string; pontic: string };
+		bridgeRoles: { abutment: string; pontic: string; connector: string };
+		tagGroups: {
+			general: string;
+			restorative: string;
+			endodontic: string;
+			fixedProsthetics: string;
+			removable: string;
+			absent: string;
+			custom: string;
+			bridgeTagNote: string;
+			prosthesisTagNote: string;
+		};
 		tags: {
 			healthy:    { label: string; defaultShortcut: string };
 			watch:      { label: string; defaultShortcut: string };
@@ -135,6 +148,7 @@ export interface Translations {
 			fractured:  { label: string; defaultShortcut: string };
 			prosthesis: { label: string; defaultShortcut: string };
 		};
+		snapshotReport: { allHealthy: string; showMore: string; showLess: string; readOnly: string; reportTitle: string };
 		resetShortcuts: string; resetShortcutsConfirm: string;
 		editTagsDialog: {
 			title: string; tagName: string; color: string;
@@ -178,10 +192,59 @@ export interface Translations {
 		stats: {
 			totalPatients: string; activePatients: string;
 			entriesThisMonth: string; successRate: string; activePlans: string;
+			patientsServed: string; newPatients: string; treatments: string;
 		};
+		period: { week: string; month: string; year: string };
 		categoryChart: string; outcomeTable: string; recentActivity: string;
 		drillDown: string; noData: string;
 		providerOutcomes: string;
+		doctorActivity: string;
+		appointments: {
+			title: string;
+			booked: string;
+			completed: string;
+			cancelled: string;
+			noShow: string;
+			cancellationRate: string;
+			noShowRate: string;
+			avgDuration: string;
+			heatmap: string;
+			byDay: string;
+			minutes: string;
+		};
+		demographics: {
+			title: string;
+			avgAge: string;
+			ageDistribution: string;
+			gender: string;
+			referralSource: string;
+			years: string;
+		};
+		staff: {
+			title: string;
+			overview: string;
+			year: string;
+			doctor: string;
+			allDoctors: string;
+			absences: string;
+			absenceSummary: string;
+			noAbsences: string;
+			totalDays: string;
+			appointmentStats: string;
+			noAppointments: string;
+			completionRate: string;
+			avgDuration: string;
+			dateRange: string;
+			reasons: {
+				vacation: string;
+				sick: string;
+				conference: string;
+				training: string;
+				other: string;
+			};
+			workingHours: string;
+			workingHoursDesc: string;
+		};
 	};
 
 	// ── Reports ───────────────────────────────────────────────────────
@@ -193,6 +256,76 @@ export interface Translations {
 		};
 	};
 
+	// ── Appointment Scheduling ────────────────────────────────────────
+	schedule: {
+		title: string;
+		today: string;
+		bookAppointment: string;
+		editAppointment: string;
+		room: string;
+		type: string;
+		patient: string;
+		doctor: string;
+		duration: string;
+		durationMin: string;
+		startTime: string;
+		endTime: string;
+		notes: string;
+		titleLabel: string;
+		status: string;
+		statuses: {
+			scheduled: string;
+			completed: string;
+			cancelled: string;
+			no_show: string;
+		};
+		noRoomsConfigured: string;
+		goToSettings: string;
+		patientContext: string;
+		clearPatient: string;
+		deleteAppointment: string;
+		confirmDelete: string;
+		selectPatient: string;
+		searchPatients: string;
+		optional: string;
+		nextAppointment: string;
+		upcomingAppointments: string;
+		previousAppointments: string;
+		noUpcoming: string;
+		noPrevious: string;
+		bookNew: string;
+		blocks: {
+			title: string;
+			editBlock: string;
+			blockTitle: string;
+			delete: string;
+			confirmDelete: string;
+		};
+		staffBlockouts: {
+			title: string;
+			absent: string;
+			addBlockout: string;
+			editBlockout: string;
+			deleteBlockout: string;
+			confirmDelete: string;
+			allDay: string;
+			dateRange: string;
+			timeRange: string;
+			reasons: {
+				vacation: string;
+				sick: string;
+				conference: string;
+				training: string;
+				other: string;
+			};
+			noBlockouts: string;
+		};
+		dragCreate: {
+			blockTime: string;
+			bookAppointment: string;
+		};
+	};
+
 	// ── Settings ──────────────────────────────────────────────────────
 	settings: {
 		title: string; language: string; languageLabel: string;
@@ -200,7 +333,21 @@ export interface Translations {
 		sections: {
 			general: string; vault: string; appearance: string;
 			docCategories: string; clinicalTags: string; staffRoles: string;
-			textBlocks: string; complicationTypes: string; backup: string; about: string;
+			textBlocks: string; complicationTypes: string; entryTypes: string; backup: string; about: string;
+			rooms: string; appointmentTypes: string; workingHours: string;
+			patientManagement: string;
+		};
+		patientManagement: {
+			title: string;
+			description: string;
+			search: string;
+			selectAll: string;
+			deselectAll: string;
+			deleteSelected: string;
+			confirmDelete: string;
+			noPatients: string;
+			noResults: string;
+			deleted: string;
 		};
 		vault: { path: string; changePath: string; backup: string };
 		theme: { label: string; light: string; dark: string; system: string };
@@ -208,6 +355,11 @@ export interface Translations {
 			title: string; description: string; add: string;
 			labelField: string; iconField: string;
 			deleteConfirm: string;
+			templateInfoBox: string;
+			subfolderCol: string;
+			templateFilesCol: string;
+			templateFrameHint: string;
+			addCategoryFolderHint: string;
 		};
 		clinicalTags: {
 			acuteTitle: string; acuteDesc: string;
@@ -227,6 +379,9 @@ export interface Translations {
 		complicationTypes: {
 			title: string; description: string; add: string; deleteConfirm: string;
 		};
+		entryTypes: {
+			title: string; description: string; add: string; labelPlaceholder: string; iconPlaceholder: string; deleteConfirm: string;
+		};
 		backup: {
 			title: string; description: string;
 			exportSettings: string; exportSettingsDesc: string;
@@ -238,6 +393,25 @@ export interface Translations {
 			backupSuccess: string; backupError: string;
 		};
 		about: { title: string; version: string; description: string };
+		prosthesisTypeSettings: {
+			title: string;
+			description: string;
+			badge: string;
+			color: string;
+			fillColor: string;
+			fillPattern: string;
+			saved: string;
+		};
+		bridgeRoleSettings: {
+			title: string;
+			description: string;
+			badge: string;
+			color: string;
+			fillColor: string;
+			fillPattern: string;
+			saved: string;
+			connectorBar: string;
+		};
 	};
 
 	// ── Staff / Doctors ───────────────────────────────────────────────
@@ -274,18 +448,49 @@ export interface Translations {
 		filters: { search: string; action: string; entity: string };
 	};
 
-	// ── Ortho classifications ─────────────────────────────────────────
+	// ── Ortho / KIG classifications ───────────────────────────────────
 	ortho: {
+		// Used by PatientClassifications.svelte (legacy form, keep these)
 		title: string; pretreatment: string; posttreatment: string;
-		angleClass: {
-			class_I: string; class_II_div1: string;
-			class_II_div2: string; class_III: string;
-		};
+		angleClass: { class_I: string; class_II_div1: string; class_II_div2: string; class_III: string };
 		molarRelationship: string; overjet: string; overbite: string;
 		crowding: { none: string; mild: string; moderate: string; severe: string };
 		crossbite: { none: string; anterior: string; posterior_unilateral: string; posterior_bilateral: string };
 		openBite: { none: string; anterior: string; posterior: string };
 		midlineDeviation: string; treatmentType: string; extractionPattern: string;
+		// KIG assessment dialog
+		button: string;
+		newAssessment: string; saveAssessment: string; history: string;
+		noHistory: string; examDate: string; doctor: string;
+		insuranceCovered: string; notCovered: string; leadingGroup: string;
+		noFindings: string; deleteAssessment: string; deleteConfirm: string;
+		loadAssessment: string; mmLabel: string;
+		// KIG group names (A–P per PDF)
+		groups: { A: string; U: string; S: string; D: string; M: string; O: string; T: string; B: string; K: string; E: string; P: string };
+		// Grade descriptions, key = group+grade (e.g. 'D4', 'O3')
+		grades: {
+			A5: string;
+			U4: string;
+			S4: string; S5: string;
+			D1: string; D2: string; D4: string; D5: string;
+			M4: string; M5: string;
+			O1: string; O2: string; O3: string; O4: string; O5: string;
+			T1: string; T2: string; T3: string;
+			B4: string;
+			K2: string; K3: string; K4: string;
+			E1: string; E2: string; E3: string; E4: string;
+			P2: string; P3: string; P4: string;
+		};
+		// Optional clinical context fields
+		angleClassLabel: string;
+		dentitionStage: string;
+		dentitionOptions: { primary: string; mixed: string; permanent: string };
+		treatmentPhase: string;
+		treatmentPhaseOptions: { expectative: string; early: string; main: string; adult: string };
+		cvmStage: string;
+		facialProfile: string;
+		facialProfileOptions: { straight: string; convex: string; concave: string };
+		treatmentRecommendation: string;
 	};
 
 	// ── Patient sidebar tree ──────────────────────────────────────────────
@@ -343,6 +548,59 @@ export interface Translations {
 		stepLabels: { vault: string; team: string; defaults: string; };
 	};
 
+	// ── Patient Export ────────────────────────────────────────────────
+	export: {
+		title: string;
+		description: string;
+		dateRange: string;
+		dateFrom: string;
+		dateTo: string;
+		allTime: string;
+		sections: {
+			demographics: string;
+			medical: string;
+			notes: string;
+			chart: string;
+			timeline: string;
+			perio: string;
+			plans: string;
+			documents: string;
+		};
+		chooseFolder: string;
+		progress: {
+			collecting: string;
+			rendering: string;
+			building: string;
+			copying: string;
+			writing: string;
+			done: string;
+		};
+		openFolder: string;
+		error: string;
+		success: string;
+		coverTitle: string;
+		generatedBy: string;
+		documentIndex: string;
+		selectPatient: string;
+		searchPatients: string;
+		noPatientSelected: string;
+	};
+
+	docTemplates: {
+		folder: string;       // '!Documents' display name
+		button: string;       // timeline toolbar button label
+		dialogTitle: string;
+		noFiles: string;
+		uploadHint: string;
+		addFile: string;
+		deleteFile: string;
+		pickAndAdd: string;
+		category: string;
+		addToPatient: string;
+		adding: string;
+		deleteConfirm: string;
+	};
+
 	// ── User-configurable defaults ────────────────────────────────────
 	defaults: {
 		docCategories: Array<{ key: string; label: string; icon: string }>;
@@ -351,5 +609,6 @@ export interface Translations {
 		medicalTags: Array<{ key: string; label: string }>;
 		textBlocks: Array<{ key: string; label: string; body: string }>;
 		complicationTypes: Array<{ key: string; label: string }>;
+		workingDays: string[];
 	};
 }

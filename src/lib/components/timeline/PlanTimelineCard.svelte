@@ -3,6 +3,7 @@
 	import { getTreatmentPlanItems } from '$lib/services/db';
 	import { onMount } from 'svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	let {
 		entry,
@@ -35,11 +36,7 @@
 		cancelled:   { label: i18n.t.plans.status.cancelled,  class: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400' },
 	});
 
-	function formatDate(val: string): string {
-		if (!val) return '';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-	}
+
 
 	function formatCost(val: number): string {
 		if (!val) return '';

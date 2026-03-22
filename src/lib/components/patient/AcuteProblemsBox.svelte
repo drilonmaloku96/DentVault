@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import { getAcuteText, upsertAcuteText, getPatientTags, setPatientTags } from '$lib/services/db';
 	import { acuteTagOptions } from '$lib/stores/clinicalTags.svelte';
 	import { i18n } from '$lib/i18n';
@@ -17,6 +17,11 @@
 	let isLoading  = $state(true);
 	let saveStatus = $state<'idle' | 'saving' | 'saved'>('idle');
 	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// ── New tag inline input ─────────────────────────────────────────────
+	let addingTag  = $state(false);
+	let newTagName = $state('');
+	let tagInput   = $state<HTMLInputElement | null>(null);
 
 	onMount(async () => {
 		[content, activeTags] = await Promise.all([
@@ -60,11 +65,33 @@
 		activeTags = next;
 		await setPatientTags(patientId, 'acute', next);
 	}
+
+	async function startAddTag() {
+		addingTag = true;
+		newTagName = '';
+		await tick();
+		tagInput?.focus();
+	}
+
+	async function confirmAddTag() {
+		const label = newTagName.trim();
+		if (!label) { cancelAddTag(); return; }
+		const newTag = { key: `custom_${Date.now()}`, label };
+		await acuteTagOptions.save([...acuteTagOptions.list, newTag]);
+		// auto-activate for this patient
+		await toggleTag(newTag.key);
+		cancelAddTag();
+	}
+
+	function cancelAddTag() {
+		addingTag = false;
+		newTagName = '';
+	}
 </script>
 
 <div class="rounded-lg border border-red-200 dark:border-red-800 overflow-hidden">
 
-	<!-- Minimal title + save status row -->
+	<!-- Title + save status row -->
 	<div class="flex items-center justify-between px-4 pt-3 pb-1">
 		<span class="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide select-none">
 			{i18n.t.patients.acuteProblems}
@@ -93,9 +120,9 @@
 		></textarea>
 	{/if}
 
-	<!-- Tag chips -->
-	{#if acuteTagOptions.loaded && acuteTagOptions.list.length > 0}
-		<div class="flex flex-wrap gap-1.5 px-4 pb-3">
+	<!-- Tag chips + add button -->
+	{#if acuteTagOptions.loaded}
+		<div class="flex flex-wrap items-center gap-1.5 px-4 pb-3">
 			{#each acuteTagOptions.list as tag}
 				{@const active = activeTags.includes(tag.key) || activeTags.includes(acuteTagOptions.displayLabel(tag))}
 				<button
@@ -111,6 +138,27 @@
 					{acuteTagOptions.displayLabel(tag)}
 				</button>
 			{/each}
+
+			{#if addingTag}
+				<input
+					bind:this={tagInput}
+					bind:value={newTagName}
+					type="text"
+					placeholder="Tag name…"
+					onkeydown={(e) => { if (e.key === 'Enter') confirmAddTag(); else if (e.key === 'Escape') cancelAddTag(); }}
+					onblur={confirmAddTag}
+					class="rounded-full border border-red-400 bg-background px-2.5 py-0.5 text-[11px] font-medium text-foreground outline-none w-28"
+				/>
+			{:else}
+				<button
+					type="button"
+					onclick={startAddTag}
+					title="Add tag"
+					class="rounded-full border border-dashed border-red-300 dark:border-red-700 px-2 py-0.5 text-[11px] text-red-400 hover:border-red-500 hover:text-red-600 transition-colors select-none"
+				>
+					+ Add
+				</button>
+			{/if}
 		</div>
 	{/if}
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffLabel } from '$lib/utils/staff';
+	import { formatDate } from '$lib/utils';
 	import TextBlockPalette from '$lib/components/ui/TextBlockPalette.svelte';
 	import StaffMentionPalette from '$lib/components/ui/StaffMentionPalette.svelte';
 	import type { Doctor } from '$lib/types';
@@ -64,7 +65,7 @@
 			return first.length > 80 ? first.slice(0, 77) + '…' : first;
 		}
 		const d = new Date(date);
-		const ds = isNaN(d.getTime()) ? date : d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+		const ds = isNaN(d.getTime()) ? date : formatDate(d);
 		return `Eintrag — ${ds}`;
 	}
 
@@ -185,6 +186,7 @@
 		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormat('bold'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormat('italic'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormat('underline'); return; }
+		if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) { e.preventDefault(); handleSubmit(); return; }
 		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSubmit(); }
 	}
 </script>

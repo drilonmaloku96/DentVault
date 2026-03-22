@@ -5,6 +5,30 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+/**
+ * Format a date string as DD/MM/YYYY.
+ * Accepts ISO datetime strings, YYYY-MM-DD, or Date objects.
+ * Returns '—' for empty/invalid input.
+ */
+export function formatDate(value: string | Date | null | undefined): string {
+	if (!value) return '—';
+	const d = typeof value === 'string'
+		? new Date(value.length === 10 ? value + 'T12:00:00' : value)
+		: value;
+	if (isNaN(d.getTime())) return String(value);
+	return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+
+/**
+ * Format a datetime string as DD/MM/YYYY HH:MM.
+ */
+export function formatDateTime(value: string | Date | null | undefined): string {
+	if (!value) return '—';
+	const d = typeof value === 'string' ? new Date(value) : value;
+	if (isNaN(d.getTime())) return String(value);
+	return `${formatDate(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 // Types used by shadcn-svelte components
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
 	ref?: U | null;

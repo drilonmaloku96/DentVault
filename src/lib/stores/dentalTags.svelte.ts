@@ -4,6 +4,21 @@ import { i18n } from '$lib/i18n';
 
 export { type PatternType };
 
+/**
+ * Tags whose key is hardcoded into the SVG rendering engine (root morphology, structural
+ * outlines, connector bars). Removing one of these would break chart visuals or make the
+ * condition impossible to apply, so the delete button is disabled for them in Settings.
+ * Color, pattern, label and shortcut remain fully editable.
+ */
+export const RENDER_CRITICAL_TAGS = new Set([
+	'implant',    // cylindrical grey fixture root
+	'bridge',     // orange connector bar + pontic: no root, dashed outline
+	'prosthesis', // blue dashed connector + replaced: no root, dashed outline
+	'missing',    // suppresses roots entirely
+	'extracted',  // suppresses roots + draws X mark
+	'root_canal', // purple root fill + canal line + apex dot
+]);
+
 // Default tags — no `label` field (labels come from i18n.t.chart.tags[key].label at render time)
 export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'healthy',    color: '#f8fafc', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'G' },
@@ -12,7 +27,7 @@ export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'filled',     color: '#bfdbfe', strokeColor: '#3b82f6', pattern: 'solid',      shortcut: 'F' },
 	{ key: 'crowned',    color: '#fde68a', strokeColor: '#d97706', pattern: 'solid',      shortcut: 'O' },
 	{ key: 'root_canal', color: '#e9d5ff', strokeColor: '#9333ea', pattern: 'solid',      shortcut: 'W' },
-	{ key: 'implant',    color: '#c7d2fe', strokeColor: '#6366f1', pattern: 'solid',      shortcut: 'I' },
+	{ key: 'implant',    color: '#6b7280', strokeColor: '#374151', pattern: 'solid',      shortcut: 'I' },
 	{ key: 'bridge',     color: '#fed7aa', strokeColor: '#f97316', pattern: 'solid',      shortcut: 'B' },
 	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'X' },
 	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E' },

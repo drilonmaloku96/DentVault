@@ -8,6 +8,7 @@
 		TreatmentOutcome,
 	} from '$lib/types';
 	import { doctors } from '$lib/stores/doctors.svelte';
+	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { staffLabel } from '$lib/utils/staff';
 	import { i18n } from '$lib/i18n';
 	import type { TagSuggestion } from '$lib/services/keyword-engine';
@@ -58,7 +59,7 @@
 
 	// Form state — untrack to suppress "captures initial value" warning
 	let entryDate = $state(untrack(() => entry?.entry_date ?? todayISO));
-	let entryType = $state<TimelineEntryType>(untrack(() => entry?.entry_type ?? 'visit'));
+	let entryType = $state<TimelineEntryType>(untrack(() => entry?.entry_type ?? ''));
 	let entryTitle = $state(untrack(() => entry?.title ?? ''));
 	let provider = $state(untrack(() => entry?.provider ?? ''));
 	let toothNumbers = $state(untrack(() => entry?.tooth_numbers ?? ''));
@@ -196,7 +197,7 @@
 	$effect(() => {
 		if (open) {
 			entryDate = entry?.entry_date ?? prefill?.entry_date ?? todayISO;
-			entryType = entry?.entry_type ?? 'visit';
+			entryType = entry?.entry_type ?? '';
 			entryTitle = entry?.title ?? prefill?.title ?? '';
 			provider = entry?.provider ?? '';
 			toothNumbers = entry?.tooth_numbers ?? '';
@@ -240,8 +241,8 @@
 		return Object.keys(errs).length === 0;
 	}
 
-	async function handleSubmit(e: SubmitEvent) {
-		e.preventDefault();
+	async function handleSubmit(e?: Event) {
+		e?.preventDefault();
 		submitError = '';
 		if (!validate()) return;
 		isSaving = true;
@@ -267,14 +268,9 @@
 		}
 	}
 
-	const typeOptions = $derived<{ value: TimelineEntryType; label: string; icon: string }[]>([
-		{ value: 'visit',     label: 'Visit',     icon: '🏥' },
-		{ value: 'procedure', label: 'Procedure', icon: '🔧' },
-		{ value: 'note',      label: 'Note',      icon: '📝' },
-		{ value: 'lab',       label: 'Lab',       icon: '🧪' },
-		{ value: 'imaging',   label: i18n.t.categories.imaging, icon: '📷' },
-		{ value: 'referral',  label: 'Referral',  icon: '📋' },
-	]);
+	const typeOptions = $derived(
+		entryTypes.list.map(t => ({ value: t.key as TimelineEntryType, label: t.label, icon: t.icon }))
+	);
 
 	const categoryOptions = $derived<{ value: TreatmentCategory | ''; label: string; icon: string }[]>([
 		{ value: '', label: `— ${i18n.t.timeline.filter} —`, icon: '' },
@@ -319,7 +315,7 @@
 			</DialogDescription>
 		</DialogHeader>
 
-		<form onsubmit={handleSubmit} class="flex flex-col gap-4 py-2">
+		<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="flex flex-col gap-4 py-2">
 			<!-- Error -->
 			{#if submitError}
 				<div class="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -343,10 +339,11 @@
 				</div>
 
 				<div class="flex flex-col gap-1.5">
-					<Label for="entry-type">{i18n.t.timeline.filter} <span class="text-destructive">*</span></Label>
+					<Label for="entry-type">{i18n.t.timeline.entry.type} <span class="text-muted-foreground font-normal text-xs">({i18n.t.schedule.optional})</span></Label>
 					<select id="entry-type" class={selectClass} bind:value={entryType}>
+						<option value="">{i18n.t.timeline.entry.typePlaceholder}</option>
 						{#each typeOptions as opt}
-							<option value={opt.value}>{opt.icon} {opt.label}</option>
+							<option value={opt.value}>{opt.label}</option>
 						{/each}
 					</select>
 				</div>
@@ -642,7 +639,7 @@
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={isSaving}>
 					{i18n.t.actions.cancel}
 				</Button>
-				<Button type="submit" disabled={isSaving}>
+				<Button type="button" onclick={handleSubmit} disabled={isSaving}>
 					{isSaving ? i18n.t.common.loading : isEdit ? i18n.t.actions.save : i18n.t.timeline.addEntry}
 				</Button>
 			</DialogFooter>

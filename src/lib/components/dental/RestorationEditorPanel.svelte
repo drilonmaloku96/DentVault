@@ -4,7 +4,7 @@
 
 	// ── Types ──────────────────────────────────────────────────────────
 	export type BridgeRole = 'tooth' | 'implant' | 'pontic';
-	export type ProsthesisRole = 'telescope' | 'clasp' | 'attachment' | 'replaced';
+	export type ProsthesisRole = 'telescope' | 'replaced';
 	export type AbutmentType = 'tooth' | 'implant';
 	export type RestorationType = 'bridge' | 'prosthesis';
 
@@ -96,7 +96,7 @@
 	}
 
 	// ── Prosthesis cycle ───────────────────────────────────────────────
-	const PROSTHESIS_CYCLE: ProsthesisRole[] = ['telescope', 'clasp', 'attachment', 'replaced'];
+	const PROSTHESIS_CYCLE: ProsthesisRole[] = ['telescope', 'replaced'];
 
 	function cycleProsthesisRole(tooth: number) {
 		const current = prosthesisRoleMap.get(tooth) ?? { prosthesis_type: 'telescope' as ProsthesisRole, abutment_type: 'tooth' as AbutmentType };
@@ -152,19 +152,15 @@
 
 	const PROSTHESIS_ROLE_LABEL: Record<ProsthesisRole, string> = {
 		telescope:  'Teleskop',
-		clasp:      'Klammer',
-		attachment: 'Attachment',
 		replaced:   'Ersetzt',
 	};
 	const PROSTHESIS_ROLE_COLOR: Record<ProsthesisRole, string> = {
 		telescope:  'border-sky-400 bg-sky-500 text-white',
-		clasp:      'border-indigo-500 bg-indigo-500 text-white',
-		attachment: 'border-violet-500 bg-violet-500 text-white',
 		replaced:   'border-blue-500 bg-blue-500 text-white',
 	};
 
 	function isAnchorRole(r: ProsthesisRole): boolean {
-		return r === 'telescope' || r === 'clasp' || r === 'attachment';
+		return r === 'telescope';
 	}
 </script>
 

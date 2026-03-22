@@ -41,6 +41,25 @@ import type {
 	AnalyticsFilters,
 	ReportFilters,
 	ReportEntry,
+	AppointmentRoom,
+	AppointmentRoomFormData,
+	AppointmentType,
+	AppointmentTypeFormData,
+	Appointment,
+	AppointmentFormData,
+	AppointmentStatus,
+	ScheduleBlock,
+	ScheduleBlockFormData,
+	StaffBlockout,
+	StaffBlockoutFormData,
+	DoctorWorkingHours,
+	DoctorWorkingHoursFormData,
+	AbsenceStat,
+	AppointmentDoctorStat,
+	KigFinding,
+	KigGroupCode,
+	OrthoAssessment,
+	OrthoKigEntry,
 } from '$lib/types';
 
 // ── Schema / Migrations ────────────────────────────────────────────────
@@ -465,9 +484,213 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN blood_group TEXT DEFAULT ''` },
 	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN primary_physician TEXT DEFAULT ''` },
 	{ version: 31, sql: `ALTER TABLE patients ADD COLUMN marital_status TEXT DEFAULT ''` },
+	// v32 – appointment scheduling
+	{
+		version: 32,
+		sql: `CREATE TABLE IF NOT EXISTS appointment_rooms (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			short_name TEXT NOT NULL DEFAULT '',
+			color TEXT NOT NULL DEFAULT '#6366f1',
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		)`,
+	},
+	{
+		version: 32,
+		sql: `CREATE TABLE IF NOT EXISTS appointment_types (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			short_name TEXT NOT NULL DEFAULT '',
+			default_duration_min INTEGER NOT NULL DEFAULT 30,
+			color TEXT NOT NULL DEFAULT '#6366f1',
+			treatment_category TEXT NOT NULL DEFAULT 'other',
+			sort_order INTEGER NOT NULL DEFAULT 0,
+			is_active INTEGER NOT NULL DEFAULT 1,
+			created_at TEXT NOT NULL DEFAULT (datetime('now'))
+		)`,
+	},
+	{
+		version: 32,
+		sql: `CREATE TABLE IF NOT EXISTS appointments (
+			id TEXT PRIMARY KEY,
+			patient_id TEXT NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+			doctor_id TEXT REFERENCES doctors(id) ON DELETE SET NULL,
+			room_id TEXT NOT NULL REFERENCES appointment_rooms(id) ON DELETE RESTRICT,
+			type_id TEXT REFERENCES appointment_types(id) ON DELETE SET NULL,
+			start_time TEXT NOT NULL,
+			end_time TEXT NOT NULL,
+			duration_min INTEGER NOT NULL DEFAULT 30,
+			title TEXT,
+			notes TEXT,
+			status TEXT NOT NULL DEFAULT 'scheduled',
+			timeline_entry_id TEXT REFERENCES timeline_entries(id) ON DELETE SET NULL,
+			created_at TEXT NOT NULL DEFAULT (datetime('now')),
+			updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		)`,
+	},
+	{
+		version: 32,
+		sql: `CREATE INDEX IF NOT EXISTS idx_appointments_start_time ON appointments(start_time)`,
+	},
+	{
+		version: 32,
+		sql: `CREATE INDEX IF NOT EXISTS idx_appointments_patient_id ON appointments(patient_id)`,
+	},
+	{
+		version: 32,
+		sql: `CREATE INDEX IF NOT EXISTS idx_appointments_room_start ON appointments(room_id, start_time)`,
+	},
+	{
+		version: 33,
+		sql: `CREATE TABLE IF NOT EXISTS schedule_blocks (
+    id TEXT PRIMARY KEY,
+    room_id TEXT NOT NULL REFERENCES appointment_rooms(id) ON DELETE CASCADE,
+    doctor_id TEXT REFERENCES doctors(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    color TEXT NOT NULL DEFAULT '#94a3b8',
+    notes TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_schedule_blocks_start ON schedule_blocks(start_time);`,
+	},
+	{
+		version: 34,
+		sql: `CREATE TABLE IF NOT EXISTS staff_blockouts (
+    id TEXT PRIMARY KEY,
+    doctor_id TEXT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    start_time TEXT,
+    end_time TEXT,
+    is_all_day INTEGER NOT NULL DEFAULT 1,
+    reason TEXT NOT NULL DEFAULT 'other',
+    notes TEXT,
+    color TEXT NOT NULL DEFAULT '#f59e0b',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_staff_blockouts_date ON staff_blockouts(start_date, end_date);`,
+	},
+	{
+		version: 35,
+		sql: `CREATE TABLE IF NOT EXISTS doctor_working_hours (
+    id TEXT PRIMARY KEY,
+    doctor_id TEXT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+    day_of_week INTEGER NOT NULL,
+    start_time TEXT NOT NULL DEFAULT '08:00',
+    end_time TEXT NOT NULL DEFAULT '18:00',
+    break_start TEXT,
+    break_end TEXT,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(doctor_id, day_of_week)
+  )`,
+	},
+	{
+		version: 36,
+		sql: `ALTER TABLE appointments ADD COLUMN cancelled_at TEXT`,
+	},
+	{
+		version: 36,
+		sql: `ALTER TABLE appointments ADD COLUMN no_show_recorded_at TEXT`,
+	},
+	// v37: Extended ortho fields + KIG support
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN exam_date TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN pre_canine_class TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN post_canine_class TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN pre_crowding_upper_mm REAL DEFAULT 0` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN post_crowding_upper_mm REAL DEFAULT 0` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN pre_crowding_lower_mm REAL DEFAULT 0` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN post_crowding_lower_mm REAL DEFAULT 0` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN facial_profile TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN lip_competence TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN nasal_breathing TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN oral_habits TEXT DEFAULT '[]'` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN cvm_stage INTEGER DEFAULT 0` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN growth_potential TEXT DEFAULT ''` },
+	{ version: 37, sql: `ALTER TABLE ortho_classifications ADD COLUMN retention_protocol TEXT DEFAULT ''` },
+	// v38: KIG findings table
+	{
+		version: 38,
+		sql: `CREATE TABLE IF NOT EXISTS kig_findings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id TEXT NOT NULL,
+    kig_group TEXT NOT NULL,
+    kig_level INTEGER NOT NULL DEFAULT 1,
+    measured_value REAL,
+    notes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(patient_id, kig_group)
+  );
+  CREATE INDEX IF NOT EXISTS idx_kig_findings_patient ON kig_findings(patient_id);`,
+	},
+	// v39: KIG assessment snapshots (snapshot-based like dental chart)
+	{
+		version: 39,
+		sql: `CREATE TABLE IF NOT EXISTS ortho_assessments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id TEXT NOT NULL,
+    exam_date TEXT NOT NULL,
+    doctor_id INTEGER,
+    findings TEXT NOT NULL DEFAULT '[]',
+    notes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_ortho_assessments_patient ON ortho_assessments(patient_id);`,
+	},
+	// v40: Optional clinical context fields on ortho_assessments
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN dentition_stage TEXT NOT NULL DEFAULT ''` },
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN treatment_phase TEXT NOT NULL DEFAULT ''` },
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN angle_class TEXT NOT NULL DEFAULT ''` },
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN cvm_stage INTEGER NOT NULL DEFAULT 0` },
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN facial_profile TEXT NOT NULL DEFAULT ''` },
+	{ version: 40, sql: `ALTER TABLE ortho_assessments ADD COLUMN treatment_recommendation TEXT NOT NULL DEFAULT ''` },
+	// v41: Fix ortho_assessments FK — was REFERENCES patients(id) (integer PK), must be patients(patient_id) (text)
+	{
+		version: 41,
+		sql: `ALTER TABLE ortho_assessments RENAME TO ortho_assessments_old`,
+	},
+	{
+		version: 41,
+		sql: `CREATE TABLE ortho_assessments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  patient_id TEXT NOT NULL,
+  exam_date TEXT NOT NULL,
+  doctor_id INTEGER,
+  findings TEXT NOT NULL DEFAULT '[]',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  dentition_stage TEXT NOT NULL DEFAULT '',
+  treatment_phase TEXT NOT NULL DEFAULT '',
+  angle_class TEXT NOT NULL DEFAULT '',
+  cvm_stage INTEGER NOT NULL DEFAULT 0,
+  facial_profile TEXT NOT NULL DEFAULT '',
+  treatment_recommendation TEXT NOT NULL DEFAULT '',
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
+  FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+)`,
+	},
+	{
+		version: 41,
+		sql: `INSERT INTO ortho_assessments SELECT * FROM ortho_assessments_old`,
+	},
+	{
+		version: 41,
+		sql: `DROP TABLE ortho_assessments_old`,
+	},
+	{
+		version: 41,
+		sql: `CREATE INDEX IF NOT EXISTS idx_ortho_assessments_patient ON ortho_assessments(patient_id)`,
+	},
 ];
 
-const LATEST_VERSION = 31;
+const LATEST_VERSION = 41;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -834,7 +1057,10 @@ export async function searchPatients(query: string, includeArchived = false): Pr
 	return conn.select<Patient[]>(
 		`SELECT * FROM patients
 		 WHERE (firstname LIKE $1 OR lastname LIKE $1 OR patient_id LIKE $1
-		   OR phone LIKE $1 OR email LIKE $1)
+		   OR phone LIKE $1 OR email LIKE $1
+		   OR (firstname || ' ' || lastname) LIKE $1
+		   OR (lastname  || ' ' || firstname) LIKE $1
+		   OR (lastname  || ', ' || firstname) LIKE $1)
 		 ${archivedClause}
 		 ORDER BY lastname ASC, firstname ASC`,
 		[pattern],
@@ -1147,7 +1373,32 @@ export async function updateTreatmentPlan(
 
 export async function deleteTreatmentPlan(planId: string): Promise<void> {
 	const conn = await getDb();
+
+	// Read before deleting (for audit)
+	const rows = await conn.select<TreatmentPlan[]>('SELECT * FROM treatment_plans WHERE plan_id = $1', [planId]);
+	const before = rows[0] ?? null;
+
 	await conn.execute('DELETE FROM treatment_plans WHERE plan_id = $1', [planId]);
+
+	if (before) {
+		try {
+			const patientName = await getPatientDisplayName(before.patient_id);
+			const user = await getCurrentUser();
+			await appendAuditRecord({
+				action: 'delete',
+				entity_type: 'treatment_plan' as AuditEntityType,
+				entity_id: planId,
+				patient_id: before.patient_id,
+				patient_name: patientName,
+				user,
+				summary: `Deleted treatment plan "${before.title}"`,
+				before: before as unknown as Record<string, unknown>,
+				after: null,
+			});
+		} catch {
+			// silently ignore audit errors
+		}
+	}
 }
 
 // ── Treatment Plan Item CRUD ───────────────────────────────────────────
@@ -1255,7 +1506,7 @@ export async function upsertOrthoClassification(
 	const existing = await getOrthoClassification(patientId);
 
 	if (!existing) {
-		const defaults = {
+		const defaults: Record<string, unknown> = {
 			pre_angle_class: '',
 			post_angle_class: '',
 			pre_molar_relationship: '',
@@ -1277,30 +1528,28 @@ export async function upsertOrthoClassification(
 			treatment_start_date: '',
 			treatment_end_date: '',
 			notes: '',
+			exam_date: '',
+			pre_canine_class: '',
+			post_canine_class: '',
+			pre_crowding_upper_mm: 0,
+			post_crowding_upper_mm: 0,
+			pre_crowding_lower_mm: 0,
+			post_crowding_lower_mm: 0,
+			facial_profile: '',
+			lip_competence: '',
+			nasal_breathing: '',
+			oral_habits: '[]',
+			cvm_stage: 0,
+			growth_potential: '',
+			retention_protocol: '',
 		};
 		const merged = { ...defaults, ...data };
+		const cols = Object.keys(merged);
+		const vals = Object.values(merged);
+		const placeholders = cols.map((_, i) => `$${i + 2}`).join(', ');
 		await conn.execute(
-			`INSERT INTO ortho_classifications
-			 (patient_id, pre_angle_class, post_angle_class, pre_molar_relationship, post_molar_relationship,
-			  pre_overjet_mm, post_overjet_mm, pre_overbite_mm, post_overbite_mm,
-			  pre_crowding, post_crowding, pre_crossbite, post_crossbite,
-			  pre_open_bite, post_open_bite, pre_midline_deviation_mm, post_midline_deviation_mm,
-			  treatment_type, extraction_pattern, treatment_start_date, treatment_end_date, notes, updated_at)
-			 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
-			[
-				patientId,
-				merged.pre_angle_class, merged.post_angle_class,
-				merged.pre_molar_relationship, merged.post_molar_relationship,
-				merged.pre_overjet_mm, merged.post_overjet_mm,
-				merged.pre_overbite_mm, merged.post_overbite_mm,
-				merged.pre_crowding, merged.post_crowding,
-				merged.pre_crossbite, merged.post_crossbite,
-				merged.pre_open_bite, merged.post_open_bite,
-				merged.pre_midline_deviation_mm, merged.post_midline_deviation_mm,
-				merged.treatment_type, merged.extraction_pattern,
-				merged.treatment_start_date, merged.treatment_end_date,
-				merged.notes, now,
-			],
+			`INSERT INTO ortho_classifications (patient_id, ${cols.join(', ')}, updated_at) VALUES ($1, ${placeholders}, $${vals.length + 2})`,
+			[patientId, ...vals, now],
 		);
 	} else {
 		const fields: string[] = [];
@@ -1320,6 +1569,82 @@ export async function upsertOrthoClassification(
 			values,
 		);
 	}
+}
+
+// ── KIG Findings CRUD ─────────────────────────────────────────────────
+
+export async function getKigFindings(patientId: string): Promise<KigFinding[]> {
+	const conn = await getDb();
+	return conn.select<KigFinding[]>(
+		`SELECT * FROM kig_findings WHERE patient_id = $1 ORDER BY kig_group`,
+		[patientId],
+	);
+}
+
+export async function upsertKigFinding(
+	patientId: string,
+	kigGroup: KigGroupCode,
+	kigLevel: number,
+	measuredValue: number | null,
+	notes: string,
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`INSERT INTO kig_findings (patient_id, kig_group, kig_level, measured_value, notes)
+		 VALUES ($1, $2, $3, $4, $5)
+		 ON CONFLICT(patient_id, kig_group) DO UPDATE SET
+		   kig_level = excluded.kig_level,
+		   measured_value = excluded.measured_value,
+		   notes = excluded.notes`,
+		[patientId, kigGroup, kigLevel, measuredValue, notes],
+	);
+}
+
+export async function deleteKigFinding(patientId: string, kigGroup: KigGroupCode): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`DELETE FROM kig_findings WHERE patient_id = $1 AND kig_group = $2`,
+		[patientId, kigGroup],
+	);
+}
+
+// ── Ortho Assessment Snapshots ─────────────────────────────────────────
+
+export async function getOrthoAssessments(patientId: string): Promise<OrthoAssessment[]> {
+	const conn = await getDb();
+	type RawRow = Omit<OrthoAssessment, 'findings'> & { findings: string };
+	const rows = await conn.select<RawRow[]>(
+		`SELECT * FROM ortho_assessments WHERE patient_id = $1 ORDER BY exam_date DESC, created_at DESC`,
+		[patientId],
+	);
+	return rows.map((r) => ({ ...r, findings: JSON.parse(r.findings) as OrthoKigEntry[] }));
+}
+
+export async function saveOrthoAssessment(
+	patientId: string,
+	examDate: string,
+	doctorId: number | null,
+	findings: OrthoKigEntry[],
+	notes: string,
+	dentitionStage: string,
+	treatmentPhase: string,
+	angleClass: string,
+	cvmStage: number,
+	facialProfile: string,
+	treatmentRecommendation: string,
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`INSERT INTO ortho_assessments
+		 (patient_id, exam_date, doctor_id, findings, notes, dentition_stage, treatment_phase, angle_class, cvm_stage, facial_profile, treatment_recommendation)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		[patientId, examDate, doctorId, JSON.stringify(findings), notes, dentitionStage, treatmentPhase, angleClass, cvmStage, facialProfile, treatmentRecommendation],
+	);
+}
+
+export async function deleteOrthoAssessment(id: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(`DELETE FROM ortho_assessments WHERE id = $1`, [id]);
 }
 
 // ── Patient Classification CRUD ────────────────────────────────────────
@@ -1449,6 +1774,36 @@ export async function upsertToothChartEntry(
 			`UPDATE dental_chart SET ${fields.join(', ')} WHERE patient_id = $${idx} AND tooth_number = $${idx + 1}`,
 			values,
 		);
+
+		// Audit — only log fields that actually changed
+		try {
+			const changedBefore: Record<string, unknown> = {};
+			const changedAfter: Record<string, unknown> = {};
+			for (const [k, v] of Object.entries(data)) {
+				const prev = (existing as unknown as Record<string, unknown>)[k];
+				if (prev !== v) {
+					changedBefore[k] = prev;
+					changedAfter[k] = v;
+				}
+			}
+			if (Object.keys(changedAfter).length > 0) {
+				const patientName = await getPatientDisplayName(patientId);
+				const user = await getCurrentUser();
+				await appendAuditRecord({
+					action: 'update',
+					entity_type: 'dental_chart' as AuditEntityType,
+					entity_id: `${patientId}:${toothNumber}`,
+					patient_id: patientId,
+					patient_name: patientName,
+					user,
+					summary: `Updated tooth #${toothNumber}`,
+					before: changedBefore,
+					after: changedAfter,
+				});
+			}
+		} catch {
+			// silently ignore audit errors
+		}
 	}
 }
 
@@ -1605,7 +1960,32 @@ export async function updateDocument(
 
 export async function deleteDocument(id: number): Promise<void> {
 	const conn = await getDb();
+
+	// Read before deleting (for audit)
+	const docRows = await conn.select<PatientDocument[]>('SELECT * FROM documents WHERE id = $1', [id]);
+	const before = docRows[0] ?? null;
+
 	await conn.execute('DELETE FROM documents WHERE id = $1', [id]);
+
+	if (before) {
+		try {
+			const patientName = await getPatientDisplayName(before.patient_id);
+			const user = await getCurrentUser();
+			await appendAuditRecord({
+				action: 'delete',
+				entity_type: 'document' as AuditEntityType,
+				entity_id: String(id),
+				patient_id: before.patient_id,
+				patient_name: patientName,
+				user,
+				summary: `Deleted document "${before.filename}"`,
+				before: before as unknown as Record<string, unknown>,
+				after: null,
+			});
+		} catch {
+			// silently ignore audit errors
+		}
+	}
 }
 
 /**
@@ -2423,5 +2803,554 @@ export async function getProviderOutcomeStats(filters?: AnalyticsFilters): Promi
 		 GROUP BY COALESCE(d.name, 'Unassigned')
 		 ORDER BY total DESC`,
 		params,
+	);
+}
+
+/** Patients served, total entries, and new patients registered in a date range */
+export async function getActivityStats(from: string, to: string): Promise<{
+	patients_served: number;
+	entries_count: number;
+	new_patients: number;
+}> {
+	const conn = await getDb();
+	const [activityRows, newRows] = await Promise.all([
+		conn.select<{ patients_served: number; entries_count: number }[]>(
+			`SELECT COUNT(DISTINCT patient_id) as patients_served,
+			        COUNT(*) as entries_count
+			 FROM timeline_entries
+			 WHERE entry_date BETWEEN $1 AND $2
+			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot')`,
+			[from, to],
+		),
+		conn.select<{ new_patients: number }[]>(
+			`SELECT COUNT(*) as new_patients FROM patients WHERE date(created_at) BETWEEN $1 AND $2`,
+			[from, to],
+		),
+	]);
+	return {
+		patients_served: activityRows[0]?.patients_served ?? 0,
+		entries_count:   activityRows[0]?.entries_count   ?? 0,
+		new_patients:    newRows[0]?.new_patients          ?? 0,
+	};
+}
+
+/** Per-doctor: unique patients served + total entries in a date range */
+export async function getDoctorActivityStats(from: string, to: string): Promise<Array<{
+	doctor_name: string;
+	doctor_color: string;
+	patients_served: number;
+	entries_count: number;
+}>> {
+	const conn = await getDb();
+	return conn.select(
+		`SELECT d.name  as doctor_name,
+		        d.color as doctor_color,
+		        COUNT(DISTINCT te.patient_id) as patients_served,
+		        COUNT(te.id)                  as entries_count
+		 FROM doctors d
+		 JOIN timeline_entries te ON te.doctor_id = d.id
+		   AND te.entry_date BETWEEN $1 AND $2
+		   AND te.entry_type NOT IN ('document', 'plan', 'chart_snapshot')
+		 GROUP BY d.id, d.name, d.color
+		 ORDER BY entries_count DESC`,
+		[from, to],
+	);
+}
+
+// ─── Appointment Period Stats ─────────────────────────────────────────────────
+
+/** Total / completed / cancelled / no_show + avg duration for a date range */
+export async function getAppointmentPeriodStats(from: string, to: string): Promise<{
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+	avg_duration_min: number;
+}> {
+	const conn = await getDb();
+	const rows = await conn.select<{ total: number; completed: number; cancelled: number; no_show: number; avg_duration_min: number }[]>(
+		`SELECT COUNT(*) as total,
+		        COALESCE(SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END), 0) as completed,
+		        COALESCE(SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END), 0) as cancelled,
+		        COALESCE(SUM(CASE WHEN status='no_show'   THEN 1 ELSE 0 END), 0) as no_show,
+		        COALESCE(ROUND(AVG(duration_min), 1), 0) as avg_duration_min
+		 FROM appointments
+		 WHERE date(start_time) BETWEEN $1 AND $2`,
+		[from, to],
+	);
+	return rows[0] ?? { total: 0, completed: 0, cancelled: 0, no_show: 0, avg_duration_min: 0 };
+}
+
+/** Appointment count grouped by day_of_week (0=Sun…6=Sat) and hour, for heatmap */
+export async function getAppointmentHeatmap(from: string, to: string): Promise<Array<{
+	day_of_week: number;
+	hour: number;
+	count: number;
+}>> {
+	const conn = await getDb();
+	return conn.select(
+		`SELECT CAST(strftime('%w', start_time) AS INTEGER) as day_of_week,
+		        CAST(strftime('%H', start_time) AS INTEGER) as hour,
+		        COUNT(*) as count
+		 FROM appointments
+		 WHERE date(start_time) BETWEEN $1 AND $2
+		   AND status != 'cancelled'
+		 GROUP BY day_of_week, hour
+		 ORDER BY day_of_week, hour`,
+		[from, to],
+	);
+}
+
+/** Patient demographics: avg age, age buckets, gender counts, referral source counts */
+export async function getPatientDemographics(): Promise<{
+	avg_age: number | null;
+	age_buckets: Array<{ label: string; count: number }>;
+	gender_counts: Array<{ gender: string; count: number }>;
+	referral_counts: Array<{ source: string; count: number }>;
+}> {
+	const conn = await getDb();
+	const DOB_FILTER = `dob != '' AND dob IS NOT NULL AND length(dob) >= 8`;
+	const [ageRows, bucketRows, genderRows, referralRows] = await Promise.all([
+		conn.select<{ avg_age: number | null }[]>(
+			`SELECT ROUND(AVG(CAST((julianday('now') - julianday(dob)) / 365.25 AS INTEGER)), 1) as avg_age
+			 FROM patients WHERE ${DOB_FILTER}`,
+			[],
+		),
+		conn.select<{ label: string; sort_key: number; count: number }[]>(
+			`SELECT
+			   CASE WHEN age < 18 THEN '0–17'
+			        WHEN age < 36 THEN '18–35'
+			        WHEN age < 51 THEN '36–50'
+			        WHEN age < 65 THEN '51–64'
+			        ELSE '65+' END as label,
+			   CASE WHEN age < 18 THEN 0 WHEN age < 36 THEN 1 WHEN age < 51 THEN 2 WHEN age < 65 THEN 3 ELSE 4 END as sort_key,
+			   COUNT(*) as count
+			 FROM (SELECT CAST((julianday('now') - julianday(dob)) / 365.25 AS INTEGER) as age
+			       FROM patients WHERE ${DOB_FILTER})
+			 GROUP BY label, sort_key ORDER BY sort_key`,
+			[],
+		),
+		conn.select<{ gender: string; count: number }[]>(
+			`SELECT COALESCE(NULLIF(gender,''), 'unknown') as gender, COUNT(*) as count
+			 FROM patients GROUP BY gender ORDER BY count DESC`,
+			[],
+		),
+		conn.select<{ source: string; count: number }[]>(
+			`SELECT COALESCE(NULLIF(referral_source,''), 'unknown') as source, COUNT(*) as count
+			 FROM patients GROUP BY referral_source ORDER BY count DESC LIMIT 8`,
+			[],
+		),
+	]);
+	return {
+		avg_age: ageRows[0]?.avg_age ?? null,
+		age_buckets: bucketRows.map(({ label, count }) => ({ label, count })),
+		gender_counts: genderRows,
+		referral_counts: referralRows,
+	};
+}
+
+// ─── Appointment Rooms ────────────────────────────────────────────────────────
+
+export async function getAppointmentRooms(): Promise<AppointmentRoom[]> {
+	const conn = await getDb();
+	return conn.select<AppointmentRoom[]>('SELECT * FROM appointment_rooms ORDER BY sort_order, name', []);
+}
+
+export async function getActiveRooms(): Promise<AppointmentRoom[]> {
+	const conn = await getDb();
+	return conn.select<AppointmentRoom[]>('SELECT * FROM appointment_rooms WHERE is_active=1 ORDER BY sort_order, name', []);
+}
+
+export async function insertAppointmentRoom(data: AppointmentRoomFormData): Promise<AppointmentRoom> {
+	const conn = await getDb();
+	const id = crypto.randomUUID();
+	await conn.execute(
+		'INSERT INTO appointment_rooms (id, name, short_name, color, sort_order, is_active) VALUES ($1, $2, $3, $4, $5, $6)',
+		[id, data.name, data.short_name, data.color, data.sort_order, data.is_active ? 1 : 0],
+	);
+	const rows = await conn.select<AppointmentRoom[]>('SELECT * FROM appointment_rooms WHERE id=$1', [id]);
+	return rows[0];
+}
+
+export async function updateAppointmentRoom(id: string, data: Partial<AppointmentRoomFormData>): Promise<void> {
+	const conn = await getDb();
+	const fields: string[] = [];
+	const values: unknown[] = [];
+	let i = 1;
+	if (data.name !== undefined) { fields.push(`name=$${i++}`); values.push(data.name); }
+	if (data.short_name !== undefined) { fields.push(`short_name=$${i++}`); values.push(data.short_name); }
+	if (data.color !== undefined) { fields.push(`color=$${i++}`); values.push(data.color); }
+	if (data.sort_order !== undefined) { fields.push(`sort_order=$${i++}`); values.push(data.sort_order); }
+	if (data.is_active !== undefined) { fields.push(`is_active=$${i++}`); values.push(data.is_active ? 1 : 0); }
+	if (fields.length === 0) return;
+	values.push(id);
+	await conn.execute(`UPDATE appointment_rooms SET ${fields.join(', ')} WHERE id=$${i}`, values);
+}
+
+export async function deleteAppointmentRoom(id: string): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('UPDATE appointment_rooms SET is_active=0 WHERE id=$1', [id]);
+}
+
+// ─── Appointment Types ────────────────────────────────────────────────────────
+
+export async function getAppointmentTypes(): Promise<AppointmentType[]> {
+	const conn = await getDb();
+	return conn.select<AppointmentType[]>('SELECT * FROM appointment_types ORDER BY sort_order, name', []);
+}
+
+export async function getActiveTypes(): Promise<AppointmentType[]> {
+	const conn = await getDb();
+	return conn.select<AppointmentType[]>('SELECT * FROM appointment_types WHERE is_active=1 ORDER BY sort_order, name', []);
+}
+
+export async function insertAppointmentType(data: AppointmentTypeFormData): Promise<AppointmentType> {
+	const conn = await getDb();
+	const id = crypto.randomUUID();
+	await conn.execute(
+		'INSERT INTO appointment_types (id, name, short_name, default_duration_min, color, treatment_category, sort_order, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+		[id, data.name, data.short_name, data.default_duration_min, data.color, data.treatment_category, data.sort_order, data.is_active ? 1 : 0],
+	);
+	const rows = await conn.select<AppointmentType[]>('SELECT * FROM appointment_types WHERE id=$1', [id]);
+	return rows[0];
+}
+
+export async function updateAppointmentType(id: string, data: Partial<AppointmentTypeFormData>): Promise<void> {
+	const conn = await getDb();
+	const fields: string[] = [];
+	const values: unknown[] = [];
+	let i = 1;
+	if (data.name !== undefined) { fields.push(`name=$${i++}`); values.push(data.name); }
+	if (data.short_name !== undefined) { fields.push(`short_name=$${i++}`); values.push(data.short_name); }
+	if (data.default_duration_min !== undefined) { fields.push(`default_duration_min=$${i++}`); values.push(data.default_duration_min); }
+	if (data.color !== undefined) { fields.push(`color=$${i++}`); values.push(data.color); }
+	if (data.treatment_category !== undefined) { fields.push(`treatment_category=$${i++}`); values.push(data.treatment_category); }
+	if (data.sort_order !== undefined) { fields.push(`sort_order=$${i++}`); values.push(data.sort_order); }
+	if (data.is_active !== undefined) { fields.push(`is_active=$${i++}`); values.push(data.is_active ? 1 : 0); }
+	if (fields.length === 0) return;
+	values.push(id);
+	await conn.execute(`UPDATE appointment_types SET ${fields.join(', ')} WHERE id=$${i}`, values);
+}
+
+export async function deleteAppointmentType(id: string): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('UPDATE appointment_types SET is_active=0 WHERE id=$1', [id]);
+}
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+
+const APPOINTMENT_JOIN = `
+  SELECT a.*,
+    p.firstname AS patient_firstname, p.lastname AS patient_lastname,
+    d.name AS doctor_name,
+    at.name AS type_name, at.color AS type_color, at.short_name AS type_short_name,
+    ar.name AS room_name, ar.color AS room_color
+  FROM appointments a
+  LEFT JOIN patients p ON a.patient_id = p.patient_id
+  LEFT JOIN doctors d ON a.doctor_id = d.id
+  LEFT JOIN appointment_types at ON a.type_id = at.id
+  LEFT JOIN appointment_rooms ar ON a.room_id = ar.id
+`;
+
+export async function getAppointmentsForDate(date: string): Promise<Appointment[]> {
+	const conn = await getDb();
+	return conn.select<Appointment[]>(
+		`${APPOINTMENT_JOIN} WHERE date(a.start_time) = date($1) ORDER BY a.start_time`,
+		[date],
+	);
+}
+
+export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {
+	const conn = await getDb();
+	return conn.select<Appointment[]>(
+		`${APPOINTMENT_JOIN} WHERE a.patient_id = $1 ORDER BY a.start_time DESC`,
+		[patientId],
+	);
+}
+
+export async function insertAppointment(data: AppointmentFormData & { patient_id: string }): Promise<Appointment> {
+	const conn = await getDb();
+	const id = crypto.randomUUID();
+	const now = new Date().toISOString();
+	await conn.execute(
+		`INSERT INTO appointments (id, patient_id, doctor_id, room_id, type_id, start_time, end_time, duration_min, title, notes, status, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+		[
+			id, data.patient_id,
+			data.doctor_id || null,
+			data.room_id,
+			data.type_id || null,
+			data.start_time, data.end_time, data.duration_min,
+			data.title || null, data.notes || null,
+			data.status, now, now,
+		],
+	);
+	const rows = await conn.select<Appointment[]>(`${APPOINTMENT_JOIN} WHERE a.id=$1`, [id]);
+	return rows[0];
+}
+
+export async function updateAppointment(id: string, data: Partial<AppointmentFormData>): Promise<void> {
+	const conn = await getDb();
+	const fields: string[] = [];
+	const values: unknown[] = [];
+	let i = 1;
+	if (data.patient_id !== undefined) { fields.push(`patient_id=$${i++}`); values.push(data.patient_id); }
+	if (data.doctor_id !== undefined) { fields.push(`doctor_id=$${i++}`); values.push(data.doctor_id || null); }
+	if (data.room_id !== undefined) { fields.push(`room_id=$${i++}`); values.push(data.room_id); }
+	if (data.type_id !== undefined) { fields.push(`type_id=$${i++}`); values.push(data.type_id || null); }
+	if (data.start_time !== undefined) { fields.push(`start_time=$${i++}`); values.push(data.start_time); }
+	if (data.end_time !== undefined) { fields.push(`end_time=$${i++}`); values.push(data.end_time); }
+	if (data.duration_min !== undefined) { fields.push(`duration_min=$${i++}`); values.push(data.duration_min); }
+	if (data.title !== undefined) { fields.push(`title=$${i++}`); values.push(data.title || null); }
+	if (data.notes !== undefined) { fields.push(`notes=$${i++}`); values.push(data.notes || null); }
+	if (data.status !== undefined) {
+		fields.push(`status=$${i++}`);
+		values.push(data.status);
+		fields.push(`cancelled_at = CASE WHEN $${i} = 'cancelled' AND cancelled_at IS NULL THEN datetime('now') ELSE cancelled_at END`);
+		values.push(data.status);
+		i++;
+		fields.push(`no_show_recorded_at = CASE WHEN $${i} = 'no_show' AND no_show_recorded_at IS NULL THEN datetime('now') ELSE no_show_recorded_at END`);
+		values.push(data.status);
+		i++;
+	}
+	if (fields.length === 0) return;
+	fields.push(`updated_at=$${i++}`);
+	values.push(new Date().toISOString());
+	values.push(id);
+	await conn.execute(`UPDATE appointments SET ${fields.join(', ')} WHERE id=$${i}`, values);
+}
+
+export async function deleteAppointment(id: string): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM appointments WHERE id=$1', [id]);
+}
+
+export async function updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		'UPDATE appointments SET status=$1, updated_at=$2 WHERE id=$3',
+		[status, new Date().toISOString(), id],
+	);
+}
+
+/**
+ * When a timeline entry is saved with a specific entry type (appointment type name),
+ * find any scheduled appointment for that patient on the same date and update its
+ * type_id to match + link timeline_entry_id. Returns true if an appointment was synced.
+ */
+export async function syncAppointmentFromTimelineEntry(
+	patientId: string,
+	entryDate: string,
+	entryId: string,
+	entryTypeName: string,
+): Promise<boolean> {
+	if (!entryTypeName) return false;
+	const conn = await getDb();
+	// Look up appointment type by name
+	const types = await conn.select<{ id: string }[]>(
+		`SELECT id FROM appointment_types WHERE name=$1 AND is_active=1 LIMIT 1`,
+		[entryTypeName],
+	);
+	if (types.length === 0) return false;
+	const typeId = types[0].id;
+	// Find a non-cancelled/no-show appointment for this patient on this date
+	const appts = await conn.select<{ id: string }[]>(
+		`SELECT id FROM appointments
+		 WHERE patient_id=$1 AND date(start_time)=date($2)
+		   AND status NOT IN ('cancelled','no_show')
+		 ORDER BY start_time
+		 LIMIT 1`,
+		[patientId, entryDate],
+	);
+	if (appts.length === 0) return false;
+	await conn.execute(
+		`UPDATE appointments SET type_id=$1, timeline_entry_id=$2, updated_at=$3 WHERE id=$4`,
+		[typeId, entryId, new Date().toISOString(), appts[0].id],
+	);
+	return true;
+}
+
+// ── Schedule Blocks ──────────────────────────────────────────────────────
+
+export async function getScheduleBlocksForDate(date: string): Promise<ScheduleBlock[]> {
+	const db = await getDb();
+	const dateStart = `${date}T00:00:00`;
+	const dateEnd = `${date}T23:59:59`;
+	return await db.select<ScheduleBlock[]>(
+		`SELECT sb.*, d.name AS doctor_name, r.name AS room_name
+		 FROM schedule_blocks sb
+		 LEFT JOIN doctors d ON sb.doctor_id = d.id
+		 LEFT JOIN appointment_rooms r ON sb.room_id = r.id
+		 WHERE sb.start_time <= $1 AND sb.end_time > $2
+		    OR (sb.start_time >= $3 AND sb.start_time <= $4)
+		 ORDER BY sb.start_time`,
+		[dateEnd, dateStart, dateStart, dateEnd]
+	);
+}
+
+export async function insertScheduleBlock(data: ScheduleBlockFormData): Promise<void> {
+	const db = await getDb();
+	const id = crypto.randomUUID();
+	await db.execute(
+		`INSERT INTO schedule_blocks (id, room_id, doctor_id, title, start_time, end_time, color, notes)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		[id, data.room_id, data.doctor_id || null, data.title, data.start_time, data.end_time, data.color, data.notes || null]
+	);
+}
+
+export async function updateScheduleBlock(id: string, data: ScheduleBlockFormData): Promise<void> {
+	const db = await getDb();
+	await db.execute(
+		`UPDATE schedule_blocks SET room_id=$1, doctor_id=$2, title=$3, start_time=$4, end_time=$5, color=$6, notes=$7, updated_at=datetime('now') WHERE id=$8`,
+		[data.room_id, data.doctor_id || null, data.title, data.start_time, data.end_time, data.color, data.notes || null, id]
+	);
+}
+
+export async function deleteScheduleBlock(id: string): Promise<void> {
+	const db = await getDb();
+	await db.execute(`DELETE FROM schedule_blocks WHERE id = $1`, [id]);
+}
+
+// ── Staff Blockouts ──────────────────────────────────────────────────────
+
+export async function getStaffBlockoutsForDate(date: string): Promise<StaffBlockout[]> {
+	const db = await getDb();
+	return await db.select<StaffBlockout[]>(
+		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
+		 FROM staff_blockouts sb
+		 JOIN doctors d ON sb.doctor_id = d.id
+		 WHERE $1 BETWEEN sb.start_date AND sb.end_date
+		 ORDER BY sb.start_date`,
+		[date]
+	);
+}
+
+export async function getStaffBlockoutsForRange(start: string, end: string): Promise<StaffBlockout[]> {
+	const db = await getDb();
+	return await db.select<StaffBlockout[]>(
+		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
+		 FROM staff_blockouts sb
+		 JOIN doctors d ON sb.doctor_id = d.id
+		 WHERE sb.start_date <= $1 AND sb.end_date >= $2
+		 ORDER BY sb.start_date`,
+		[end, start]
+	);
+}
+
+export async function getAllStaffBlockouts(): Promise<StaffBlockout[]> {
+	const db = await getDb();
+	return await db.select<StaffBlockout[]>(
+		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
+		 FROM staff_blockouts sb
+		 JOIN doctors d ON sb.doctor_id = d.id
+		 ORDER BY sb.start_date DESC`,
+		[]
+	);
+}
+
+export async function insertStaffBlockout(data: StaffBlockoutFormData): Promise<void> {
+	const db = await getDb();
+	const id = crypto.randomUUID();
+	await db.execute(
+		`INSERT INTO staff_blockouts (id, doctor_id, start_date, end_date, start_time, end_time, is_all_day, reason, notes, color)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		[id, data.doctor_id, data.start_date, data.end_date, data.start_time || null, data.end_time || null, data.is_all_day ? 1 : 0, data.reason, data.notes || null, data.color]
+	);
+}
+
+export async function updateStaffBlockout(id: string, data: StaffBlockoutFormData): Promise<void> {
+	const db = await getDb();
+	await db.execute(
+		`UPDATE staff_blockouts SET doctor_id=$1, start_date=$2, end_date=$3, start_time=$4, end_time=$5, is_all_day=$6, reason=$7, notes=$8, color=$9 WHERE id=$10`,
+		[data.doctor_id, data.start_date, data.end_date, data.start_time || null, data.end_time || null, data.is_all_day ? 1 : 0, data.reason, data.notes || null, data.color, id]
+	);
+}
+
+export async function deleteStaffBlockout(id: string): Promise<void> {
+	const db = await getDb();
+	await db.execute(`DELETE FROM staff_blockouts WHERE id = $1`, [id]);
+}
+
+// ── Doctor Working Hours ─────────────────────────────────────────────────
+
+export async function getDoctorWorkingHours(doctorId: string): Promise<DoctorWorkingHours[]> {
+	const db = await getDb();
+	return await db.select<DoctorWorkingHours[]>(
+		`SELECT * FROM doctor_working_hours WHERE doctor_id = $1 ORDER BY day_of_week`,
+		[doctorId]
+	);
+}
+
+export async function upsertDoctorWorkingHours(doctorId: string, hours: DoctorWorkingHoursFormData[]): Promise<void> {
+	const db = await getDb();
+	await db.execute(`DELETE FROM doctor_working_hours WHERE doctor_id = $1`, [doctorId]);
+	for (const h of hours) {
+		const id = crypto.randomUUID();
+		await db.execute(
+			`INSERT INTO doctor_working_hours (id, doctor_id, day_of_week, start_time, end_time, break_start, break_end, is_active)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			[id, doctorId, h.day_of_week, h.start_time, h.end_time, h.break_start || null, h.break_end || null, h.is_active ? 1 : 0]
+		);
+	}
+}
+
+// ── Staff Analytics ──────────────────────────────────────────────────────
+
+export async function getAbsenceStatsByYear(year: number): Promise<AbsenceStat[]> {
+	const db = await getDb();
+	return await db.select<AbsenceStat[]>(
+		`SELECT
+		   d.id AS doctor_id,
+		   d.name AS doctor_name,
+		   d.color AS doctor_color,
+		   COALESCE(SUM(CASE WHEN sb.reason = 'vacation'   THEN CAST(julianday(MIN(sb.end_date, $1 || '-12-31')) - julianday(MAX(sb.start_date, $1 || '-01-01')) + 1 AS INTEGER) ELSE 0 END), 0) AS vacation_days,
+		   COALESCE(SUM(CASE WHEN sb.reason = 'sick'       THEN CAST(julianday(MIN(sb.end_date, $1 || '-12-31')) - julianday(MAX(sb.start_date, $1 || '-01-01')) + 1 AS INTEGER) ELSE 0 END), 0) AS sick_days,
+		   COALESCE(SUM(CASE WHEN sb.reason = 'conference' THEN CAST(julianday(MIN(sb.end_date, $1 || '-12-31')) - julianday(MAX(sb.start_date, $1 || '-01-01')) + 1 AS INTEGER) ELSE 0 END), 0) AS conference_days,
+		   COALESCE(SUM(CASE WHEN sb.reason = 'training'   THEN CAST(julianday(MIN(sb.end_date, $1 || '-12-31')) - julianday(MAX(sb.start_date, $1 || '-01-01')) + 1 AS INTEGER) ELSE 0 END), 0) AS training_days,
+		   COALESCE(SUM(CASE WHEN sb.reason = 'other'      THEN CAST(julianday(MIN(sb.end_date, $1 || '-12-31')) - julianday(MAX(sb.start_date, $1 || '-01-01')) + 1 AS INTEGER) ELSE 0 END), 0) AS other_days
+		 FROM doctors d
+		 LEFT JOIN staff_blockouts sb ON sb.doctor_id = d.id
+		   AND sb.start_date <= $1 || '-12-31'
+		   AND sb.end_date >= $1 || '-01-01'
+		 GROUP BY d.id, d.name, d.color
+		 ORDER BY d.name`,
+		[String(year)]
+	);
+}
+
+export async function getAppointmentStatsByDoctor(dateFrom: string, dateTo: string): Promise<AppointmentDoctorStat[]> {
+	const db = await getDb();
+	return await db.select<AppointmentDoctorStat[]>(
+		`SELECT
+		   d.id AS doctor_id,
+		   d.name AS doctor_name,
+		   d.color AS doctor_color,
+		   COUNT(a.id) AS total,
+		   COALESCE(SUM(CASE WHEN a.status = 'completed'  THEN 1 ELSE 0 END), 0) AS completed,
+		   COALESCE(SUM(CASE WHEN a.status = 'cancelled'  THEN 1 ELSE 0 END), 0) AS cancelled,
+		   COALESCE(SUM(CASE WHEN a.status = 'no_show'    THEN 1 ELSE 0 END), 0) AS no_show,
+		   COALESCE(SUM(CASE WHEN a.status = 'scheduled'  THEN 1 ELSE 0 END), 0) AS scheduled,
+		   COALESCE(ROUND(AVG(a.duration_min), 1), 0) AS avg_duration_min
+		 FROM doctors d
+		 LEFT JOIN appointments a ON a.doctor_id = d.id
+		   AND a.start_time >= $1 || 'T00:00:00'
+		   AND a.start_time <= $2 || 'T23:59:59'
+		 GROUP BY d.id, d.name, d.color
+		 ORDER BY d.name`,
+		[dateFrom, dateTo]
+	);
+}
+
+export async function getAbsencesByDoctorAndYear(doctorId: string, year: number): Promise<StaffBlockout[]> {
+	const db = await getDb();
+	return await db.select<StaffBlockout[]>(
+		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
+		 FROM staff_blockouts sb
+		 JOIN doctors d ON sb.doctor_id = d.id
+		 WHERE sb.doctor_id = $1
+		   AND sb.start_date <= $2 || '-12-31'
+		   AND sb.end_date >= $2 || '-01-01'
+		 ORDER BY sb.start_date`,
+		[doctorId, String(year)]
 	);
 }

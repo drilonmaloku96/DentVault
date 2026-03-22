@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import { getPatient, deletePatient } from '$lib/services/db';
-	import { patientBus } from '$lib/stores/patientBus.svelte';
+	import { getPatient } from '$lib/services/db';
 	import type { Patient } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '$lib/components/ui/dialog';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
-	import PatientClassifications from '$lib/components/patient/PatientClassifications.svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	function parseJsonArray(val: string): string[] {
 		if (!val) return [];
@@ -21,8 +18,6 @@
 	let isLoading = $state(true);
 	let notFound  = $state(false);
 
-	let showDeleteDialog = $state(false);
-	let isDeleting       = $state(false);
 	let showAuditDialog  = $state(false);
 
 	$effect(() => { loadPatient(); });
@@ -35,25 +30,8 @@
 		isLoading = false;
 	}
 
-	async function handleDelete() {
-		if (!patient) return;
-		isDeleting = true;
-		await deletePatient(patient.patient_id);
-		patientBus.invalidate();
-		goto('/patients');
-	}
 
-	function formatDate(val: string): string {
-		if (!val) return '—';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-	}
 
-	function formatDateShort(val: string): string {
-		if (!val) return '—';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
 
 	function formatGender(val: string): string {
 		const map: Record<string, string> = {
@@ -107,12 +85,6 @@
 					<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
 				</svg>
 				{i18n.t.actions.edit}
-			</Button>
-			<Button variant="destructive" size="sm" onclick={() => (showDeleteDialog = true)}>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-				</svg>
-				{i18n.t.actions.delete}
 			</Button>
 			<button
 				type="button"
@@ -261,36 +233,14 @@
 			</div>
 		{/if}
 
-		<!-- Row 5: Clinical classifications (ortho, conditions) -->
-		<PatientClassifications patientId={patient.patient_id} />
-
 		<!-- Dates footer -->
 		<div class="flex items-center gap-4 px-1 text-xs text-muted-foreground/60">
 			<span>ID: <span class="font-mono">{patient.patient_id}</span></span>
-			<span>Created: {formatDateShort(patient.created_at)}</span>
-			<span>Updated: {formatDateShort(patient.updated_at)}</span>
+			<span>Created: {formatDate(patient.created_at)}</span>
+			<span>Updated: {formatDate(patient.updated_at)}</span>
 		</div>
 	</div>
 {/if}
-
-<!-- Delete confirmation -->
-<Dialog bind:open={showDeleteDialog}>
-	<DialogContent>
-		<DialogHeader>
-			<DialogTitle>{i18n.t.patients.deletePatient}</DialogTitle>
-			<DialogDescription>
-				{i18n.t.patients.deleteConfirm} <strong>{patient?.firstname} {patient?.lastname}</strong>.
-				{i18n.t.patients.deleteWarning}
-			</DialogDescription>
-		</DialogHeader>
-		<DialogFooter>
-			<Button variant="outline" onclick={() => (showDeleteDialog = false)} disabled={isDeleting}>{i18n.t.actions.cancel}</Button>
-			<Button variant="destructive" onclick={handleDelete} disabled={isDeleting}>
-				{isDeleting ? 'Deleting…' : i18n.t.patients.deletePatient}
-			</Button>
-		</DialogFooter>
-	</DialogContent>
-</Dialog>
 
 {#if patient}
 	<AuditLogDialog

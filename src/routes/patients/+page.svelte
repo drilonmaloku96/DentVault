@@ -3,7 +3,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import PatientCard from '$lib/components/patient/PatientCard.svelte';
-	import { getAllPatients, getAllPatientsIncludingArchived, searchPatients } from '$lib/services/db';
+	import { getAllPatients, searchPatients } from '$lib/services/db';
 	import { debounce } from '$lib/utils';
 	import type { Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
@@ -11,14 +11,13 @@
 	let patients = $state<Patient[]>([]);
 	let isLoading = $state(true);
 	let searchQuery = $state('');
-	let showArchived = $state(false);
 	let error = $state('');
 
 	async function loadPatients() {
 		try {
 			isLoading = true;
 			error = '';
-			patients = showArchived ? await getAllPatientsIncludingArchived() : await getAllPatients();
+			patients = await getAllPatients();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load patients';
 		} finally {
@@ -33,7 +32,7 @@
 		}
 		try {
 			isLoading = true;
-			patients = await searchPatients(query, showArchived);
+			patients = await searchPatients(query, false);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Search failed';
 		} finally {
@@ -43,13 +42,6 @@
 
 	$effect(() => {
 		doSearch(searchQuery);
-	});
-
-	$effect(() => {
-		// Reload when showArchived toggles and no active search
-		if (!searchQuery.trim()) {
-			loadPatients();
-		}
 	});
 
 	onMount(() => {
@@ -67,7 +59,6 @@
 					{i18n.t.common.loading}
 				{:else}
 					{patients.length} patient{patients.length === 1 ? '' : 's'}
-					{showArchived ? '(including archived)' : ''}
 				{/if}
 			</p>
 		</div>
@@ -88,33 +79,26 @@
 		</Button>
 	</div>
 
-	<!-- Search + filters -->
-	<div class="flex items-center gap-3">
-		<div class="relative max-w-sm flex-1">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-			>
-				<circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-			</svg>
-			<Input
-				type="search"
-				placeholder={i18n.t.patients.search}
-				class="pl-10"
-				bind:value={searchQuery}
-			/>
-		</div>
-
-		<label class="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground select-none">
-			<input type="checkbox" class="h-4 w-4 rounded border-input" bind:checked={showArchived} />
-			{i18n.t.patients.status.archived}
-		</label>
+	<!-- Search -->
+	<div class="relative max-w-sm">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+		>
+			<circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+		</svg>
+		<Input
+			type="search"
+			placeholder={i18n.t.patients.search}
+			class="pl-10"
+			bind:value={searchQuery}
+		/>
 	</div>
 
 	<!-- Error -->

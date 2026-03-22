@@ -8,7 +8,7 @@
 
 	// ── Types ──────────────────────────────────────────────────────────
 	export type BridgeRole = 'tooth' | 'implant' | 'pontic';
-	export type ProsthesisRole = 'telescope' | 'clasp' | 'attachment' | 'replaced';
+	export type ProsthesisRole = 'telescope' | 'replaced';
 	export type AbutmentType = 'tooth' | 'implant';
 	export type RestorationType = 'bridge' | 'prosthesis';
 
@@ -44,6 +44,17 @@
 
 	const open = $derived(teeth !== null && teeth.length > 0);
 
+	// ── Visual display order (left-to-right as seen in the chart) ──────
+	// Upper: Universal 1–16 (FDI 18→11, 21→28)
+	// Lower: Universal 32→17 (FDI 48→41, 31→38)
+	const VISUAL_ORDER: readonly number[] = [
+		1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,   // upper
+		32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17, // lower
+	];
+	const sortedTeeth = $derived(
+		teeth ? [...teeth].sort((a, b) => VISUAL_ORDER.indexOf(a) - VISUAL_ORDER.indexOf(b)) : []
+	);
+
 	// ── Mode toggle ────────────────────────────────────────────────────
 	let mode = $state<RestorationType>('bridge');
 
@@ -54,9 +65,9 @@
 	let prosthesisRoleMap = $state<Map<number, { prosthesis_type: ProsthesisRole; abutment_type: AbutmentType }>>(new Map());
 
 	$effect(() => {
-		if (teeth && teeth.length > 0) {
-			initBridgeRoles(teeth);
-			initProsthesisRoles(teeth);
+		if (sortedTeeth.length > 0) {
+			initBridgeRoles(sortedTeeth);
+			initProsthesisRoles(sortedTeeth);
 			mode = initialMode ?? 'bridge';
 		}
 	});
@@ -86,9 +97,9 @@
 	function switchMode(newMode: RestorationType) {
 		if (newMode === mode) return;
 		mode = newMode;
-		if (teeth && teeth.length > 0) {
-			if (newMode === 'bridge') initBridgeRoles(teeth);
-			else initProsthesisRoles(teeth);
+		if (sortedTeeth.length > 0) {
+			if (newMode === 'bridge') initBridgeRoles(sortedTeeth);
+			else initProsthesisRoles(sortedTeeth);
 		}
 	}
 
@@ -102,7 +113,7 @@
 	}
 
 	// ── Prosthesis cycle ───────────────────────────────────────────────
-	const PROSTHESIS_CYCLE: ProsthesisRole[] = ['telescope', 'clasp', 'attachment', 'replaced'];
+	const PROSTHESIS_CYCLE: ProsthesisRole[] = ['telescope', 'replaced'];
 
 	function cycleProsthesisRole(tooth: number) {
 		const current = prosthesisRoleMap.get(tooth) ?? { prosthesis_type: 'telescope' as ProsthesisRole, abutment_type: 'tooth' as AbutmentType };
@@ -163,19 +174,15 @@
 
 	const PROSTHESIS_ROLE_LABEL: Record<ProsthesisRole, string> = {
 		telescope:  'Teleskop',
-		clasp:      'Klammer',
-		attachment: 'Attachment',
 		replaced:   'Ersetzt',
 	};
 	const PROSTHESIS_ROLE_COLOR: Record<ProsthesisRole, string> = {
 		telescope:  'border-sky-400 bg-sky-500 text-white',
-		clasp:      'border-indigo-500 bg-indigo-500 text-white',
-		attachment: 'border-violet-500 bg-violet-500 text-white',
 		replaced:   'border-blue-500 bg-blue-500 text-white',
 	};
 
 	function isAnchorRole(r: ProsthesisRole): boolean {
-		return r === 'telescope' || r === 'clasp' || r === 'attachment';
+		return r === 'telescope';
 	}
 </script>
 
@@ -184,9 +191,9 @@
 		<DialogHeader>
 			<DialogTitle>
 				{isExpand ? 'Restauration bearbeiten' : 'Restauration erstellen'}
-				{#if teeth && teeth.length > 0}
-					— FDI {teeth.map(t => toFDI(t)).join('–')}
-					({teeth.length} Zähne)
+				{#if sortedTeeth.length > 0}
+					— FDI {sortedTeeth.map(t => toFDI(t)).join('–')}
+					({sortedTeeth.length} Zähne)
 				{/if}
 			</DialogTitle>
 			<DialogDescription>
@@ -226,11 +233,11 @@
 			</button>
 		</div>
 
-		{#if teeth && teeth.length > 0}
+		{#if sortedTeeth.length > 0}
 			{#if mode === 'bridge'}
 				<!-- Bridge role chips -->
 				<div class="flex flex-wrap gap-2 py-2">
-					{#each teeth as tooth}
+					{#each sortedTeeth as tooth}
 						{@const role = bridgeRoleMap.get(tooth) ?? 'tooth'}
 						<button
 							type="button"
@@ -254,7 +261,7 @@
 			{:else}
 				<!-- Prosthesis role chips -->
 				<div class="flex flex-wrap gap-2 py-2">
-					{#each teeth as tooth}
+					{#each sortedTeeth as tooth}
 						{@const roleData = prosthesisRoleMap.get(tooth) ?? { prosthesis_type: 'telescope' as ProsthesisRole, abutment_type: 'tooth' as AbutmentType }}
 						{@const isAnchor = isAnchorRole(roleData.prosthesis_type)}
 						<div class="flex flex-col items-center gap-1">

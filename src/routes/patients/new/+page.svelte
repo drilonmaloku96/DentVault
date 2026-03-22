@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { insertPatient } from '$lib/services/db';
-	import { initPatientFolder } from '$lib/services/files';
+	import { insertPatient, insertDocument } from '$lib/services/db';
+	import { copyTemplateToPatient, listVaultFiles } from '$lib/services/files';
+	import { getMimeType } from '$lib/services/files';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { docCategories } from '$lib/stores/categories.svelte';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
 	import PatientForm from '$lib/components/patient/PatientForm.svelte';
 	import type { PatientFormData } from '$lib/types';
@@ -14,8 +16,29 @@
 		// Create the patient folder in the vault (if vault is configured)
 		if (vault.isConfigured && vault.path) {
 			const folderName = vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id);
+			const fallback = docCategories.list.map(c => vault.categoryFolder(c.key));
 			try {
-				await initPatientFolder(vault.path, folderName);
+				await copyTemplateToPatient(vault.path, folderName, fallback);
+				// Register any template-copied files as tracked documents so the
+				// "untracked files" banner never fires for them.
+				const copied = await listVaultFiles(vault.path, folderName);
+				if (copied.length > 0) {
+					const catMap = Object.fromEntries(
+						docCategories.list.map(c => [vault.categoryFolder(c.key), c.key])
+					);
+					await Promise.all(copied.map(f =>
+						insertDocument(patient.patient_id, {
+							filename: f.filename,
+							original_name: f.filename,
+							category: catMap[f.category_folder] ?? 'other',
+							mime_type: getMimeType(f.filename),
+							file_size: f.file_size,
+							abs_path: f.abs_path,
+							rel_path: f.rel_path,
+							notes: '',
+						})
+					));
+				}
 			} catch (e) {
 				// Folder creation failure is non-fatal — DB record already saved
 				console.warn('Could not create patient folder:', e);

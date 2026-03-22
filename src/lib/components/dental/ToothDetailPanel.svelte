@@ -2,6 +2,8 @@
 	import { untrack } from 'svelte';
 	import type { ToothChartEntry, DentalChartHistoryEntry } from '$lib/types';
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
+	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
+	import { i18n } from '$lib/i18n';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import { toFDI, FDI_TOOTH_NAMES } from '$lib/utils';
@@ -297,7 +299,7 @@
 						{activeSurfaceLabel} tag
 					</span>
 					<div class="flex flex-wrap gap-1.5">
-						{#each dentalTags.list as tag}
+						{#each dentalTags.list.filter(t => !new Set(['impacted','implant','bridge','prosthesis','missing','extracted']).has(t.key)) as tag}
 							{@const matched = allSurfacesMatch(tag.key)}
 							<button
 								type="button"
@@ -379,15 +381,19 @@
 		</div>
 	</div>
 
-	<!-- Prosthesis info (only shown for prosthesis teeth) -->
-	{#if entry?.condition === 'prosthesis' && entry?.prosthesis_type}
-		{@const PROSTHESIS_LABELS = { telescope: 'Teleskopkrone', clasp: 'Klammerverankerung', attachment: 'Implantat-Attachment', replaced: 'Ersetzt (Prothesenzahn)' }}
-		<div class="text-xs text-muted-foreground flex flex-col gap-1 rounded-md border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 px-3 py-2">
-			<span class="font-medium text-foreground">
-				{PROSTHESIS_LABELS[entry.prosthesis_type as keyof typeof PROSTHESIS_LABELS] ?? entry.prosthesis_type}
-			</span>
-			{#if entry.prosthesis_type !== 'replaced' && entry.abutment_type}
-				<span>{entry.abutment_type === 'implant' ? 'Implantatgetragen' : 'Zahngetragen'}</span>
+	<!-- Prosthesis info (shown when prosthesis_type is set, regardless of condition) -->
+	{#if entry?.prosthesis_type}
+		{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
+		{@const ptLabel = i18n.t.chart.prosthesisTypes[entry.prosthesis_type as keyof typeof i18n.t.chart.prosthesisTypes] ?? entry.prosthesis_type}
+		<div class="text-xs text-muted-foreground flex flex-col gap-1 rounded-md border px-3 py-2"
+			style="background-color:{ptCfg.fillColor}20; border-color:{ptCfg.color}40">
+			<div class="flex items-center gap-1.5">
+				<span class="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold shrink-0"
+					style="background:white; color:{ptCfg.color}; outline:1.5px solid {ptCfg.color}">{ptCfg.badge}</span>
+				<span class="font-medium text-foreground">{ptLabel}</span>
+			</div>
+			{#if entry.prosthesis_type !== 'replaced'}
+				<span>{entry.condition === 'implant' || entry.abutment_type === 'implant' ? i18n.t.chart.implantAbutment : i18n.t.chart.abutment}</span>
 			{/if}
 		</div>
 	{/if}
@@ -402,7 +408,7 @@
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
 				<path d="M18 6L6 18M6 6l12 12"/>
 			</svg>
-			{entry?.condition === 'prosthesis' ? 'Prothese auflösen' : 'Brücke auflösen'}
+			{i18n.t.chart.dissolve}
 		</button>
 	{/if}
 

@@ -6,6 +6,7 @@
 	import type { Patient } from '$lib/types';
 	import { debounce } from '$lib/utils';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
+	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { i18n } from '$lib/i18n';
 	import PatientTreeView from './PatientTreeView.svelte';
 
@@ -13,13 +14,15 @@
 	let patients   = $state<Patient[]>([]);
 	let query      = $state('');
 	let isLoading  = $state(true);
-	let activePatient = $state<Patient | null>(null);
+	let activePatientObj = $state<Patient | null>(null);
 
-	// Active patient ID from URL
+	// Active patient ID: from URL when on a specific patient page, empty on list, store otherwise
 	let activePatientId = $derived(
 		page.url.pathname.startsWith('/patients/')
 			? page.url.pathname.split('/patients/')[1]?.split('/')[0] ?? ''
-			: '',
+			: page.url.pathname === '/patients'
+				? ''
+				: activePatient.id,
 	);
 
 	// ── Data loading ───────────────────────────────────
@@ -54,16 +57,16 @@
 	// Load active patient object when patientId changes
 	$effect(() => {
 		if (!activePatientId) {
-			activePatient = null;
+			activePatientObj = null;
 			return;
 		}
 		// Try from already-loaded list first
 		const found = patients.find(p => p.patient_id === activePatientId);
 		if (found) {
-			activePatient = found;
+			activePatientObj = found;
 		} else {
 			// Fetch individually (e.g. direct URL navigation before list loads)
-			getPatient(activePatientId).then(p => { activePatient = p; });
+			getPatient(activePatientId).then(p => { activePatientObj = p; });
 		}
 	});
 
@@ -75,14 +78,6 @@
 	}
 
 	// ── Helpers ────────────────────────────────────────
-	function statusDot(status: string) {
-		return status === 'active'
-			? 'bg-green-500'
-			: status === 'inactive'
-				? 'bg-amber-400'
-				: 'bg-muted-foreground/30';
-	}
-
 	function initials(p: Patient) {
 		return (p.firstname[0] ?? '') + (p.lastname[0] ?? '');
 	}
@@ -92,9 +87,9 @@
 
 <div class="flex h-full flex-col">
 
-{#if activePatient}
+{#if activePatientObj}
 	<!-- ── Tree mode: active patient ─────────────────── -->
-	<PatientTreeView patient={activePatient} />
+	<PatientTreeView patient={activePatientObj} />
 
 {:else}
 	<!-- ── List mode: patient search & list ──────────── -->
@@ -172,7 +167,7 @@
 						class={[
 							'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-colors',
 							isActive
-								? 'bg-sidebar-primary text-sidebar-primary-foreground'
+								? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-100'
 								: 'text-sidebar-foreground hover:bg-sidebar-accent',
 						].join(' ')}
 					>
@@ -180,7 +175,7 @@
 						<span class={[
 							'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase',
 							isActive
-								? 'bg-sidebar-primary-foreground/20 text-sidebar-primary-foreground'
+								? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200'
 								: 'bg-sidebar-accent text-sidebar-foreground',
 						].join(' ')}>
 							{initials(patient)}
@@ -188,19 +183,19 @@
 
 						<!-- Name + ID -->
 						<span class="flex min-w-0 flex-col">
-							<span class="truncate text-xs font-medium leading-tight">
+							<span class={[
+								'truncate text-xs font-medium leading-tight',
+								isActive ? 'text-emerald-800 dark:text-emerald-200' : '',
+							].join(' ')}>
 								{patient.lastname}, {patient.firstname}
 							</span>
 							<span class={[
 								'truncate text-[10px] leading-tight',
-								isActive ? 'text-sidebar-primary-foreground/70' : 'text-muted-foreground/70',
+								isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/70',
 							].join(' ')}>
 								{patient.patient_id}
 							</span>
 						</span>
-
-						<!-- Status dot -->
-						<span class={['ml-auto h-1.5 w-1.5 shrink-0 rounded-full', statusDot(patient.status)].join(' ')}></span>
 					</button>
 				{/each}
 			</div>
