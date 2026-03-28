@@ -193,6 +193,16 @@ export interface OrthoKigEntry {
 	measured_value: number | null; // mm for D, M, O, T, E, P
 }
 
+/** Bite classification type (sagittal relationship) */
+export type BissType = 'neutral' | 'distal' | 'mesial';
+
+/** Per-side bite measurement in Prämolarenbreite units */
+export interface BissMeasurement {
+	type: BissType;
+	/** Number of Prämolarenbreiten (0.25–2.0 in 0.25 steps); null for neutral */
+	praemolarenbreite: number | null;
+}
+
 /** A single KIG assessment snapshot (like dental_chart_history) */
 export interface OrthoAssessment {
 	id: number;
@@ -207,7 +217,11 @@ export interface OrthoAssessment {
 	angle_class: string;       // 'class_I' | 'class_II_div1' | 'class_II_div2' | 'class_III'
 	cvm_stage: number;         // 0 = not set, 1–6
 	facial_profile: string;    // 'straight' | 'convex' | 'concave'
-	treatment_recommendation: string; // free text
+	treatment_recommendation: string; // free text (removed from UI, kept for backward compat)
+	bad_habits?: string[]; // array of habit keys, e.g. ['thumbSucking', 'mouthBreathing']
+	// Bite classification per side (v41+, optional — not in older snapshots)
+	biss_right?: BissMeasurement | null;
+	biss_left?: BissMeasurement | null;
 	created_at: string;
 }
 
@@ -335,6 +349,8 @@ export interface DentalTag {
 	strokeColor: string;
 	pattern: PatternType;
 	shortcut?: string; // single-character keyboard shortcut
+	/** When true, this tag always applies to the whole tooth condition, never to individual surfaces */
+	wholeTooth?: boolean;
 }
 
 export interface TextBlock {
@@ -774,6 +790,18 @@ export interface DoctorWorkingHoursFormData {
 	break_start: string;
 	break_end: string;
 	is_active: boolean;
+}
+
+// ── Staff Presence (schedule overlay) ────────────────────────────────────
+
+export interface StaffPresenceInfo {
+	doctor_id: string;
+	name: string;
+	color: string;
+	start_time: string;
+	end_time: string;
+	break_start: string | null;
+	break_end: string | null;
 }
 
 // ── Staff Analytics ──────────────────────────────────────────────────────

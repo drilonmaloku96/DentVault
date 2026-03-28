@@ -96,101 +96,96 @@ fn delete_document_file(abs_path: String) -> Result<(), String> {
 #[derive(serde::Serialize)]
 struct VaultFileInfo {
     abs_path: String,
-    /// Path relative to the vault root: {patient_folder}/{category_folder}/{filename}
+    /// Path relative to the vault root, e.g. {patient}/{cat}/{filename} or {patient}/{cat}/{sub}/{filename}
     rel_path: String,
     filename: String,
-    /// Name of the immediate subdirectory (category folder) that contains the file.
+    /// Name of the top-level category subfolder containing this file (e.g. "xrays").
     category_folder: String,
+    /// Sub-directory path within the category folder, using `/` separator.
+    /// Empty string for files directly in the category folder; e.g. "2023" or "2023/January".
+    path_in_category: String,
     file_size: u64,
     /// File modification time as an ISO-8601 date string (YYYY-MM-DD), or empty string.
     modified_at: String,
 }
 
-/// Recursively scan all immediate subdirectories of a patient folder and return
-/// metadata for every regular file found.  Hidden files and `dentvault.db` are skipped.
+fn secs_to_date(secs: u64) -> String {
+    let days = (secs / 86400) as u32;
+    let z = days + 719468;
+    let era = z / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y2 = if m <= 2 { y + 1 } else { y };
+    format!("{:04}-{:02}-{:02}", y2, m, d)
+}
+
+fn collect_patient_files(
+    dir: &PathBuf,
+    patient_folder: &str,
+    category_folder: &str,
+    path_in_category: &str,
+    files: &mut Vec<VaultFileInfo>,
+) {
+    let entries = match std::fs::read_dir(dir) { Ok(e) => e, Err(_) => return };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let name = match path.file_name().and_then(|n| n.to_str()) {
+            Some(n) if !n.starts_with('.') => n.to_string(),
+            _ => continue,
+        };
+        if path.is_dir() {
+            let sub = if path_in_category.is_empty() { name } else { format!("{}/{}", path_in_category, name) };
+            collect_patient_files(&path, patient_folder, category_folder, &sub, files);
+        } else if path.is_file() {
+            if name == "dentvault.db" { continue; }
+            let meta = std::fs::metadata(&path);
+            let file_size = meta.as_ref().map(|m| m.len()).unwrap_or(0);
+            let modified_at = meta.ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| secs_to_date(d.as_secs()))
+                .unwrap_or_default();
+            let rel_path = if path_in_category.is_empty() {
+                format!("{}/{}/{}", patient_folder, category_folder, name)
+            } else {
+                format!("{}/{}/{}/{}", patient_folder, category_folder, path_in_category, name)
+            };
+            files.push(VaultFileInfo {
+                abs_path: path.to_string_lossy().replace('\\', "/").to_string(),
+                rel_path,
+                filename: name,
+                category_folder: category_folder.to_string(),
+                path_in_category: path_in_category.to_string(),
+                file_size,
+                modified_at,
+            });
+        }
+    }
+}
+
+/// Recursively scan all subdirectories of a patient folder and return metadata for every file found.
+/// Hidden files and `dentvault.db` are skipped.
 #[tauri::command]
 fn list_vault_files(vault_path: String, patient_folder: String) -> Result<Vec<VaultFileInfo>, String> {
     let patient_dir = PathBuf::from(&vault_path).join(&patient_folder);
     if !patient_dir.exists() {
         return Ok(vec![]);
     }
-
     let mut files: Vec<VaultFileInfo> = Vec::new();
-
-    let dir_entries = std::fs::read_dir(&patient_dir).map_err(|e| e.to_string())?;
-    for dir_entry in dir_entries.flatten() {
-        let dir_path = dir_entry.path();
-        if !dir_path.is_dir() {
-            continue;
-        }
-
-        let category_folder = dir_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("")
-            .to_string();
-
-        // Skip hidden directories
-        if category_folder.starts_with('.') {
-            continue;
-        }
-
-        if let Ok(sub_entries) = std::fs::read_dir(&dir_path) {
-            for sub_entry in sub_entries.flatten() {
-                let sub_path = sub_entry.path();
-                if !sub_path.is_file() {
-                    continue;
-                }
-
-                let filename = sub_path
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("")
-                    .to_string();
-
-                // Skip hidden files and the SQLite database
-                if filename.starts_with('.') || filename == "dentvault.db" {
-                    continue;
-                }
-
-                let meta = std::fs::metadata(&sub_path);
-                let file_size = meta.as_ref().map(|m| m.len()).unwrap_or(0);
-                // Format modified time as YYYY-MM-DD using std::time (no external crates needed)
-                let modified_at = meta
-                    .ok()
-                    .and_then(|m| m.modified().ok())
-                    .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                    .map(|d| {
-                        // Simplified Julian-day → Gregorian conversion (valid for 1970–2100)
-                        let secs = d.as_secs();
-                        let days = (secs / 86400) as u32;
-                        let z = days + 719468;
-                        let era = z / 146097;
-                        let doe = z - era * 146097;
-                        let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-                        let y = yoe + era * 400;
-                        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-                        let mp = (5 * doy + 2) / 153;
-                        let d2 = doy - (153 * mp + 2) / 5 + 1;
-                        let m2 = if mp < 10 { mp + 3 } else { mp - 9 };
-                        let y2 = if m2 <= 2 { y + 1 } else { y };
-                        format!("{:04}-{:02}-{:02}", y2, m2, d2)
-                    })
-                    .unwrap_or_default();
-
-                let rel_path = format!("{}/{}/{}", patient_folder, &category_folder, &filename);
-                files.push(VaultFileInfo {
-                    abs_path: sub_path.to_string_lossy().replace('\\', "/").to_string(),
-                    rel_path,
-                    filename,
-                    category_folder: category_folder.clone(),
-                    file_size,
-                    modified_at,
-                });
-            }
-        }
+    for entry in std::fs::read_dir(&patient_dir).map_err(|e| e.to_string())?.flatten() {
+        let dir_path = entry.path();
+        if !dir_path.is_dir() { continue; }
+        let cat_folder = match dir_path.file_name().and_then(|n| n.to_str()) {
+            Some(n) if !n.starts_with('.') => n.to_string(),
+            _ => continue,
+        };
+        collect_patient_files(&dir_path, &patient_folder, &cat_folder, "", &mut files);
     }
-
     Ok(files)
 }
 
@@ -465,6 +460,36 @@ struct DocTemplateInfo {
     filename: String,
     abs_path: String,
     file_size: u64,
+    /// Path relative to `!Documents/` root, using `/` separator.
+    /// E.g. "Contract.pdf" for root-level files, "Forms/Consent.pdf" for nested.
+    rel_path: String,
+}
+
+fn collect_doc_templates(dir: &PathBuf, rel_prefix: &str, results: &mut Vec<DocTemplateInfo>) {
+    let entries = match std::fs::read_dir(dir) { Ok(e) => e, Err(_) => return };
+    let mut items: Vec<(String, PathBuf)> = entries.flatten()
+        .filter_map(|e| {
+            let p = e.path();
+            let name = p.file_name()?.to_str()?.to_string();
+            if name.starts_with('.') { return None; }
+            Some((name, p))
+        })
+        .collect();
+    items.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+    for (name, path) in items {
+        let rel = if rel_prefix.is_empty() { name.clone() } else { format!("{}/{}", rel_prefix, name) };
+        if path.is_dir() {
+            collect_doc_templates(&path, &rel, results);
+        } else if path.is_file() {
+            let file_size = path.metadata().map(|m| m.len()).unwrap_or(0);
+            results.push(DocTemplateInfo {
+                abs_path: path.to_string_lossy().to_string(),
+                filename: name,
+                file_size,
+                rel_path: rel,
+            });
+        }
+    }
 }
 
 /// Create `<vault>/!Documents/` if it does not exist yet.
@@ -474,7 +499,8 @@ fn ensure_doc_templates_folder(vault_path: String) -> Result<(), String> {
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())
 }
 
-/// List all regular files directly inside `<vault>/!Documents/`.
+/// Recursively list all files inside `<vault>/!Documents/`, sorted alphabetically.
+/// Each entry includes `rel_path` relative to `!Documents/` root.
 #[tauri::command]
 fn list_doc_templates(vault_path: String) -> Result<Vec<DocTemplateInfo>, String> {
     let dir = PathBuf::from(&vault_path).join(DOC_TEMPLATES_FOLDER);
@@ -482,20 +508,7 @@ fn list_doc_templates(vault_path: String) -> Result<Vec<DocTemplateInfo>, String
         return Ok(vec![]);
     }
     let mut results = Vec::new();
-    for entry in std::fs::read_dir(&dir).map_err(|e| e.to_string())? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-        if !path.is_file() { continue; }
-        let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
-        if filename.starts_with('.') { continue; }
-        let file_size = path.metadata().map(|m| m.len()).unwrap_or(0);
-        results.push(DocTemplateInfo {
-            abs_path: path.to_string_lossy().to_string(),
-            filename,
-            file_size,
-        });
-    }
-    results.sort_by(|a, b| a.filename.to_lowercase().cmp(&b.filename.to_lowercase()));
+    collect_doc_templates(&dir, "", &mut results);
     Ok(results)
 }
 

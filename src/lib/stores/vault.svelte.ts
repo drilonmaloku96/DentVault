@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { docCategories } from './categories.svelte';
 
 let _vaultPath = $state<string | null>(null);
 let _initialized = $state(false);
@@ -53,11 +54,15 @@ export const vault = {
 	/**
 	 * Map a document category key to its vault subfolder name.
 	 *
-	 * Built-in categories keep their legacy folder names so existing files on disk
-	 * are unaffected.  Custom user-defined categories use the key itself as the
-	 * folder name (the key is already slugified when the user creates it).
+	 * Checks the docCategories store first (which stores localized folder names set
+	 * during onboarding). Falls back to the legacy English map for vaults created
+	 * before multi-language folder support, or before the store is loaded.
 	 */
 	categoryFolder(category: string): string {
+		// Stored folder name takes priority (set during onboarding with language-aware name)
+		const stored = docCategories.list.find(c => c.key === category);
+		if (stored?.folder) return stored.folder;
+		// Legacy English fallback — keeps existing vaults working unchanged
 		const builtinMap: Record<string, string> = {
 			xray:     'xrays',
 			photo:    'photos',

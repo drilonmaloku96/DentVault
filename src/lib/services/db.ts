@@ -3294,6 +3294,19 @@ export async function upsertDoctorWorkingHours(doctorId: string, hours: DoctorWo
 	}
 }
 
+export async function getStaffPresenceForDay(dayOfWeek: number): Promise<import('../types').StaffPresenceInfo[]> {
+	const db = await getDb();
+	return await db.select(
+		`SELECT d.id as doctor_id, d.name, d.color,
+		 dwh.start_time, dwh.end_time, dwh.break_start, dwh.break_end
+		 FROM doctors d
+		 JOIN doctor_working_hours dwh ON dwh.doctor_id = d.id
+		 WHERE dwh.day_of_week = $1 AND dwh.is_active = 1
+		 ORDER BY d.name`,
+		[dayOfWeek]
+	);
+}
+
 // ── Staff Analytics ──────────────────────────────────────────────────────
 
 export async function getAbsenceStatsByYear(year: number): Promise<AbsenceStat[]> {
@@ -3339,6 +3352,30 @@ export async function getAppointmentStatsByDoctor(dateFrom: string, dateTo: stri
 		 ORDER BY d.name`,
 		[dateFrom, dateTo]
 	);
+}
+
+/** Count unique patients scheduled today and during the current calendar week (Mon–Sun). */
+export async function getPatientVisitCounts(today: string): Promise<{ today: number; week: number }> {
+	const db = await getDb();
+	// Compute Monday of the current week
+	const d = new Date(today);
+	const dow = d.getDay(); // 0=Sun
+	const diffToMon = dow === 0 ? -6 : 1 - dow;
+	const mon = new Date(d);
+	mon.setDate(d.getDate() + diffToMon);
+	const sun = new Date(mon);
+	sun.setDate(mon.getDate() + 6);
+	const weekStart = mon.toISOString().slice(0, 10);
+	const weekEnd = sun.toISOString().slice(0, 10);
+	const rows = await db.select<{ today: number; week: number }[]>(
+		`SELECT
+		  COUNT(DISTINCT CASE WHEN date(a.start_time) = date($1) THEN a.patient_id END) AS today,
+		  COUNT(DISTINCT CASE WHEN date(a.start_time) BETWEEN $2 AND $3 THEN a.patient_id END) AS week
+		 FROM appointments a
+		 WHERE a.status NOT IN ('cancelled', 'no_show')`,
+		[today, weekStart, weekEnd]
+	);
+	return rows[0] ?? { today: 0, week: 0 };
 }
 
 export async function getAbsencesByDoctorAndYear(doctorId: string, year: number): Promise<StaffBlockout[]> {

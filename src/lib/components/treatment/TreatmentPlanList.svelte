@@ -16,6 +16,7 @@
 	} from '$lib/components/ui/dialog';
 	import TreatmentPlanEditor from './TreatmentPlanEditor.svelte';
 	import { i18n } from '$lib/i18n';
+	import { formatDate } from '$lib/utils';
 
 	let { patientId }: { patientId: string } = $props();
 
@@ -137,11 +138,7 @@
 		},
 	});
 
-	function formatDate(val: string): string {
-		if (!val) return '';
-		const d = new Date(val);
-		return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-	}
+
 </script>
 
 <!-- Show editor if a plan is selected -->

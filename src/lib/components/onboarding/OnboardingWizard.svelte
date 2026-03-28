@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { vault } from '$lib/stores/vault.svelte';
-	import { resetDb, insertDoctor } from '$lib/services/db';
+	import { resetDb, insertDoctor, insertAppointmentRoom } from '$lib/services/db';
 	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder } from '$lib/services/files';
+	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { i18n, type LangCode } from '$lib/i18n';
 	import { docCategories, DEFAULT_CATEGORIES } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
@@ -14,7 +15,7 @@
 	let { onConfigured }: { onConfigured: () => void } = $props();
 
 	// ── Step state ───────────────────────────────────────────────────
-	// 0=welcome, 1=vault, 2=team, 3=defaults, 4=done
+	// 0=welcome, 1=vault, 2=team, 3=clinic, 4=defaults, 5=done
 	let step = $state(0);
 	let direction = $state(1); // 1=forward, -1=back (for fly transition)
 
@@ -60,7 +61,10 @@
 	// Team is valid if at least one non-empty name; skip is always allowed
 	const teamHasValidMember = $derived(staffList.some(m => m.name.trim().length > 0));
 
-	// ── Step 4 — Done / Finish ───────────────────────────────────────
+	// ── Step 3 — Clinic (rooms) ──────────────────────────────────────
+	let numChairs = $state(2);
+
+	// ── Step 5 — Done / Finish ───────────────────────────────────────
 	let finishing = $state(false);
 
 	async function finish() {
@@ -69,15 +73,24 @@
 			// Configure vault now (deferred from step 1 to avoid unmounting the wizard)
 			await vault.configure(selectedPath.trim());
 			resetDb();
-			// Create !TEMPLATE with default category folders
+
+			// Use the language-specific folder names from i18n defaults
+			const localizedDefaults = i18n.t.defaults.docCategories;
+
+			// Create !TEMPLATE with localized folder names
 			await ensureTemplateStructure(
 				selectedPath.trim(),
-				DEFAULT_CATEGORIES.map(c => vault.categoryFolder(c.key)),
+				localizedDefaults.map(c => c.folder),
 			);
 			// Create !Documents template folder
 			await ensureDocTemplatesFolder(selectedPath.trim());
 			// Persist the language choice (setLang failed earlier because vault was not ready)
 			await i18n.setLang(i18n.code);
+
+			// Save localized categories to DB — this persists the folder names so
+			// vault.categoryFolder() returns the correct language-specific name thereafter.
+			// Must happen before docCategories.load() below.
+			await docCategories.save(localizedDefaults);
 			// Save staff members
 			const COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#f97316','#06b6d4'];
 			for (let i = 0; i < staffList.length; i++) {
@@ -89,6 +102,20 @@
 					});
 				}
 			}
+			// Save treatment rooms
+			const clampedChairs = Math.max(1, Math.min(20, numChairs));
+			const ROOM_COLORS = ['#6366f1','#10b981','#f59e0b','#3b82f6','#ec4899','#8b5cf6','#f97316','#06b6d4'];
+			for (let i = 1; i <= clampedChairs; i++) {
+				await insertAppointmentRoom({
+					name: `${i18n.t.onboarding.defaultRoomName} ${i}`,
+					short_name: String(i),
+					color: ROOM_COLORS[(i - 1) % ROOM_COLORS.length],
+					sort_order: i,
+					is_active: true,
+				});
+			}
+			// Save UI scale (was previewed during onboarding, now persist it)
+			await uiScale.set(uiScale.value);
 			// Reload stores with the now-configured vault
 			await Promise.all([
 				docCategories.load(),
@@ -146,10 +173,11 @@
 		},
 	]);
 
-	// ── Progress steps (1-indexed display, 1=vault, 2=team, 3=defaults) ──
+	// ── Progress steps (1-indexed display, 1=vault, 2=team, 3=clinic, 4=defaults) ──
 	const progressLabels = $derived([
 		i18n.t.onboarding.stepLabels.vault,
 		i18n.t.onboarding.stepLabels.team,
+		i18n.t.onboarding.stepLabels.clinic,
 		i18n.t.onboarding.stepLabels.defaults,
 	]);
 </script>
@@ -222,6 +250,27 @@
 					</button>
 				</div>
 
+				<!-- Display scale picker -->
+				<div class="flex flex-col items-center gap-2">
+					<p class="text-xs text-muted-foreground">{i18n.t.onboarding.scaleLabel}</p>
+					<div class="flex items-center gap-1 rounded-full border bg-muted p-1">
+						{#each uiScale.options as opt}
+							<button
+								type="button"
+								onclick={() => uiScale.preview(opt)}
+								class={[
+									'rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
+									uiScale.value === opt
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground',
+								].join(' ')}
+							>
+								{Math.round(opt * 100)} %
+							</button>
+						{/each}
+					</div>
+				</div>
+
 				<!-- Get started button -->
 				<button
 					type="button"
@@ -233,16 +282,16 @@
 			</div>
 
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		<!-- STEPS 1–3 — Card wrapper                                   -->
+		<!-- STEPS 1–4 — Card wrapper                                   -->
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		{:else if step >= 1 && step <= 3}
+		{:else if step >= 1 && step <= 4}
 			<div class="mx-auto w-full max-w-[540px]">
 
 				<!-- Progress indicator -->
 				<div class="mb-6">
 					<!-- Step label -->
 					<p class="mb-3 text-center text-xs font-medium text-muted-foreground">
-						{i18n.t.onboarding.step} {step} / 3 — {progressLabels[step - 1]}
+						{i18n.t.onboarding.step} {step} / 4 — {progressLabels[step - 1]}
 					</p>
 					<!-- Dots + lines -->
 					<div class="flex items-center justify-center gap-0">
@@ -445,7 +494,54 @@
 					<!-- ─────────────────────────────────────────────── -->
 					<!-- STEP 3 — Default Configuration                 -->
 					<!-- ─────────────────────────────────────────────── -->
+					<!-- ─────────────────────────────────────────────── -->
+					<!-- STEP 3 — Clinic (rooms)                         -->
+					<!-- ─────────────────────────────────────────────── -->
 					{:else if step === 3}
+						<h2 class="text-xl font-bold text-foreground">{i18n.t.onboarding.clinicTitle}</h2>
+						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+							{i18n.t.onboarding.clinicDesc}
+						</p>
+
+						<div class="mt-5 flex flex-col gap-3">
+							<div class="flex flex-col gap-1.5">
+								<label class="text-sm font-medium" for="num-chairs">{i18n.t.onboarding.clinicChairsLabel}</label>
+								<div class="flex items-center gap-3">
+									<button type="button" onclick={() => { if (numChairs > 1) numChairs -= 1; }}
+										class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-muted text-lg font-bold hover:bg-muted/80 transition-colors disabled:opacity-40"
+										disabled={numChairs <= 1}>−</button>
+									<span class="text-2xl font-bold tabular-nums w-10 text-center">{numChairs}</span>
+									<button type="button" onclick={() => { if (numChairs < 20) numChairs += 1; }}
+										class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-muted text-lg font-bold hover:bg-muted/80 transition-colors disabled:opacity-40"
+										disabled={numChairs >= 20}>+</button>
+								</div>
+								<!-- Preview of room names -->
+								<div class="flex flex-wrap gap-1.5 mt-2">
+									{#each {length: numChairs} as _, idx}
+										<span class="rounded-full border bg-background px-2.5 py-0.5 text-[11px] text-muted-foreground">
+											{i18n.t.onboarding.defaultRoomName} {idx + 1}
+										</span>
+									{/each}
+								</div>
+								<p class="text-xs text-muted-foreground">{i18n.t.onboarding.clinicChairsHint}</p>
+							</div>
+						</div>
+
+						<!-- Nav buttons -->
+						<div class="mt-6 flex items-center justify-between">
+							<button type="button" onclick={() => goTo(2)} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								← {i18n.t.onboarding.back}
+							</button>
+							<button type="button" onclick={() => goTo(4)}
+								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+								{i18n.t.onboarding.continueBtn}
+							</button>
+						</div>
+
+					<!-- ─────────────────────────────────────────────── -->
+					<!-- STEP 4 — Default Configuration                 -->
+					<!-- ─────────────────────────────────────────────── -->
+					{:else if step === 4}
 						<h2 class="text-xl font-bold text-foreground">{i18n.t.onboarding.defaultsTitle}</h2>
 						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
 							{i18n.t.onboarding.defaultsDesc}
@@ -493,14 +589,14 @@
 						<div class="mt-6 flex items-center justify-between">
 							<button
 								type="button"
-								onclick={() => goTo(2)}
+								onclick={() => goTo(3)}
 								class="text-sm text-muted-foreground hover:text-foreground transition-colors"
 							>
 								← {i18n.t.onboarding.back}
 							</button>
 							<button
 								type="button"
-								onclick={() => goTo(4)}
+								onclick={() => goTo(5)}
 								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
 							>
 								{i18n.t.onboarding.continueBtn} →
@@ -514,7 +610,7 @@
 		<!-- ═══════════════════════════════════════════════════════════ -->
 		<!-- STEP 4 — All Done                                          -->
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		{:else if step === 4}
+		{:else if step === 5}
 			<div class="flex flex-col items-center gap-6 text-center max-w-md mx-auto">
 				<!-- Animated checkmark -->
 				<div class="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10">

@@ -18,6 +18,7 @@
 	import OnboardingWizard from '$lib/components/onboarding/OnboardingWizard.svelte';
 	import { i18n } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
+	import { uiScale } from '$lib/stores/uiScale.svelte';
 
 	let { children } = $props();
 
@@ -45,32 +46,35 @@
 		await rooms.load();
 		await appointmentTypes.load();
 		await workingHours.load();
+		// Load UI scale preference
+		await uiScale.load();
+	});
+
+	// Keep html[lang] in sync with the current language so <input type="date">
+	// renders in DD/MM/YYYY (en-GB) or DD.MM.YYYY (de) — not US MM/DD/YYYY.
+	$effect(() => {
+		document.documentElement.lang = i18n.code === 'de' ? 'de' : 'en-GB';
 	});
 
 	// Sidebar ref (so other parts of the app can trigger a reload)
 	let sidebarRef = $state<ReturnType<typeof PatientSidebar> | null>(null);
 
 	function onVaultConfigured() {
-		// Vault was just set up — navigate to patients list to start loading
-		goto('/patients', { replaceState: true });
+		// Vault was just set up — navigate to dashboard
+		goto('/dashboard', { replaceState: true });
 	}
 
 	// Primary nav (above settings) — labels are reactive via i18n
 	const primaryNav = $derived([
 		{
-			label: i18n.t.nav.patients,
-			href: '/patients',
-			icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+			label: i18n.t.nav.dashboard,
+			href: '/dashboard',
+			icon: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
 		},
 		{
 			label: i18n.t.nav.schedule,
 			href: '/schedule',
 			icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-		},
-		{
-			label: i18n.t.nav.dashboard,
-			href: '/dashboard',
-			icon: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
 		},
 	]);
 </script>
@@ -94,9 +98,9 @@
 			<div class="flex h-12 shrink-0 items-center px-2">
 				<button
 					type="button"
-					onclick={() => { activePatient.clear(); goto('/patients'); }}
+					onclick={() => { activePatient.clear(); goto('/dashboard'); }}
 					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
-					title="Back to patients"
+					title="Go to Dashboard"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

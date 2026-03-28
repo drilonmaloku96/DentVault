@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import type { ToothChartEntry, DentalChartHistoryEntry } from '$lib/types';
-	import { dentalTags } from '$lib/stores/dentalTags.svelte';
+	import { dentalTags, WHOLE_TOOTH_TAG_KEYS } from '$lib/stores/dentalTags.svelte';
 	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
 	import { i18n } from '$lib/i18n';
 	import { Label } from '$lib/components/ui/label';
@@ -101,12 +101,14 @@
 		const trigger = shortcutTagKey;
 		if (!trigger) return;
 		untrack(() => {
-			if (activeSurfaces.size > 0) {
+			// Whole-tooth tags always apply to the tooth condition, never to surfaces
+			if (activeSurfaces.size > 0 && !WHOLE_TOOTH_TAG_KEYS.has(trigger.key)) {
 				for (const s of activeSurfaces) surfaceMap[s] = trigger.key;
 				activeSurfaces = new Set();
 				doSave();
 			} else {
 				setCondition(trigger.key);
+				activeSurfaces = new Set();
 			}
 		});
 	});
@@ -299,7 +301,7 @@
 						{activeSurfaceLabel} tag
 					</span>
 					<div class="flex flex-wrap gap-1.5">
-						{#each dentalTags.list.filter(t => !new Set(['impacted','implant','bridge','prosthesis','missing','extracted']).has(t.key)) as tag}
+						{#each dentalTags.list.filter(t => !WHOLE_TOOTH_TAG_KEYS.has(t.key)) as tag}
 							{@const matched = allSurfacesMatch(tag.key)}
 							<button
 								type="button"
@@ -360,7 +362,7 @@
 							<polyline points="20 6 9 17 4 12"/>
 						</svg>
 					{/if}
-					{tag.label}
+					{dentalTags.getLabel(tag.key)}
 					{#if tag.shortcut}
 						<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>
 					{/if}

@@ -128,7 +128,7 @@
 					<p class="text-sm text-muted-foreground text-center py-6">{i18n.t.docTemplates.noFiles}</p>
 				{:else}
 					{#each templates as tpl}
-						{@const isSelected = selected?.filename === tpl.filename}
+						{@const isSelected = selected?.rel_path === tpl.rel_path}
 						<button
 							type="button"
 							onclick={() => (selected = tpl)}

@@ -160,7 +160,7 @@
 		editorEl.focus();
 		const { start, end } = getCurrentWord();
 		selectTextRange(start, end);
-		document.execCommand('insertText', false, `@${doc.name}`);
+		document.execCommand('insertText', false, '');
 		description = editorEl.innerHTML;
 		showMentionPalette = false; mentionQuery = '';
 		if (!selectedColleagueIds.includes(doc.id)) {
@@ -183,6 +183,8 @@
 		if (showPalette && paletteRef?.handleKeydown(e)) return;
 		if (e.key === 'Escape' && showMentionPalette) { showMentionPalette = false; return; }
 		if (e.key === 'Escape' && showPalette) { showPalette = false; return; }
+		// Block Enter from submitting while any palette is open (guards against ref being null)
+		if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormat('bold'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormat('italic'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormat('underline'); return; }

@@ -6,10 +6,11 @@
 		appointment: Appointment;
 		slotHeight?: number;
 		minutesPerSlot?: number;
-		onclick?: () => void;
+		isSelected?: boolean;
+		ondblclick?: () => void;
 	}
 
-	let { appointment, slotHeight = 8, minutesPerSlot = 5, onclick }: Props = $props();
+	let { appointment, slotHeight = 8, minutesPerSlot = 5, isSelected = false, ondblclick }: Props = $props();
 
 	const isCompact = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) < 40);
 	const showNotes = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) >= 56);
@@ -42,98 +43,141 @@
 		return i18n.t.schedule.statuses.scheduled;
 	});
 
+	// ── Portal action ───────────────────────────────────────────────────
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return { destroy() { node.remove(); } };
+	}
+
 	// ── Hover tooltip ───────────────────────────────────────────────────
 	let tooltipVisible = $state(false);
 	let tooltipX = $state(0);
 	let tooltipY = $state(0);
 	let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
+	function getZoom(): number {
+		if (typeof document === 'undefined') return 1;
+		return parseFloat(document.documentElement.style.zoom) || 1;
+	}
+
 	function onMouseEnter(e: MouseEvent) {
-		tooltipX = e.clientX;
-		tooltipY = e.clientY;
+		const z = getZoom();
+		tooltipX = e.clientX / z;
+		tooltipY = e.clientY / z;
 		hoverTimer = setTimeout(() => { tooltipVisible = true; }, 420);
 	}
 	function onMouseMove(e: MouseEvent) {
-		tooltipX = e.clientX;
-		tooltipY = e.clientY;
+		const z = getZoom();
+		tooltipX = e.clientX / z;
+		tooltipY = e.clientY / z;
 	}
 	function onMouseLeave() {
 		if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
 		tooltipVisible = false;
 	}
 
-	// Smart positioning: flip left if near right edge, flip up if near bottom
 	const tipLeft = $derived(() => {
 		if (typeof window === 'undefined') return tooltipX + 14;
-		return tooltipX + 14 + 260 > window.innerWidth
-			? tooltipX - 270
-			: tooltipX + 14;
+		const viewW = window.innerWidth / getZoom();
+		return tooltipX + 14 + 260 > viewW ? tooltipX - 270 : tooltipX + 14;
 	});
 	const tipTop = $derived(() => {
 		if (typeof window === 'undefined') return tooltipY + 8;
-		return tooltipY + 8 + 220 > window.innerHeight
-			? tooltipY - 228
-			: tooltipY + 8;
+		const viewH = window.innerHeight / getZoom();
+		return tooltipY + 8 + 220 > viewH ? tooltipY - 228 : tooltipY + 8;
 	});
 </script>
 
-<button
-	class="appointment-block w-full h-full rounded text-left overflow-hidden px-1.5 py-0.5 transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-1"
-	style="
-		border-left: 3px solid {color};
-		background-color: rgba({hexToRgb(color)}, 0.12);
-		{appointment.status === 'completed' ? 'opacity: 0.6;' : ''}
-		{appointment.status === 'cancelled' ? 'opacity: 0.4; filter: grayscale(0.6);' : ''}
-	"
-	{onclick}
+<!-- Root wrapper — handles hover tooltip and double-click -->
+<div
+	class="relative w-full h-full"
 	onmouseenter={onMouseEnter}
 	onmousemove={onMouseMove}
 	onmouseleave={onMouseLeave}
+	ondblclick={ondblclick}
+	role="button"
+	tabindex="0"
 >
-	{#if isCompact}
-		<div class="flex items-center gap-1 text-xs leading-tight truncate">
-			<span class="font-medium truncate">{patientName}</span>
-			{#if appointment.type_short_name}
-				<span class="text-muted-foreground shrink-0">{appointment.type_short_name}</span>
-			{/if}
-		</div>
-	{:else}
-		<div class="flex flex-col gap-0.5 text-xs leading-tight">
-			<span class="font-semibold truncate
-				{appointment.status === 'cancelled' ? 'line-through text-muted-foreground' : ''}
-			">{patientName}</span>
-			<div class="flex items-center gap-1 text-muted-foreground">
-				{#if appointment.type_name}
-					<span class="truncate">{appointment.type_name}</span>
-				{/if}
-				{#if appointment.status === 'completed'}
-					<span class="text-green-600">✓</span>
-				{:else if appointment.status === 'no_show'}
-					<span class="text-red-500">✗</span>
+	<!-- Top resize handle zone -->
+	<div
+		class="absolute top-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
+		data-appt-handle="top"
+	>
+		<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mt-0.5"></div>
+	</div>
+
+	<!-- Main content area -->
+	<div
+		class="absolute inset-0 rounded text-left overflow-hidden px-1.5 py-1 select-none"
+		style="
+			border-left: 3px solid {color};
+			background-color: rgba({hexToRgb(color)}, 0.12);
+			cursor: grab;
+			{appointment.status === 'completed' ? 'opacity: 0.6;' : ''}
+			{appointment.status === 'cancelled' ? 'opacity: 0.4; filter: grayscale(0.6);' : ''}
+		"
+	>
+		{#if isCompact}
+			<div class="flex items-center gap-1 text-xs leading-tight truncate">
+				<span class="font-medium truncate">{patientName}</span>
+				{#if appointment.type_short_name}
+					<span class="text-muted-foreground shrink-0">{appointment.type_short_name}</span>
 				{/if}
 			</div>
-			<span class="text-muted-foreground">{timeRange()}</span>
-			{#if showNotes && appointment.notes}
-				<span class="text-muted-foreground/70 italic truncate text-[10px] mt-0.5">{appointment.notes}</span>
-			{/if}
-		</div>
-	{/if}
-</button>
+		{:else}
+			<div class="flex flex-col gap-0.5 text-xs leading-tight pt-1">
+				<span class="font-semibold truncate
+					{appointment.status === 'cancelled' ? 'line-through text-muted-foreground' : ''}
+				">{patientName}</span>
+				<div class="flex items-center gap-1 text-muted-foreground">
+					{#if appointment.type_name}
+						<span class="truncate">{appointment.type_name}</span>
+					{/if}
+					{#if appointment.status === 'completed'}
+						<span class="text-green-600">✓</span>
+					{:else if appointment.status === 'no_show'}
+						<span class="text-red-500">✗</span>
+					{/if}
+				</div>
+				<span class="text-muted-foreground">{timeRange()}</span>
+				{#if showNotes && appointment.notes}
+					<span class="text-muted-foreground/70 italic truncate text-[10px] mt-0.5">{appointment.notes}</span>
+				{/if}
+			</div>
+		{/if}
+	</div>
 
-<!-- Rich hover card (fixed, escapes overflow:auto containers) -->
+	<!-- Bottom resize handle zone -->
+	<div
+		class="absolute bottom-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
+		data-appt-handle="bottom"
+	>
+		<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mb-0.5"></div>
+	</div>
+
+	<!-- Selected ring -->
+	{#if isSelected}
+		<div
+			class="absolute inset-0 rounded pointer-events-none"
+			style="box-shadow: 0 0 0 2px {color}, 0 0 0 4px rgba(255,255,255,0.4); z-index: 6;"
+		></div>
+	{/if}
+</div>
+
+<!-- Rich hover card — portal'd to <body> to escape grid-item stacking contexts -->
 {#if tooltipVisible}
 	<div
-		class="fixed z-[9999] w-64 rounded-xl border border-border bg-popover shadow-xl pointer-events-none"
-		style="left: {tipLeft()}px; top: {tipTop()}px;"
+		use:portal
+		class="fixed z-[9999] w-64 rounded-xl pointer-events-none"
+		style="left: {tipLeft()}px; top: {tipTop()}px; background-color: var(--popover); border: 1.5px solid {color}; box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14);"
 	>
-		<!-- Header strip -->
+		<!-- Header strip — solid background derived from appointment color -->
 		<div
 			class="rounded-t-xl px-3 py-2 flex items-center justify-between gap-2"
-			style="background-color: rgba({hexToRgb(color)}, 0.15); border-bottom: 2px solid {color};"
+			style="background-color: {color}; border-bottom: 1px solid {color};"
 		>
-			<span class="text-xs font-bold truncate">{patientName}</span>
-			<span class="text-[10px] font-semibold shrink-0 px-1.5 py-0.5 rounded"
-				style="background-color: rgba({hexToRgb(color)}, 0.25); color: {color};"
+			<span class="text-xs font-bold truncate text-white">{patientName}</span>
+			<span class="text-[10px] font-semibold shrink-0 px-1.5 py-0.5 rounded bg-black/20 text-white"
 			>{timeRange()}</span>
 		</div>
 

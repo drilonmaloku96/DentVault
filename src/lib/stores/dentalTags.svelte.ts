@@ -27,14 +27,19 @@ export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'filled',     color: '#bfdbfe', strokeColor: '#3b82f6', pattern: 'solid',      shortcut: 'F' },
 	{ key: 'crowned',    color: '#fde68a', strokeColor: '#d97706', pattern: 'solid',      shortcut: 'O' },
 	{ key: 'root_canal', color: '#e9d5ff', strokeColor: '#9333ea', pattern: 'solid',      shortcut: 'W' },
-	{ key: 'implant',    color: '#6b7280', strokeColor: '#374151', pattern: 'solid',      shortcut: 'I' },
-	{ key: 'bridge',     color: '#fed7aa', strokeColor: '#f97316', pattern: 'solid',      shortcut: 'B' },
-	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'X' },
-	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E' },
-	{ key: 'impacted',   color: '#d6d3d1', strokeColor: '#78716c', pattern: 'solid',      shortcut: 'P' },
+	{ key: 'implant',    color: '#6b7280', strokeColor: '#374151', pattern: 'solid',      shortcut: 'I', wholeTooth: true },
+	{ key: 'bridge',     color: '#fed7aa', strokeColor: '#f97316', pattern: 'solid',      shortcut: 'B', wholeTooth: true },
+	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'X', wholeTooth: true },
+	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E', wholeTooth: true },
+	{ key: 'impacted',   color: '#d6d3d1', strokeColor: '#78716c', pattern: 'solid',      shortcut: 'P', wholeTooth: true },
 	{ key: 'fractured',  color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid',      shortcut: 'R' },
-	{ key: 'prosthesis', color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T' },
+	{ key: 'prosthesis', color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T', wholeTooth: true },
 ];
+
+/** Keys whose tags always apply to the whole tooth, never to individual surfaces. */
+export const WHOLE_TOOTH_TAG_KEYS = new Set(
+	DEFAULT_DENTAL_TAGS.filter(t => t.wholeTooth).map(t => t.key)
+);
 
 function createDentalTagsStore() {
 	let _list   = $state<DentalTag[]>(DEFAULT_DENTAL_TAGS);
@@ -50,9 +55,9 @@ function createDentalTagsStore() {
 				if (stored) {
 					const parsed = JSON.parse(stored) as DentalTag[];
 					if (Array.isArray(parsed) && parsed.length > 0) {
-						// Strip legacy `label` field silently (backwards compat)
-						_list = parsed.map(({ key, color, strokeColor, pattern, shortcut }) =>
-							({ key, color, strokeColor, pattern, shortcut } as DentalTag)
+						// Strip legacy `label` field silently (backwards compat); preserve wholeTooth
+						_list = parsed.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
+							({ key, color, strokeColor, pattern, shortcut, wholeTooth } as DentalTag)
 						);
 						_loaded = true;
 						return;

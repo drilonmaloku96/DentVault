@@ -85,11 +85,14 @@ export async function deleteDocumentFile(absPath: string): Promise<void> {
 /** Metadata returned by the Rust `list_vault_files` command. */
 export interface VaultFileInfo {
 	abs_path: string;
-	/** Path relative to vault root: {patient_folder}/{category_folder}/{filename} */
+	/** Path relative to vault root, e.g. {patient}/{cat}/{filename} or {patient}/{cat}/{sub}/{filename} */
 	rel_path: string;
 	filename: string;
-	/** Name of the immediate category subfolder containing this file (e.g. "xrays", "photos"). */
+	/** Name of the top-level category subfolder containing this file (e.g. "xrays"). */
 	category_folder: string;
+	/** Sub-directory path within the category folder using `/` separator.
+	 *  Empty string for files directly in the category folder; e.g. "2023" or "2023/January". */
+	path_in_category: string;
 	file_size: number;
 	/** File modification date as YYYY-MM-DD, used to pre-fill the timeline entry date. */
 	modified_at: string;
@@ -125,6 +128,8 @@ export interface DocTemplateInfo {
 	filename: string;
 	abs_path: string;
 	file_size: number;
+	/** Path relative to `!Documents/` root. E.g. "Contract.pdf" or "Forms/Consent.pdf". */
+	rel_path: string;
 }
 
 /** Create `<vault>/!Documents/` if it does not exist. */

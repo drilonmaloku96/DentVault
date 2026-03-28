@@ -161,7 +161,7 @@
 		descEditorEl.focus();
 		const { start, end } = getCurrentWordForm();
 		selectTextRangeForm(start, end);
-		document.execCommand('insertText', false, `@${doc.name}`);
+		document.execCommand('insertText', false, '');
 		description = descEditorEl.innerHTML;
 		showMentionPalette = false; mentionQuery = '';
 		if (!colleagueIds.includes(doc.id)) {
@@ -184,6 +184,8 @@
 		if (showPalette && formPaletteRef?.handleKeydown(e)) return;
 		if (e.key === 'Escape' && showMentionPalette) { showMentionPalette = false; return; }
 		if (e.key === 'Escape' && showPalette) { showPalette = false; return; }
+		// Block Enter from doing anything while any palette is open (guards against ref being null)
+		if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormatForm('bold'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormatForm('italic'); return; }
 		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormatForm('underline'); return; }
@@ -514,7 +516,7 @@
 						data-placeholder="Notizen… (/ für Textbausteine, @ für Mitarbeiter)"
 						oninput={handleDescInput}
 						onkeydown={handleDescKeydown}
-						class="form-editor border-input bg-background flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+						class="form-editor border-input bg-background block min-h-[80px] w-full rounded-md border px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
 					></div>
 					{#if showPalette}
 						<div class="absolute bottom-full left-0 mb-1.5 z-50">

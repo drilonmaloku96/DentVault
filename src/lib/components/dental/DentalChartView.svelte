@@ -47,6 +47,17 @@
 	let isLoading     = $state(true);
 	let selectedTooth   = $state<number | null>(null);
 	let selectedSurface = $state<string | null>(null);
+	let noToothHint     = $state(false);
+	let chartContainerRef = $state<HTMLDivElement | null>(null);
+
+	// When a tooth is selected, focus the chart container so keyboard nav works
+	// regardless of where click focus landed
+	$effect(() => {
+		const t = selectedTooth;
+		if (t !== null && chartContainerRef) {
+			chartContainerRef.focus({ preventScroll: true });
+		}
+	});
 	// Shortcut key passed down to ToothDetailPanel; seq increments so repeated same-key presses still fire
 	let shortcutTagKey  = $state<{ key: string; seq: number } | null>(null);
 	let _shortcutSeq    = 0;
@@ -71,14 +82,19 @@
 				target.isContentEditable
 			) return;
 
-			if (e.key === 'Enter' && selectedTooth !== null) {
+			if (e.key === 'Enter') {
 				e.preventDefault();
-				if (chartingMode) {
-					if (e.shiftKey) chartingBack();
-					else chartingAdvance();
+				if (selectedTooth !== null) {
+					if (chartingMode) {
+						if (e.shiftKey) chartingBack();
+						else chartingAdvance();
+					} else {
+						const next = e.shiftKey ? getPrevTooth(selectedTooth) : getNextTooth(selectedTooth);
+						if (next !== null) { selectedTooth = next; selectedSurface = null; }
+					}
 				} else {
-					const next = e.shiftKey ? getPrevTooth(selectedTooth) : getNextTooth(selectedTooth);
-					if (next !== null) { selectedTooth = next; selectedSurface = null; }
+					noToothHint = true;
+					setTimeout(() => { noToothHint = false; }, 1800);
 				}
 				return;
 			}
@@ -389,7 +405,8 @@
 	</div>
 {:else}
 	<!-- ── Two-column layout: chart (left) + detail panel (right) ── -->
-	<div class="flex gap-0 min-h-[520px] h-full">
+	<!-- tabindex="-1" lets this container receive focus for keyboard nav -->
+	<div class="flex gap-0 min-h-[520px] h-full outline-none" tabindex="-1" bind:this={chartContainerRef}>
 
 		<!-- Left column: chart (~62%) -->
 		<div class="flex flex-col gap-3 pr-5 border-r border-border" style="flex:62 1 0; min-width:0">
@@ -508,6 +525,12 @@
 			{#if hintMessage}
 				<div class="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-full bg-amber-100 border border-amber-300 text-amber-800 px-4 py-1.5 text-xs font-medium shadow-sm">
 					{hintMessage}
+				</div>
+			{/if}
+			<!-- No-tooth-selected Enter hint -->
+			{#if noToothHint}
+				<div class="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-1.5 text-xs font-medium shadow-sm">
+					{i18n.code === 'de' ? 'Zuerst einen Zahn auswählen' : 'Select a tooth first'}
 				</div>
 			{/if}
 			</div>

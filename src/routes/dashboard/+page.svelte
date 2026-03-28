@@ -13,11 +13,13 @@
 		getAppointmentPeriodStats,
 		getAppointmentHeatmap,
 		getPatientDemographics,
+		getPatientVisitCounts,
 	} from '$lib/services/db';
 	import { Separator } from '$lib/components/ui/separator';
 	import { i18n } from '$lib/i18n';
 	import { formatDate } from '$lib/utils';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
+	import { navState } from '$lib/stores/navState.svelte';
 	import StaffAnalytics from '$lib/components/dashboard/StaffAnalytics.svelte';
 	import type {
 		PatientStatusCounts,
@@ -29,7 +31,8 @@
 	} from '$lib/types';
 
 	// ── Tab state ─────────────────────────────────────────────────────────
-	let activeTab = $state<'overview' | 'staff'>('overview');
+	let activeTab = $state<'overview' | 'staff'>(navState.dashboardTab);
+	$effect(() => { navState.setDashboardTab(activeTab); });
 
 	// ── Period toggle (shared across all activity cards) ──────────────────
 	type Period = 'week' | 'month' | 'year';
@@ -62,6 +65,9 @@
 	let appointmentStats = $state({ total: 0, completed: 0, cancelled: 0, no_show: 0, avg_duration_min: 0 });
 	let appointmentHeatmap = $state<Array<{ day_of_week: number; hour: number; count: number }>>([]);
 
+	// Today / this week patient visit counts (from appointments)
+	let visitCounts = $state<{ today: number; week: number }>({ today: 0, week: 0 });
+
 	// Static (whole-of-time) demographics
 	let demographics = $state<{
 		avg_age: number | null;
@@ -88,7 +94,7 @@
 
 	onMount(async () => {
 		const { from, to } = periodDates(period);
-		const [counts, cats, outcomes, rate, recent, upcoming, providers, activity, doctors, apptStats, heatmap, demo] = await Promise.all([
+		const [counts, cats, outcomes, rate, recent, upcoming, providers, activity, doctors, apptStats, heatmap, demo, visits] = await Promise.all([
 			getPatientStatusCounts(),
 			getCategoryStats(),
 			getOutcomeStats(),
@@ -101,6 +107,7 @@
 			getAppointmentPeriodStats(from, to),
 			getAppointmentHeatmap(from, to),
 			getPatientDemographics(),
+			getPatientVisitCounts(new Date().toISOString().slice(0, 10)),
 		]);
 		patientCounts = counts;
 		categoryStats = cats;
@@ -114,6 +121,7 @@
 		appointmentStats = apptStats;
 		appointmentHeatmap = heatmap;
 		demographics = demo;
+		visitCounts = visits;
 		isLoading = false;
 	});
 
@@ -292,6 +300,38 @@
 			{#if !isLoading}
 				<span class="text-xs text-muted-foreground/60">Updated {formatDate(new Date())}</span>
 			{/if}
+		</div>
+	</div>
+
+	<!-- ── Today / This Week visit counts ── -->
+	<div class="grid grid-cols-2 gap-4 -mt-2">
+		<div class="flex items-center gap-4 rounded-xl border bg-card px-5 py-4 shadow-xs">
+			<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-primary">
+					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+				</svg>
+			</div>
+			<div class="min-w-0">
+				<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.dashboard.visits.todayTitle}</p>
+				<p class="text-3xl font-bold tabular-nums leading-none mt-1">
+					{isLoading ? '—' : visitCounts.today}
+				</p>
+				<p class="text-xs text-muted-foreground mt-0.5">{i18n.t.dashboard.visits.patients}</p>
+			</div>
+		</div>
+		<div class="flex items-center gap-4 rounded-xl border bg-card px-5 py-4 shadow-xs">
+			<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/10">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-blue-500">
+					<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+				</svg>
+			</div>
+			<div class="min-w-0">
+				<p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.dashboard.visits.weekTitle}</p>
+				<p class="text-3xl font-bold tabular-nums leading-none mt-1">
+					{isLoading ? '—' : visitCounts.week}
+				</p>
+				<p class="text-xs text-muted-foreground mt-0.5">{i18n.t.dashboard.visits.patients}</p>
+			</div>
 		</div>
 	</div>
 

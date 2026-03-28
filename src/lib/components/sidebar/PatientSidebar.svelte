@@ -54,7 +54,9 @@
 		doSearch(query);
 	});
 
-	// Load active patient object when patientId changes
+	// Load active patient object when patientId changes.
+	// Guard: only reassign if patient_id actually changed to avoid re-mounting PatientTreeView
+	// every time the patients list is refreshed by background polling (source of rhythmic flicker).
 	$effect(() => {
 		if (!activePatientId) {
 			activePatientObj = null;
@@ -63,10 +65,14 @@
 		// Try from already-loaded list first
 		const found = patients.find(p => p.patient_id === activePatientId);
 		if (found) {
-			activePatientObj = found;
+			if (found.patient_id !== activePatientObj?.patient_id) {
+				activePatientObj = found;
+			}
 		} else {
 			// Fetch individually (e.g. direct URL navigation before list loads)
-			getPatient(activePatientId).then(p => { activePatientObj = p; });
+			if (activePatientId !== activePatientObj?.patient_id) {
+				getPatient(activePatientId).then(p => { activePatientObj = p; });
+			}
 		}
 	});
 

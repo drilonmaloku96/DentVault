@@ -27,8 +27,9 @@
 		onDateChange?: (entry: TimelineEntry, newDate: string) => void;
 	} = $props();
 
-	let expanded = $state(true);
 	let menuOpen = $state(false);
+	let descExpanded = $state(false);
+	const descIsLong = $derived((entry.description ?? '').length > 350);
 
 	// ── Inline date editing ──────────────────────────────────────────────
 	let editingDate = $state(false);
@@ -219,7 +220,7 @@
 	<!-- Timeline dot -->
 	<div class="flex flex-col items-center">
 		<div
-			class={`mt-1.5 h-3 w-3 rounded-full border-2 border-background ring-2 ring-offset-0 shrink-0 ${cfg.dotClass ?? ''}`}
+			class={`mt-1.5 h-3.5 w-3.5 rounded-full border-2 border-background ring-2 ring-offset-0 shrink-0 ${cfg.dotClass ?? ''}`}
 			style={`box-shadow: 0 0 0 2px white;${cfgDotStyle ? ' ' + cfgDotStyle : ''}`}
 		></div>
 	</div>
@@ -355,195 +356,175 @@
 			{/if}
 		</div>
 
-	<!-- ── Normal clinical entry — expandable card ── -->
+	<!-- ── Clinical entry — flat layout matching ChartSnapshotCard ── -->
 	{:else}
-		<div class="mb-4 flex-1 rounded-lg border bg-card shadow-xs overflow-hidden">
-			<!-- Header row -->
-			<button
-				type="button"
-				class="flex w-full items-start justify-between gap-3 p-4 text-left hover:bg-muted/40 transition-colors"
-				onclick={() => (expanded = !expanded)}
-			>
-				<div class="flex items-start gap-3 min-w-0">
-					<!-- Entry type badge -->
-					<span
-						class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass ?? ''} ${cfg.textClass ?? ''}`}
-						style={cfgStyle}
-					>
-						{cfg.icon} {cfg.label}
+		<div class="mb-3 flex-1 py-1">
+			<!-- Title row: type icon · title · date · 3-dot menu -->
+			<div class="flex items-center gap-2">
+				<!-- Type icon with dynamic/static colour -->
+				<span
+					class={`text-sm shrink-0 ${cfg.textClass ?? ''}`}
+					style={cfg.color ? `color: ${cfg.color}` : undefined}
+				>{cfg.icon}</span>
+
+				<!-- Title -->
+				<span class="text-sm font-semibold text-foreground leading-tight">{entry.title}</span>
+
+				<!-- Category badge -->
+				{#if entry.treatment_category && categoryLabels[entry.treatment_category]}
+					{@const cat = categoryLabels[entry.treatment_category]}
+					<span class="rounded bg-primary/8 border border-primary/20 px-1.5 py-0.5 text-[10px] text-primary font-medium shrink-0">
+						{cat.icon} {cat.label}
 					</span>
-					<div class="min-w-0 flex-1">
-						<div class="flex flex-wrap items-center gap-1.5">
-							<p class="font-medium text-sm leading-tight">{entry.title}</p>
-							<!-- Treatment category badge -->
-							{#if entry.treatment_category && categoryLabels[entry.treatment_category]}
-								{@const cat = categoryLabels[entry.treatment_category]}
-								<span class="rounded bg-primary/8 border border-primary/20 px-1.5 py-0.5 text-xs text-primary font-medium">
-									{cat.icon} {cat.label}
-								</span>
-							{/if}
-							<!-- Outcome badge -->
-							{#if entry.treatment_outcome && outcomeLabels[entry.treatment_outcome]}
-								{@const out = outcomeLabels[entry.treatment_outcome]}
-								<span class={`rounded border px-1.5 py-0.5 text-xs font-medium ${out.colorClass}`}>
-									{out.label}
-								</span>
-							{/if}
-						</div>
-						<div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-muted-foreground">
-							<span>{formatDate(entry.entry_date)}</span>
-							{#if entry.doctor_id !== null && doctors.map.get(entry.doctor_id)}
-								{@const doc = doctors.map.get(entry.doctor_id)!}
-								<span class="inline-flex items-center gap-1">
-									<span class="h-2 w-2 rounded-full shrink-0 inline-block" style="background:{doc.color}"></span>
-									{staffLabel(doc)}
-								</span>
-							{:else if entry.provider}
-								<span class="text-muted-foreground/50">· {entry.provider} <span class="text-[9px]">(legacy)</span></span>
-							{/if}
-							{#each JSON.parse(entry.colleague_ids || '[]') as colId}
-								{#if doctors.map.get(colId)}
-									{@const col = doctors.map.get(colId)!}
-									<span
-										style="--col-color: {col.color}"
-										class="inline-flex items-center gap-1 rounded-full border border-[var(--col-color)]/40 bg-[var(--col-color)]/5 text-[var(--col-color)] px-2 py-0 text-[10px] font-medium"
-									>
-										{staffLabel(col)}
-									</span>
-								{/if}
-							{/each}
-							{#if entry.tooth_numbers}
-								<span>· {i18n.t.common.tooth} {entry.tooth_numbers}</span>
-							{/if}
-						</div>
-					</div>
-				</div>
+				{/if}
 
-				<!-- Expand chevron -->
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class={`h-4 w-4 shrink-0 text-muted-foreground transition-transform mt-0.5 ${expanded ? 'rotate-180' : ''}`}
-				>
-					<path d="M6 9l6 6 6-6" />
-				</svg>
-			</button>
+				<!-- Outcome badge -->
+				{#if entry.treatment_outcome && outcomeLabels[entry.treatment_outcome]}
+					{@const out = outcomeLabels[entry.treatment_outcome]}
+					<span class={`rounded border px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${out.colorClass}`}>
+						{out.label}
+					</span>
+				{/if}
 
-			<!-- Expanded section -->
-			{#if expanded}
-				<div class="border-t px-4 pb-4 pt-3 flex flex-col gap-3">
-					{#if entry.description}
-						<p class="text-sm text-foreground whitespace-pre-wrap">{@html entry.description}</p>
-					{:else}
-						<p class="text-sm text-muted-foreground italic">{i18n.t.common.notes}</p>
-					{/if}
+				<!-- Date -->
+				{#if editingDate}
+					<!-- svelte-ignore a11y_autofocus -->
+					<input
+						type="date"
+						value={pendingDate}
+						oninput={(e) => (pendingDate = (e.target as HTMLInputElement).value)}
+						onblur={commitDateEdit}
+						onkeydown={onDateInputKeydown}
+						autofocus
+						class="ml-1 text-xs border rounded px-1.5 py-0.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring/50 focus:border-ring"
+					/>
+					<button type="button" onclick={cancelDateEdit} class="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+						{i18n.t.actions.cancel}
+					</button>
+				{:else}
+					<button
+						type="button"
+						onclick={onDateChange ? startDateEdit : undefined}
+						class={[
+							'text-[10px] text-muted-foreground/50 transition-colors ml-0.5',
+							onDateChange ? 'hover:text-muted-foreground hover:underline cursor-pointer' : 'cursor-default',
+						].join(' ')}
+						title={onDateChange ? 'Click to change date' : undefined}
+					>
+						{formatDate(entry.entry_date)}
+					</button>
+				{/if}
 
-					{#if entry.related_entry_id}
-						<p class="text-xs text-muted-foreground/70 flex items-center gap-1">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0">
-								<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-								<path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-							</svg>
-							{i18n.t.timeline.entry.relatedEntry} #{entry.related_entry_id}
-						</p>
-					{/if}
-
-					<!-- Inline date editor (only shown when caller supports date changes) -->
-					{#if onDateChange}
-						<div class="flex items-center gap-2 text-xs text-muted-foreground border-t pt-2">
-							<span class="font-medium text-foreground/70">{i18n.t.common.date}:</span>
-							{#if editingDate}
-								<!-- svelte-ignore a11y_autofocus -->
-								<input
-									type="date"
-									value={pendingDate}
-									oninput={(e) => (pendingDate = (e.target as HTMLInputElement).value)}
-									onblur={commitDateEdit}
-									onkeydown={onDateInputKeydown}
-									autofocus
-									class="text-xs border rounded px-1.5 py-0.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring/50 focus:border-ring"
-								/>
-								<button type="button" onclick={cancelDateEdit} class="text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-									Cancel
-								</button>
-							{:else}
-								<button
-									type="button"
-									onclick={startDateEdit}
-									class="group/date flex items-center gap-1 hover:text-foreground transition-colors"
-									title="Click to change date"
-								>
-									{formatDate(entry.entry_date)}
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 opacity-0 group-hover/date:opacity-60 transition-opacity">
-										<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-									</svg>
-								</button>
-							{/if}
-						</div>
-					{/if}
-
-					<!-- Actions -->
-					<div class="flex items-center gap-2 pt-1">
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => onEdit(entry)}
-							class="h-7 px-2.5 text-xs"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 h-3 w-3">
-								<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-							</svg>
-							{i18n.t.actions.edit}
-						</Button>
-						{#if onHistory}
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => onHistory!(entry)}
-								class="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 h-3 w-3">
-									<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-								</svg>
-								{i18n.t.audit.title}
-							</Button>
-						{/if}
-						<!-- 3-dot menu -->
-						<div class="relative">
+				<!-- 3-dot menu (right) -->
+				<div class="relative ml-auto shrink-0">
+					<button
+						type="button"
+						onclick={() => (menuOpen = !menuOpen)}
+						class="h-5 w-5 flex items-center justify-center rounded text-muted-foreground/30 hover:text-muted-foreground transition-colors"
+						title="More options"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+							<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+						</svg>
+					</button>
+					{#if menuOpen}
+						<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
+						<div class="absolute right-0 top-full mt-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
 							<button
 								type="button"
-								onclick={() => (menuOpen = !menuOpen)}
-								class="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-								title="More options"
+								onclick={() => { menuOpen = false; onDelete(entry); }}
+								class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
 							>
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
-									<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+									<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
 								</svg>
+								{i18n.t.actions.delete}
 							</button>
-							{#if menuOpen}
-								<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
-								<div class="absolute right-0 bottom-full mb-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
-									<button
-										type="button"
-										onclick={() => { menuOpen = false; onDelete(entry); }}
-										class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-											<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-										</svg>
-										{i18n.t.actions.delete}
-									</button>
-								</div>
-							{/if}
 						</div>
-					</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Meta: doctor · colleagues · teeth -->
+			{#if (entry.doctor_id !== null && doctors.map.get(entry.doctor_id)) || entry.provider || JSON.parse(entry.colleague_ids || '[]').some((id: number) => doctors.map.get(id)) || entry.tooth_numbers}
+				<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 ml-[22px] text-[11px] text-muted-foreground/60">
+					{#if entry.doctor_id !== null && doctors.map.get(entry.doctor_id)}
+						{@const doc = doctors.map.get(entry.doctor_id)!}
+						<span class="inline-flex items-center gap-1">
+							<span class="h-1.5 w-1.5 rounded-full shrink-0 inline-block" style="background:{doc.color}"></span>
+							{staffLabel(doc)}
+						</span>
+					{:else if entry.provider}
+						<span class="text-muted-foreground/40">{entry.provider} <span class="text-[9px]">(legacy)</span></span>
+					{/if}
+					{#each JSON.parse(entry.colleague_ids || '[]') as colId}
+						{#if doctors.map.get(colId)}
+							{@const col = doctors.map.get(colId)!}
+							<span
+								class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+								style="border-color: {col.color}40; background-color: {col.color}0d; color: {col.color};"
+							>
+								{staffLabel(col)}
+							</span>
+						{/if}
+					{/each}
+					{#if entry.tooth_numbers}
+						<span>{i18n.t.common.tooth} {entry.tooth_numbers}</span>
+					{/if}
 				</div>
 			{/if}
+
+			<!-- Description -->
+			{#if entry.description}
+				<div class="mt-1.5 ml-[22px] text-[13px] text-muted-foreground/80 leading-relaxed font-mono">
+					{#if descExpanded || !descIsLong}
+						<div class="[&_strong]:text-foreground/90 [&_em]:italic [&_u]:underline">{@html entry.description}</div>
+					{:else}
+						<div class="line-clamp-4 [&_strong]:text-foreground/90 [&_em]:italic [&_u]:underline">{@html entry.description}</div>
+					{/if}
+				</div>
+				{#if descIsLong}
+					<button
+						type="button"
+						onclick={() => (descExpanded = !descExpanded)}
+						class="ml-[22px] mt-0.5 text-[10px] text-primary/60 hover:text-primary transition-colors"
+					>
+						{descExpanded ? i18n.t.chart.snapshotReport.showLess : i18n.t.chart.snapshotReport.showMore}
+					</button>
+				{/if}
+			{:else}
+				<p class="mt-1.5 ml-[22px] text-[11px] text-muted-foreground/30 italic">—</p>
+			{/if}
+
+			{#if entry.related_entry_id}
+				<p class="ml-[22px] mt-1 text-[11px] text-muted-foreground/50 flex items-center gap-1">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5 shrink-0">
+						<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+						<path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+					</svg>
+					{i18n.t.timeline.entry.relatedEntry} #{entry.related_entry_id}
+				</p>
+			{/if}
+
+			<!-- Subtle actions -->
+			<div class="ml-[22px] mt-1.5 flex items-center gap-3">
+				<button
+					type="button"
+					onclick={() => onEdit(entry)}
+					class="text-[10px] text-primary/60 hover:text-primary transition-colors"
+				>
+					{i18n.t.actions.edit}
+				</button>
+				{#if onHistory}
+					<button
+						type="button"
+						onclick={() => onHistory!(entry)}
+						class="text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+					>
+						{i18n.t.audit.title}
+					</button>
+				{/if}
+			</div>
 		</div>
 	{/if}
 </div>

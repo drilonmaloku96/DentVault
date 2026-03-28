@@ -16,6 +16,8 @@ export interface DocCategory {
 	key: string;
 	label: string;
 	icon: string;
+	/** Disk subfolder name for this category. If absent, vault.categoryFolder(key) provides the legacy English default. */
+	folder?: string;
 }
 
 const BUILTIN_KEYS = new Set(['xray', 'photo', 'lab', 'referral', 'consent', 'other']);

@@ -47,7 +47,7 @@
 <!-- Timeline dot + line already provided by parent layout -->
 <div class="mb-4 ml-8 flex items-start gap-3">
 	<!-- Timeline dot at left -->
-	<div class="absolute left-0 flex h-3 w-3 items-center justify-center rounded-full bg-primary/80 ring-2 ring-background mt-3">
+	<div class="absolute left-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary/80 ring-2 ring-background mt-3">
 	</div>
 
 	<!-- Card -->

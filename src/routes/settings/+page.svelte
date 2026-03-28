@@ -8,7 +8,7 @@
 	import { vault } from '$lib/stores/vault.svelte';
 	import { docCategories, DEFAULT_CATEGORIES, type DocCategory } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { resetDb, getAllSettings, bulkSetSettings, getAllPatientsIncludingArchived, deletePatient } from '$lib/services/db';
+	import { resetDb, getAllSettings, bulkSetSettings, getAllPatientsIncludingArchived, deletePatient, getSetting, setSetting } from '$lib/services/db';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
 	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder, getTemplateCategories, listVaultFiles, listDocTemplates, openDocumentFile, deletePatientFolder, TEMPLATE_FOLDER, type VaultFileInfo, type DocTemplateInfo } from '$lib/services/files';
 	import { exportPatient } from '$lib/services/patient-export';
@@ -18,6 +18,7 @@
 	import { formatDate } from '$lib/utils';
 	import { staffRoles, DEFAULT_ROLES, type StaffRole } from '$lib/stores/staffRoles.svelte';
 	import { dentalTags, DEFAULT_DENTAL_TAGS, RENDER_CRITICAL_TAGS } from '$lib/stores/dentalTags.svelte';
+	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { prosthesisTypes, type ProsthesisTypeConfig } from '$lib/stores/prosthesisTypes.svelte';
 	import { bridgeRoles, type BridgeRoleConfig } from '$lib/stores/bridgeRoles.svelte';
 	import { textBlocks, DEFAULT_TEXT_BLOCKS, type TextBlock } from '$lib/stores/textBlocks.svelte';
@@ -26,12 +27,13 @@
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import StaffWorkingHoursGrid from '$lib/components/schedule/StaffWorkingHoursGrid.svelte';
 	import type { DentalTag, PatternType, AppointmentRoom, AppointmentType, WorkingHoursEntry, Patient } from '$lib/types';
 	import { i18n, type LangCode } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 
 	// ── Active section (sidebar nav) ───────────────────────────────────────
-	let activeSection = $state('general');
+	let activeSection = $state('home');
 	let contentEl = $state<HTMLDivElement | null>(null);
 	const scrollPositions: Record<string, number> = {};
 
@@ -247,6 +249,9 @@
 	let addStaffError    = $state('');
 	let staffSaving      = $state(false);
 
+	// Working hours editor state
+	let editWorkingHoursDocId = $state<number | null>(null);
+
 	// Per-row edit state: null = not editing; number = id of row being edited
 	let editingStaffId = $state<number | null>(null);
 	let editStaffName  = $state('');
@@ -428,6 +433,10 @@
 	function selectPattern(i: number, p: PatternType) {
 		draftTags = draftTags.map((t, idx) => idx === i ? { ...t, pattern: p } : t);
 		openPatternIdx = null;
+	}
+
+	function toggleWholeTooth(i: number) {
+		draftTags = draftTags.map((t, idx) => idx === i ? { ...t, wholeTooth: !t.wholeTooth } : t);
 	}
 
 	function addTag() {
@@ -1055,11 +1064,12 @@
 			{/if}
 		</div>
 
+		{@render navBtn('home', i18n.code === 'de' ? 'Übersicht' : 'Overview')}
 		{@render navBtn('general', i18n.code === 'de' ? 'Allgemein' : 'General')}
 		{@render navBtn('team', i18n.t.staff.title)}
-		{@render navBtn('clinical', i18n.code === 'de' ? 'Klinisch' : 'Clinical')}
-		{@render navBtn('chart', i18n.t.chart.title)}
 		{@render navBtn('schedule', i18n.code === 'de' ? 'Terminplan' : 'Schedule')}
+		{@render navBtn('clinical', i18n.code === 'de' ? 'Klinisch' : 'Clinical')}
+		{@render navBtn('documents', i18n.code === 'de' ? 'Dokumente' : 'Documents')}
 		{@render navBtn('patients', i18n.t.nav.patients)}
 
 	</nav>
@@ -1067,6 +1077,141 @@
 	<!-- ── Right Content Panel ── -->
 	<div class="flex-1 overflow-y-auto" bind:this={contentEl}>
 		<div class="flex flex-col gap-8 max-w-2xl px-8 py-7">
+
+	{#if activeSection === 'home'}
+	{@const de = i18n.code === 'de'}
+	{@const nav = navigateTo}
+	<div class="flex flex-col gap-5">
+		<div>
+			<h2 class="text-base font-semibold">{de ? 'Einstellungen' : 'Settings'}</h2>
+			<p class="text-sm text-muted-foreground mt-0.5">{de ? 'Wähle einen Bereich oder tippe direkt ein Thema an.' : 'Select a section or jump directly to any topic.'}</p>
+		</div>
+
+		<div class="grid grid-cols-2 gap-3">
+
+			<!-- General -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('general')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+					<span class="text-sm font-semibold">{de ? 'Allgemein' : 'General'}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Sprache & Darstellung' : 'Language & Appearance' },
+						{ label: de ? 'Vault-Pfad' : 'Vault Path' },
+						{ label: de ? 'Backup' : 'Backup' },
+						{ label: de ? 'Über die App' : 'About' },
+					] as item}
+						<button type="button" onclick={() => nav('general')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Staff -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('team')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+					<span class="text-sm font-semibold">{i18n.t.staff.title}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Mitarbeiter & Arbeitszeiten' : 'Staff Members & Hours' },
+						{ label: de ? 'Rollen' : 'Roles' },
+					] as item}
+						<button type="button" onclick={() => nav('team')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Schedule -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('schedule')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+					<span class="text-sm font-semibold">{de ? 'Terminplan' : 'Schedule'}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Praxis-Öffnungszeiten' : 'Practice Hours' },
+						{ label: de ? 'Behandlungsräume' : 'Rooms' },
+						{ label: de ? 'Terminarten' : 'Appointment Types' },
+					] as item}
+						<button type="button" onclick={() => nav('schedule')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Clinical -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('clinical')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.51 0 2.93.37 4.18 1.02"/><path d="M21 3l-9 9"/><path d="M15 3h6v6"/></svg>
+					<span class="text-sm font-semibold">{de ? 'Klinisch' : 'Clinical'}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Klinische Tags' : 'Clinical Tags' },
+						{ label: de ? 'Komplikationstypen' : 'Complication Types' },
+						{ label: de ? 'Textbausteine' : 'Text Blocks' },
+						{ label: de ? 'Zahn-Tags & Symbole' : 'Dental Tags & Symbols' },
+						{ label: de ? 'Prothetik & Brücken' : 'Prosthetics & Bridges' },
+					] as item}
+						<button type="button" onclick={() => nav('clinical')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Documents -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('documents')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+					<span class="text-sm font-semibold">{de ? 'Dokumente' : 'Documents'}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Ordnerkategorien (!TEMPLATE)' : 'Folder Categories (!TEMPLATE)' },
+						{ label: de ? 'Dokumentvorlagen (!Documents)' : 'Document Templates (!Documents)' },
+					] as item}
+						<button type="button" onclick={() => nav('documents')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Patients -->
+			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
+				<button type="button" onclick={() => nav('patients')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+					<span class="text-sm font-semibold">{i18n.t.nav.patients}</span>
+				</button>
+				<div class="px-2 py-1.5 flex flex-col gap-px">
+					{#each [
+						{ label: de ? 'Patienten verwalten' : 'Manage Patients' },
+						{ label: de ? 'Patientenexport' : 'Patient Export' },
+					] as item}
+						<button type="button" onclick={() => nav('patients')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
+							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
+							{item.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
+		</div>
+	</div>
+	{/if}
 
 	{#if activeSection === 'general'}
 	<section class="flex flex-col gap-4">
@@ -1119,6 +1264,30 @@
 		</div>
 		<Separator />
 
+		<!-- UI Scale -->
+		<div class="rounded-lg border bg-card p-5 flex items-center justify-between gap-6">
+			<div class="flex flex-col gap-0.5">
+				<span class="text-sm font-medium">{i18n.t.settings.uiScaleLabel}</span>
+				<span class="text-xs text-muted-foreground">{i18n.t.settings.uiScaleOptions[String(uiScale.value) as keyof typeof i18n.t.settings.uiScaleOptions]}</span>
+			</div>
+			<div class="flex items-center gap-1 rounded-full border bg-muted p-1">
+				{#each uiScale.options as opt}
+					<button
+						type="button"
+						onclick={() => uiScale.set(opt)}
+						class={[
+							'rounded-full px-2.5 py-1 text-xs font-medium transition-all',
+							uiScale.value === opt ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+						].join(' ')}
+						aria-pressed={uiScale.value === opt}
+					>
+						{Math.round(opt * 100)} %
+					</button>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Theme -->
 		<div class="rounded-lg border bg-card p-5 flex items-center justify-between gap-6">
 			<div class="flex flex-col gap-0.5">
 				<span class="text-sm font-medium">{i18n.t.settings.sections.appearance}</span>
@@ -1365,13 +1534,14 @@
 
 			{#if doctors.list.length > 0}
 				<!-- Column headers -->
-				<div class="grid grid-cols-[1.5rem_1fr_5rem_5rem_auto_3rem_2rem_2rem] items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-1">
+				<div class="grid grid-cols-[1.5rem_1fr_5rem_5rem_auto_3rem_2rem_2rem_2rem] items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-1">
 					<span></span>
 					<span>{i18n.t.staff.fields.name}</span>
 					<span>{i18n.t.staff.fields.role}</span>
 					<span>Specialty</span>
 					<span>Color</span>
 					<span title="Doc Bar">Bar</span>
+					<span title={i18n.t.staff.workingHours}>⏰</span>
 					<span></span>
 					<span></span>
 				</div>
@@ -1415,7 +1585,7 @@
 							</div>
 						{:else}
 							<!-- Display row -->
-							<div class="grid grid-cols-[1.5rem_1fr_5rem_5rem_auto_3rem_2rem_2rem] items-center gap-2 py-1 px-1 rounded-md hover:bg-muted/30 group">
+							<div class="grid grid-cols-[1.5rem_1fr_5rem_5rem_auto_3rem_2rem_2rem_2rem] items-center gap-2 py-1 px-1 rounded-md hover:bg-muted/30 group">
 								<!-- Color dot -->
 								<span class="h-3 w-3 rounded-full shrink-0 ring-1 ring-black/10" style="background: {doc.color}"></span>
 								<!-- Name -->
@@ -1436,6 +1606,15 @@
 									{#if doc.show_in_doc_bar !== 0}
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
 									{/if}
+								</button>
+								<!-- Working hours button -->
+								<button
+									type="button"
+									onclick={() => { editWorkingHoursDocId = editWorkingHoursDocId === doc.id ? null : doc.id; }}
+									class={['flex items-center justify-center h-5 w-5 rounded border transition-colors', editWorkingHoursDocId === doc.id ? 'border-primary bg-primary/10 text-primary' : 'opacity-0 group-hover:opacity-100 border-border text-muted-foreground/60 hover:border-foreground/30'].join(' ')}
+									title={i18n.t.staff.workingHours}
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 								</button>
 								<!-- Edit button -->
 								<button type="button" onclick={() => startEditStaff(doc)} class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground" aria-label="Edit">
@@ -1608,61 +1787,25 @@
 		</div>
 
 		</div>
-	</section>
 
+	<!-- Working hours editor (shown when clock icon clicked on a staff row) -->
+	{#if editWorkingHoursDocId}
+		{@const whDoc = doctors.list.find(d => d.id === editWorkingHoursDocId)}
+		{#if whDoc}
+			<StaffWorkingHoursGrid
+				doctorId={whDoc.id}
+				doctorName={whDoc.name}
+				doctorColor={whDoc.color}
+				onClose={() => { editWorkingHoursDocId = null; }}
+			/>
+		{/if}
+	{/if}
 
-	<div class="pt-6 pb-2"><Separator /></div>
-	<section class="flex flex-col gap-4">
-		<div>
-			<h2 class="text-base font-semibold">{i18n.t.settings.sections.workingHours}</h2>
-			<p class="text-sm text-muted-foreground">Öffnungszeiten der Praxis für den Terminplaner.</p>
-		</div>
-		<Separator />
-
-		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-			<div class="flex items-center justify-between">
-				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.sections.workingHours}</span>
-				<div class="flex items-center gap-2">
-					{#if workingHoursSaved}
-						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
-					{/if}
-					<Button size="sm" onclick={handleSaveWorkingHours} disabled={workingHoursSaving}>
-						{workingHoursSaving ? i18n.t.common.loading : i18n.t.actions.save}
-					</Button>
-				</div>
-			</div>
-
-			<div class="flex flex-col divide-y divide-border">
-				{#each localWorkingHours as day, idx}
-					<div class="flex items-center gap-3 py-2.5">
-						<input
-							type="checkbox"
-							class="h-4 w-4 rounded border-border"
-							bind:checked={localWorkingHours[idx].is_active}
-						/>
-						<span class="w-24 text-sm font-medium {day.is_active ? '' : 'text-muted-foreground'}">
-							{i18n.t.defaults.workingDays[day.day_of_week]}
-						</span>
-						{#if day.is_active}
-							<input type="time" bind:value={localWorkingHours[idx].start_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
-							<span class="text-xs text-muted-foreground">–</span>
-							<input type="time" bind:value={localWorkingHours[idx].end_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
-							<span class="text-xs text-muted-foreground ml-2">Pause:</span>
-							<input type="time" bind:value={localWorkingHours[idx].break_start as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
-							<span class="text-xs text-muted-foreground">–</span>
-							<input type="time" bind:value={localWorkingHours[idx].break_end as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
-						{:else}
-							<span class="text-xs text-muted-foreground">Geschlossen</span>
-						{/if}
-					</div>
-				{/each}
-			</div>
-		</div>
 	</section>
 
 	{/if}
 
-	{#if activeSection === 'clinical'}
+	{#if activeSection === 'documents'}
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.docCategories}</h2>
@@ -1956,9 +2099,13 @@
 				</div>
 			{/if}
 		</div>
+
 	</div>
 	</section>
 
+	{/if}
+
+	{#if activeSection === 'clinical'}
 
 	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
@@ -2254,9 +2401,7 @@
 		</div>
 	</section>
 
-	{/if}
-
-	{#if activeSection === 'chart'}
+	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.chart.title}</h2>
@@ -2322,6 +2467,18 @@
 											<span class="text-[10px] text-muted-foreground/70 italic flex-1 min-w-0 truncate">
 												{tag.key === 'bridge' ? i18n.t.chart.tagGroups.bridgeTagNote : i18n.t.chart.tagGroups.prosthesisTagNote}
 											</span>
+											<!-- Whole-tooth toggle -->
+											<button
+												type="button"
+												onclick={() => toggleWholeTooth(i)}
+												class={[
+													'shrink-0 rounded border px-2 h-8 text-[10px] font-medium transition-colors',
+													tag.wholeTooth ? 'bg-amber-100 border-amber-300 text-amber-700' : 'border-border text-muted-foreground hover:border-foreground/40',
+												].join(' ')}
+												title={i18n.t.chart.wholeToothOnly}
+											>
+												{i18n.t.chart.wholeToothOnly}
+											</button>
 										{:else}
 											<!-- Full controls for regular tags -->
 											<input
@@ -2373,6 +2530,18 @@
 												</svg>
 											</button>
 										{/if}
+										<!-- Whole-tooth toggle -->
+										<button
+											type="button"
+											onclick={() => toggleWholeTooth(i)}
+											class={[
+												'shrink-0 rounded border px-2 h-8 text-[10px] font-medium transition-colors',
+												tag.wholeTooth ? 'bg-amber-100 border-amber-300 text-amber-700' : 'border-border text-muted-foreground hover:border-foreground/40',
+											].join(' ')}
+											title={i18n.t.chart.wholeToothOnly}
+										>
+											{i18n.t.chart.wholeToothOnly}
+										</button>
 										<!-- Delete — disabled for render-critical tags -->
 										<button
 											type="button"
@@ -2750,6 +2919,55 @@
 	{/if}
 
 	{#if activeSection === 'schedule'}
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.sections.workingHours}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.code === 'de' ? 'Öffnungszeiten der Praxis für den Terminplaner.' : 'Practice opening hours — controls the visible range in the day view.'}</p>
+		</div>
+		<Separator />
+
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.sections.workingHours}</span>
+				<div class="flex items-center gap-2">
+					{#if workingHoursSaved}
+						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
+					{/if}
+					<Button size="sm" onclick={handleSaveWorkingHours} disabled={workingHoursSaving}>
+						{workingHoursSaving ? i18n.t.common.loading : i18n.t.actions.save}
+					</Button>
+				</div>
+			</div>
+
+			<div class="flex flex-col divide-y divide-border">
+				{#each localWorkingHours as day, idx}
+					<div class="flex items-center gap-3 py-2.5">
+						<input
+							type="checkbox"
+							class="h-4 w-4 rounded border-border"
+							bind:checked={localWorkingHours[idx].is_active}
+						/>
+						<span class="w-24 text-sm font-medium {day.is_active ? '' : 'text-muted-foreground'}">
+							{i18n.t.defaults.workingDays[day.day_of_week]}
+						</span>
+						{#if day.is_active}
+							<input type="time" bind:value={localWorkingHours[idx].start_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
+							<span class="text-xs text-muted-foreground">–</span>
+							<input type="time" bind:value={localWorkingHours[idx].end_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
+							<span class="text-xs text-muted-foreground ml-2">{i18n.code === 'de' ? 'Pause' : 'Break'}:</span>
+							<input type="time" bind:value={localWorkingHours[idx].break_start as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
+							<span class="text-xs text-muted-foreground">–</span>
+							<input type="time" bind:value={localWorkingHours[idx].break_end as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
+						{:else}
+							<span class="text-xs text-muted-foreground">{i18n.code === 'de' ? 'Geschlossen' : 'Closed'}</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.rooms}</h2>

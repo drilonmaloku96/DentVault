@@ -234,6 +234,7 @@ export const de: Translations = {
 		toothNotes: 'Zahnnotizen',
 		selectSurfaces: 'Flächen auswählen',
 		clearSurfaces: 'Flächen löschen',
+		wholeToothOnly: 'Nur ganzer Zahn',
 		prosthesisTypes: {
 			telescope: 'Teleskop',
 			replaced: 'Ersatzzahn',
@@ -384,6 +385,11 @@ export const de: Translations = {
 			referralSource: 'Zuweisungsquellen',
 			years: 'Jahre',
 		},
+		visits: {
+			todayTitle: 'Patienten heute',
+			weekTitle: 'Patienten diese Woche',
+			patients: 'Patienten',
+		},
 		staff: {
 			title: 'Personal',
 			overview: 'Übersicht',
@@ -494,6 +500,13 @@ export const de: Translations = {
 			blockTime: 'Zeit blockieren',
 			bookAppointment: 'Termin buchen',
 		},
+		presence: {
+			toggle: 'Anwesenheit',
+			allPresent: 'Alle Mitarbeiter heute geplant',
+			presentAt: 'Anwesend um',
+			nonePresent: 'Keine Mitarbeiter zu dieser Zeit',
+		},
+		printDay: 'Tag drucken / PDF',
 	},
 
 	settings: {
@@ -502,6 +515,8 @@ export const de: Translations = {
 		languageLabel: 'Sprache / Language',
 		saved: 'Gespeichert',
 		resetToDefaults: 'Auf Standard zurücksetzen',
+		uiScaleLabel: 'Darstellungsgröße',
+		uiScaleOptions: { '0.8': '80 %', '0.9': '90 %', '1': '100 % (Standard)', '1.1': '110 %', '1.25': '125 %', '1.5': '150 %' },
 		sections: {
 			general: 'Allgemein',
 			vault: 'Vault',
@@ -652,6 +667,15 @@ export const de: Translations = {
 		},
 		deleteConfirm: 'Mitarbeiter wirklich löschen?',
 		noStaff: 'Noch keine Mitarbeiter eingetragen',
+		workingHours: 'Arbeitszeiten',
+		editWorkingHours: 'Arbeitszeiten bearbeiten',
+		saveWorkingHours: 'Arbeitszeiten speichern',
+		noWorkingHours: 'Noch keine Arbeitszeiten konfiguriert.',
+		colStart: 'Beginn',
+		colBreakStart: 'Pause von',
+		colBreakEnd: 'Pause bis',
+		colEnd: 'Ende',
+		colActive: 'Aktiv',
 	},
 
 	complications: {
@@ -784,6 +808,25 @@ export const de: Translations = {
 		facialProfile: 'Gesichtsprofil',
 		facialProfileOptions: { straight: 'Gerade', convex: 'Konvex', concave: 'Konkav' },
 		treatmentRecommendation: 'Behandlungsempfehlung',
+		badHabitsLabel: 'Habits / Gewohnheiten',
+		badHabitOptions: {
+			thumbSucking: 'Daumenlutschen',
+			tongueThrusting: 'Zungenpressen',
+			mouthBreathing: 'Mundatmung',
+			lipBiting: 'Lippenbeißen',
+			nailBiting: 'Nägelkauen',
+			bruxism: 'Bruxismus',
+			pacifierUse: 'Schnullergebrauch',
+			penChewing: 'Stiftekauen',
+		},
+		bissTitle: 'Biss (Sagittalrelation)',
+		bissRight: 'Rechts',
+		bissLeft: 'Links',
+		bissTypes: { neutral: 'Neutralbiss', distal: 'Distalbiss', mesial: 'Mesialbiss' },
+		praemolarenbreite: 'Prämolarenbreite',
+		praemolarenbreiteShort: 'PB',
+		viewAssessment: 'Aufnahme ansehen',
+		readOnly: 'Nur Ansicht',
 		// Grade descriptions from KIG schema table (Anlage 1)
 		grades: {
 			A5: 'Lippen-, Kiefer-, Gaumenspalte oder andere kraniofaziale Anomalie',
@@ -873,13 +916,19 @@ export const de: Translations = {
 			textBlocks: 'Textbausteine',
 			complicationTypes: 'Komplikationstypen',
 		},
+		scaleLabel: 'Darstellungsgröße',
+		clinicTitle: 'Ihre Praxis',
+		clinicDesc: 'Wie viele Behandlungszimmer hat Ihre Praxis? DentVault legt die Räume automatisch an.',
+		clinicChairsLabel: 'Behandlungszimmer',
+		clinicChairsHint: 'Sie können Räume jederzeit in Einstellungen → Terminplanung anpassen.',
+		defaultRoomName: 'Zimmer',
 		doneTitle: 'Alles bereit!',
 		doneSubtitle: 'DentVault ist eingerichtet. Fügen Sie jetzt Ihren ersten Patienten hinzu.',
 		doneButton: 'Ersten Patienten anlegen →',
 		back: 'Zurück',
 		continueBtn: 'Weiter',
 		skip: 'Überspringen',
-		stepLabels: { vault: 'Datenspeicher', team: 'Team', defaults: 'Einstellungen' },
+		stepLabels: { vault: 'Datenspeicher', team: 'Team', clinic: 'Praxis', defaults: 'Einstellungen' },
 	},
 
 	export: {
@@ -936,12 +985,12 @@ export const de: Translations = {
 
 	defaults: {
 		docCategories: [
-			{ key: 'xray',     label: 'Röntgenbilder',  icon: '🔬' },
-			{ key: 'photo',    label: 'Fotos',          icon: '📸' },
-			{ key: 'lab',      label: 'Laborbefunde',   icon: '🧪' },
-			{ key: 'referral', label: 'Überweisungen',  icon: '📋' },
-			{ key: 'consent',  label: 'Einwilligungen', icon: '📄' },
-			{ key: 'other',    label: 'Sonstiges',      icon: '📁' },
+			{ key: 'xray',     label: 'Röntgenbilder',  icon: '🔬', folder: 'roentgen'       },
+			{ key: 'photo',    label: 'Fotos',          icon: '📸', folder: 'fotos'          },
+			{ key: 'lab',      label: 'Laborbefunde',   icon: '🧪', folder: 'labor'          },
+			{ key: 'referral', label: 'Überweisungen',  icon: '📋', folder: 'ueberweisungen' },
+			{ key: 'consent',  label: 'Einwilligungen', icon: '📄', folder: 'einwilligungen' },
+			{ key: 'other',    label: 'Sonstiges',      icon: '📁', folder: 'dokumente'      },
 		],
 		staffRoles: [
 			{ key: 'doctor', label: 'Zahnarzt',  prefix: 'Dr.' },

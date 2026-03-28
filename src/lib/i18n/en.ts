@@ -234,6 +234,7 @@ export const en: Translations = {
 		toothNotes: 'Tooth Notes',
 		selectSurfaces: 'Select Surfaces',
 		clearSurfaces: 'Clear Surfaces',
+		wholeToothOnly: 'Whole tooth only',
 		prosthesisTypes: {
 			telescope: 'Telescope',
 			replaced: 'Replaced Tooth',
@@ -384,6 +385,11 @@ export const en: Translations = {
 			referralSource: 'Referral Sources',
 			years: 'years',
 		},
+		visits: {
+			todayTitle: "Today's Patients",
+			weekTitle: "This Week's Patients",
+			patients: 'patients',
+		},
 		staff: {
 			title: 'Staff',
 			overview: 'Overview',
@@ -494,6 +500,13 @@ export const en: Translations = {
 			blockTime: 'Block Time',
 			bookAppointment: 'Book Appointment',
 		},
+		presence: {
+			toggle: 'Staff Presence',
+			allPresent: 'All staff scheduled today',
+			presentAt: 'Present at',
+			nonePresent: 'No staff at this time',
+		},
+		printDay: 'Print Day / PDF',
 	},
 
 	settings: {
@@ -502,6 +515,8 @@ export const en: Translations = {
 		languageLabel: 'Language / Sprache',
 		saved: 'Saved',
 		resetToDefaults: 'Reset to Defaults',
+		uiScaleLabel: 'Display Scale',
+		uiScaleOptions: { '0.8': '80 %', '0.9': '90 %', '1': '100 % (Default)', '1.1': '110 %', '1.25': '125 %', '1.5': '150 %' },
 		sections: {
 			general: 'General',
 			vault: 'Vault',
@@ -652,6 +667,15 @@ export const en: Translations = {
 		},
 		deleteConfirm: 'Delete this staff member?',
 		noStaff: 'No staff members yet',
+		workingHours: 'Working Hours',
+		editWorkingHours: 'Edit Working Hours',
+		saveWorkingHours: 'Save Working Hours',
+		noWorkingHours: 'No working hours configured yet.',
+		colStart: 'Start',
+		colBreakStart: 'Break Start',
+		colBreakEnd: 'Break End',
+		colEnd: 'End',
+		colActive: 'Active',
 	},
 
 	complications: {
@@ -783,6 +807,25 @@ export const en: Translations = {
 		facialProfile: 'Facial Profile',
 		facialProfileOptions: { straight: 'Straight', convex: 'Convex', concave: 'Concave' },
 		treatmentRecommendation: 'Treatment Recommendation',
+		badHabitsLabel: 'Bad Habits',
+		badHabitOptions: {
+			thumbSucking: 'Thumb sucking',
+			tongueThrusting: 'Tongue thrusting',
+			mouthBreathing: 'Mouth breathing',
+			lipBiting: 'Lip biting',
+			nailBiting: 'Nail biting',
+			bruxism: 'Bruxism',
+			pacifierUse: 'Pacifier use',
+			penChewing: 'Pen/pencil chewing',
+		},
+		bissTitle: 'Bite (Sagittal Relationship)',
+		bissRight: 'Right',
+		bissLeft: 'Left',
+		bissTypes: { neutral: 'Neutral occlusion', distal: 'Distal occlusion', mesial: 'Mesial occlusion' },
+		praemolarenbreite: 'Premolar widths',
+		praemolarenbreiteShort: 'PW',
+		viewAssessment: 'View Assessment',
+		readOnly: 'Read-only',
 		grades: {
 			A5: 'Cleft lip/jaw/palate or other craniofacial anomaly',
 			U4: 'Missing teeth (only if pre-prosthetic ortho or space closure indicated)',
@@ -871,13 +914,19 @@ export const en: Translations = {
 			textBlocks: 'Text blocks',
 			complicationTypes: 'Complication types',
 		},
+		scaleLabel: 'Display Scale',
+		clinicTitle: 'Your Clinic',
+		clinicDesc: 'How many treatment rooms does your clinic have? DentVault will create them automatically.',
+		clinicChairsLabel: 'Treatment rooms',
+		clinicChairsHint: 'You can adjust rooms at any time in Settings → Scheduling.',
+		defaultRoomName: 'Room',
 		doneTitle: 'You\'re all set!',
 		doneSubtitle: 'DentVault is ready. Add your first patient to get started.',
 		doneButton: 'Add First Patient →',
 		back: 'Back',
 		continueBtn: 'Continue',
 		skip: 'Skip',
-		stepLabels: { vault: 'Vault', team: 'Team', defaults: 'Settings' },
+		stepLabels: { vault: 'Vault', team: 'Team', clinic: 'Clinic', defaults: 'Settings' },
 	},
 
 	export: {
@@ -934,12 +983,12 @@ export const en: Translations = {
 
 	defaults: {
 		docCategories: [
-			{ key: 'xray',     label: 'X-Rays',       icon: '🔬' },
-			{ key: 'photo',    label: 'Photos',        icon: '📸' },
-			{ key: 'lab',      label: 'Lab Results',   icon: '🧪' },
-			{ key: 'referral', label: 'Referrals',     icon: '📋' },
-			{ key: 'consent',  label: 'Consent Forms', icon: '📄' },
-			{ key: 'other',    label: 'Other',         icon: '📁' },
+			{ key: 'xray',     label: 'X-Rays',       icon: '🔬', folder: 'xrays'      },
+			{ key: 'photo',    label: 'Photos',        icon: '📸', folder: 'photos'     },
+			{ key: 'lab',      label: 'Lab Results',   icon: '🧪', folder: 'lab_results'},
+			{ key: 'referral', label: 'Referrals',     icon: '📋', folder: 'referrals'  },
+			{ key: 'consent',  label: 'Consent Forms', icon: '📄', folder: 'consents'   },
+			{ key: 'other',    label: 'Other',         icon: '📁', folder: 'documents'  },
 		],
 		staffRoles: [
 			{ key: 'doctor', label: 'Doctor',         prefix: 'Dr.' },

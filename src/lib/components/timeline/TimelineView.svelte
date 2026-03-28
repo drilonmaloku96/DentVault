@@ -77,11 +77,10 @@
 	// Text / date search
 	let searchQuery = $state('');
 
-	// All type options available for the filter dropdown
+	// All type options available for the filter dropdown (plan excluded — not useful to filter)
 	const TYPE_OPTIONS = $derived([
 		...entryTypes.list.map(t => ({ key: t.key, label: t.label, color: t.color })),
 		{ key: 'document',       label: i18n.t.documents.title,    color: undefined },
-		{ key: 'plan',           label: i18n.t.plans.title,        color: undefined },
 		{ key: 'chart_snapshot', label: i18n.t.chart.title,        color: undefined },
 		{ key: 'ortho_snapshot', label: i18n.t.ortho.button,       color: undefined },
 	]);
@@ -163,6 +162,9 @@
 
 	// ── Ortho / KIG dialog ────────────────────────────────────────────────
 	let showOrthoDialog = $state(false);
+	let viewingOrthoEntry = $state<TimelineEntry | null>(null);
+	// Clear existing entry reference when dialog closes
+	$effect(() => { if (!showOrthoDialog) viewingOrthoEntry = null; });
 
 	// ── Document template picker ──────────────────────────────────────────
 	let showDocTemplatePicker = $state(false);
@@ -393,7 +395,22 @@
 		return entry.entry_date?.slice(0, 4) ?? '—';
 	}
 
-	const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
+	// ── Date grouping ─────────────────────────────────────────────────────
+	interface DateGroup { date: string; entries: TimelineEntry[]; }
+	const dateGroups = $derived((() => {
+		const groups: DateGroup[] = [];
+		for (const entry of filteredEntries) {
+			const last = groups[groups.length - 1];
+			if (last && last.date === (entry.entry_date ?? '')) {
+				last.entries.push(entry);
+			} else {
+				groups.push({ date: entry.entry_date ?? '', entries: [entry] });
+			}
+		}
+		return groups;
+	})());
+
+		const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 </script>
 
 <!-- ── Header (sticky below patient header) ───────────────────────────── -->
@@ -416,23 +433,6 @@
 		</div>
 
 		<div class="flex items-center gap-1.5 flex-wrap">
-			<!-- Add document from template — visually distinct, left-anchored -->
-			<button
-				type="button"
-				onclick={() => (showDocTemplatePicker = true)}
-				class="inline-flex items-center gap-1.5 h-8 rounded-md border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 px-3 text-xs font-medium text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-					<polyline points="14 2 14 8 20 8"/>
-					<line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
-				</svg>
-				{i18n.t.docTemplates.button}
-			</button>
-
-			<!-- Visual separator between template button and chart buttons -->
-			<span class="w-px h-5 bg-border/60 mx-0.5"></span>
-
 			<!-- Open Chart editor -->
 			<Button size="sm" variant="outline" onclick={() => (chartSheetOpen = true)}>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
@@ -450,7 +450,7 @@
 			</Button>
 
 			<!-- Open KIG / Ortho assessment -->
-			<Button size="sm" variant="outline" onclick={() => (showOrthoDialog = true)}>
+			<Button size="sm" variant="outline" onclick={() => { viewingOrthoEntry = null; showOrthoDialog = true; }}>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
 					<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
 					<polyline points="9 2 9 9 16 9"/>
@@ -681,48 +681,65 @@
 <!-- ── Timeline list ─────────────────────────────────────────────────────── -->
 {:else}
 	<div class="relative">
-		<div class="absolute left-[5.5px] top-2 bottom-2 w-px bg-border"></div>
+		<!-- Spine line — slightly heavier for legibility -->
+		<div class="absolute left-[5.5px] top-2 bottom-2 w-[2px] rounded-full bg-border/70"></div>
 		<div class="pl-8">
-			{#each filteredEntries as entry, i (entry.id)}
-				<!-- Year separator -->
-				{#if i === 0 || getYear(filteredEntries[i - 1]) !== getYear(entry)}
-					<div class="relative -ml-8 mb-3 flex items-center gap-3">
-						<div class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-border">
-							<div class="h-1.5 w-1.5 rounded-full bg-muted-foreground"></div>
+			{#each dateGroups as group, gi}
+				<!-- Year separator (when year changes between groups) -->
+				{#if gi === 0 || group.date.slice(0, 4) !== dateGroups[gi - 1].date.slice(0, 4)}
+					<div class="relative -ml-8 flex items-center gap-3 mb-3 {gi > 0 ? 'mt-4' : ''}">
+						<div class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-background border-2 border-border z-10">
+							<div class="h-1.5 w-1.5 rounded-full bg-muted-foreground/60"></div>
 						</div>
-						<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-							{getYear(entry)}
-						</span>
+						<span class="text-[11px] font-bold text-muted-foreground/55 uppercase tracking-widest">{group.date.slice(0, 4)}</span>
+						<div class="flex-1 h-px bg-border/40"></div>
 					</div>
 				{/if}
 
-				<!-- Entry rendering -->
-				<div class="relative -ml-8">
-					{#if entry.entry_type === 'plan'}
-						<PlanTimelineCard
-							{entry}
-							plan={plansMap.get(entry.plan_id)}
-							onOpen={() => (planSheetOpen = true)}
-						/>
-					{:else if entry.entry_type === 'chart_snapshot'}
-						<ChartSnapshotCard
-							{entry}
-							onView={() => (viewingSnapshot = entry)}
-						/>
-					{:else if entry.entry_type === 'ortho_snapshot'}
-						<OrthoSnapshotCard {entry} />
-					{:else}
-						<TimelineEntryCard
-							{entry}
-							onEdit={openEditForm}
-							onDelete={openDeleteDialog}
-							onHistory={openEntryHistory}
-							onDateChange={handleDateChange}
-						/>
-					{/if}
+				<!-- Date group band: alternating light background, rounded on the card-side -->
+				<div class="mb-2 rounded-lg {gi % 2 === 1 ? 'bg-muted/[0.15]' : ''}">
+					<!-- Date header row — runs through the gutter to put a marker on the spine -->
+					<div class="relative -ml-8 flex items-center gap-2 pt-1.5 pb-1">
+						<!-- 11 px hollow circle centered exactly at left-[5.5px] of the outer container -->
+						<div class="h-[11px] w-[11px] shrink-0 rounded-full border-2 border-border/60 bg-background z-10"></div>
+						<span class="text-[11px] font-semibold text-foreground/55 tracking-wide">{formatDate(group.date)}</span>
+						{#if group.entries.length > 1}
+							<span class="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-px text-[10px] font-bold text-primary leading-4">
+								{group.entries.length}
+							</span>
+						{/if}
+					</div>
+
+					<!-- Entries for this date -->
+					{#each group.entries as entry (entry.id)}
+						<div class="relative -ml-8">
+							{#if entry.entry_type === 'plan'}
+								<PlanTimelineCard
+									{entry}
+									plan={plansMap.get(entry.plan_id)}
+									onOpen={() => (planSheetOpen = true)}
+								/>
+							{:else if entry.entry_type === 'chart_snapshot'}
+								<ChartSnapshotCard
+									{entry}
+									onView={() => (viewingSnapshot = entry)}
+								/>
+							{:else if entry.entry_type === 'ortho_snapshot'}
+								<OrthoSnapshotCard {entry} onView={() => { viewingOrthoEntry = entry; showOrthoDialog = true; }} />
+							{:else}
+								<TimelineEntryCard
+									{entry}
+									onEdit={openEditForm}
+									onDelete={openDeleteDialog}
+									onHistory={openEntryHistory}
+									onDateChange={handleDateChange}
+								/>
+							{/if}
+						</div>
+					{/each}
 				</div>
 			{/each}
-			</div>
+		</div>
 	</div>
 {/if}
 
@@ -787,7 +804,7 @@
 <ProbingChartDialog bind:open={showProbingChart} {patientId} onRecordSaved={() => {}} />
 
 <!-- ── KIG / Ortho assessment dialog ──────────────────────────────────── -->
-<OrthoChartDialog bind:open={showOrthoDialog} {patientId} onSaved={() => loadEntries(false)} />
+<OrthoChartDialog bind:open={showOrthoDialog} {patientId} existingEntry={viewingOrthoEntry} onSaved={() => { loadEntries(false); viewingOrthoEntry = null; }} />
 
 <!-- ── Document template picker ──────────────────────────────────────── -->
 <DocTemplatePickerDialog

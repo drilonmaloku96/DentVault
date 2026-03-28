@@ -118,6 +118,7 @@ export interface Translations {
 		conditionHistory: string; noHistory: string;
 		lastExamined: string; toothNotes: string;
 		selectSurfaces: string; clearSurfaces: string;
+		wholeToothOnly: string;
 		prosthesisTypes: {
 			telescope: string; replaced: string;
 		};
@@ -219,6 +220,11 @@ export interface Translations {
 			gender: string;
 			referralSource: string;
 			years: string;
+		};
+		visits: {
+			todayTitle: string;
+			weekTitle: string;
+			patients: string;
 		};
 		staff: {
 			title: string;
@@ -324,12 +330,21 @@ export interface Translations {
 			blockTime: string;
 			bookAppointment: string;
 		};
+		presence: {
+			toggle: string;
+			allPresent: string;
+			presentAt: string;
+			nonePresent: string;
+		};
+		printDay: string;
 	};
 
 	// ── Settings ──────────────────────────────────────────────────────
 	settings: {
 		title: string; language: string; languageLabel: string;
 		saved: string; resetToDefaults: string;
+		uiScaleLabel: string;
+		uiScaleOptions: { '0.8': string; '0.9': string; '1': string; '1.1': string; '1.25': string; '1.5': string };
 		sections: {
 			general: string; vault: string; appearance: string;
 			docCategories: string; clinicalTags: string; staffRoles: string;
@@ -419,6 +434,11 @@ export interface Translations {
 		title: string; add: string; edit: string; delete: string;
 		fields: { name: string; role: string; email: string; phone: string };
 		deleteConfirm: string; noStaff: string;
+		workingHours: string;
+		editWorkingHours: string;
+		saveWorkingHours: string;
+		noWorkingHours: string;
+		colStart: string; colBreakStart: string; colBreakEnd: string; colEnd: string; colActive: string;
 	};
 
 	// ── Complications ─────────────────────────────────────────────────
@@ -491,6 +511,23 @@ export interface Translations {
 		facialProfile: string;
 		facialProfileOptions: { straight: string; convex: string; concave: string };
 		treatmentRecommendation: string;
+		// Bad habits
+		badHabitsLabel: string;
+		badHabitOptions: {
+			thumbSucking: string; tongueThrusting: string; mouthBreathing: string;
+			lipBiting: string; nailBiting: string; bruxism: string;
+			pacifierUse: string; penChewing: string;
+		};
+		// Bite (Biss) section
+		bissTitle: string;
+		bissRight: string;
+		bissLeft: string;
+		bissTypes: { neutral: string; distal: string; mesial: string };
+		praemolarenbreite: string;
+		praemolarenbreiteShort: string;
+		// Viewing past assessments
+		viewAssessment: string;
+		readOnly: string;
 	};
 
 	// ── Patient sidebar tree ──────────────────────────────────────────────
@@ -539,13 +576,19 @@ export interface Translations {
 			textBlocks: string;
 			complicationTypes: string;
 		};
+		scaleLabel: string;
+		clinicTitle: string;
+		clinicDesc: string;
+		clinicChairsLabel: string;
+		clinicChairsHint: string;
+		defaultRoomName: string;
 		doneTitle: string;
 		doneSubtitle: string;
 		doneButton: string;
 		back: string;
 		continueBtn: string;
 		skip: string;
-		stepLabels: { vault: string; team: string; defaults: string; };
+		stepLabels: { vault: string; team: string; clinic: string; defaults: string; };
 	};
 
 	// ── Patient Export ────────────────────────────────────────────────
@@ -603,7 +646,7 @@ export interface Translations {
 
 	// ── User-configurable defaults ────────────────────────────────────
 	defaults: {
-		docCategories: Array<{ key: string; label: string; icon: string }>;
+		docCategories: Array<{ key: string; label: string; icon: string; folder: string }>;
 		staffRoles: Array<{ key: string; label: string; prefix: string }>;
 		acuteTags: Array<{ key: string; label: string }>;
 		medicalTags: Array<{ key: string; label: string }>;

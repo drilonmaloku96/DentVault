@@ -166,7 +166,7 @@ function fmtDate(d: string): string {
 	if (!d) return '';
 	const parts = d.split('T')[0].split('-');
 	if (parts.length !== 3) return d;
-	return `${parts[2]}.${parts[1]}.${parts[0]}`;
+	return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function doctorName(doctorId: number | null, colleagues: string, doctors: Doctor[]): string {
@@ -314,6 +314,14 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 			if (a.facial_profile) ctx.push(de ? ({ straight: 'Gerades Profil', convex: 'Konvexes Profil', concave: 'Konkaves Profil' } as Record<string,string>)[a.facial_profile] ?? a.facial_profile : ({ straight: 'Straight profile', convex: 'Convex profile', concave: 'Concave profile' } as Record<string,string>)[a.facial_profile] ?? a.facial_profile);
 			if (ctx.length > 0) html += `<p style="font-size:0.8em;color:#6b7280;margin:0.25em 0">${ctx.join(' · ')}</p>`;
 
+			// Bad habits
+			if (a.bad_habits && a.bad_habits.length > 0) {
+				const habitDE: Record<string,string> = { thumbSucking: 'Daumenlutschen', tongueThrusting: 'Zungenpressen', mouthBreathing: 'Mundatmung', lipBiting: 'Lippenbeißen', nailBiting: 'Nägelkauen', bruxism: 'Bruxismus', pacifierUse: 'Schnullergebrauch', penChewing: 'Stiftekauen' };
+				const habitEN: Record<string,string> = { thumbSucking: 'Thumb sucking', tongueThrusting: 'Tongue thrusting', mouthBreathing: 'Mouth breathing', lipBiting: 'Lip biting', nailBiting: 'Nail biting', bruxism: 'Bruxism', pacifierUse: 'Pacifier use', penChewing: 'Pen/pencil chewing' };
+				const labels = a.bad_habits.map(k => de ? (habitDE[k] ?? k) : (habitEN[k] ?? k));
+				html += `<p style="font-size:0.8em;color:#7c3aed;margin:0.25em 0"><strong>${de ? 'Habits:' : 'Bad Habits:'}</strong> ${esc(labels.join(', '))}</p>`;
+			}
+
 			if (a.findings.length > 0) {
 				html += `<table class="info-table" style="font-size:0.85em">
 					<tr>
@@ -331,6 +339,27 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 					</tr>`;
 				}
 				html += `</table>`;
+			}
+			// Biss (bite) data
+			const bissRight = (a as any).biss_right as { type: string; praemolarenbreite: number | null } | null | undefined;
+			const bissLeft  = (a as any).biss_left  as { type: string; praemolarenbreite: number | null } | null | undefined;
+			if (bissRight || bissLeft) {
+				const bissTypeDE: Record<string,string> = { neutral: 'Neutralbiss', distal: 'Distalbiss', mesial: 'Mesialbiss' };
+				const bissTypeEN: Record<string,string> = { neutral: 'Neutral occlusion', distal: 'Distal occlusion', mesial: 'Mesial occlusion' };
+				const pbFrac: Record<number,string> = { 0.25: '¼', 0.5: '½', 0.75: '¾' };
+				function pbLabel(v: number): string {
+					const w = Math.floor(v); const d = +(v - w).toFixed(2);
+					return w > 0 ? w + (pbFrac[d] ?? '') : (pbFrac[d] ?? String(v));
+				}
+				function formatBiss(b: { type: string; praemolarenbreite: number | null }): string {
+					const tl = de ? (bissTypeDE[b.type] ?? b.type) : (bissTypeEN[b.type] ?? b.type);
+					const pb = b.praemolarenbreite != null ? ` ${pbLabel(b.praemolarenbreite)} ${de ? 'PB' : 'PW'}` : '';
+					return esc(tl + pb);
+				}
+				const parts: string[] = [];
+				if (bissRight) parts.push(`<span style="margin-right:1em"><strong>${de ? 'Rechts' : 'Right'}:</strong> ${formatBiss(bissRight)}</span>`);
+				if (bissLeft)  parts.push(`<span><strong>${de ? 'Links' : 'Left'}:</strong> ${formatBiss(bissLeft)}</span>`);
+				html += `<p style="font-size:0.875em;margin-top:0.5em"><strong>${de ? 'Biss:' : 'Bite:'}</strong> ${parts.join(' ')}</p>`;
 			}
 			if (a.treatment_recommendation) html += `<p style="font-size:0.875em;margin-top:0.5em"><strong>${de ? 'Empfehlung:' : 'Recommendation:'}</strong> ${esc(a.treatment_recommendation)}</p>`;
 			if (a.notes) html += `<p style="font-size:0.875em;color:#374151;margin-top:0.25em">${esc(a.notes)}</p>`;
