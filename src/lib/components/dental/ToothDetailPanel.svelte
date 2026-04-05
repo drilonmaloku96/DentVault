@@ -15,6 +15,7 @@
 		entry = null,
 		selectedSurface = null,
 		shortcutTagKey = null,
+		horizontal = false,
 		onSave,
 		onClose,
 		onDissolveBridge = undefined,
@@ -24,6 +25,7 @@
 		entry?: ToothChartEntry | null;
 		selectedSurface?: string | null;
 		shortcutTagKey?: { key: string; seq: number } | null;
+		horizontal?: boolean;
 		onSave: (toothNumber: number, data: { condition: string; notes: string; last_examined: string; surfaces: string }) => Promise<void>;
 		onClose: () => void;
 		onDissolveBridge?: (bridgeGroupId: string) => void;
@@ -221,169 +223,100 @@
 	});
 </script>
 
-<div class="flex flex-col gap-4">
-	<!-- Header -->
-	<div class="flex items-start justify-between gap-2">
-		<div class="flex items-center gap-2">
-			<span class="text-2xl font-bold tabular-nums">{toFDI(toothNumber)}</span>
-			<span class="text-sm font-medium text-muted-foreground leading-tight">
-				{TOOTH_NAMES[toFDI(toothNumber)] ?? ''}
-			</span>
-		</div>
-		<div class="flex items-center gap-2">
-			<span class={[
-				'text-xs font-medium transition-all duration-300',
-				isSaving   ? 'text-muted-foreground opacity-100' :
-				savedPulse ? 'text-emerald-600 opacity-100'      : 'opacity-0',
-			].join(' ')}>
-				{isSaving ? 'Saving…' : '✓ Saved'}
-			</span>
-		</div>
-	</div>
+<!-- ── Reusable snippets ─────────────────────────────────────────────── -->
 
-	<Separator />
-
-	<!-- ── Surface map ── -->
-	<div class="flex flex-col gap-2">
-		<Label class="text-xs">
-			Surfaces
-			<span class="text-muted-foreground font-normal">
-				(drag to select · key to tag)
-			</span>
-		</Label>
-		<div class="flex items-start gap-4">
-
-			<!--
-				3×3 surface grid.
-				ALL pointer logic lives here — setPointerCapture ensures
-				pointermove keeps firing on this div; elementFromPoint finds
-				which surface button the cursor is actually over.
-			-->
-			<div
-				class="grid grid-cols-3 gap-1 select-none"
-				style="width:160px; touch-action:none; cursor:crosshair;"
-				role="group"
-				aria-label="Tooth surfaces"
-				onpointerdown={onGridPointerDown}
-				onpointerup={() => { isDragging = false; }}
-			>
-				{#each SURFACE_GRID as row}
-					{#each row as surf}
-						{#if surf}
-							{@const isActive = activeSurfaces.has(surf)}
-							<div
-								data-surface={surf}
-								class={[
-									'flex items-center justify-center rounded border font-bold text-[11px] transition-colors h-[48px]',
-									isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
-								].join(' ')}
-								style="
-									background:{surfFill(surf)};
-									border-color:{isActive ? '#2563eb' : surfStroke(surf)};
-									color:{isActive ? '#1d4ed8' : surfStroke(surf)};
-								"
-								title={SURFACE_NAMES[surf]}
-								onpointerenter={() => { if (isDragging) applySurfaceDragMode(surf); }}
-							>
-								{surf}
-							</div>
-						{:else}
-							<div></div>
-						{/if}
-					{/each}
-				{/each}
-			</div>
-
-			<!-- Tag picker (visible when ≥1 surface selected) -->
-			{#if activeSurfaces.size > 0}
-				<div class="flex flex-col gap-2 flex-1">
-					<span class="text-xs font-medium text-foreground">
-						{activeSurfaceLabel} tag
-					</span>
-					<div class="flex flex-wrap gap-1.5">
-						{#each dentalTags.list.filter(t => !WHOLE_TOOTH_TAG_KEYS.has(t.key)) as tag}
-							{@const matched = allSurfacesMatch(tag.key)}
-							<button
-								type="button"
-								onclick={() => applyTagToSurfaces(tag.key)}
-								class={[
-									'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all',
-									matched ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : 'opacity-60 hover:opacity-100',
-								].join(' ')}
-								style="background:{tag.color};border-color:{matched ? '#1e293b' : tag.strokeColor};color:{tag.strokeColor}"
-							>
-								{#if matched}
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5">
-										<polyline points="20 6 9 17 4 12"/>
-									</svg>
-								{/if}
-								{dentalTags.getLabel(tag.key)}
-								{#if tag.shortcut}
-									<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>
-								{/if}
-							</button>
-						{/each}
-						{#if activeSurfacesHaveTag}
-							<button
-								type="button"
-								onclick={clearActiveSurfaces}
-								class="inline-flex items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
-							>Clear</button>
-						{/if}
-					</div>
-				</div>
-			{:else}
-				<p class="text-xs text-muted-foreground self-center">
-					Click or drag surfaces to select them.
-				</p>
-			{/if}
-		</div>
-	</div>
-
-	<Separator />
-
-	<!-- Overall condition selector -->
-	<div class="flex flex-col gap-2">
-		<Label class="text-xs">Overall Condition</Label>
-		<div class="flex flex-wrap gap-2">
-			{#each dentalTags.list as tag}
-				{@const isSelected = selectedCondition === tag.key}
-				<button
-					type="button"
-					onclick={() => setCondition(tag.key)}
-					class={[
-						'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all',
-						isSelected ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : 'opacity-70 hover:opacity-100',
-					].join(' ')}
-					style="background:{tag.color};border-color:{isSelected ? '#1e293b' : tag.strokeColor};color:{tag.strokeColor}"
-				>
-					{#if isSelected}
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-							<polyline points="20 6 9 17 4 12"/>
-						</svg>
-					{/if}
-					{dentalTags.getLabel(tag.key)}
-					{#if tag.shortcut}
-						<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>
-					{/if}
-				</button>
+{#snippet surfaceGridWidget()}
+	<div
+		class="grid grid-cols-3 gap-1 select-none"
+		style="width:156px; touch-action:none; cursor:crosshair;"
+		role="group"
+		aria-label="Tooth surfaces"
+		onpointerdown={onGridPointerDown}
+		onpointerup={() => { isDragging = false; }}
+	>
+		{#each SURFACE_GRID as row}
+			{#each row as surf}
+				{#if surf}
+					{@const isActive = activeSurfaces.has(surf)}
+					<div
+						data-surface={surf}
+						class={[
+							'flex items-center justify-center rounded border font-bold text-[11px] transition-colors h-[48px]',
+							isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
+						].join(' ')}
+						style="background:{surfFill(surf)};border-color:{isActive ? '#2563eb' : surfStroke(surf)};color:{isActive ? '#1d4ed8' : surfStroke(surf)};"
+						title={SURFACE_NAMES[surf]}
+						onpointerenter={() => { if (isDragging) applySurfaceDragMode(surf); }}
+					>{surf}</div>
+				{:else}
+					<div></div>
+				{/if}
 			{/each}
-		</div>
+		{/each}
 	</div>
+{/snippet}
 
-	<!-- Notes + date column -->
-	<div class="flex flex-col gap-3">
+{#snippet surfaceTagPickerWidget()}
+	{#if activeSurfaces.size > 0}
 		<div class="flex flex-col gap-1.5">
-			<Label class="text-xs" for="tooth-notes">Notes</Label>
-			<input id="tooth-notes" type="text" class={sc} placeholder="e.g. MOD amalgam, 2018…" bind:value={notes}/>
+			<span class="text-[11px] font-medium text-foreground">{activeSurfaceLabel} tag</span>
+			<div class="flex flex-wrap gap-1.5">
+				{#each dentalTags.list.filter(t => !WHOLE_TOOTH_TAG_KEYS.has(t.key)) as tag}
+					{@const matched = allSurfacesMatch(tag.key)}
+					<button
+						type="button"
+						onclick={() => applyTagToSurfaces(tag.key)}
+						class={[
+							'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all',
+							matched ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : 'opacity-60 hover:opacity-100',
+						].join(' ')}
+						style="background:{tag.color};border-color:{matched ? '#1e293b' : tag.strokeColor};color:{tag.strokeColor}"
+					>
+						{#if matched}
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
+						{/if}
+						{dentalTags.getLabel(tag.key)}
+						{#if tag.shortcut}<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>{/if}
+					</button>
+				{/each}
+				{#if activeSurfacesHaveTag}
+					<button
+						type="button"
+						onclick={clearActiveSurfaces}
+						class="inline-flex items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
+					>Clear</button>
+				{/if}
+			</div>
 		</div>
-		<div class="flex flex-col gap-1.5">
-			<Label class="text-xs" for="tooth-exam">Last Examined</Label>
-			<input id="tooth-exam" type="date" class={sc} bind:value={lastExamined}/>
-		</div>
+	{:else}
+		<p class="text-xs text-muted-foreground">Click or drag to select surfaces.</p>
+	{/if}
+{/snippet}
+
+{#snippet conditionTagsWidget()}
+	<div class="flex flex-wrap gap-1.5">
+		{#each dentalTags.list as tag}
+			{@const isSelected = selectedCondition === tag.key}
+			<button
+				type="button"
+				onclick={() => setCondition(tag.key)}
+				class={[
+					'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all',
+					isSelected ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : 'opacity-70 hover:opacity-100',
+				].join(' ')}
+				style="background:{tag.color};border-color:{isSelected ? '#1e293b' : tag.strokeColor};color:{tag.strokeColor}"
+			>
+				{#if isSelected}
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
+				{/if}
+				{dentalTags.getLabel(tag.key)}
+				{#if tag.shortcut}<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>{/if}
+			</button>
+		{/each}
 	</div>
+{/snippet}
 
-	<!-- Prosthesis info (shown when prosthesis_type is set, regardless of condition) -->
+{#snippet prosthesisAndDissolveWidget()}
 	{#if entry?.prosthesis_type}
 		{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
 		{@const ptLabel = i18n.t.chart.prosthesisTypes[entry.prosthesis_type as keyof typeof i18n.t.chart.prosthesisTypes] ?? entry.prosthesis_type}
@@ -399,26 +332,33 @@
 			{/if}
 		</div>
 	{/if}
-
-	<!-- Dissolve group button (bridge or prosthesis) -->
 	{#if entry?.bridge_group_id && onDissolveBridge}
 		<button
 			type="button"
 			onclick={() => entry?.bridge_group_id && onDissolveBridge?.(entry.bridge_group_id)}
 			class="flex items-center gap-1.5 rounded-md border border-dashed border-destructive/40 px-3 py-2 text-xs text-destructive/70 hover:border-destructive hover:text-destructive hover:bg-destructive/5 transition-colors w-full"
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
-				<path d="M18 6L6 18M6 6l12 12"/>
-			</svg>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>
 			{i18n.t.chart.dissolve}
 		</button>
 	{/if}
+{/snippet}
 
-	<!-- Tooth condition history -->
+{#snippet notesDateWidget()}
+	<div class="flex flex-col gap-1.5">
+		<Label class="text-xs" for="tooth-notes">{i18n.t.chart.toothNotes}</Label>
+		<input id="tooth-notes" type="text" class={sc} placeholder="e.g. MOD amalgam, 2018…" bind:value={notes}/>
+	</div>
+	<div class="flex flex-col gap-1.5">
+		<Label class="text-xs" for="tooth-exam">{i18n.t.chart.lastExamined}</Label>
+		<input id="tooth-exam" type="date" class={sc} bind:value={lastExamined}/>
+	</div>
+{/snippet}
+
+{#snippet historyWidget()}
 	{#if toothHistory.length > 0}
-		<Separator />
-		<div class="flex flex-col gap-2">
-			<Label class="text-xs text-muted-foreground uppercase tracking-wide">Condition History</Label>
+		<div class="flex flex-col gap-1.5">
+			<Label class="text-xs text-muted-foreground uppercase tracking-wide">{i18n.t.chart.conditionHistory}</Label>
 			<div class="flex flex-col gap-1">
 				{#each toothHistory as h}
 					<div class="flex items-center justify-between text-xs text-muted-foreground">
@@ -429,4 +369,116 @@
 			</div>
 		</div>
 	{/if}
-</div>
+{/snippet}
+
+{#snippet saveStatus()}
+	<span class={[
+		'text-xs font-medium transition-all duration-300',
+		isSaving   ? 'text-muted-foreground opacity-100' :
+		savedPulse ? 'text-emerald-600 opacity-100'      : 'opacity-0',
+	].join(' ')}>{isSaving ? 'Saving…' : '✓ Saved'}</span>
+{/snippet}
+
+<!-- ── Layouts ──────────────────────────────────────────────────────── -->
+
+{#if horizontal}
+	<!-- ── Horizontal layout (used below the big chart) ── -->
+	<div class="flex flex-col gap-3">
+		<!-- Compact header -->
+		<div class="flex items-center justify-between gap-4 min-w-0">
+			<div class="flex items-center gap-2.5 min-w-0">
+				<span class="text-xl font-bold tabular-nums shrink-0">{toFDI(toothNumber)}</span>
+				<span class="text-sm font-medium text-muted-foreground truncate">{TOOTH_NAMES[toFDI(toothNumber)] ?? ''}</span>
+			</div>
+			<div class="flex items-center gap-3 shrink-0">
+				{@render saveStatus()}
+				<button
+					type="button"
+					onclick={onClose}
+					class="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+					aria-label={i18n.t.actions.close}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+				</button>
+			</div>
+		</div>
+		<Separator />
+		<!-- Three-column content row -->
+		<div class="flex items-start gap-5 min-w-0">
+			<!-- Column 1: Surfaces -->
+			<div class="shrink-0 flex flex-col gap-2">
+				<Label class="text-xs">
+					Surfaces
+					<span class="text-muted-foreground font-normal">(drag to select)</span>
+				</Label>
+				{@render surfaceGridWidget()}
+				<div class="mt-1">
+					{@render surfaceTagPickerWidget()}
+				</div>
+			</div>
+			<!-- Divider -->
+			<div class="w-px bg-border self-stretch shrink-0"></div>
+			<!-- Column 2: Overall condition + prosthesis/dissolve -->
+			<div class="flex-1 flex flex-col gap-2 min-w-0">
+				<Label class="text-xs">Overall Condition</Label>
+				{@render conditionTagsWidget()}
+				{@render prosthesisAndDissolveWidget()}
+			</div>
+			<!-- Divider -->
+			<div class="w-px bg-border self-stretch shrink-0"></div>
+			<!-- Column 3: Notes, date, history -->
+			<div class="shrink-0 flex flex-col gap-2.5" style="width:220px">
+				{@render notesDateWidget()}
+				{@render historyWidget()}
+			</div>
+		</div>
+	</div>
+{:else}
+	<!-- ── Vertical layout (original, used in right-panel / snapshot edit mode) ── -->
+	<div class="flex flex-col gap-4">
+		<!-- Header -->
+		<div class="flex items-start justify-between gap-2">
+			<div class="flex items-center gap-2">
+				<span class="text-2xl font-bold tabular-nums">{toFDI(toothNumber)}</span>
+				<span class="text-sm font-medium text-muted-foreground leading-tight">{TOOTH_NAMES[toFDI(toothNumber)] ?? ''}</span>
+			</div>
+			<div class="flex items-center gap-2">
+				{@render saveStatus()}
+			</div>
+		</div>
+
+		<Separator />
+
+		<!-- Surface map -->
+		<div class="flex flex-col gap-2">
+			<Label class="text-xs">
+				Surfaces
+				<span class="text-muted-foreground font-normal">(drag to select · key to tag)</span>
+			</Label>
+			<div class="flex items-start gap-4">
+				{@render surfaceGridWidget()}
+				{@render surfaceTagPickerWidget()}
+			</div>
+		</div>
+
+		<Separator />
+
+		<!-- Overall condition -->
+		<div class="flex flex-col gap-2">
+			<Label class="text-xs">Overall Condition</Label>
+			{@render conditionTagsWidget()}
+		</div>
+
+		<!-- Notes + date -->
+		<div class="flex flex-col gap-3">
+			{@render notesDateWidget()}
+		</div>
+
+		{@render prosthesisAndDissolveWidget()}
+
+		{#if toothHistory.length > 0}
+			<Separator />
+			{@render historyWidget()}
+		{/if}
+	</div>
+{/if}

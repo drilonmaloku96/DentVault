@@ -32,8 +32,10 @@ export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'X', wholeTooth: true },
 	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E', wholeTooth: true },
 	{ key: 'impacted',   color: '#d6d3d1', strokeColor: '#78716c', pattern: 'solid',      shortcut: 'P', wholeTooth: true },
-	{ key: 'fractured',  color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid',      shortcut: 'R' },
-	{ key: 'prosthesis', color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T', wholeTooth: true },
+	{ key: 'fractured',          color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid', shortcut: 'R' },
+	{ key: 'prosthesis',         color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T', wholeTooth: true },
+	{ key: 'erupting',           color: '#d1fae5', strokeColor: '#059669', pattern: 'solid', shortcut: 'D', wholeTooth: true },
+	{ key: 'persistent_primary', color: '#fef3c7', strokeColor: '#d97706', pattern: 'solid', shortcut: 'V', wholeTooth: true },
 ];
 
 /** Keys whose tags always apply to the whole tooth, never to individual surfaces. */

@@ -1,7 +1,13 @@
 import type { ToothChartEntry } from '$lib/types';
-import { toFDI } from '$lib/utils';
+import { toFDI, isPrimaryTooth, UPPER_PRIMARY, LOWER_PRIMARY } from '$lib/utils';
 import { dentalTags } from '$lib/stores/dentalTags.svelte';
 import { i18n } from '$lib/i18n';
+
+// All primary FDI numbers in display order
+const ALL_PRIMARY_FDI: readonly number[] = [
+	...(UPPER_PRIMARY.filter(Boolean) as number[]),
+	...(LOWER_PRIMARY.filter(Boolean) as number[]),
+];
 
 /**
  * Generate a plain-text report summarising all notable teeth in the chart.
@@ -71,10 +77,10 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		groupLines.push(`${firstFDI}–${lastFDI} ${groupType}: ${memberDescs.join(' | ')}`);
 	}
 
-	// ── 2. Individual teeth (not in a group) ──
+	// ── 2. Individual permanent teeth (not in a group) ──
 	const toothLines: string[] = [];
 
-	// Iterate all 32 teeth in order
+	// Iterate all 32 permanent teeth in order
 	for (let u = 1; u <= 32; u++) {
 		if (teethInGroups.has(u)) continue;
 		const entry = byTooth.get(u);
@@ -89,21 +95,13 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		const fdi = toFDI(u);
 		const parts: string[] = [];
 
-		// Condition
 		if (entry.condition && entry.condition !== 'healthy') {
 			parts.push(dentalTags.getLabel(entry.condition));
 		}
-
-		// Surface tags
 		const surfaceInfo = parseSurfaceTags(entry.surfaces);
 		if (surfaceInfo.length > 0) {
-			const surfStr = surfaceInfo
-				.map(([s, tag]) => `${s}(${dentalTags.getLabel(tag)})`)
-				.join(', ');
-			parts.push(surfStr);
+			parts.push(surfaceInfo.map(([s, tag]) => `${s}(${dentalTags.getLabel(tag)})`).join(', '));
 		}
-
-		// Notes
 		if (entry.notes?.trim()) {
 			parts.push(entry.notes.trim());
 		}
@@ -111,7 +109,34 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		toothLines.push(`${fdi}: ${parts.join(', ')}`);
 	}
 
-	// ── 3. Assemble ──
+	// ── 3. Primary (deciduous) teeth ──
+	const primaryLines: string[] = [];
+	for (const fdi of ALL_PRIMARY_FDI) {
+		const entry = byTooth.get(fdi);
+		if (!entry) continue;
+
+		const isNotable = (entry.condition && entry.condition !== 'healthy')
+			|| hasSurfaceTags(entry.surfaces)
+			|| (entry.notes && entry.notes.trim());
+
+		if (!isNotable) continue;
+
+		const parts: string[] = [];
+		if (entry.condition && entry.condition !== 'healthy') {
+			parts.push(dentalTags.getLabel(entry.condition));
+		}
+		const surfaceInfo = parseSurfaceTags(entry.surfaces);
+		if (surfaceInfo.length > 0) {
+			parts.push(surfaceInfo.map(([s, tag]) => `${s}(${dentalTags.getLabel(tag)})`).join(', '));
+		}
+		if (entry.notes?.trim()) {
+			parts.push(entry.notes.trim());
+		}
+		// fdi is already the FDI number for primary teeth (51–85)
+		primaryLines.push(`${fdi} (${i18n.t.chart.primaryTeeth}): ${parts.join(', ')}`);
+	}
+
+	// ── 4. Assemble ──
 	const allLines: string[] = [];
 	if (groupLines.length > 0) {
 		allLines.push(...groupLines);
@@ -119,6 +144,10 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 	if (toothLines.length > 0) {
 		if (allLines.length > 0) allLines.push('');
 		allLines.push(...toothLines);
+	}
+	if (primaryLines.length > 0) {
+		if (allLines.length > 0) allLines.push('');
+		allLines.push(...primaryLines);
 	}
 
 	if (allLines.length === 0) {

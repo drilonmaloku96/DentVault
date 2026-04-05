@@ -73,6 +73,19 @@ export const FDI_TOOTH_NAMES: Record<number, string> = {
 	43: 'UK rechts – Eckzahn',                  44: 'UK rechts – 1. Prämolar',
 	45: 'UK rechts – 2. Prämolar',              46: 'UK rechts – 1. Molar',
 	47: 'UK rechts – 2. Molar',                 48: 'UK rechts – 3. Molar (Weisheitszahn)',
+	// Primary (deciduous) teeth
+	55: 'OK rechts – 2. Milchmolar',            54: 'OK rechts – 1. Milchmolar',
+	53: 'OK rechts – Milch-Eckzahn',            52: 'OK rechts – Seitl. Milchschneidezahn',
+	51: 'OK rechts – Mittl. Milchschneidezahn',
+	61: 'OK links – Mittl. Milchschneidezahn',  62: 'OK links – Seitl. Milchschneidezahn',
+	63: 'OK links – Milch-Eckzahn',             64: 'OK links – 1. Milchmolar',
+	65: 'OK links – 2. Milchmolar',
+	75: 'UK links – 2. Milchmolar',             74: 'UK links – 1. Milchmolar',
+	73: 'UK links – Milch-Eckzahn',             72: 'UK links – Seitl. Milchschneidezahn',
+	71: 'UK links – Mittl. Milchschneidezahn',
+	81: 'UK rechts – Mittl. Milchschneidezahn', 82: 'UK rechts – Seitl. Milchschneidezahn',
+	83: 'UK rechts – Milch-Eckzahn',            84: 'UK rechts – 1. Milchmolar',
+	85: 'UK rechts – 2. Milchmolar',
 };
 
 // ── FDI clinical charting order ────────────────────────────────────────────
@@ -98,6 +111,58 @@ export function getPrevTooth(universal: number): number | null {
 	const idx = FDI_CHARTING_ORDER.indexOf(universal);
 	if (idx <= 0) return null;
 	return FDI_CHARTING_ORDER[idx - 1];
+}
+
+// ── Primary (deciduous) dentition ──────────────────────────────────────────
+// FDI notation: Q5=51-55 (upper right), Q6=61-65 (upper left),
+//               Q7=71-75 (lower left),  Q8=81-85 (lower right)
+
+/** Returns true if the FDI number refers to a primary (baby) tooth */
+export function isPrimaryTooth(n: number): boolean {
+	return (n >= 51 && n <= 55) || (n >= 61 && n <= 65) ||
+	       (n >= 71 && n <= 75) || (n >= 81 && n <= 85);
+}
+
+/** Maps a primary tooth FDI number to its permanent successor's FDI number.
+ *  Primary molars (54/55 etc.) are replaced by premolars (14/15 etc.). */
+const PRIMARY_TO_SUCCESSOR: Record<number, number> = {
+	51:11, 52:12, 53:13, 54:14, 55:15,
+	61:21, 62:22, 63:23, 64:24, 65:25,
+	71:31, 72:32, 73:33, 74:34, 75:35,
+	81:41, 82:42, 83:43, 84:44, 85:45,
+};
+export function primarySuccessorFDI(fdi: number): number | null {
+	return PRIMARY_TO_SUCCESSOR[fdi] ?? null;
+}
+
+/**
+ * Primary teeth mapped to the 16-slot SVG grid.
+ * Null = no primary tooth for that slot (permanent molar positions 0-2 and 13-15).
+ * Upper: Q5 (55→51) in slots 3-7, Q6 (61→65) in slots 8-12.
+ */
+export const UPPER_PRIMARY: readonly (number | null)[] = [
+	null, null, null, 55, 54, 53, 52, 51, 61, 62, 63, 64, 65, null, null, null,
+] as const;
+
+/**
+ * Lower: Q8 (85→81) in slots 3-7, Q7 (71→75) in slots 8-12.
+ */
+export const LOWER_PRIMARY: readonly (number | null)[] = [
+	null, null, null, 85, 84, 83, 82, 81, 71, 72, 73, 74, 75, null, null, null,
+] as const;
+
+export type DentitionType = 'permanent' | 'mixed' | 'primary';
+
+/**
+ * Returns all tooth identifiers (universal 1–32 for permanent, FDI 51–85 for primary)
+ * for the given dentition type.
+ */
+export function getTeethForDentition(type: DentitionType): number[] {
+	const permanent = Array.from({ length: 32 }, (_, i) => i + 1);
+	const primary = [51, 52, 53, 54, 55, 61, 62, 63, 64, 65, 71, 72, 73, 74, 75, 81, 82, 83, 84, 85];
+	if (type === 'permanent') return permanent;
+	if (type === 'primary')   return primary;
+	return [...permanent, ...primary]; // mixed
 }
 
 // Utility: debounce a function call

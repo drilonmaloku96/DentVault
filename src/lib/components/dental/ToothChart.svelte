@@ -3,7 +3,7 @@
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
 	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
 	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
-	import { toFDI } from '$lib/utils';
+	import { toFDI, UPPER_PRIMARY, LOWER_PRIMARY, isPrimaryTooth } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 
 	let {
@@ -14,6 +14,9 @@
 		onBridgeRangeSelected = undefined,
 		chartingTooth = null,
 		shiftSelectedTeeth = [],
+		showPrimary    = false,
+		showPermanent  = true,
+		showLegend     = true,
 	}: {
 		chartData: ToothChartEntry[];
 		onToothClick: (toothNumber: number, shiftHeld: boolean) => void;
@@ -22,6 +25,9 @@
 		onBridgeRangeSelected?: (teeth: number[]) => void;
 		chartingTooth?: number | null;
 		shiftSelectedTeeth?: number[];
+		showPrimary?: boolean;
+		showPermanent?: boolean;
+		showLegend?: boolean;
 	} = $props();
 
 	// ── Legend groups (derived so they react to i18n changes) ──────────
@@ -32,6 +38,7 @@
 		{ label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
 		{ label: i18n.t.chart.tagGroups.removable,        keys: ['prosthesis'] },
 		{ label: i18n.t.chart.tagGroups.absent,           keys: ['missing', 'extracted'] },
+		{ label: i18n.t.chart.tagGroups.primary,          keys: ['erupting', 'persistent_primary'] },
 	]);
 
 	// ── Layout constants ────────────────────────────────────────────────
@@ -39,10 +46,36 @@
 	const VW = SW * 16;
 	const VH = 304;
 
+	// Dynamic viewBox: primary-only mode crops to the middle zone to eliminate blank space
+	const svgViewBoxY = $derived(!showPermanent && showPrimary ? 110 : 0);
+	const svgViewBoxH = $derived(!showPermanent && showPrimary ?  94 : VH);
+
 	const UPPER_BASE = 108;   // bottom y of upper crowns; roots grow UPWARD from here
 	const ROOT_H     = 36;    // pixel height of roots
 	const LOWER_TOP  = 208;   // top y of lower crowns; roots grow DOWNWARD from here
 	const ARCH_Y     = Math.round((UPPER_BASE + LOWER_TOP) / 2); // midline arch separator (y=158)
+
+	// ── Primary (deciduous) teeth layout — crown-only, no roots ─────────
+	// Centered in the 100px gap between UPPER_BASE (108) and LOWER_TOP (208).
+	const PRIMARY_UPPER_TOP  = 122; // top y of upper primary crowns  (gap: 108–122 = 14px)
+	const PRIMARY_UPPER_BASE = 148; // bottom y of upper primary crowns (crown height = 26px)
+	const PRIMARY_LOWER_TOP  = 168; // top y of lower primary crowns   (gap between: 148–168 = 20px)
+	const PRIMARY_LOWER_BASE = 194; // bottom y of lower primary crowns (crown height = 26px; gap to 208 = 14px)
+
+	// Primary crown widths by slot type (smaller than permanent; P mapped to molar width)
+	const PRIMARY_CROWN_W: Record<ToothType, number> = { M: 22, P: 22, C: 15, I: 13 };
+	const PRIMARY_CROWN_H = 26;
+
+	function primaryGeomUpper(slot: number): ToothGeom {
+		const t = SLOT_TYPE[slot];
+		const w = PRIMARY_CROWN_W[t];
+		return dividedSquare(cx(slot) - w / 2, PRIMARY_UPPER_TOP, w, PRIMARY_CROWN_H);
+	}
+	function primaryGeomLower(slot: number): ToothGeom {
+		const t = SLOT_TYPE[slot];
+		const w = PRIMARY_CROWN_W[t];
+		return dividedSquare(cx(slot) - w / 2, PRIMARY_LOWER_TOP, w, PRIMARY_CROWN_H);
+	}
 
 	// ── Tooth definitions ──────────────────────────────────────────────
 	type ToothType = 'M' | 'P' | 'C' | 'I';
@@ -227,15 +260,32 @@
 		if (!rect.width || !rect.height) return null;
 		return {
 			x: (e.clientX - rect.left) * (VW / rect.width),
-			y: (e.clientY - rect.top) * (VH / rect.height),
+			y: svgViewBoxY + (e.clientY - rect.top) * (svgViewBoxH / rect.height),
 		};
 	}
 
 	function toothAtSVGPoint(x: number, y: number): number | null {
 		const slot = Math.floor(x / SW);
 		if (slot < 0 || slot >= 16) return null;
-		if (y < ARCH_Y) return UPPER[slot];
-		return LOWER[slot];
+
+		if (showPrimary) {
+			// Check upper primary zone (including label area above crown)
+			if (y >= PRIMARY_UPPER_TOP - 8 && y <= PRIMARY_UPPER_BASE) {
+				const pt = UPPER_PRIMARY[slot];
+				if (pt !== null) return pt;
+			}
+			// Check lower primary zone (including label area above crown)
+			if (y >= PRIMARY_LOWER_TOP - 8 && y <= PRIMARY_LOWER_BASE) {
+				const pt = LOWER_PRIMARY[slot];
+				if (pt !== null) return pt;
+			}
+		}
+
+		if (showPermanent) {
+			if (y < ARCH_Y) return UPPER[slot];
+			return LOWER[slot];
+		}
+		return null;
 	}
 
 	function handlePointerDown(e: PointerEvent) {
@@ -288,7 +338,7 @@
 <div class="overflow-x-auto rounded-md">
 	<svg
 		bind:this={svgEl}
-		viewBox="0 0 {VW} {VH}"
+		viewBox="0 {svgViewBoxY} {VW} {svgViewBoxH}"
 		class="w-full"
 		style="min-width:560px; display:block; margin:0 auto; touch-action:none; outline:none;"
 		xmlns="http://www.w3.org/2000/svg"
@@ -394,6 +444,7 @@
 			{/each}
 		</defs>
 
+	{#if showPermanent}
 		<!-- Arch gap separator -->
 		<line x1="0" y1={ARCH_Y} x2={VW} y2={ARCH_Y} stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,6"/>
 		<!-- Midline separator -->
@@ -613,7 +664,150 @@
 			</g><!-- end infraOffset wrapper -->
 		{/each}
 
-		<!-- ── Lower teeth ── -->
+{/if}
+
+				<!-- ── Primary (deciduous) teeth ── -->
+	{#if showPrimary}
+		<!-- Subtle zone separator lines -->
+		<line x1="0" y1={PRIMARY_UPPER_TOP - 6} x2={VW} y2={PRIMARY_UPPER_TOP - 6}
+			stroke="#99f6e4" stroke-width="0.8" stroke-dasharray="3,8" pointer-events="none"/>
+		<line x1="0" y1={PRIMARY_LOWER_BASE + 6} x2={VW} y2={PRIMARY_LOWER_BASE + 6}
+			stroke="#99f6e4" stroke-width="0.8" stroke-dasharray="3,8" pointer-events="none"/>
+		<!-- Zone label -->
+		<text x="6" y={Math.round((PRIMARY_UPPER_BASE + PRIMARY_LOWER_TOP) / 2) + 3}
+			font-size="6.5" fill="#0d9488" font-style="italic" font-family="sans-serif"
+			class="pointer-events-none select-none">{i18n.t.chart.primaryTeeth}</text>
+
+		<!-- Upper primary teeth -->
+		{#each UPPER_PRIMARY as tooth, slot}
+			{#if tooth !== null}
+				{@const cond      = getCondition(tooth)}
+				{@const entry     = getEntry(tooth)}
+				{@const surfs     = parseSurfaces(entry?.surfaces ?? '{}')}
+				{@const g         = primaryGeomUpper(slot)}
+				{@const sel       = selectedTooth === tooth}
+				{@const isAbsent  = cond === 'missing' || cond === 'extracted'}
+				{@const sc        = sel ? '#2563eb' : (isAbsent ? '#94a3b8' : dentalTags.getStroke(cond))}
+				{@const crownFallback = cond === 'root_canal' ? 'healthy' : cond}
+				{@const leftSurf  = slot < 8 ? 'D' : 'M'}
+				{@const rightSurf = slot < 8 ? 'M' : 'D'}
+
+				<!-- FDI label above crown -->
+				<text x={cx(slot)} y={PRIMARY_UPPER_TOP - 4}
+					font-size="7.5" fill={sel ? '#2563eb' : '#0d9488'}
+					text-anchor="middle" font-family="sans-serif"
+					font-weight={sel ? '700' : '400'}
+					class="pointer-events-none select-none">{tooth}</text>
+
+				<g class="cursor-pointer" filter={sel ? 'url(#tooth-selected)' : undefined}
+					aria-label="Tooth {tooth}">
+					{#if !isAbsent}
+						<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
+						<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
+						<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
+						<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
+						<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+						<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox}        y1={g.oy}        x2={g.ix}        y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox+g.ow}   y1={g.oy}        x2={g.ix+g.iw}   y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox+g.ow}   y1={g.oy+g.oh}   x2={g.ix+g.iw}   y2={g.iy+g.ih}   stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox}        y1={g.oy+g.oh}   x2={g.ix}        y2={g.iy+g.ih}   stroke={sc} stroke-width="0.7" opacity="0.55"/>
+					{/if}
+					<rect x={g.ox} y={g.oy} width={g.ow} height={g.oh}
+						fill="none" stroke={sc}
+						stroke-width={sel ? 2 : 1.5}
+						stroke-dasharray={isAbsent ? '3,3' : undefined}
+						rx="2"/>
+					{#if cond === 'extracted'}
+						<line x1={g.ox+3} y1={g.oy+3} x2={g.ox+g.ow-3} y2={g.oy+g.oh-3} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+						<line x1={g.ox+g.ow-3} y1={g.oy+3} x2={g.ox+3} y2={g.oy+g.oh-3} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					{:else if cond === 'missing'}
+						<line x1={g.ox+g.ow*0.25} y1={g.oy+g.oh*0.5} x2={g.ox+g.ow*0.75} y2={g.oy+g.oh*0.5}
+							stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					{/if}
+					{#if sel && selectedSurface}
+						<polygon
+							points={
+								selectedSurface === 'B' ? g.pTop :
+								selectedSurface === 'L' ? g.pBot :
+								selectedSurface === leftSurf ? g.pLeft :
+								selectedSurface === rightSurf ? g.pRight :
+								g.pCenter
+							}
+							fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"
+							pointer-events="none"/>
+					{/if}
+				</g>
+			{/if}
+		{/each}
+
+		<!-- Lower primary teeth -->
+		{#each LOWER_PRIMARY as tooth, slot}
+			{#if tooth !== null}
+				{@const cond      = getCondition(tooth)}
+				{@const entry     = getEntry(tooth)}
+				{@const surfs     = parseSurfaces(entry?.surfaces ?? '{}')}
+				{@const g         = primaryGeomLower(slot)}
+				{@const sel       = selectedTooth === tooth}
+				{@const isAbsent  = cond === 'missing' || cond === 'extracted'}
+				{@const sc        = sel ? '#2563eb' : (isAbsent ? '#94a3b8' : dentalTags.getStroke(cond))}
+				{@const crownFallback = cond === 'root_canal' ? 'healthy' : cond}
+				{@const leftSurf  = slot < 8 ? 'D' : 'M'}
+				{@const rightSurf = slot < 8 ? 'M' : 'D'}
+
+				<!-- FDI label above lower primary crown (in inter-primary gap) -->
+				<text x={cx(slot)} y={PRIMARY_LOWER_TOP - 3}
+					font-size="7.5" fill={sel ? '#2563eb' : '#0d9488'}
+					text-anchor="middle" font-family="sans-serif"
+					font-weight={sel ? '700' : '400'}
+					class="pointer-events-none select-none">{tooth}</text>
+
+				<g class="cursor-pointer" filter={sel ? 'url(#tooth-selected)' : undefined}
+					aria-label="Tooth {tooth}">
+					{#if !isAbsent}
+						<!-- Lower: L=pTop (tongue side = top), B=pBot (cheek side = bottom) -->
+						<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
+						<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
+						<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
+						<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
+						<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+						<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox}        y1={g.oy}        x2={g.ix}        y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox+g.ow}   y1={g.oy}        x2={g.ix+g.iw}   y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox+g.ow}   y1={g.oy+g.oh}   x2={g.ix+g.iw}   y2={g.iy+g.ih}   stroke={sc} stroke-width="0.7" opacity="0.55"/>
+						<line x1={g.ox}        y1={g.oy+g.oh}   x2={g.ix}        y2={g.iy+g.ih}   stroke={sc} stroke-width="0.7" opacity="0.55"/>
+					{/if}
+					<rect x={g.ox} y={g.oy} width={g.ow} height={g.oh}
+						fill="none" stroke={sc}
+						stroke-width={sel ? 2 : 1.5}
+						stroke-dasharray={isAbsent ? '3,3' : undefined}
+						rx="2"/>
+					{#if cond === 'extracted'}
+						<line x1={g.ox+3} y1={g.oy+3} x2={g.ox+g.ow-3} y2={g.oy+g.oh-3} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+						<line x1={g.ox+g.ow-3} y1={g.oy+3} x2={g.ox+3} y2={g.oy+g.oh-3} stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					{:else if cond === 'missing'}
+						<line x1={g.ox+g.ow*0.25} y1={g.oy+g.oh*0.5} x2={g.ox+g.ow*0.75} y2={g.oy+g.oh*0.5}
+							stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
+					{/if}
+					{#if sel && selectedSurface}
+						<polygon
+							points={
+								selectedSurface === 'L' ? g.pTop :
+								selectedSurface === 'B' ? g.pBot :
+								selectedSurface === leftSurf ? g.pLeft :
+								selectedSurface === rightSurf ? g.pRight :
+								g.pCenter
+							}
+							fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"
+							pointer-events="none"/>
+					{/if}
+				</g>
+			{/if}
+		{/each}
+	{/if}
+
+{#if showPermanent}
+	<!-- ── Lower teeth ── -->
 		{#each LOWER as tooth, slot}
 			{@const cond      = getCondition(tooth)}
 			{@const entry     = getEntry(tooth)}
@@ -762,10 +956,12 @@
 				class="pointer-events-none select-none"
 			>{toFDI(tooth)}</text>
 		{/each}
+	{/if}
 	</svg>
 </div>
 
 <!-- ── Condition legend — grouped by clinical category ── -->
+{#if showLegend}
 <div class="mt-3 px-1 flex flex-col gap-1.5">
 	{#each LEGEND_GROUPS as group}
 		{@const groupTags = dentalTags.list.filter(t => group.keys.includes(t.key))}
@@ -827,3 +1023,4 @@
 		</div>
 	{/if}
 </div>
+{/if}

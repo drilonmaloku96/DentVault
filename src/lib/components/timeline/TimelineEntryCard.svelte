@@ -225,133 +225,133 @@
 		></div>
 	</div>
 
-	<!-- ── Document entry — compact clickable card ── -->
+	<!-- ── Document entry — slim inline file row ── -->
 	{#if entry.entry_type === 'document'}
-		<div class="mb-4 flex-1 rounded-lg border bg-card shadow-xs overflow-hidden">
-			<div class="flex items-center gap-3 p-3">
+		<div class="mb-1 flex-1">
+			<!-- Single compact row -->
+			<div class="group/doc flex items-center gap-2 rounded py-1 -mx-1 px-1 hover:bg-muted/20 transition-colors">
 
-				<!-- Thumbnail / file icon -->
+				<!-- File icon / tiny image thumbnail -->
 				{#if docFile && isImageMime(docFile.mime)}
 					<button
 						type="button"
 						onclick={handleImageClick}
-						class="shrink-0 h-14 w-14 rounded-md border overflow-hidden bg-muted hover:opacity-80 transition-opacity"
-						title="Click to preview · Double-click to open"
+						class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted hover:opacity-75 transition-opacity"
+						title="Click to preview"
 					>
-						<img
-							src={fileToAssetUrl(resolvedDocPath)}
-							alt={docFile.name}
-							class="h-full w-full object-cover"
-						/>
+						<img src={fileToAssetUrl(resolvedDocPath)} alt={docFile.name} class="h-full w-full object-cover"/>
 					</button>
 				{:else}
-					<div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border bg-muted text-2xl select-none">
-						{mimeIcon(docFile?.mime ?? '')}
-					</div>
+					<span class="shrink-0 text-sm leading-none select-none text-muted-foreground/50">{mimeIcon(docFile?.mime ?? '')}</span>
 				{/if}
 
-				<!-- Metadata -->
-				<div class="flex-1 min-w-0">
-					<!-- Badges row -->
-					<div class="flex flex-wrap items-center gap-1.5 mb-1">
-						<span
-							class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${cfg.bgClass ?? ''} ${cfg.textClass ?? ''}`}
-							style={cfgStyle}
+				<!-- Filename -->
+				<span class="text-[13px] font-medium truncate flex-1 leading-none" title={entry.title}>{entry.title}</span>
+
+				<!-- Category badge (no redundant "File" label) -->
+				{#if entry.treatment_category}
+					<span class="shrink-0 inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[10px] font-medium opacity-70 {docCatColor}">{docCatIcon} {docCatLabel}</span>
+				{/if}
+
+				<!-- Date (editable) · size -->
+				<div class="flex items-center gap-1 text-[11px] text-muted-foreground/50 shrink-0 tabular-nums">
+					{#if editingDate}
+						<!-- svelte-ignore a11y_autofocus -->
+						<input
+							type="date"
+							value={pendingDate}
+							oninput={(e) => (pendingDate = (e.target as HTMLInputElement).value)}
+							onblur={commitDateEdit}
+							onkeydown={onDateInputKeydown}
+							autofocus
+							class="text-[11px] border rounded px-1 py-px bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring/50"
+						/>
+						<button type="button" onclick={cancelDateEdit} class="hover:text-foreground transition-colors">{i18n.t.actions.cancel}</button>
+					{:else}
+						<button
+							type="button"
+							onclick={onDateChange ? startDateEdit : undefined}
+							class={onDateChange ? 'hover:text-foreground hover:underline cursor-pointer group/date flex items-center gap-1 transition-colors' : 'cursor-default'}
+							title={onDateChange ? 'Click to change date' : undefined}
 						>
-							{cfg.icon} {cfg.label}
-						</span>
-						{#if entry.treatment_category}
-							<span class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${docCatColor}`}>
-								{docCatIcon} {docCatLabel}
-							</span>
-						{/if}
-					</div>
-
-					<!-- Filename -->
-					<p class="text-sm font-medium leading-tight truncate" title={entry.title}>
-						{entry.title}
-					</p>
-
-					<!-- Date · size · notes -->
-					<div class="flex flex-wrap items-center gap-x-2 mt-0.5 text-xs text-muted-foreground">
-						{#if editingDate}
-							<!-- svelte-ignore a11y_autofocus -->
-							<input
-								type="date"
-								value={pendingDate}
-								oninput={(e) => (pendingDate = (e.target as HTMLInputElement).value)}
-								onblur={commitDateEdit}
-								onkeydown={onDateInputKeydown}
-								autofocus
-								class="text-xs border rounded px-1.5 py-0.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring/50 focus:border-ring"
-							/>
-							<button type="button" onclick={cancelDateEdit} class="text-muted-foreground/60 hover:text-muted-foreground text-xs transition-colors">
-								{i18n.t.actions.cancel}
-							</button>
-						{:else}
-							<button
-								type="button"
-								onclick={onDateChange ? startDateEdit : undefined}
-								class={[
-									'transition-colors',
-									onDateChange ? 'hover:text-foreground hover:underline cursor-pointer group/date flex items-center gap-1' : 'cursor-default',
-								].join(' ')}
-								title={onDateChange ? 'Click to change date' : undefined}
-							>
-								{formatDate(entry.entry_date)}
-								{#if onDateChange}
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5 opacity-0 group-hover/date:opacity-50 transition-opacity">
-										<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-									</svg>
-								{/if}
-							</button>
-						{/if}
-						{#if docFile?.size}
-							<span>· {formatFileSize(docFile.size)}</span>
-						{/if}
-						{#if entry.description}
-							<span class="truncate max-w-[200px]">· {entry.description}</span>
-						{/if}
-					</div>
+							{formatDate(entry.entry_date)}
+							{#if onDateChange}
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-2 w-2 opacity-0 group-hover/date:opacity-40 transition-opacity">
+									<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+								</svg>
+							{/if}
+						</button>
+					{/if}
+					{#if docFile?.size}<span>· {formatFileSize(docFile.size)}</span>{/if}
 				</div>
 
-				<!-- Open button -->
+				<!-- Open — icon-only, fades in on row hover -->
 				{#if docFile && resolvedDocPath}
 					<button
 						type="button"
 						onclick={handleOpenFile}
-						class="shrink-0 inline-flex items-center gap-1.5 rounded-md border bg-muted px-2.5 py-1.5 text-xs font-medium hover:bg-muted/80 transition-colors"
-						title="Open with default application"
+						class="shrink-0 opacity-0 group-hover/doc:opacity-60 hover:!opacity-100 rounded p-0.5 text-muted-foreground transition-all"
+						title={i18n.t.actions.open}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
 							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
 							<polyline points="15 3 21 3 21 9"/>
 							<line x1="10" y1="14" x2="21" y2="3"/>
 						</svg>
-						{i18n.t.actions.open}
 					</button>
 				{/if}
+
+				<!-- 3-dot menu (delete) -->
+				<div class="relative shrink-0">
+					<button
+						type="button"
+						onclick={() => (menuOpen = !menuOpen)}
+						class="h-5 w-5 flex items-center justify-center rounded opacity-0 group-hover/doc:opacity-100 text-muted-foreground/40 hover:text-muted-foreground transition-all"
+						title="More options"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+							<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+						</svg>
+					</button>
+					{#if menuOpen}
+						<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
+						<div class="absolute right-0 top-full mt-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
+							<button
+								type="button"
+								onclick={() => { menuOpen = false; onDelete(entry); }}
+								class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+									<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+								</svg>
+								{i18n.t.actions.delete}
+							</button>
+						</div>
+					{/if}
+				</div>
 			</div>
+
+			<!-- Description (if any) -->
+			{#if entry.description}
+				<p class="mt-0.5 ml-1 pl-5 text-[11px] text-muted-foreground/50 truncate">{entry.description}</p>
+			{/if}
 
 			<!-- Expanded image preview -->
 			{#if imageExpanded && docFile && isImageMime(docFile.mime) && resolvedDocPath}
-				<div bind:this={expandedImageEl} class="border-t bg-black/5 dark:bg-white/5 p-2">
+				<div bind:this={expandedImageEl} class="mt-1 ml-1 rounded-md overflow-hidden border bg-black/5 dark:bg-white/5">
 					<button
 						type="button"
 						onclick={handleImageClick}
 						ondblclick={(e) => { e.preventDefault(); handleOpenFile(); }}
-						class="block w-full rounded overflow-hidden cursor-zoom-in"
+						class="block w-full cursor-zoom-in"
 						title="Click to close · Double-click to open in app"
 					>
 						<img
 							src={fileToAssetUrl(resolvedDocPath)}
 							alt={docFile.name}
-							class="w-full max-h-[480px] object-contain rounded"
+							class="w-full max-h-[480px] object-contain"
 						/>
 					</button>
-					<p class="mt-1.5 text-center text-[10px] text-muted-foreground/50 select-none">
-						{i18n.t.actions.close} · {i18n.t.actions.open}
-					</p>
 				</div>
 			{/if}
 		</div>
