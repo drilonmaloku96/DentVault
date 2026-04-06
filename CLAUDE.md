@@ -23,7 +23,7 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Colors**: oklch CSS custom properties in `src/app.css`
 - **shadcn-svelte**: components at `$lib/components/ui/`, install with `npx shadcn-svelte@1.1.1 add <name> -y`
 - **DB access**: exclusively through `src/lib/services/db.ts`, positional `$1, $2` params
-- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **41**.
+- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **45**.
 - **Types**: all interfaces in `src/lib/types.ts`
 - **Type check**: `npm run check` must pass with 0 errors after every change
 - **`untrack()`**: use in `$state()` initializers when reading props to suppress "captures initial value" warning
@@ -32,6 +32,12 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Opening files externally**: do NOT use `openPath` from `@tauri-apps/plugin-opener` — it silently fails. Use `invoke('open_file_native', { path })` in `src/lib/services/files.ts`.
 - **Timeline polling (silent refresh)**: only show the loading skeleton when `entries.length === 0` (first load). Background polling must NOT set `isLoading = true` when entries already exist.
 - **Scroll to revealed element after image expand**: call `scrollIntoView` AFTER awaiting the image `load` event. Pattern: `if (!img.complete) await new Promise(r => img.addEventListener('load', r, { once: true }))` before measuring.
+- **Surface map format (dental chart)**: `dental_chart.surfaces` is a JSON object whose values are either a legacy `string` (tag key) or an extended object `{ tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean }`. Both `ToothDetailPanel.svelte` and `ToothChart.svelte` expose helpers `getSurfTag(v)`, `getSurfData(v)`, `getSurfFill(surfs, key, fallback)`, `isSurfInsufficient(surfs, key)`, `isSurfForeign(surfs, key)` that normalise both forms. Always use these helpers — never cast surfaces directly to `Record<string, string>`.
+- **`inlay` and `inlay_planned`** are surface-capable dental tag keys (purple, shortcuts N / J). Treat them the same as `filled` wherever filling-material logic applies (`FILLING_TAGS` set in `ToothDetailPanel`).
+- **Surface material visual**: Tag color is the background fill; material is shown as diagonal hatch overlay (`mat-hatch-{key}` SVG patterns in `<defs>`). Helpers: `getSurfMaterialKey(surfs, key)` in `ToothChart.svelte` returns the material key for per-surface hatch rendering; `getSurfMaterialColor()` still exists but is only used for the detail panel grid buttons. `filled`, `inlay`, `inlay_planned`, and `root_canal` are in `RENDER_CRITICAL_TAGS` — cannot be deleted, only renamed/recolored.
+- **Whole-tooth filling material**: Stored in `surfaceMap['*']` (special key, never a real surface). `ToothDetailPanel` reads/writes `'*'` when condition is a filling tag and no surface-level filling tags exist. `filledSurfaceKeys` excludes `'*'`. SVG renders whole-tooth hatch first, then per-surface hatch on top. Export pipeline: `exportPatient` / `generatePatientHTML` / `renderChartSVG` all accept `FillingMaterialConfig[]` — call sites in `PatientExportDialog.svelte` and `settings/+page.svelte` must pass `fillingMaterials.list`.
+- **Shortcut cycling**: `_shortcutCycle: Map<string, number>` in `DentalChartView` — pressing the same shortcut key cycles through all tags sharing that shortcut. Cleared when switching tooth.
+- **`<select>` value binding in Svelte 5**: Use `selected={value === opt.key}` on each `<option>` rather than `value={...}` on the `<select>` — the latter doesn't reliably update the displayed selection on reactive re-renders.
 - **`provider` field deprecated**: free-text `provider` column no longer shown in UI. Use `doctor_id` + `colleague_ids`. Legacy `provider` shown with "(legacy)" label in expanded entry view only.
 - **`TimelineEntryType` is now `string`**: loosened from strict union. `SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot'])` identifies system-only types. Legacy strings ('visit', 'procedure', etc.) via `LEGACY_LABELS` in `entryTypes.svelte.ts`.
 - **Timeline filter bar**: "Filter by" dropdown button (searchable, checkboxed types + doctors, grouped) + free-text/date search input (`searchQuery`). State: `activeFilters: Set<string>`, `activeDoctorId: number | null`, `filterDropdownOpen`, `filterSearch`, `searchQuery`.
@@ -178,6 +184,10 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 - **Entry & Appointment Types (unified)** — `entryTypes` store is a thin derived view over `appointmentTypes.active`. One list for both timeline entry type dropdown and scheduler. `entryTypes.load()` is a no-op — `appointmentTypes.load()` handles loading. `TimelineEntryCard` uses `appointmentTypes.active.find(t => t.name === entry.entry_type)` for hex color; legacy types use `STATIC_TYPE_CONFIG`.
 - **Bridge Appearance** — `bridgeRoles` store (`src/lib/stores/bridgeRoles.svelte.ts`), 3 roles. Key: `'bridge_role_configs'`
 - **Prosthesis Type Appearance** — `prosthesisTypes` store (`src/lib/stores/prosthesisTypes.svelte.ts`), 2 types. Key: `'prosthesis_type_configs'`
+- **Post Types (root canal pins)** — `postTypes` store (`src/lib/stores/postTypes.svelte.ts`), 3 defaults. Key: `'post_type_configs'`. Settings › Chart.
+- **Endo Instrument Types** — `endoInstruments` store (`src/lib/stores/endoInstruments.svelte.ts`), 4 defaults. Key: `'endo_instrument_types'`. Settings › Chart.
+- **Filling Materials** — `fillingMaterials` store (`src/lib/stores/fillingMaterials.svelte.ts`), 6 defaults (composite, amalgam, gold, ceramic, glass_ionomer, temporary). Key: `'filling_material_configs'`. Settings › Chart. Surface values are backward-compatible: `string` (legacy tag key) or `{ tag, material?, origin?, insufficient? }` (extended). Helpers `getSurfTag()` / `getSurfData()` normalise both forms. `inlay` + `inlay_planned` added to `DEFAULT_DENTAL_TAGS` (shortcuts N / J).
+- **Tooth Notes** — `tooth_notes` table (v45): per-tooth timestamped notes with optional `reminder_date`. DB functions: `getToothNotes`, `saveToothNote`, `deleteToothNote`, `getAllToothNotesForPatient`, `getTeethWithNotes`, `getTeethWithDueReminders`. SVG: amber dot = has notes, red dot = overdue reminder. `DentalChartView` passes `teethWithNotes`/`teethWithDueReminders` sets to `ToothChart`. Refreshed via `onNotesChanged` callback from `ToothDetailPanel`.
 - **"Reset to Defaults" buttons removed** from Settings — `DEFAULT_*` constants kept for onboarding only
 
 ### Checklist for New Features
@@ -192,9 +202,9 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 
 ## Data Model — DB Schema Overview
 
-Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 41`.
+Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 45`.
 
-**Key tables:** `patients`, `timeline_entries`, `treatment_plans`, `treatment_plan_items`, `documents`, `dental_chart`, `settings`, `doctors`, `ortho_classifications`, `entry_teeth`, `complications`, `dental_chart_history`, `probing_records`, `probing_measurements`, `probing_tooth_data`, `patient_conditions`, `appointment_rooms`, `appointments`, `schedule_blocks`, `staff_blockouts`, `doctor_working_hours`
+**Key tables:** `patients`, `timeline_entries`, `treatment_plans`, `treatment_plan_items`, `documents`, `dental_chart`, `settings`, `doctors`, `ortho_classifications`, `entry_teeth`, `complications`, `dental_chart_history`, `probing_records`, `probing_measurements`, `probing_tooth_data`, `patient_conditions`, `appointment_rooms`, `appointments`, `schedule_blocks`, `staff_blockouts`, `doctor_working_hours`, `endo_records`, `endo_canals`, `tooth_notes`, `endo_records`, `endo_canals`
 
 See `docs/claude/DB_SCHEMA.md` for full per-version descriptions and all DB function signatures.
 
@@ -243,6 +253,16 @@ The left sidebar (`src/routes/+layout.svelte`):
 ---
 
 ## What to Build Next
+
+**Clinical Charting Roadmap** (see `docs/claude/ROADMAP_CLINICAL_CHARTING.md` for full spec):
+- [x] Stage 1 — Root Canal Granularity (per-canal status, apex focus, post types)
+- [x] Stage 2 — Endo Documentation Module (`endo_records` + `endo_canals`, `EndoDocDialog`)
+- [x] Stage 3 — Filling Material & Insufficiency (`fillingMaterials` store, extended surface JSON, material panel, SVG hatching/opacity)
+- [x] Stage 4 — Multi-Entry Tooth Notes + Reminder Dates (`tooth_notes` table, red/amber dot SVG indicators)
+- [x] Stage 5 — DMFT Score & Caries Sub-Types (derived, no schema change)
+- [x] Stage 6 — MIH Recording (hard-coded `mih` tag with grade 1–4, surface JSON, grade picker panel, SVG labels)
+- [x] Stage 7 — Tooth Position & Foreign Work Flag (4 columns on `dental_chart`)
+- [ ] Stage 8 — Tooth Color Recording & Quick-Entry Presets (`shade_manufacturers`, `tooth_shades`)
 
 **Phase 7 — remaining:**
 1. Multi-user roles — map `doctors` table to login/session concept

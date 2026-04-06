@@ -21,6 +21,9 @@
 	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { prosthesisTypes, type ProsthesisTypeConfig } from '$lib/stores/prosthesisTypes.svelte';
 	import { bridgeRoles, type BridgeRoleConfig } from '$lib/stores/bridgeRoles.svelte';
+	import { postTypes, DEFAULT_POST_TYPES, type PostTypeConfig } from '$lib/stores/postTypes.svelte';
+	import { fillingMaterials, DEFAULT_FILLING_MATERIALS, type FillingMaterialConfig } from '$lib/stores/fillingMaterials.svelte';
+	import { endoInstruments, DEFAULT_ENDO_INSTRUMENTS, type EndoInstrumentConfig } from '$lib/stores/endoInstruments.svelte';
 	import { textBlocks, DEFAULT_TEXT_BLOCKS, type TextBlock } from '$lib/stores/textBlocks.svelte';
 	import { acuteTagOptions, medicalTagOptions, DEFAULT_ACUTE_TAGS, DEFAULT_MEDICAL_TAGS, type ClinicalTag } from '$lib/stores/clinicalTags.svelte';
 	import { complicationTypes, DEFAULT_COMPLICATION_TYPES, type ComplicationType } from '$lib/stores/complicationTypes.svelte';
@@ -529,6 +532,102 @@
 		}
 	}
 
+	// ── Post Types (Root Canal) ────────────────────────────────────────────────────────
+	let draftPostTypes   = $state<PostTypeConfig[]>([]);
+	let isPostSaving     = $state(false);
+	let postSaved        = $state(false);
+
+	$effect(() => {
+		if (!postTypes.loaded) {
+			postTypes.load();
+			return;
+		}
+		draftPostTypes = untrack(() => postTypes.list.map(p => ({ ...p })));
+	});
+
+	function addPostType() {
+		draftPostTypes = [...draftPostTypes, { key: `custom_${Date.now()}`, label: '' }];
+	}
+	function removePostType(i: number) {
+		draftPostTypes = draftPostTypes.filter((_, idx) => idx !== i);
+	}
+	async function handleSavePostTypes() {
+		isPostSaving = true;
+		try {
+			await postTypes.save(draftPostTypes.filter(p => p.label.trim()));
+			postSaved = true;
+			setTimeout(() => (postSaved = false), 2500);
+		} finally {
+			isPostSaving = false;
+		}
+	}
+
+	// ── Filling Materials ──────────────────────────────────────────────────────────────
+	let draftFillingMaterials = $state<FillingMaterialConfig[]>([]);
+	let isFillingMatSaving    = $state(false);
+	let fillingMatSaved       = $state(false);
+
+	$effect(() => {
+		if (!fillingMaterials.loaded) fillingMaterials.load();
+		draftFillingMaterials = fillingMaterials.list.map(m => ({ ...m }));
+	});
+
+	function addFillingMaterial() {
+		draftFillingMaterials.push({ key: crypto.randomUUID(), label: '', color: '#bfdbfe' });
+	}
+	function removeFillingMaterial(i: number) {
+		draftFillingMaterials.splice(i, 1);
+	}
+	async function handleSaveFillingMaterials() {
+		isFillingMatSaving = true;
+		await fillingMaterials.save(draftFillingMaterials.filter(m => m.label.trim()));
+		isFillingMatSaving = false;
+		fillingMatSaved = true;
+		setTimeout(() => fillingMatSaved = false, 2000);
+	}
+
+	// ── Endo Instruments ───────────────────────────────────────────────────────────────
+	let draftEndoInstruments = $state<EndoInstrumentConfig[]>([]);
+	let isEndoInstrSaving    = $state(false);
+	let endoInstrSaved       = $state(false);
+
+	$effect(() => {
+		if (!endoInstruments.loaded) {
+			endoInstruments.load();
+			return;
+		}
+		draftEndoInstruments = untrack(() => endoInstruments.list.map(p => ({ ...p })));
+	});
+
+	function addEndoInstrument() {
+		draftEndoInstruments = [...draftEndoInstruments, { key: `custom_${Date.now()}`, label: '' }];
+	}
+	function removeEndoInstrument(i: number) {
+		draftEndoInstruments = draftEndoInstruments.filter((_, idx) => idx !== i);
+	}
+	async function handleSaveEndoInstruments() {
+		isEndoInstrSaving = true;
+		try {
+			await endoInstruments.save(draftEndoInstruments.filter(t => t.label.trim()));
+			endoInstrSaved = true;
+			setTimeout(() => (endoInstrSaved = false), 2500);
+		} finally {
+			isEndoInstrSaving = false;
+		}
+	}
+
+	// ── DMFT display toggle ────────────────────────────────────────────────────────────
+	let dmftForAdults = $state(true);
+
+	$effect(() => {
+		getSetting('dmft_for_adults').then(v => { dmftForAdults = v !== 'false'; });
+	});
+
+	async function handleDmftToggle(val: boolean) {
+		dmftForAdults = val;
+		await setSetting('dmft_for_adults', val ? 'true' : 'false');
+	}
+
 	// ── Text Blocks ────────────────────────────────────────────────────────────────────
 	let draftBlocks      = $state<TextBlock[]>([]);
 	let isBlocksSaving   = $state(false);
@@ -826,6 +925,7 @@
 				tags,
 				bridgeCfgs,
 				prosthesisCfgs,
+				fillingMaterials.list.map(m => ({ key: m.key, label: m.label, color: m.color })),
 				i18n.code,
 				(pct, text) => { exportProgress = pct; exportProgressText = text; },
 			);
@@ -2464,20 +2564,13 @@
 												placeholder="—"
 												title={tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase()) ? 'Duplicate shortcut' : 'Shortcut key'}
 											/>
-											<span class="text-[10px] text-muted-foreground/70 italic flex-1 min-w-0 truncate">
-												{tag.key === 'bridge' ? i18n.t.chart.tagGroups.bridgeTagNote : i18n.t.chart.tagGroups.prosthesisTagNote}
-											</span>
-											<!-- Whole-tooth toggle -->
 											<button
 												type="button"
-												onclick={() => toggleWholeTooth(i)}
-												class={[
-													'shrink-0 rounded border px-2 h-8 text-[10px] font-medium transition-colors',
-													tag.wholeTooth ? 'bg-amber-100 border-amber-300 text-amber-700' : 'border-border text-muted-foreground hover:border-foreground/40',
-												].join(' ')}
-												title={i18n.t.chart.wholeToothOnly}
+												onclick={() => document.getElementById(tag.key === 'bridge' ? 'section-bridge-appearance' : 'section-prosthesis-appearance')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+												class="flex-1 min-w-0 text-left text-[10px] text-primary/70 hover:text-primary underline underline-offset-2 transition-colors truncate"
+												title={tag.key === 'bridge' ? i18n.t.chart.tagGroups.bridgeTagNote : i18n.t.chart.tagGroups.prosthesisTagNote}
 											>
-												{i18n.t.chart.wholeToothOnly}
+												↓ {tag.key === 'bridge' ? i18n.t.settings.bridgeRoleSettings.title : i18n.t.settings.prosthesisTypeSettings.title}
 											</button>
 										{:else}
 											<!-- Full controls for regular tags -->
@@ -2549,7 +2642,7 @@
 											disabled={isRenderCritical}
 											class="shrink-0 rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
 											aria-label={isRenderCritical ? 'Cannot delete — affects chart rendering' : 'Remove tag'}
-											title={isRenderCritical ? 'Cannot delete — this tag controls special chart rendering (root morphology, connector bars). Color, pattern, label and shortcut can still be changed.' : 'Remove tag'}
+											title={isRenderCritical ? 'Cannot delete — this tag is used by the chart rendering engine or a clinical module (endo docs, filling materials). Color, pattern, label and shortcut can still be changed.' : 'Remove tag'}
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 												<path d="M18 6L6 18M6 6l12 12"/>
@@ -2678,7 +2771,7 @@
 
 
 	<div class="pt-6 pb-2"><Separator /></div>
-	<section class="flex flex-col gap-4">
+	<section id="section-prosthesis-appearance" class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.prosthesisTypeSettings.title}</h2>
 			<p class="text-sm text-muted-foreground">{i18n.t.settings.prosthesisTypeSettings.description}</p>
@@ -2792,7 +2885,7 @@
 
 
 	<div class="pt-6 pb-2"><Separator /></div>
-	<section class="flex flex-col gap-4">
+	<section id="section-bridge-appearance" class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.bridgeRoleSettings.title}</h2>
 			<p class="text-sm text-muted-foreground">{i18n.t.settings.bridgeRoleSettings.description}</p>
@@ -2913,6 +3006,177 @@
 					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.bridgeRoleSettings.saved}</span>
 				{/if}
 			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.fillingMaterials.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.fillingMaterials.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<div class="flex flex-col gap-2">
+				{#each draftFillingMaterials as mat, i}
+					<div class="flex items-center gap-2">
+						<input
+							type="color"
+							bind:value={draftFillingMaterials[i].color}
+							class="h-6 w-8 rounded border border-border cursor-pointer p-0.5"
+							title={i18n.t.settings.fillingMaterials.colorLabel}
+						/>
+						<input
+							type="text"
+							class="border-input bg-background flex h-8 flex-1 rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+							placeholder={i18n.t.settings.fillingMaterials.labelPlaceholder}
+							bind:value={draftFillingMaterials[i].label}
+						/>
+						<button
+							type="button"
+							onclick={() => removeFillingMaterial(i)}
+							class="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+							title={i18n.t.actions.delete}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					</div>
+				{/each}
+			</div>
+			<button
+				type="button"
+				onclick={addFillingMaterial}
+				class="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-foreground/50 hover:text-foreground transition-colors w-full"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.settings.fillingMaterials.add}
+			</button>
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSaveFillingMaterials} disabled={isFillingMatSaving}>
+					{isFillingMatSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if fillingMatSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.endoInstruments.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.endoInstruments.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<div class="flex flex-col gap-2">
+				{#each draftEndoInstruments as ei, i}
+					<div class="flex items-center gap-2">
+						<input
+							type="text"
+							class="border-input bg-background flex h-8 flex-1 rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+							placeholder={i18n.t.settings.endoInstruments.labelPlaceholder}
+							bind:value={draftEndoInstruments[i].label}
+						/>
+						<button
+							type="button"
+							onclick={() => removeEndoInstrument(i)}
+							class="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+							title={i18n.t.actions.delete}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					</div>
+				{/each}
+			</div>
+			<button
+				type="button"
+				onclick={addEndoInstrument}
+				class="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-foreground/50 hover:text-foreground transition-colors w-full"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.settings.endoInstruments.add}
+			</button>
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSaveEndoInstruments} disabled={isEndoInstrSaving}>
+					{isEndoInstrSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if endoInstrSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.postTypes.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.postTypes.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<div class="flex flex-col gap-2">
+				{#each draftPostTypes as pt, i}
+					<div class="flex items-center gap-2">
+						<input
+							type="text"
+							class="border-input bg-background flex h-8 flex-1 rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+							placeholder={i18n.t.settings.postTypes.labelPlaceholder}
+							bind:value={draftPostTypes[i].label}
+						/>
+						<button
+							type="button"
+							onclick={() => removePostType(i)}
+							class="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+							title={i18n.t.actions.delete}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					</div>
+				{/each}
+			</div>
+			<button
+				type="button"
+				onclick={addPostType}
+				class="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-foreground/50 hover:text-foreground transition-colors w-full"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.settings.postTypes.add}
+			</button>
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSavePostTypes} disabled={isPostSaving}>
+					{isPostSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if postSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+	<Separator />
+
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.code === 'de' ? 'DMFT-Index' : 'DMFT Index'}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.code === 'de' ? 'Einstellungen für die automatische DMFT-Berechnung im Zahnschema.' : 'Settings for automatic DMFT index calculation in the dental chart.'}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<label class="flex items-center gap-3 cursor-pointer">
+				<input
+					type="checkbox"
+					class="h-4 w-4 rounded border-border"
+					checked={dmftForAdults}
+					onchange={(e) => handleDmftToggle((e.target as HTMLInputElement).checked)}
+				/>
+				<div>
+					<p class="text-sm font-medium">{i18n.t.settings.chart.dmftForAdults}</p>
+					<p class="text-xs text-muted-foreground">{i18n.code === 'de' ? 'Zeigt D/M/F-Aufschlüsselung im Zahnschema-Header an.' : 'Shows D/M/F breakdown in the dental chart header.'}</p>
+				</div>
+			</label>
 		</div>
 	</section>
 

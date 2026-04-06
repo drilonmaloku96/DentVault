@@ -165,6 +165,27 @@ export function getTeethForDentition(type: DentitionType): number[] {
 	return [...permanent, ...primary]; // mixed
 }
 
+// ── Root canal anatomy ─────────────────────────────────────────────────────
+/**
+ * Returns the root canal names for a given Universal tooth number.
+ * Canals are ordered left-to-right as they appear in the SVG (matches makeRoots order).
+ *
+ * Upper right (Q1) / Lower right (Q4) slots: distal side is visually left.
+ * Upper left (Q2) / Lower left (Q3) slots: mesial side is visually left.
+ * Canal order follows this visual layout for consistent SVG mapping.
+ */
+export function getCanalsForTooth(universal: number): string[] {
+	if (universal > 32) return ['single']; // primary teeth: 1 canal simplified
+	// Upper molars: U1=18, U2=17, U3=16, U14=26, U15=27, U16=28 → 3 canals
+	if ([1, 2, 3, 14, 15, 16].includes(universal)) return ['MB', 'DB', 'P'];
+	// Lower molars: U17=38, U18=37, U19=36, U30=46, U31=47, U32=48 → 2 canals
+	if ([17, 18, 19, 30, 31, 32].includes(universal)) return ['M', 'D'];
+	// Upper premolars: U4=15, U5=14, U12=24, U13=25 → 2 canals
+	if ([4, 5, 12, 13].includes(universal)) return ['B', 'P'];
+	// All others (incisors, canines, lower premolars) → 1 canal
+	return ['single'];
+}
+
 // Utility: debounce a function call
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debounce<T extends (...args: any[]) => any>(

@@ -3,8 +3,9 @@
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
 	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
 	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
-	import { toFDI, UPPER_PRIMARY, LOWER_PRIMARY, isPrimaryTooth } from '$lib/utils';
+	import { toFDI, UPPER_PRIMARY, LOWER_PRIMARY, isPrimaryTooth, getCanalsForTooth } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
+	import { fillingMaterials } from '$lib/stores/fillingMaterials.svelte';
 
 	let {
 		chartData,
@@ -17,6 +18,8 @@
 		showPrimary    = false,
 		showPermanent  = true,
 		showLegend     = true,
+		teethWithNotes = undefined,
+		teethWithDueReminders = undefined,
 	}: {
 		chartData: ToothChartEntry[];
 		onToothClick: (toothNumber: number, shiftHeld: boolean) => void;
@@ -28,6 +31,8 @@
 		showPrimary?: boolean;
 		showPermanent?: boolean;
 		showLegend?: boolean;
+		teethWithNotes?: Set<number>;
+		teethWithDueReminders?: Set<number>;
 	} = $props();
 
 	// ── Legend groups (derived so they react to i18n changes) ──────────
@@ -125,13 +130,81 @@
 		return getEntry(toothNum)?.condition ?? 'healthy';
 	}
 
-	function parseSurfaces(json: string): Partial<Record<string, string>> {
-		try { return JSON.parse(json) as Partial<Record<string, string>>; }
+	// ── Surface data — supports legacy string and extended object format ──
+	interface SurfaceData { tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean; grade?: number }
+	type SurfaceValue = string | SurfaceData;
+
+	function parseSurfaces(json: string): Partial<Record<string, SurfaceValue>> {
+		try { return JSON.parse(json) as Partial<Record<string, SurfaceValue>>; }
 		catch { return {}; }
 	}
-	function surfKey(s: Partial<Record<string, string>>, key: string, fallback: string): string {
-		return s[key] || fallback;
+	function getSurfTag(v: SurfaceValue | undefined): string {
+		if (!v) return '';
+		return typeof v === 'string' ? v : v.tag;
 	}
+	function getSurfFill(s: Partial<Record<string, SurfaceValue>>, key: string, fallback: string): string {
+		const v = s[key];
+		if (!v) return dentalTags.getFill(fallback);
+		const tag = getSurfTag(v);
+		return dentalTags.getFill(tag || fallback);
+	}
+	/** Returns the material hex color for a surface if one is set, otherwise null. */
+	function getSurfMaterialColor(s: Partial<Record<string, SurfaceValue>>, key: string): string | null {
+		const v = s[key];
+		if (!v || typeof v === 'string') return null;
+		if (!v.material) return null;
+		return fillingMaterials.getColor(v.material) ?? null;
+	}
+	function isSurfInsufficient(s: Partial<Record<string, SurfaceValue>>, key: string): boolean {
+		const v = s[key];
+		return typeof v === 'object' && (v.insufficient ?? false);
+	}
+	function isSurfForeign(s: Partial<Record<string, SurfaceValue>>, key: string): boolean {
+		const v = s[key];
+		return typeof v === 'object' && v.origin === 'foreign';
+	}
+	/** Returns the material key for a surface if one is set, otherwise null. */
+	function getSurfMaterialKey(s: Partial<Record<string, SurfaceValue>>, key: string): string | null {
+		const v = s[key];
+		if (!v || typeof v === 'string') return null;
+		return v.material ?? null;
+	}
+
+	/** Returns MIH grade (1–4) if the surface is tagged mih, otherwise null. */
+	function getSurfGrade(s: Partial<Record<string, SurfaceValue>>, key: string): number | null {
+		const v = s[key];
+		if (!v || typeof v === 'string' || v.tag !== 'mih') return null;
+		return v.grade ?? 1;
+	}
+	/** Returns the approximate center {cx,cy} for a given surface key within the tooth geometry.
+	 *  For upper teeth: B→pTop, L→pBot. For lower teeth: L→pTop, B→pBot. */
+	function getSurfCenter(g: ToothGeom, surfKey: string, leftSurf: string, rightSurf: string, isUpper: boolean): { cx: number; cy: number } {
+		const hm = g.m / 2;
+		if (surfKey === 'B') return { cx: g.ox + g.ow / 2, cy: isUpper ? g.oy + hm : g.oy + g.oh - hm };
+		if (surfKey === 'L') return { cx: g.ox + g.ow / 2, cy: isUpper ? g.oy + g.oh - hm : g.oy + hm };
+		if (surfKey === leftSurf)  return { cx: g.ox + hm,             cy: g.oy + g.oh / 2 };
+		if (surfKey === rightSurf) return { cx: g.ox + g.ow - hm,      cy: g.oy + g.oh / 2 };
+		if (surfKey === 'O')       return { cx: g.ix + g.iw / 2,       cy: g.iy + g.ih / 2 };
+		return { cx: g.ox + g.ow / 2, cy: g.oy + g.oh / 2 };
+	}
+
+	// ── Position indicators ──────────────────────────────────────────────
+	const POSITION_ABBR: Record<string, string> = {
+		mesial: 'M', distal: 'D', buccal: 'B', lingual: 'L',
+		superior: '↑', inferior: '↓', clockwise: '↻', counterclockwise: '↺',
+	};
+
+	// ── Root canal per-canal colors ─────────────────────────────────────
+	type RootDataMap = Record<string, { status?: string; post?: string | null; apex?: boolean }>;
+	const CANAL_FILL:   Record<string, string> = { none: '#f5f3ff', filled: '#dbeafe', insufficient: '#fee2e2', dressing: '#fef3c7' };
+	const CANAL_STROKE: Record<string, string> = { none: '#7c3aed', filled: '#3b82f6', insufficient: '#ef4444', dressing: '#d97706' };
+
+	function parseRootData(json: string | undefined): RootDataMap {
+		if (!json) return {};
+		try { return JSON.parse(json) as RootDataMap; } catch { return {}; }
+	}
+	function canalFill(status: string | undefined): string   { return CANAL_FILL[status ?? 'none']   ?? CANAL_FILL.none; }
+	function canalStroke(status: string | undefined): string { return CANAL_STROKE[status ?? 'none'] ?? CANAL_STROKE.none; }
 
 	// ── Divided-square crown geometry ───────────────────────────────────
 	interface ToothGeom {
@@ -347,6 +420,10 @@
 		onpointerup={handlePointerUp}
 	>
 		<defs>
+			<!-- Hatching overlay for insufficient fillings -->
+			<pattern id="surf-insufficient" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+				<line x1="0" y1="0" x2="0" y2="5" stroke="#ef4444" stroke-width="1.5" stroke-opacity="0.55"/>
+			</pattern>
 			<!-- Drop shadow for selected tooth -->
 			<filter id="tooth-selected" x="-30%" y="-30%" width="160%" height="160%">
 				<feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#2563eb" flood-opacity="0.35"/>
@@ -442,7 +519,13 @@
 					</pattern>
 				{/if}
 			{/each}
-		</defs>
+			<!-- Per-filling-material diagonal hatch overlay patterns (no background = transparent) -->
+		{#each fillingMaterials.list as mat}
+			<pattern id="mat-hatch-{mat.key}" patternUnits="userSpaceOnUse" width="5" height="5">
+				<line x1="0" y1="5" x2="5" y2="0" stroke={mat.color} stroke-width="2" stroke-linecap="round"/>
+			</pattern>
+		{/each}
+	</defs>
 
 	{#if showPermanent}
 		<!-- Arch gap separator -->
@@ -515,6 +598,8 @@
 			{@const cond      = getCondition(tooth)}
 			{@const entry     = getEntry(tooth)}
 			{@const surfs     = parseSurfaces(entry?.surfaces ?? '{}')}
+			{@const rootDM    = parseRootData(entry?.root_data)}
+			{@const tCanals   = getCanalsForTooth(tooth)}
 			{@const g         = upperGeom(slot)}
 			{@const sel       = selectedTooth === tooth}
 			{@const charting  = chartingTooth === tooth}
@@ -560,10 +645,13 @@
 							stroke="#4b5563" stroke-width="0.9" pointer-events="none"/>
 					{/each}
 				{:else}
-					{#each makeRoots(cx(slot), CROWN_W[SLOT_TYPE[slot]], ROOT_COUNTS[tooth] ?? 1, g.oy, true) as root}
+					{#each makeRoots(cx(slot), CROWN_W[SLOT_TYPE[slot]], ROOT_COUNTS[tooth] ?? 1, g.oy, true) as root, ri}
+						{@const canalName   = tCanals[ri] ?? 'single'}
+						{@const canalStatus = rootDM[canalName]?.status ?? 'none'}
+						{@const canalApex   = rootDM[canalName]?.apex === true}
 						<polygon
 							points={root.points}
-							fill={cond === 'root_canal' ? '#f5f3ff' : '#f1f5f9'}
+							fill={cond === 'root_canal' ? canalFill(canalStatus) : '#f1f5f9'}
 							stroke={sc}
 							stroke-width="0.9"
 							class="cursor-pointer"
@@ -572,11 +660,15 @@
 							<line
 								x1={root.centerX} y1={g.oy - 2}
 								x2={root.centerX} y2={root.apexY + 3}
-								stroke="#7c3aed" stroke-width="1.5" opacity="0.75"
+								stroke={canalStroke(canalStatus)} stroke-width="1.5" opacity="0.75"
 								pointer-events="none"
 							/>
 							<circle cx={root.centerX} cy={root.apexY + 3} r="1.5"
-								fill="#7c3aed" opacity="0.75" pointer-events="none"/>
+								fill={canalApex ? '#dc2626' : canalStroke(canalStatus)} opacity="0.85" pointer-events="none"/>
+							{#if canalApex}
+								<circle cx={root.centerX} cy={root.apexY + 3} r="3.5"
+									fill="none" stroke="#dc2626" stroke-width="1" opacity="0.7" pointer-events="none"/>
+							{/if}
 						{/if}
 					{/each}
 				{/if}
@@ -589,11 +681,33 @@
 			>
 				{#if !isAbsent}
 				<!-- 5 surface polygons -->
-				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
-				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
-				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
-				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
-				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs, 'B',        crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'B')        ? 0.5 : 1}/>
+				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs, 'L',        crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'L')        ? 0.5 : 1}/>
+				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs, leftSurf,  crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,leftSurf)  ? 0.5 : 1}/>
+				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs, rightSurf, crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,rightSurf) ? 0.5 : 1}/>
+				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs, 'O',        crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'O')        ? 0.5 : 1}/>
+				{#if !bridgeBodyFill && !prosthesisBodyFill}
+					{#if isSurfInsufficient(surfs, 'B')}        <polygon points={g.pTop}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs, 'L')}        <polygon points={g.pBot}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs, leftSurf)}  <polygon points={g.pLeft}   fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs, rightSurf)} <polygon points={g.pRight}  fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs, 'O')}        <polygon points={g.pCenter} fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					<!-- Material hatch overlay -->
+					{@const wm_key = getSurfMaterialKey(surfs,'*')}{#if wm_key}<polygon points={g.pTop} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pBot} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pLeft} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pRight} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pCenter} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_B  = getSurfMaterialKey(surfs,'B')}{#if mk_B}        <polygon points={g.pTop}    fill="url(#mat-hatch-{mk_B})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_L  = getSurfMaterialKey(surfs,'L')}{#if mk_L}        <polygon points={g.pBot}    fill="url(#mat-hatch-{mk_L})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_LS = getSurfMaterialKey(surfs,leftSurf)}{#if mk_LS}  <polygon points={g.pLeft}   fill="url(#mat-hatch-{mk_LS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_RS = getSurfMaterialKey(surfs,rightSurf)}{#if mk_RS} <polygon points={g.pRight}  fill="url(#mat-hatch-{mk_RS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_O  = getSurfMaterialKey(surfs,'O')}{#if mk_O}        <polygon points={g.pCenter} fill="url(#mat-hatch-{mk_O})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					<!-- MIH grade labels -->
+					{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+						{@const mg = getSurfGrade(surfs, sk)}
+						{#if mg !== null}
+							{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, true)}
+							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
+						{/if}
+					{/each}
+				{/if}
 
 				<!-- Structural lines -->
 				<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity={divOp}/>
@@ -660,6 +774,17 @@
 						<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={brCfg.color} font-family="sans-serif" pointer-events="none">{brCfg.badge}</text>
 					{/if}
 				{/if}
+				<!-- Note indicator dot -->
+				{#if teethWithNotes?.has(tooth)}
+					<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+				{/if}
+				<!-- Position indicators -->
+				{#if (entry?.foreign_work ?? 0) === 1}
+					<text x={g.ox + g.ow - 2} y={g.oy + g.oh - 2} text-anchor="end" dominant-baseline="auto" font-size="5" font-weight="700" fill="#2563eb" pointer-events="none" opacity="0.9">F</text>
+				{/if}
+				{#if entry?.migration || entry?.tipping || entry?.rotation}
+					<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
+				{/if}
 			</g>
 			</g><!-- end infraOffset wrapper -->
 		{/each}
@@ -702,11 +827,31 @@
 				<g class="cursor-pointer" filter={sel ? 'url(#tooth-selected)' : undefined}
 					aria-label="Tooth {tooth}">
 					{#if !isAbsent}
-						<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
-						<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
-						<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
-						<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
-						<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+						<polygon points={g.pTop}    fill={getSurfFill(surfs,'B',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'B')        ? 0.5:1}/>
+						<polygon points={g.pBot}    fill={getSurfFill(surfs,'L',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'L')        ? 0.5:1}/>
+						<polygon points={g.pLeft}   fill={getSurfFill(surfs,leftSurf,crownFallback)}  stroke="none" opacity={isSurfForeign(surfs,leftSurf)  ? 0.5:1}/>
+						<polygon points={g.pRight}  fill={getSurfFill(surfs,rightSurf,crownFallback)} stroke="none" opacity={isSurfForeign(surfs,rightSurf) ? 0.5:1}/>
+						<polygon points={g.pCenter} fill={getSurfFill(surfs,'O',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'O')        ? 0.5:1}/>
+						{#if isSurfInsufficient(surfs,'B')}        <polygon points={g.pTop}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,'L')}        <polygon points={g.pBot}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,leftSurf)}  <polygon points={g.pLeft}   fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,rightSurf)} <polygon points={g.pRight}  fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,'O')}        <polygon points={g.pCenter} fill="url(#surf-insufficient)" stroke="none"/>{/if}
+<!-- Material hatch overlay -->
+						{@const wm_key = getSurfMaterialKey(surfs,'*')}{#if wm_key}<polygon points={g.pTop} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pBot} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pLeft} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pRight} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pCenter} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_B  = getSurfMaterialKey(surfs,'B')}{#if mk_B}        <polygon points={g.pTop}    fill="url(#mat-hatch-{mk_B})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_L  = getSurfMaterialKey(surfs,'L')}{#if mk_L}        <polygon points={g.pBot}    fill="url(#mat-hatch-{mk_L})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_LS = getSurfMaterialKey(surfs,leftSurf)}{#if mk_LS}  <polygon points={g.pLeft}   fill="url(#mat-hatch-{mk_LS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_RS = getSurfMaterialKey(surfs,rightSurf)}{#if mk_RS} <polygon points={g.pRight}  fill="url(#mat-hatch-{mk_RS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_O  = getSurfMaterialKey(surfs,'O')}{#if mk_O}        <polygon points={g.pCenter} fill="url(#mat-hatch-{mk_O})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						<!-- MIH grade labels -->
+						{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+							{@const mg = getSurfGrade(surfs, sk)}
+							{#if mg !== null}
+								{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, true)}
+								<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
+							{/if}
+						{/each}
 						<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity="0.55"/>
 						<line x1={g.ox}        y1={g.oy}        x2={g.ix}        y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
 						<line x1={g.ox+g.ow}   y1={g.oy}        x2={g.ix+g.iw}   y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
@@ -737,6 +882,17 @@
 							fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"
 							pointer-events="none"/>
 					{/if}
+					<!-- Note indicator dot -->
+					{#if teethWithNotes?.has(tooth)}
+						<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+					{/if}
+					<!-- Position indicators -->
+					{#if (entry?.foreign_work ?? 0) === 1}
+						<text x={g.ox + g.ow - 2} y={g.oy + g.oh - 2} text-anchor="end" dominant-baseline="auto" font-size="5" font-weight="700" fill="#2563eb" pointer-events="none" opacity="0.9">F</text>
+					{/if}
+					{#if entry?.migration || entry?.tipping || entry?.rotation}
+						<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
+					{/if}
 				</g>
 			{/if}
 		{/each}
@@ -766,11 +922,31 @@
 					aria-label="Tooth {tooth}">
 					{#if !isAbsent}
 						<!-- Lower: L=pTop (tongue side = top), B=pBot (cheek side = bottom) -->
-						<polygon points={g.pTop}    fill={dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
-						<polygon points={g.pBot}    fill={dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
-						<polygon points={g.pLeft}   fill={dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
-						<polygon points={g.pRight}  fill={dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
-						<polygon points={g.pCenter} fill={dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+						<polygon points={g.pTop}    fill={getSurfFill(surfs,'L',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'L')        ? 0.5:1}/>
+						<polygon points={g.pBot}    fill={getSurfFill(surfs,'B',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'B')        ? 0.5:1}/>
+						<polygon points={g.pLeft}   fill={getSurfFill(surfs,leftSurf,crownFallback)}  stroke="none" opacity={isSurfForeign(surfs,leftSurf)  ? 0.5:1}/>
+						<polygon points={g.pRight}  fill={getSurfFill(surfs,rightSurf,crownFallback)} stroke="none" opacity={isSurfForeign(surfs,rightSurf) ? 0.5:1}/>
+						<polygon points={g.pCenter} fill={getSurfFill(surfs,'O',crownFallback)}        stroke="none" opacity={isSurfForeign(surfs,'O')        ? 0.5:1}/>
+						{#if isSurfInsufficient(surfs,'L')}        <polygon points={g.pTop}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,'B')}        <polygon points={g.pBot}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,leftSurf)}  <polygon points={g.pLeft}   fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,rightSurf)} <polygon points={g.pRight}  fill="url(#surf-insufficient)" stroke="none"/>{/if}
+						{#if isSurfInsufficient(surfs,'O')}        <polygon points={g.pCenter} fill="url(#surf-insufficient)" stroke="none"/>{/if}
+<!-- Material hatch overlay -->
+						{@const wm_key = getSurfMaterialKey(surfs,'*')}{#if wm_key}<polygon points={g.pTop} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pBot} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pLeft} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pRight} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pCenter} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_L  = getSurfMaterialKey(surfs,'L')}{#if mk_L}        <polygon points={g.pTop}    fill="url(#mat-hatch-{mk_L})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_B  = getSurfMaterialKey(surfs,'B')}{#if mk_B}        <polygon points={g.pBot}    fill="url(#mat-hatch-{mk_B})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_LS = getSurfMaterialKey(surfs,leftSurf)}{#if mk_LS}  <polygon points={g.pLeft}   fill="url(#mat-hatch-{mk_LS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_RS = getSurfMaterialKey(surfs,rightSurf)}{#if mk_RS} <polygon points={g.pRight}  fill="url(#mat-hatch-{mk_RS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						{@const mk_O  = getSurfMaterialKey(surfs,'O')}{#if mk_O}        <polygon points={g.pCenter} fill="url(#mat-hatch-{mk_O})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+						<!-- MIH grade labels -->
+						{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+							{@const mg = getSurfGrade(surfs, sk)}
+							{#if mg !== null}
+								{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, false)}
+								<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
+							{/if}
+						{/each}
 						<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity="0.55"/>
 						<line x1={g.ox}        y1={g.oy}        x2={g.ix}        y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
 						<line x1={g.ox+g.ow}   y1={g.oy}        x2={g.ix+g.iw}   y2={g.iy}        stroke={sc} stroke-width="0.7" opacity="0.55"/>
@@ -801,6 +977,17 @@
 							fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"
 							pointer-events="none"/>
 					{/if}
+					<!-- Note indicator dot -->
+					{#if teethWithNotes?.has(tooth)}
+						<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+					{/if}
+					<!-- Position indicators -->
+					{#if (entry?.foreign_work ?? 0) === 1}
+						<text x={g.ox + g.ow - 2} y={g.oy + g.oh - 2} text-anchor="end" dominant-baseline="auto" font-size="5" font-weight="700" fill="#2563eb" pointer-events="none" opacity="0.9">F</text>
+					{/if}
+					{#if entry?.migration || entry?.tipping || entry?.rotation}
+						<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
+					{/if}
 				</g>
 			{/if}
 		{/each}
@@ -812,6 +999,8 @@
 			{@const cond      = getCondition(tooth)}
 			{@const entry     = getEntry(tooth)}
 			{@const surfs     = parseSurfaces(entry?.surfaces ?? '{}')}
+			{@const rootDM    = parseRootData(entry?.root_data)}
+			{@const tCanals   = getCanalsForTooth(tooth)}
 			{@const g         = lowerGeom(slot)}
 			{@const sel       = selectedTooth === tooth}
 			{@const charting  = chartingTooth === tooth}
@@ -851,10 +1040,13 @@
 							stroke="#4b5563" stroke-width="0.9" pointer-events="none"/>
 					{/each}
 				{:else}
-					{#each makeRoots(cx(slot), CROWN_W[t], ROOT_COUNTS[tooth] ?? 1, LOWER_TOP + CROWN_H[t], false) as root}
+					{#each makeRoots(cx(slot), CROWN_W[t], ROOT_COUNTS[tooth] ?? 1, LOWER_TOP + CROWN_H[t], false) as root, ri}
+						{@const canalName   = tCanals[ri] ?? 'single'}
+						{@const canalStatus = rootDM[canalName]?.status ?? 'none'}
+						{@const canalApex   = rootDM[canalName]?.apex === true}
 						<polygon
 							points={root.points}
-							fill={cond === 'root_canal' ? '#f5f3ff' : '#f1f5f9'}
+							fill={cond === 'root_canal' ? canalFill(canalStatus) : '#f1f5f9'}
 							stroke={sc}
 							stroke-width="0.9"
 							class="cursor-pointer"
@@ -863,11 +1055,15 @@
 							<line
 								x1={root.centerX} y1={LOWER_TOP + CROWN_H[t] + 2}
 								x2={root.centerX} y2={root.apexY - 3}
-								stroke="#7c3aed" stroke-width="1.5" opacity="0.75"
+								stroke={canalStroke(canalStatus)} stroke-width="1.5" opacity="0.75"
 								pointer-events="none"
 							/>
 							<circle cx={root.centerX} cy={root.apexY - 3} r="1.5"
-								fill="#7c3aed" opacity="0.75" pointer-events="none"/>
+								fill={canalApex ? '#dc2626' : canalStroke(canalStatus)} opacity="0.85" pointer-events="none"/>
+							{#if canalApex}
+								<circle cx={root.centerX} cy={root.apexY - 3} r="3.5"
+									fill="none" stroke="#dc2626" stroke-width="1" opacity="0.7" pointer-events="none"/>
+							{/if}
 						{/if}
 					{/each}
 				{/if}
@@ -879,11 +1075,33 @@
 				aria-label="Tooth {toFDI(tooth)}"
 			>
 				{#if !isAbsent}
-				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'L', crownFallback))} stroke="none"/>
-				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'B', crownFallback))} stroke="none"/>
-				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, leftSurf, crownFallback))} stroke="none"/>
-				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, rightSurf, crownFallback))} stroke="none"/>
-				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? dentalTags.getFill(surfKey(surfs, 'O', crownFallback))} stroke="none"/>
+				<polygon points={g.pTop}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs,'L',crownFallback)}        stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'L')        ? 0.5:1}/>
+				<polygon points={g.pBot}    fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs,'B',crownFallback)}        stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'B')        ? 0.5:1}/>
+				<polygon points={g.pLeft}   fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs,leftSurf,crownFallback)}  stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,leftSurf)  ? 0.5:1}/>
+				<polygon points={g.pRight}  fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs,rightSurf,crownFallback)} stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,rightSurf) ? 0.5:1}/>
+				<polygon points={g.pCenter} fill={bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFill(surfs,'O',crownFallback)}        stroke="none" opacity={!bridgeBodyFill && !prosthesisBodyFill && isSurfForeign(surfs,'O')        ? 0.5:1}/>
+				{#if !bridgeBodyFill && !prosthesisBodyFill}
+					{#if isSurfInsufficient(surfs,'L')}        <polygon points={g.pTop}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs,'B')}        <polygon points={g.pBot}    fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs,leftSurf)}  <polygon points={g.pLeft}   fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs,rightSurf)} <polygon points={g.pRight}  fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					{#if isSurfInsufficient(surfs,'O')}        <polygon points={g.pCenter} fill="url(#surf-insufficient)" stroke="none"/>{/if}
+					<!-- Material hatch overlay -->
+					{@const wm_key = getSurfMaterialKey(surfs,'*')}{#if wm_key}<polygon points={g.pTop} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pBot} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pLeft} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pRight} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/><polygon points={g.pCenter} fill="url(#mat-hatch-{wm_key})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_L  = getSurfMaterialKey(surfs,'L')}{#if mk_L}        <polygon points={g.pTop}    fill="url(#mat-hatch-{mk_L})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_B  = getSurfMaterialKey(surfs,'B')}{#if mk_B}        <polygon points={g.pBot}    fill="url(#mat-hatch-{mk_B})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_LS = getSurfMaterialKey(surfs,leftSurf)}{#if mk_LS}  <polygon points={g.pLeft}   fill="url(#mat-hatch-{mk_LS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_RS = getSurfMaterialKey(surfs,rightSurf)}{#if mk_RS} <polygon points={g.pRight}  fill="url(#mat-hatch-{mk_RS})" stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					{@const mk_O  = getSurfMaterialKey(surfs,'O')}{#if mk_O}        <polygon points={g.pCenter} fill="url(#mat-hatch-{mk_O})"  stroke="none" pointer-events="none" opacity="0.6"/>{/if}
+					<!-- MIH grade labels -->
+					{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+						{@const mg = getSurfGrade(surfs, sk)}
+						{#if mg !== null}
+							{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, false)}
+							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
+						{/if}
+					{/each}
+				{/if}
 
 				<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity={divOp}/>
 				<line x1={g.ox}         y1={g.oy}         x2={g.ix}         y2={g.iy}         stroke={sc} stroke-width="0.7" opacity={divOp}/>
@@ -945,6 +1163,17 @@
 						<circle cx={g.ox + g.ow - 3.5} cy={g.oy + 3.5} r="3.5" fill="white" stroke={brCfg.color} stroke-width="0.9" pointer-events="none"/>
 						<text x={g.ox + g.ow - 3.5} y={g.oy + 5.5} font-size="4.5" font-weight="bold" text-anchor="middle" fill={brCfg.color} font-family="sans-serif" pointer-events="none">{brCfg.badge}</text>
 					{/if}
+				{/if}
+				<!-- Note indicator dot -->
+				{#if teethWithNotes?.has(tooth)}
+					<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+				{/if}
+				<!-- Position indicators -->
+				{#if (entry?.foreign_work ?? 0) === 1}
+					<text x={g.ox + g.ow - 2} y={g.oy + g.oh - 2} text-anchor="end" dominant-baseline="auto" font-size="5" font-weight="700" fill="#2563eb" pointer-events="none" opacity="0.9">F</text>
+				{/if}
+				{#if entry?.migration || entry?.tipping || entry?.rotation}
+					<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
 				{/if}
 			</g>
 			</g><!-- end infraOffset wrapper -->

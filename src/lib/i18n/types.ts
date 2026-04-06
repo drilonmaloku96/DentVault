@@ -117,8 +117,58 @@ export interface Translations {
 		surfaces: { B: string; O: string; L: string; M: string; D: string };
 		conditionHistory: string; noHistory: string;
 		lastExamined: string; toothNotes: string;
+		addNote: string;
+		editNote: string;
+		deleteNote: string;
+		deleteNoteConfirm: string;
+		reminderDate: string;
+		reminderDue: string;
+		noNotes: string;
+		saveNote: string;
+		cancelNote: string;
 		selectSurfaces: string; clearSurfaces: string;
 		wholeToothOnly: string;
+		applyingTo: string; wholeTooth: string; resetToHealthy: string;
+		rootCanal: {
+			statusNone: string;
+			filled: string;
+			insufficient: string;
+			dressing: string;
+			apexFocus: string;
+			postLabel: string;
+			noPost: string;
+			canalNames: { MB: string; DB: string; P: string; M: string; D: string; B: string; single: string };
+		};
+		endo: {
+			title: string;
+			openButton: string;
+			newSession: string;
+			history: string;
+			noHistory: string;
+			canal: string;
+			instrument: string;
+			isoSize: string;
+			lengthXray: string;
+			lengthPrep: string;
+			lengthElectronic: string;
+			referencePoint: string;
+			definitiveLength: string;
+			addCanal: string;
+			deleteSession: string;
+			deleteConfirm: string;
+			saveSession: string;
+			sessionOf: string;
+		};
+		filling: {
+			material: string;
+			origin: string;
+			own: string;
+			foreign: string;
+			insufficient: string;
+			inlay: string;
+			inlayPlanned: string;
+			noMaterial: string;
+		};
 		prosthesisTypes: {
 			telescope: string; replaced: string;
 		};
@@ -168,6 +218,32 @@ export interface Translations {
 			prosthesis:         { label: string; defaultShortcut: string };
 			erupting:           { label: string; defaultShortcut: string };
 			persistent_primary: { label: string; defaultShortcut: string };
+			inlay:                { label: string; defaultShortcut: string };
+			inlay_planned:        { label: string; defaultShortcut: string };
+			decayed_radiographic: { label: string; defaultShortcut: string };
+			mih:                  { label: string; defaultShortcut: string };
+		};
+		mih: {
+			grade: string;
+			grades: { 1: string; 2: string; 3: string; 4: string };
+		};
+		dmft: string;
+		dmftDecayed: string;
+		dmftMissing: string;
+		dmftFilled: string;
+		position: {
+			title: string;
+			migration: string;
+			tipping: string;
+			rotation: string;
+			foreignWork: string;
+			directions: {
+				none: string;
+				mesial: string; distal: string;
+				buccal: string; lingual: string;
+				superior: string; inferior: string;
+				clockwise: string; counterclockwise: string;
+			};
 		};
 		snapshotReport: { allHealthy: string; showMore: string; showLess: string; readOnly: string; reportTitle: string };
 		resetShortcuts: string; resetShortcutsConfirm: string;
@@ -428,6 +504,28 @@ export interface Translations {
 			backupSuccess: string; backupError: string;
 		};
 		about: { title: string; version: string; description: string };
+		fillingMaterials: {
+			title: string;
+			description: string;
+			add: string;
+			deleteConfirm: string;
+			colorLabel: string;
+			labelPlaceholder: string;
+		};
+		endoInstruments: {
+			title: string;
+			description: string;
+			add: string;
+			deleteConfirm: string;
+			labelPlaceholder: string;
+		};
+		postTypes: {
+			title: string;
+			description: string;
+			add: string;
+			deleteConfirm: string;
+			labelPlaceholder: string;
+		};
 		prosthesisTypeSettings: {
 			title: string;
 			description: string;
@@ -446,6 +544,9 @@ export interface Translations {
 			fillPattern: string;
 			saved: string;
 			connectorBar: string;
+		};
+		chart: {
+			dmftForAdults: string;
 		};
 	};
 
@@ -672,6 +773,8 @@ export interface Translations {
 		medicalTags: Array<{ key: string; label: string }>;
 		textBlocks: Array<{ key: string; label: string; body: string }>;
 		complicationTypes: Array<{ key: string; label: string }>;
+		fillingMaterials: Array<{ key: string; label: string; color: string }>;
+		endoInstruments: Array<{ key: string; label: string }>;
 		workingDays: string[];
 	};
 }

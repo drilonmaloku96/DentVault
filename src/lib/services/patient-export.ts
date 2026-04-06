@@ -6,18 +6,19 @@
 import type {
 	Patient, TimelineEntry, ToothChartEntry, TreatmentPlan, TreatmentPlanItem,
 	OrthoClassification, OrthoAssessment, ProbingRecord, ProbingMeasurement, ProbingToothData,
-	PatientCondition, PatientDocument, Doctor, Complication,
+	PatientCondition, PatientDocument, Doctor, Complication, EndoRecord, ToothNote,
 } from '$lib/types';
 import {
 	getPatient, getTimelineEntries, getChartData, getTreatmentPlans, getTreatmentPlanItems,
 	getOrthoClassification, getProbingRecords, getProbingMeasurements, getProbingToothData,
 	getPatientConditions, getDocuments, getDoctors, getComplications,
-	getAcuteText, getMedicalText, getMiscNotes,
+	getAcuteText, getMedicalText, getMiscNotes, getAllEndoRecordsForPatient,
+	getAllToothNotesForPatient,
 } from '$lib/services/db';
-import { renderChartSVG, type TagConfig, type BridgeRoleConfig, type ProsthesisTypeConfig } from '$lib/services/chart-svg-static';
+import { renderChartSVG, type TagConfig, type BridgeRoleConfig, type ProsthesisTypeConfig, type FillingMaterialConfig } from '$lib/services/chart-svg-static';
 import { writeTextFile, copyPatientFolderTo } from '$lib/services/files';
 import { vault } from '$lib/stores/vault.svelte';
-import { toFDI } from '$lib/utils';
+import { toFDI, FDI_TOOTH_NAMES } from '$lib/utils';
 import type { LangCode } from '$lib/i18n/types';
 
 // ── Export data model ──────────────────────────────────────────────────────
@@ -57,6 +58,8 @@ interface PatientExportData {
 	acuteText: string;
 	medicalText: string;
 	miscNotes: string;
+	endoRecords: EndoRecord[];
+	toothNotes: ToothNote[];
 	exportDate: string;
 }
 
@@ -125,10 +128,12 @@ export async function gatherExportData(
 		if (comps.length > 0) complicationsByEntry.set(entry.id, comps);
 	}
 
-	const [acuteText, medicalText, miscNotes] = await Promise.all([
+	const [acuteText, medicalText, miscNotes, endoRecords, toothNotes] = await Promise.all([
 		getAcuteText(patientId),
 		getMedicalText(patientId),
 		getMiscNotes(patientId),
+		getAllEndoRecordsForPatient(patientId),
+		getAllToothNotesForPatient(patientId),
 	]);
 
 	return {
@@ -147,6 +152,8 @@ export async function gatherExportData(
 		acuteText,
 		medicalText,
 		miscNotes,
+		endoRecords,
+		toothNotes,
 		exportDate: new Date().toISOString().split('T')[0],
 	};
 }
@@ -177,6 +184,26 @@ function doctorName(doctorId: number | null, colleagues: string, doctors: Doctor
 		ids.push(...cIds);
 	} catch { /* ignore */ }
 	return ids.map(id => doctors.find(d => d.id === id)?.name ?? `#${id}`).join(', ');
+}
+
+// ── Surface label helpers ───────────────────────────────────────────────────
+
+function getSurfTagFromExport(v: unknown): string {
+	if (typeof v === 'string') return v;
+	if (v && typeof v === 'object' && 'tag' in v) return (v as { tag: string }).tag;
+	return '';
+}
+
+function getSurfLabelFromExport(v: unknown, lang: string): string {
+	const tag = getSurfTagFromExport(v);
+	if (!v || typeof v === 'string') return tag;
+	const data = v as { tag: string; material?: string; origin?: string; insufficient?: boolean; grade?: number };
+	const parts: string[] = [tag];
+	if (data.grade !== undefined) parts.push(`${lang === 'de' ? 'Grad' : 'Grade'} ${data.grade}`);
+	if (data.material) parts.push(data.material);
+	if (data.origin === 'foreign') parts.push(lang === 'de' ? 'Fremd' : 'Foreign');
+	if (data.insufficient) parts.push(lang === 'de' ? 'insuffizient' : 'insufficient');
+	return parts.join(' / ');
 }
 
 // ── Section renderers ──────────────────────────────────────────────────────
@@ -371,20 +398,214 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 	return html;
 }
 
+function calcDMFTExport(entries: ToothChartEntry[]): { D: number; M: number; F: number } {
+	let D = 0, M = 0, F = 0;
+	for (const e of entries) {
+		if (e.condition === 'extracted') { M++; continue; }
+		if (e.condition === 'missing') {
+			const isArchPlaceholder = !e.notes?.trim() && (e.surfaces === '{}' || !e.surfaces) && !e.bridge_group_id;
+			if (!isArchPlaceholder) M++;
+			continue;
+		}
+		let hasDecayed = (e.condition === 'decayed');
+		let hasFilled  = (e.condition === 'filled' || e.condition === 'crowned');
+		try {
+			const surfs = JSON.parse(e.surfaces || '{}') as Record<string, unknown>;
+			for (const v of Object.values(surfs)) {
+				const tag = getSurfTagFromExport(v);
+				if (tag === 'decayed' || tag === 'decayed_radiographic') hasDecayed = true;
+				if (tag === 'filled' || tag === 'inlay' || tag === 'inlay_planned') hasFilled = true;
+			}
+		} catch { /* skip */ }
+		if (hasDecayed) D++;
+		else if (hasFilled) F++;
+	}
+	return { D, M, F };
+}
+
+function isPrimaryToothExport(n: number): boolean {
+	return (n >= 51 && n <= 55) || (n >= 61 && n <= 65) ||
+	       (n >= 71 && n <= 75) || (n >= 81 && n <= 85);
+}
+
 function renderChart(
 	data: PatientExportData,
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterialConfigs: FillingMaterialConfig[],
 	lang: LangCode,
 ): string {
 	const de = lang === 'de';
-	const svgMarkup = renderChartSVG(data.chartData, tags, bridgeConfigs, prosthesisConfigs);
+	const svgMarkup = renderChartSVG(data.chartData, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs);
+
+	// DMFT score
+	const permanentTeeth = data.chartData.filter(e => !isPrimaryToothExport(e.tooth_number));
+	const primaryTeeth   = data.chartData.filter(e => isPrimaryToothExport(e.tooth_number));
+	const dmft = calcDMFTExport(permanentTeeth);
+	const dmftTotal = dmft.D + dmft.M + dmft.F;
+	let dmftLine = `${de ? 'DMFT' : 'DMFT'}: <strong>${dmftTotal}</strong> (D:${dmft.D} M:${dmft.M} F:${dmft.F})`;
+	if (primaryTeeth.length > 0) {
+		const dt = calcDMFTExport(primaryTeeth);
+		dmftLine += ` &nbsp;|&nbsp; dmft: <strong>${dt.D + dt.M + dt.F}</strong> (d:${dt.D} m:${dt.M} f:${dt.F})`;
+	}
+
+	// Per-tooth surface text summary (only teeth with surface data)
+	const surfaceRows = data.chartData
+		.filter(entry => entry.surfaces && entry.surfaces !== '{}')
+		.map(entry => {
+			let surfMap: Record<string, unknown> = {};
+			try { surfMap = JSON.parse(entry.surfaces) as Record<string, unknown>; } catch { /* skip */ }
+			const surfEntries = Object.entries(surfMap).filter(([, v]) => getSurfTagFromExport(v));
+			if (surfEntries.length === 0) return '';
+			const fdi = toFDI(entry.tooth_number);
+			const surfStr = surfEntries
+				.map(([k, v]) => `${k}: ${esc(getSurfLabelFromExport(v, lang))}`)
+				.join(', ');
+			return `<tr><td>${fdi}</td><td>${esc(entry.condition)}</td><td>${surfStr}</td><td>${esc(entry.notes)}</td></tr>`;
+		})
+		.filter(Boolean);
+
+	let toothTable = '';
+	if (surfaceRows.length > 0) {
+		toothTable = `
+	<h3 style="margin-top:1em">${de ? 'Flächenbefunde' : 'Surface Findings'}</h3>
+	<table class="info-table" style="font-size:0.85em">
+		<thead><tr>
+			<th>${de ? 'Zahn' : 'Tooth'}</th>
+			<th>${de ? 'Zustand' : 'Condition'}</th>
+			<th>${de ? 'Flächen' : 'Surfaces'}</th>
+			<th>${de ? 'Notizen' : 'Notes'}</th>
+		</tr></thead>
+		<tbody>${surfaceRows.join('')}</tbody>
+	</table>`;
+	}
+
+	// Tooth notes grouped by tooth
+	let toothNotesSection = '';
+	if (data.toothNotes.length > 0) {
+		const byTooth = new Map<number, typeof data.toothNotes>();
+		for (const n of data.toothNotes) {
+			if (!byTooth.has(n.tooth_number)) byTooth.set(n.tooth_number, []);
+			byTooth.get(n.tooth_number)!.push(n);
+		}
+		const today = new Date().toISOString().slice(0, 10);
+		let rows = '';
+		for (const [tooth, notes] of [...byTooth.entries()].sort((a, b) => a[0] - b[0])) {
+			for (const note of notes) {
+				const due = note.reminder_date && note.reminder_date <= today;
+				const reminderLabel = note.reminder_date
+					? ` <span style="color:${due ? '#dc2626' : '#d97706'}">[${de ? 'Erinnerung' : 'Reminder'}: ${fmtDate(note.reminder_date)}${due ? ' ⚠' : ''}]</span>`
+					: '';
+				rows += `<tr><td>${toFDI(tooth)}</td><td>${esc(note.text)}${reminderLabel}</td><td style="color:#94a3b8;font-size:0.9em">${fmtDate(note.created_at)}</td></tr>`;
+			}
+		}
+		toothNotesSection = `
+	<h3 style="margin-top:1em">${de ? 'Zahnnotizen' : 'Tooth Notes'}</h3>
+	<table class="info-table" style="font-size:0.85em">
+		<thead><tr>
+			<th>${de ? 'Zahn' : 'Tooth'}</th>
+			<th>${de ? 'Notiz' : 'Note'}</th>
+			<th>${de ? 'Datum' : 'Date'}</th>
+		</tr></thead>
+		<tbody>${rows}</tbody>
+	</table>`;
+	}
+
+	// Position findings
+	const positionRows = data.chartData
+		.filter(e => e.migration || e.tipping || e.rotation || e.foreign_work)
+		.sort((a, b) => a.tooth_number - b.tooth_number)
+		.map(e => {
+			const fdi = toFDI(e.tooth_number);
+			const parts: string[] = [];
+			if (e.foreign_work) parts.push(`<strong>${de ? 'Fremdarbeit' : 'Foreign work'}</strong>`);
+			if (e.migration)    parts.push(`${de ? 'Migration' : 'Migration'}: ${esc(e.migration)}`);
+			if (e.tipping)      parts.push(`${de ? 'Kippung' : 'Tipping'}: ${esc(e.tipping)}`);
+			if (e.rotation)     parts.push(`${de ? 'Rotation' : 'Rotation'}: ${esc(e.rotation)}`);
+			return `<tr><td>${fdi}</td><td>${parts.join(' · ')}</td></tr>`;
+		});
+
+	let positionSection = '';
+	if (positionRows.length > 0) {
+		positionSection = `
+	<h3 style="margin-top:1em">${de ? 'Zahnposition' : 'Tooth Position'}</h3>
+	<table class="info-table" style="font-size:0.85em">
+		<thead><tr><th>${de ? 'Zahn' : 'Tooth'}</th><th>${de ? 'Befund' : 'Finding'}</th></tr></thead>
+		<tbody>${positionRows.join('')}</tbody>
+	</table>`;
+	}
+
 	return `
 <div class="section">
 	<h2>${de ? 'Zahnstatus (aktuell)' : 'Dental Chart (current)'}</h2>
-	<div class="chart-container">${svgMarkup}</div>
+	<p style="font-size:0.85em;color:#64748b;margin-bottom:0.75em">${dmftLine}</p>
+	<div class="chart-container">${svgMarkup}</div>${toothTable}${positionSection}${toothNotesSection}
 </div>`;
+}
+
+function renderEndo(data: PatientExportData, lang: LangCode): string {
+	const { endoRecords } = data;
+	if (endoRecords.length === 0) return '';
+	const de = lang === 'de';
+
+	let html = `<div class="section page-break"><h2>${de ? 'Endodontische Dokumentation' : 'Endo Documentation'}</h2>`;
+
+	// Group records by tooth number
+	const byTooth = new Map<number, EndoRecord[]>();
+	for (const rec of endoRecords) {
+		const list = byTooth.get(rec.tooth_number) ?? [];
+		list.push(rec);
+		byTooth.set(rec.tooth_number, list);
+	}
+
+	for (const [toothNum, records] of [...byTooth.entries()].sort((a, b) => a[0] - b[0])) {
+		const fdi = toFDI(toothNum);
+		const toothLabel = FDI_TOOTH_NAMES[fdi] ?? String(fdi);
+		html += `<div class="endo-tooth avoid-break">`;
+		html += `<h3>${de ? 'Zahn' : 'Tooth'} ${fdi} — ${esc(toothLabel)}</h3>`;
+
+		for (const rec of records) {
+			html += `<div class="endo-session">`;
+			html += `<p class="endo-session-date"><strong>${fmtDate(rec.treatment_date)}</strong></p>`;
+			if (rec.notes?.trim()) {
+				html += `<p class="endo-notes">${esc(rec.notes)}</p>`;
+			}
+			if (rec.canals.length > 0) {
+				html += `<table class="endo-table">
+					<thead><tr>
+						<th>${de ? 'Kanal' : 'Canal'}</th>
+						<th>${de ? 'Instrument' : 'Instrument'}</th>
+						<th>ISO</th>
+						<th>${de ? 'Röntgen (mm)' : 'X-ray (mm)'}</th>
+						<th>${de ? 'Präp. (mm)' : 'Prep. (mm)'}</th>
+						<th>${de ? 'Elektr. (mm)' : 'Electr. (mm)'}</th>
+						<th>${de ? 'Referenzpunkt' : 'Reference Point'}</th>
+						<th>${de ? 'Def. Länge (mm)' : 'Def. Length (mm)'}</th>
+					</tr></thead>
+					<tbody>`;
+				for (const c of rec.canals) {
+					html += `<tr>
+						<td>${esc(c.canal_name)}</td>
+						<td>${esc(c.instrument)}</td>
+						<td>${c.iso_size != null ? c.iso_size : '—'}</td>
+						<td>${c.length_xray != null ? c.length_xray : '—'}</td>
+						<td>${c.length_preparation != null ? c.length_preparation : '—'}</td>
+						<td>${c.length_electronic != null ? c.length_electronic : '—'}</td>
+						<td>${esc(c.reference_point)}</td>
+						<td>${c.definitive_length != null ? c.definitive_length : '—'}</td>
+					</tr>`;
+				}
+				html += `</tbody></table>`;
+			}
+			html += `</div>`;
+		}
+
+		html += `</div>`;
+	}
+
+	html += '</div>';
+	return html;
 }
 
 function renderTimeline(
@@ -392,6 +613,7 @@ function renderTimeline(
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterialConfigs: FillingMaterialConfig[],
 	lang: LangCode,
 ): string {
 	const { entries, doctors, complicationsByEntry } = data;
@@ -420,7 +642,7 @@ function renderTimeline(
 		if (isSnapshot && entry.chart_data) {
 			try {
 				const snapshotChart = JSON.parse(entry.chart_data) as ToothChartEntry[];
-				const snapshotSvg = renderChartSVG(snapshotChart, tags, bridgeConfigs, prosthesisConfigs);
+				const snapshotSvg = renderChartSVG(snapshotChart, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs);
 				html += `<div class="chart-container chart-snapshot">${snapshotSvg}</div>`;
 			} catch { /* skip malformed snapshot */ }
 		} else if (entry.description?.trim()) {
@@ -549,6 +771,7 @@ export function generatePatientHTML(
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterialConfigs: FillingMaterialConfig[],
 	options: PatientExportOptions,
 	lang: LangCode,
 ): string {
@@ -561,8 +784,9 @@ export function generatePatientHTML(
 	if (all('demographics')) bodyParts.push(renderDemographics(data, lang));
 	if (all('medical')) bodyParts.push(renderMedical(data, lang, all('notes')));
 	if (data.ortho || data.orthoAssessments.length > 0) bodyParts.push(renderOrtho(data, lang));
-	if (all('chart')) bodyParts.push(renderChart(data, tags, bridgeConfigs, prosthesisConfigs, lang));
-	if (all('timeline')) bodyParts.push(renderTimeline(data, tags, bridgeConfigs, prosthesisConfigs, lang));
+	if (all('chart')) bodyParts.push(renderChart(data, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs, lang));
+	if (data.endoRecords.length > 0) bodyParts.push(renderEndo(data, lang));
+	if (all('timeline')) bodyParts.push(renderTimeline(data, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs, lang));
 	if (all('perio')) bodyParts.push(renderPerio(data, lang));
 	if (all('plans')) bodyParts.push(renderPlans(data, lang));
 	if (all('documents')) bodyParts.push(renderDocuments(data, lang));
@@ -633,6 +857,13 @@ code { font-size: 11px; background: #f1f5f9; padding: 1px 3px; border-radius: 3p
 .doc-table td, .doc-table th { font-size: 11px; padding: 3px 7px; }
 /* Conditions */
 .cond-list li { font-size: 12px; }
+/* Endo */
+.endo-tooth { margin-bottom: 16px; }
+.endo-session { margin-bottom: 10px; border-left: 3px solid #bae6fd; padding-left: 10px; }
+.endo-session-date { margin: 0 0 4px; font-size: 12px; }
+.endo-notes { font-size: 12px; color: #374151; margin: 2px 0 6px; }
+.endo-table td, .endo-table th { font-size: 11px; padding: 3px 7px; text-align: center; }
+.endo-table th:first-child, .endo-table td:first-child { text-align: left; }
 /* Empty */
 .empty { color: #94a3b8; font-size: 12px; font-style: italic; }
 </style>
@@ -652,6 +883,7 @@ export async function exportPatient(
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterialConfigs: FillingMaterialConfig[],
 	lang: LangCode,
 	onProgress?: (pct: number, text: string) => void,
 ): Promise<string> {
@@ -661,7 +893,7 @@ export async function exportPatient(
 	const data = await gatherExportData(patientId, options);
 
 	prog(40, lang === 'de' ? 'HTML-Bericht wird erstellt…' : 'Building HTML report…');
-	const html = generatePatientHTML(data, tags, bridgeConfigs, prosthesisConfigs, options, lang);
+	const html = generatePatientHTML(data, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs, options, lang);
 
 	// Export folder name
 	const lastName = data.patient.lastname.replace(/[^a-zA-Z0-9]/g, '_');

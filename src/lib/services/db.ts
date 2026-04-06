@@ -688,9 +688,49 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 		version: 41,
 		sql: `CREATE INDEX IF NOT EXISTS idx_ortho_assessments_patient ON ortho_assessments(patient_id)`,
 	},
+	// v42: Root canal granularity — per-canal status, post type, apex focus
+	{ version: 42, sql: `ALTER TABLE dental_chart ADD COLUMN root_data TEXT DEFAULT '{}'` },
+	{ version: 43, sql: `CREATE TABLE IF NOT EXISTS endo_records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  patient_id TEXT NOT NULL,
+  tooth_number INTEGER NOT NULL,
+  treatment_date TEXT NOT NULL,
+  notes TEXT DEFAULT '',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
+)` },
+	{ version: 43, sql: `CREATE INDEX IF NOT EXISTS idx_endo_patient_tooth ON endo_records(patient_id, tooth_number)` },
+	{ version: 44, sql: `CREATE TABLE IF NOT EXISTS endo_canals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  record_id INTEGER NOT NULL,
+  canal_name TEXT NOT NULL,
+  instrument TEXT DEFAULT '',
+  iso_size INTEGER,
+  length_xray REAL,
+  length_preparation REAL,
+  length_electronic REAL,
+  reference_point TEXT DEFAULT '',
+  definitive_length REAL,
+  FOREIGN KEY (record_id) REFERENCES endo_records(id) ON DELETE CASCADE
+)` },
+	{ version: 45, sql: `CREATE TABLE IF NOT EXISTS tooth_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  patient_id TEXT NOT NULL,
+  tooth_number INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  reminder_date TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
+)` },
+	{ version: 45, sql: `CREATE INDEX IF NOT EXISTS idx_tooth_notes_patient_tooth ON tooth_notes(patient_id, tooth_number)` },
+	{ version: 46, sql: `ALTER TABLE dental_chart ADD COLUMN migration TEXT DEFAULT ''` },
+	{ version: 47, sql: `ALTER TABLE dental_chart ADD COLUMN tipping TEXT DEFAULT ''` },
+	{ version: 48, sql: `ALTER TABLE dental_chart ADD COLUMN rotation TEXT DEFAULT ''` },
+	{ version: 49, sql: `ALTER TABLE dental_chart ADD COLUMN foreign_work INTEGER DEFAULT 0` },
 ];
 
-const LATEST_VERSION = 41;
+const LATEST_VERSION = 49;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -1740,8 +1780,8 @@ export async function upsertToothChartEntry(
 
 	if (!existing) {
 		await conn.execute(
-			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, updated_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, root_data, updated_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
 			[
 				patientId,
 				toothNumber,
@@ -1753,6 +1793,7 @@ export async function upsertToothChartEntry(
 				data.bridge_role ?? null,
 				data.abutment_type ?? null,
 				data.prosthesis_type ?? null,
+				data.root_data ?? '{}',
 				now,
 			],
 		);
@@ -3390,4 +3431,144 @@ export async function getAbsencesByDoctorAndYear(doctorId: string, year: number)
 		 ORDER BY sb.start_date`,
 		[doctorId, String(year)]
 	);
+}
+
+// ── Endo Documentation CRUD ────────────────────────────────────────────
+
+export async function getEndoRecords(patientId: string, toothNumber: number): Promise<import('$lib/types').EndoRecord[]> {
+	const conn = await getDb();
+	const records = await conn.select<{ id: number; patient_id: string; tooth_number: number; treatment_date: string; notes: string; created_at: string }[]>(
+		'SELECT * FROM endo_records WHERE patient_id = $1 AND tooth_number = $2 ORDER BY treatment_date DESC, id DESC',
+		[patientId, toothNumber],
+	);
+	const result: import('$lib/types').EndoRecord[] = [];
+	for (const rec of records) {
+		const canals = await conn.select<import('$lib/types').EndoCanal[]>(
+			'SELECT * FROM endo_canals WHERE record_id = $1 ORDER BY id',
+			[rec.id],
+		);
+		result.push({ ...rec, canals });
+	}
+	return result;
+}
+
+export async function saveEndoRecord(
+	patientId: string,
+	toothNumber: number,
+	date: string,
+	notes: string,
+	canals: import('$lib/types').EndoCanal[],
+	recordId?: number,
+): Promise<number> {
+	const conn = await getDb();
+	const now = new Date().toISOString();
+	let id: number;
+	if (recordId) {
+		await conn.execute(
+			'UPDATE endo_records SET treatment_date = $1, notes = $2 WHERE id = $3',
+			[date, notes, recordId],
+		);
+		id = recordId;
+	} else {
+		const res = await conn.execute(
+			'INSERT INTO endo_records (patient_id, tooth_number, treatment_date, notes, created_at) VALUES ($1, $2, $3, $4, $5)',
+			[patientId, toothNumber, date, notes, now],
+		);
+		id = res.lastInsertId as number;
+	}
+	await conn.execute('DELETE FROM endo_canals WHERE record_id = $1', [id]);
+	for (const c of canals) {
+		await conn.execute(
+			`INSERT INTO endo_canals (record_id, canal_name, instrument, iso_size, length_xray, length_preparation, length_electronic, reference_point, definitive_length)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			[id, c.canal_name, c.instrument || '', c.iso_size ?? null, c.length_xray ?? null, c.length_preparation ?? null, c.length_electronic ?? null, c.reference_point || '', c.definitive_length ?? null],
+		);
+	}
+	return id;
+}
+
+export async function deleteEndoRecord(id: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM endo_records WHERE id = $1', [id]);
+}
+
+export async function getAllEndoRecordsForPatient(patientId: string): Promise<import('$lib/types').EndoRecord[]> {
+	const conn = await getDb();
+	const records = await conn.select<{ id: number; patient_id: string; tooth_number: number; treatment_date: string; notes: string; created_at: string }[]>(
+		'SELECT * FROM endo_records WHERE patient_id = $1 ORDER BY tooth_number, treatment_date DESC',
+		[patientId],
+	);
+	const result: import('$lib/types').EndoRecord[] = [];
+	for (const rec of records) {
+		const canals = await conn.select<import('$lib/types').EndoCanal[]>(
+			'SELECT * FROM endo_canals WHERE record_id = $1 ORDER BY id',
+			[rec.id],
+		);
+		result.push({ ...rec, canals });
+	}
+	return result;
+}
+
+// ── Tooth Notes CRUD ───────────────────────────────────────────────────
+
+export async function getToothNotes(patientId: string, toothNumber: number): Promise<import('$lib/types').ToothNote[]> {
+	const conn = await getDb();
+	return conn.select<import('$lib/types').ToothNote[]>(
+		'SELECT * FROM tooth_notes WHERE patient_id = $1 AND tooth_number = $2 ORDER BY created_at DESC',
+		[patientId, toothNumber],
+	);
+}
+
+export async function saveToothNote(
+	patientId: string,
+	toothNumber: number,
+	text: string,
+	reminderDate: string | null,
+	noteId?: number,
+): Promise<number> {
+	const conn = await getDb();
+	const now = new Date().toISOString();
+	if (noteId) {
+		await conn.execute(
+			'UPDATE tooth_notes SET text = $1, reminder_date = $2, updated_at = $3 WHERE id = $4',
+			[text, reminderDate ?? null, now, noteId],
+		);
+		return noteId;
+	}
+	const res = await conn.execute(
+		'INSERT INTO tooth_notes (patient_id, tooth_number, text, reminder_date, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)',
+		[patientId, toothNumber, text, reminderDate ?? null, now, now],
+	);
+	return res.lastInsertId as number;
+}
+
+export async function deleteToothNote(id: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM tooth_notes WHERE id = $1', [id]);
+}
+
+export async function getAllToothNotesForPatient(patientId: string): Promise<import('$lib/types').ToothNote[]> {
+	const conn = await getDb();
+	return conn.select<import('$lib/types').ToothNote[]>(
+		'SELECT * FROM tooth_notes WHERE patient_id = $1 ORDER BY tooth_number, created_at DESC',
+		[patientId],
+	);
+}
+
+export async function getTeethWithNotes(patientId: string): Promise<Set<number>> {
+	const conn = await getDb();
+	const rows = await conn.select<{ tooth_number: number }[]>(
+		'SELECT DISTINCT tooth_number FROM tooth_notes WHERE patient_id = $1',
+		[patientId],
+	);
+	return new Set(rows.map(r => r.tooth_number));
+}
+
+export async function getTeethWithDueReminders(patientId: string, today: string): Promise<Set<number>> {
+	const conn = await getDb();
+	const rows = await conn.select<{ tooth_number: number }[]>(
+		'SELECT DISTINCT tooth_number FROM tooth_notes WHERE patient_id = $1 AND reminder_date IS NOT NULL AND reminder_date <= $2',
+		[patientId, today],
+	);
+	return new Set(rows.map(r => r.tooth_number));
 }

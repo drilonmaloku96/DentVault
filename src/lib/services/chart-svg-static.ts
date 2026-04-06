@@ -4,7 +4,17 @@
  */
 
 import type { ToothChartEntry } from '$lib/types';
-import { toFDI } from '$lib/utils';
+import { toFDI, getCanalsForTooth } from '$lib/utils';
+import type { FillingMaterialConfig } from '$lib/stores/fillingMaterials.svelte';
+
+const CANAL_FILL_STATIC:   Record<string, string> = { none: '#f5f3ff', filled: '#dbeafe', insufficient: '#fee2e2', dressing: '#fef3c7' };
+const CANAL_STROKE_STATIC: Record<string, string> = { none: '#7c3aed', filled: '#3b82f6', insufficient: '#ef4444', dressing: '#d97706' };
+function parseRootDataStatic(json: string | undefined): Record<string, { status?: string; apex?: boolean }> {
+	if (!json) return {};
+	try { return JSON.parse(json) as Record<string, { status?: string; apex?: boolean }>; } catch { return {}; }
+}
+
+export type { FillingMaterialConfig };
 
 export interface TagConfig {
 	key: string;
@@ -163,6 +173,7 @@ function patternDefs(
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterials: FillingMaterialConfig[],
 ): string {
 	const parts: string[] = [];
 
@@ -196,6 +207,10 @@ function patternDefs(
 			parts.push(makePattern(`ptpat-${cfg.key}`, cfg.fillColor, cfg.color, cfg.fillPattern));
 		}
 	}
+	// Material hatch patterns (transparent background, diagonal lines in material color)
+	for (const mat of fillingMaterials) {
+		parts.push(`<pattern id="mat-hatch-${mat.key}" patternUnits="userSpaceOnUse" width="5" height="5"><line x1="0" y1="5" x2="5" y2="0" stroke="${mat.color}" stroke-width="2" stroke-linecap="round"/></pattern>`);
+	}
 	return parts.join('');
 }
 
@@ -206,14 +221,29 @@ export function renderChartSVG(
 	tags: TagConfig[],
 	bridgeConfigs: BridgeRoleConfig[],
 	prosthesisConfigs: ProsthesisTypeConfig[],
+	fillingMaterialConfigs: FillingMaterialConfig[] = [],
 ): string {
 	const entryMap = new Map<number, ToothChartEntry>();
 	for (const e of chartData) entryMap.set(e.tooth_number, e);
 
 	function getEntry(t: number) { return entryMap.get(t); }
 	function getCond(t: number) { return getEntry(t)?.condition ?? 'healthy'; }
-	function parseSurfaces(json: string): Record<string, string> {
-		try { return JSON.parse(json) as Record<string, string>; } catch { return {}; }
+	type SurfVal = string | { tag: string; material?: string; origin?: string; insufficient?: boolean; grade?: number };
+	function parseSurfaces(json: string): Record<string, SurfVal> {
+		try { return JSON.parse(json) as Record<string, SurfVal>; } catch { return {}; }
+	}
+	function getSurfTagKey(v: SurfVal | undefined): string {
+		if (!v) return '';
+		return typeof v === 'string' ? v : v.tag;
+	}
+	function getSurfFillStatic(v: SurfVal | undefined, fallback: string): string {
+		if (!v) return getTagFill(fallback, tags);
+		const tag = getSurfTagKey(v);
+		return getTagFill(tag || fallback, tags);
+	}
+	function getSurfMaterialKeyStatic(v: SurfVal | undefined): string | null {
+		if (!v || typeof v === 'string') return null;
+		return v.material ?? null;
 	}
 
 	// ── Bridge groups ──
@@ -254,7 +284,7 @@ export function renderChartSVG(
 	const parts: string[] = [];
 
 	// ── Defs ──
-	parts.push(`<defs>${patternDefs(tags, bridgeConfigs, prosthesisConfigs)}</defs>`);
+	parts.push(`<defs>${patternDefs(tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs)}</defs>`);
 
 	// ── Guide lines ──
 	parts.push(`<line x1="0" y1="${ARCH_Y}" x2="${VW}" y2="${ARCH_Y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,6"/>`);
@@ -340,29 +370,56 @@ export function renderChartSVG(
 				}
 			} else {
 				const roots = makeRoots(cx(slot), CROWN_W[SLOT_TYPE[slot]], ROOT_COUNTS[tooth] ?? 1, isUpper ? g.oy : g.oy + g.oh, isUpper);
-				for (const root of roots) {
-					t.push(`<polygon points="${root.points}" fill="${cond === 'root_canal' ? '#f5f3ff' : '#f1f5f9'}" stroke="${sc}" stroke-width="0.9"/>`);
+				const rootDataStatic = parseRootDataStatic(entry?.root_data);
+				const tCanalsStatic  = getCanalsForTooth(tooth);
+				roots.forEach((root, ri) => {
+					const canalName   = tCanalsStatic[ri] ?? 'single';
+					const canalStatus = rootDataStatic[canalName]?.status ?? 'none';
+					const canalApex   = rootDataStatic[canalName]?.apex === true;
+					const rFill   = cond === 'root_canal' ? (CANAL_FILL_STATIC[canalStatus] ?? CANAL_FILL_STATIC.none) : '#f1f5f9';
+					const rStroke = cond === 'root_canal' ? (CANAL_STROKE_STATIC[canalStatus] ?? CANAL_STROKE_STATIC.none) : '#7c3aed';
+					t.push(`<polygon points="${root.points}" fill="${rFill}" stroke="${sc}" stroke-width="0.9"/>`);
 					if (cond === 'root_canal') {
-						t.push(`<line x1="${root.centerX}" y1="${isUpper ? g.oy - 2 : g.oy + g.oh + 2}" x2="${root.centerX}" y2="${root.apexY + (isUpper ? 3 : -3)}" stroke="#7c3aed" stroke-width="1.5" opacity="0.75"/>`);
-						t.push(`<circle cx="${root.centerX}" cy="${root.apexY + (isUpper ? 3 : -3)}" r="1.5" fill="#7c3aed" opacity="0.75"/>`);
+						t.push(`<line x1="${root.centerX}" y1="${isUpper ? g.oy - 2 : g.oy + g.oh + 2}" x2="${root.centerX}" y2="${root.apexY + (isUpper ? 3 : -3)}" stroke="${rStroke}" stroke-width="1.5" opacity="0.75"/>`);
+						t.push(`<circle cx="${root.centerX}" cy="${root.apexY + (isUpper ? 3 : -3)}" r="1.5" fill="${canalApex ? '#dc2626' : rStroke}" opacity="0.85"/>`);
+						if (canalApex) {
+							t.push(`<circle cx="${root.centerX}" cy="${root.apexY + (isUpper ? 3 : -3)}" r="3.5" fill="none" stroke="#dc2626" stroke-width="1" opacity="0.7"/>`);
+						}
 					}
-				}
+				});
 			}
 		}
 
 		// Crown surfaces
 		if (!isAbsent) {
-			const topFill = bridgeBodyFill ?? prosthesisBodyFill ?? getTagFill(surfs['B'] || crownFallback, tags);
-			const botFill = bridgeBodyFill ?? prosthesisBodyFill ?? getTagFill(surfs['L'] || crownFallback, tags);
-			const leftFill = bridgeBodyFill ?? prosthesisBodyFill ?? getTagFill(surfs[leftSurf] || crownFallback, tags);
-			const rightFill = bridgeBodyFill ?? prosthesisBodyFill ?? getTagFill(surfs[rightSurf] || crownFallback, tags);
-			const centerFill = bridgeBodyFill ?? prosthesisBodyFill ?? getTagFill(surfs['O'] || crownFallback, tags);
+			const topFill = bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFillStatic(surfs['B'], crownFallback);
+			const botFill = bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFillStatic(surfs['L'], crownFallback);
+			const leftFill = bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFillStatic(surfs[leftSurf], crownFallback);
+			const rightFill = bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFillStatic(surfs[rightSurf], crownFallback);
+			const centerFill = bridgeBodyFill ?? prosthesisBodyFill ?? getSurfFillStatic(surfs['O'], crownFallback);
 
 			t.push(`<polygon points="${g.pTop}" fill="${topFill}" stroke="none"/>`);
 			t.push(`<polygon points="${g.pBot}" fill="${botFill}" stroke="none"/>`);
 			t.push(`<polygon points="${g.pLeft}" fill="${leftFill}" stroke="none"/>`);
 			t.push(`<polygon points="${g.pRight}" fill="${rightFill}" stroke="none"/>`);
 			t.push(`<polygon points="${g.pCenter}" fill="${centerFill}" stroke="none"/>`);
+			// Material hatch overlays
+			if (!bridgeBodyFill && !prosthesisBodyFill) {
+				const wmk = getSurfMaterialKeyStatic(surfs['*']);
+				if (wmk) {
+					const hf = `url(#mat-hatch-${wmk})`;
+					t.push(`<polygon points="${g.pTop}" fill="${hf}" stroke="none" opacity="0.6"/>`);
+					t.push(`<polygon points="${g.pBot}" fill="${hf}" stroke="none" opacity="0.6"/>`);
+					t.push(`<polygon points="${g.pLeft}" fill="${hf}" stroke="none" opacity="0.6"/>`);
+					t.push(`<polygon points="${g.pRight}" fill="${hf}" stroke="none" opacity="0.6"/>`);
+					t.push(`<polygon points="${g.pCenter}" fill="${hf}" stroke="none" opacity="0.6"/>`);
+				}
+				const mkB  = getSurfMaterialKeyStatic(surfs['B']);             if (mkB)  t.push(`<polygon points="${g.pTop}"    fill="url(#mat-hatch-${mkB})"  stroke="none" opacity="0.6"/>`);
+				const mkL  = getSurfMaterialKeyStatic(surfs['L']);             if (mkL)  t.push(`<polygon points="${g.pBot}"    fill="url(#mat-hatch-${mkL})"  stroke="none" opacity="0.6"/>`);
+				const mkLS = getSurfMaterialKeyStatic(surfs[leftSurf]);  if (mkLS) t.push(`<polygon points="${g.pLeft}"   fill="url(#mat-hatch-${mkLS})" stroke="none" opacity="0.6"/>`);
+				const mkRS = getSurfMaterialKeyStatic(surfs[rightSurf]); if (mkRS) t.push(`<polygon points="${g.pRight}"  fill="url(#mat-hatch-${mkRS})" stroke="none" opacity="0.6"/>`);
+				const mkO  = getSurfMaterialKeyStatic(surfs['O']);             if (mkO)  t.push(`<polygon points="${g.pCenter}" fill="url(#mat-hatch-${mkO})"  stroke="none" opacity="0.6"/>`);
+			}
 			// Structural lines
 			t.push(`<rect x="${g.ix}" y="${g.iy}" width="${g.iw}" height="${g.ih}" fill="none" stroke="${sc}" stroke-width="0.7" opacity="0.55"/>`);
 			t.push(`<line x1="${g.ox}" y1="${g.oy}" x2="${g.ix}" y2="${g.iy}" stroke="${sc}" stroke-width="0.7" opacity="0.55"/>`);

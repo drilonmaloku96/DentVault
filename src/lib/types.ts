@@ -374,6 +374,11 @@ export interface ToothChartEntry {
 	bridge_role: 'abutment' | 'pontic' | null;
 	abutment_type: 'tooth' | 'implant' | null;
 	prosthesis_type: 'telescope' | 'replaced' | null;
+	root_data: string; // JSON: { MB: { status, post, apex }, ... }
+	migration: string;
+	tipping: string;
+	rotation: string;
+	foreign_work: number; // 0 | 1
 	updated_at: string;
 }
 
@@ -386,6 +391,11 @@ export interface ToothChartFormData {
 	bridge_role?: 'abutment' | 'pontic' | null;
 	abutment_type?: 'tooth' | 'implant' | null;
 	prosthesis_type?: 'telescope' | 'replaced' | null;
+	root_data?: string;
+	migration?: string;
+	tipping?: string;
+	rotation?: string;
+	foreign_work?: number;
 }
 
 // ── Clinical Exams ──────────────────────────────────────────────────────
@@ -911,5 +921,42 @@ export interface PatientSummary {
 	activeConditionCount: number;
 	acuteTags: string[];
 	medicalTags: string[];
+}
+
+// ── Endo Documentation ────────────────────────────────────────────────
+
+export interface EndoCanal {
+	id?: number;
+	record_id?: number;
+	canal_name: string;
+	instrument: string;
+	iso_size: number | null;
+	length_xray: number | null;
+	length_preparation: number | null;
+	length_electronic: number | null;
+	reference_point: string;
+	definitive_length: number | null;
+}
+
+export interface EndoRecord {
+	id?: number;
+	patient_id: string;
+	tooth_number: number;
+	treatment_date: string;
+	notes: string;
+	created_at?: string;
+	canals: EndoCanal[];
+}
+
+// ── Tooth Notes ───────────────────────────────────────────────────────
+
+export interface ToothNote {
+	id?: number;
+	patient_id: string;
+	tooth_number: number;
+	text: string;
+	reminder_date: string | null;
+	created_at: string;
+	updated_at: string;
 }
 

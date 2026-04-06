@@ -7,6 +7,8 @@
 		getBridgeGroup,
 		getSetting,
 		setSetting,
+		getTeethWithNotes,
+		getTeethWithDueReminders,
 	} from '$lib/services/db';
 	import ToothChart from './ToothChart.svelte';
 	import ToothDetailPanel from './ToothDetailPanel.svelte';
@@ -43,6 +45,9 @@
 	const isSnapshotReadOnly = $derived(isSnapshotMode && !snapshotEditMode);
 
 	let chartData              = $state<ToothChartEntry[]>([]);
+	let teethWithNotes         = $state<Set<number>>(new Set());
+	let teethWithDueReminders  = $state<Set<number>>(new Set());
+	let dmftEnabled            = $state(true); // loaded from 'dmft_for_adults' setting
 
 	// ── Arch setup state ──────────────────────────────────────────────
 	let archSetupMode     = $state(false);   // true = showing inline picker
@@ -78,8 +83,9 @@
 				result.push({
 					id: t, patient_id: patientId, tooth_number: t,
 					condition: 'missing', notes: '', surfaces: '{}',
-					last_examined: '', updated_at: '',
+					last_examined: '', updated_at: '', root_data: '{}',
 					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
+					migration: '', tipping: '', rotation: '', foreign_work: 0,
 				});
 			}
 		}
@@ -112,6 +118,8 @@
 	// Shortcut key passed down to ToothDetailPanel; seq increments so repeated same-key presses still fire
 	let shortcutTagKey  = $state<{ key: string; seq: number } | null>(null);
 	let _shortcutSeq    = 0;
+	// Tracks which index was last used per shortcut key, so repeated presses cycle through tags
+	const _shortcutCycle = new Map<string, number>();
 	let selectedEntry   = $derived(
 		chartData.find(e => e.tooth_number === selectedTooth) ?? null
 	);
@@ -161,11 +169,16 @@
 			}
 
 			// Tag shortcut keys — forward to the detail panel via prop
+			// If multiple tags share the same shortcut, repeated presses cycle through them
 			if (selectedTooth !== null && e.key.length === 1) {
-				const tag = dentalTags.list.find(t => t.shortcut?.toLowerCase() === e.key.toLowerCase());
-				if (tag) {
+				const lower = e.key.toLowerCase();
+				const matches = dentalTags.list.filter(t => t.shortcut?.toLowerCase() === lower);
+				if (matches.length > 0) {
 					e.preventDefault();
-					shortcutTagKey = { key: tag.key, seq: ++_shortcutSeq };
+					const prev = _shortcutCycle.get(lower) ?? -1;
+					const next = (prev + 1) % matches.length;
+					_shortcutCycle.set(lower, next);
+					shortcutTagKey = { key: matches[next].key, seq: ++_shortcutSeq };
 				}
 			}
 		}
@@ -456,6 +469,53 @@
 		archEditingType   = null;
 	}
 
+	// ── DMFT calculation ─────────────────────────────────────────────
+	/** Normalise a surfaces JSON value to its tag key (or null). */
+	function getSurfTagKey(v: unknown): string | null {
+		if (typeof v === 'string') return v;
+		if (v && typeof v === 'object' && 'tag' in (v as object))
+			return (v as { tag: string }).tag;
+		return null;
+	}
+
+	function calcDMFT(entries: ToothChartEntry[]): { D: number; M: number; F: number; total: number } {
+		let D = 0, M = 0, F = 0;
+		for (const e of entries) {
+			if (e.condition === 'extracted') { M++; continue; }
+			// 'missing' only counts as M if clinically documented (has notes, surfaces, or was extracted).
+			// Arch-setup placeholders (condition='missing', no notes, empty surfaces, no bridge) are
+			// unerupted/not-yet-present teeth — not missing due to caries — so exclude from M.
+			if (e.condition === 'missing') {
+				const isArchPlaceholder = !e.notes?.trim() && (e.surfaces === '{}' || !e.surfaces) && !e.bridge_group_id;
+				if (!isArchPlaceholder) M++;
+				continue;
+			}
+			let hasDecayed = (e.condition === 'decayed');
+			let hasFilled  = (e.condition === 'filled' || e.condition === 'crowned');
+			try {
+				const surfs = JSON.parse(e.surfaces || '{}') as Record<string, unknown>;
+				for (const v of Object.values(surfs)) {
+					const tag = getSurfTagKey(v);
+					if (tag === 'decayed' || tag === 'decayed_radiographic') hasDecayed = true;
+					if (tag === 'filled' || tag === 'inlay' || tag === 'inlay_planned') hasFilled = true;
+				}
+			} catch { /* skip */ }
+			if (hasDecayed) D++;
+			else if (hasFilled) F++;
+		}
+		return { D, M, F, total: D + M + F };
+	}
+
+	const dmftScore = $derived.by(() => {
+		const permanent = chartData.filter(e => !isPrimaryTooth(e.tooth_number));
+		const primary   = chartData.filter(e => isPrimaryTooth(e.tooth_number));
+		return {
+			permanent: calcDMFT(permanent),
+			primary:   calcDMFT(primary),
+			hasPrimary: primary.length > 0,
+		};
+	});
+
 	onMount(async () => {
 		if (snapshotData !== undefined) {
 			await Promise.all([dentalTags.load(), prosthesisTypes.load(), bridgeRoles.load()]);
@@ -463,25 +523,33 @@
 			isLoading = false;
 			return;
 		}
-		const [chart, archSettingRaw] = await Promise.all([
+		const today = new Date().toISOString().slice(0, 10);
+		const [chart, archSettingRaw, notesSet, remindersSet] = await Promise.all([
 			getChartData(patientId),
 			getSetting(`arch_${patientId}`),
+			getTeethWithNotes(patientId),
+			getTeethWithDueReminders(patientId, today),
 			dentalTags.load(),
 			prosthesisTypes.load(),
 			bridgeRoles.load(),
 		]);
 		chartData = chart;
+		teethWithNotes = notesSet;
+		teethWithDueReminders = remindersSet;
 
 		const savedArch = archSettingRaw ? JSON.parse(archSettingRaw) as { dentitionType: DentitionType; initialized: boolean } : null;
 		archHasBeenSetUp  = savedArch?.initialized === true;
 		archDentitionType = savedArch?.dentitionType ?? null;
+
+		const dmftSetting = await getSetting('dmft_for_adults');
+		dmftEnabled = dmftSetting !== 'false';
 
 		isLoading = false;
 	});
 
 	async function handleToothSave(
 		toothNumber: number,
-		data: { condition: string; notes: string; last_examined: string; surfaces: string },
+		data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number },
 	) {
 		if (isSnapshotMode && snapshotEditMode) {
 			const idx = chartData.findIndex(t => t.tooth_number === toothNumber);
@@ -491,7 +559,8 @@
 			} else {
 				chartData = [...chartData, {
 					id: toothNumber, patient_id: patientId, tooth_number: toothNumber,
-					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null, updated_at: now, ...data,
+					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
+					updated_at: now, ...data,
 				}];
 			}
 			onSnapshotSave?.(chartData);
@@ -504,7 +573,8 @@
 			} else {
 				chartData = [...chartData, {
 					id: toothNumber, patient_id: patientId, tooth_number: toothNumber,
-					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null, updated_at: _now, ...data,
+					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
+					updated_at: _now, ...data,
 				}];
 			}
 			// Persist to DB, then refresh to get canonical data (bridge_group_id, etc.)
@@ -626,6 +696,22 @@
 						</div>
 					{/if}
 					<h3 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Dental Chart</h3>
+					{#if dmftEnabled && !isSnapshotMode && chartData.length > 0}
+						<div class="flex items-center gap-2 mt-1 flex-wrap">
+							<span class="inline-flex items-center gap-1 rounded-full bg-muted/70 border border-border/60 px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+								<span class="text-muted-foreground">{i18n.t.chart.dmft}:</span>
+								<span class="font-semibold">{dmftScore.permanent.total}</span>
+								<span class="text-muted-foreground/60">({i18n.t.chart.dmftDecayed}:{dmftScore.permanent.D} {i18n.t.chart.dmftMissing}:{dmftScore.permanent.M} {i18n.t.chart.dmftFilled}:{dmftScore.permanent.F})</span>
+							</span>
+							{#if dmftScore.hasPrimary}
+								<span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200/70 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-900/20 dark:border-amber-700/40 dark:text-amber-300">
+									<span class="text-amber-600 dark:text-amber-400">dmft:</span>
+									<span class="font-semibold">{dmftScore.primary.total}</span>
+									<span class="text-amber-600/70 dark:text-amber-400/70">(d:{dmftScore.primary.D} m:{dmftScore.primary.M} f:{dmftScore.primary.F})</span>
+								</span>
+							{/if}
+						</div>
+					{/if}
 				</div>
 				<div class="flex items-center gap-2">
 					{#if !isSnapshotMode}
@@ -682,6 +768,8 @@
 				showPrimary={chartingMode ? false : effectiveShowPrimary}
 				showPermanent={chartingMode ? true : effectiveShowPermanent}
 				showLegend={false}
+				{teethWithNotes}
+				{teethWithDueReminders}
 				onToothClick={async (n, shiftHeld) => {
 					// In arch setup mode: clicking toggles tooth presence, nothing else
 					if (archSetupMode) {
@@ -723,6 +811,7 @@
 						const idx = FDI_CHARTING_ORDER.indexOf(n);
 						if (idx !== -1) chartingIndex = idx;
 					}
+					if (selectedTooth !== n) _shortcutCycle.clear();
 					selectedTooth = n;
 					selectedSurface = null;
 				}}
@@ -795,6 +884,13 @@
 					onSave={handleToothSave}
 					onClose={() => { shortcutTagKey = null; selectedTooth = null; selectedSurface = null; }}
 					onDissolveBridge={!isSnapshotReadOnly ? handleDissolveGroup : undefined}
+					onNotesChanged={async () => {
+						const today = new Date().toISOString().slice(0, 10);
+						[teethWithNotes, teethWithDueReminders] = await Promise.all([
+							getTeethWithNotes(patientId),
+							getTeethWithDueReminders(patientId, today),
+						]);
+					}}
 				/>
 			</div>
 		{/if}

@@ -5,18 +5,21 @@ import { i18n } from '$lib/i18n';
 export { type PatternType };
 
 /**
- * Tags whose key is hardcoded into the SVG rendering engine (root morphology, structural
- * outlines, connector bars). Removing one of these would break chart visuals or make the
- * condition impossible to apply, so the delete button is disabled for them in Settings.
- * Color, pattern, label and shortcut remain fully editable.
+ * Tags whose key is hardcoded into the SVG rendering engine or into extended clinical
+ * modules (root canal endo docs, surface filling material). Removing one of these would
+ * break chart visuals or clinical workflows. The delete button is disabled for them in
+ * Settings. Color, pattern, label and shortcut remain fully editable.
  */
 export const RENDER_CRITICAL_TAGS = new Set([
-	'implant',    // cylindrical grey fixture root
-	'bridge',     // orange connector bar + pontic: no root, dashed outline
-	'prosthesis', // blue dashed connector + replaced: no root, dashed outline
-	'missing',    // suppresses roots entirely
-	'extracted',  // suppresses roots + draws X mark
-	'root_canal', // purple root fill + canal line + apex dot
+	'implant',      // cylindrical grey fixture root
+	'bridge',       // orange connector bar + pontic: no root, dashed outline
+	'prosthesis',   // blue dashed connector + replaced: no root, dashed outline
+	'missing',      // suppresses roots entirely
+	'extracted',    // suppresses roots + draws X mark
+	'root_canal',   // purple root fill + canal line + apex dot + endo doc module
+	'filled',       // surface filling material module (material picker, SVG material inset)
+	'inlay',        // surface inlay material module
+	'inlay_planned',// surface inlay planned material module
 ]);
 
 // Default tags — no `label` field (labels come from i18n.t.chart.tags[key].label at render time)
@@ -36,6 +39,10 @@ export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'prosthesis',         color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T', wholeTooth: true },
 	{ key: 'erupting',           color: '#d1fae5', strokeColor: '#059669', pattern: 'solid', shortcut: 'D', wholeTooth: true },
 	{ key: 'persistent_primary', color: '#fef3c7', strokeColor: '#d97706', pattern: 'solid', shortcut: 'V', wholeTooth: true },
+	{ key: 'inlay',                color: '#ddd6fe', strokeColor: '#7c3aed', pattern: 'solid', shortcut: 'N' },
+	{ key: 'inlay_planned',        color: '#ede9fe', strokeColor: '#8b5cf6', pattern: 'solid', shortcut: 'J' },
+	{ key: 'decayed_radiographic', color: '#fef3c7', strokeColor: '#f59e0b', pattern: 'solid', shortcut: 'Q' },
+	{ key: 'mih',                  color: '#f3e8ff', strokeColor: '#9333ea', pattern: 'solid', shortcut: 'H' },
 ];
 
 /** Keys whose tags always apply to the whole tooth, never to individual surfaces. */
@@ -58,9 +65,13 @@ function createDentalTagsStore() {
 					const parsed = JSON.parse(stored) as DentalTag[];
 					if (Array.isArray(parsed) && parsed.length > 0) {
 						// Strip legacy `label` field silently (backwards compat); preserve wholeTooth
-						_list = parsed.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
+						const cleaned = parsed.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
 							({ key, color, strokeColor, pattern, shortcut, wholeTooth } as DentalTag)
 						);
+						// Merge any new default tags that aren't in the stored list yet
+						const storedKeys = new Set(cleaned.map(t => t.key));
+						const newDefaults = DEFAULT_DENTAL_TAGS.filter(t => !storedKeys.has(t.key));
+						_list = newDefaults.length > 0 ? [...cleaned, ...newDefaults] : cleaned;
 						_loaded = true;
 						return;
 					}

@@ -8,6 +8,7 @@
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
 	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
 	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
+	import { fillingMaterials } from '$lib/stores/fillingMaterials.svelte';
 
 	let {
 		patient,
@@ -95,6 +96,7 @@
 				tags,
 				bridgeCfgs,
 				prosthesisCfgs,
+				fillingMaterials.list.map(m => ({ key: m.key, label: m.label, color: m.color })),
 				i18n.code,
 				(pct, text) => {
 					progress = pct;
