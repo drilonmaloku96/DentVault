@@ -24,9 +24,12 @@
 	import { postTypes, DEFAULT_POST_TYPES, type PostTypeConfig } from '$lib/stores/postTypes.svelte';
 	import { fillingMaterials, DEFAULT_FILLING_MATERIALS, type FillingMaterialConfig } from '$lib/stores/fillingMaterials.svelte';
 	import { endoInstruments, DEFAULT_ENDO_INSTRUMENTS, type EndoInstrumentConfig } from '$lib/stores/endoInstruments.svelte';
+	import { shadeGuides, DEFAULT_SHADE_GUIDES, type ShadeGuideConfig } from '$lib/stores/shadeGuides.svelte';
 	import { textBlocks, DEFAULT_TEXT_BLOCKS, type TextBlock } from '$lib/stores/textBlocks.svelte';
 	import { acuteTagOptions, medicalTagOptions, DEFAULT_ACUTE_TAGS, DEFAULT_MEDICAL_TAGS, type ClinicalTag } from '$lib/stores/clinicalTags.svelte';
 	import { complicationTypes, DEFAULT_COMPLICATION_TYPES, type ComplicationType } from '$lib/stores/complicationTypes.svelte';
+	import { textHighlightColors, DEFAULT_HIGHLIGHT_COLORS, MAX_HIGHLIGHT_COLORS, type TextHighlightColor } from '$lib/stores/textHighlightColors.svelte';
+import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } from '$lib/stores/planProcedures.svelte';
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
@@ -384,7 +387,6 @@
 		{ key: 'restorative',      label: i18n.t.chart.tagGroups.restorative,      keys: ['decayed', 'filled'] },
 		{ key: 'endodontic',       label: i18n.t.chart.tagGroups.endodontic,       keys: ['root_canal'] },
 		{ key: 'fixedProsthetics', label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
-		{ key: 'removable',        label: i18n.t.chart.tagGroups.removable,        keys: ['prosthesis'] },
 		{ key: 'absent',           label: i18n.t.chart.tagGroups.absent,           keys: ['missing', 'extracted'] },
 	]);
 
@@ -562,6 +564,39 @@
 		}
 	}
 
+	// ── Plan Procedures ───────────────────────────────────────────────────────────────
+	let draftPlanProcs   = $state<PlanProcedureConfig[]>([]);
+	let isPlanProcSaving = $state(false);
+	let planProcSaved    = $state(false);
+
+	$effect(() => {
+		if (!planProcedures.loaded) {
+			planProcedures.load();
+			return;
+		}
+		draftPlanProcs = untrack(() => planProcedures.list.map(p => ({ ...p })));
+	});
+
+	function addPlanProc() {
+		draftPlanProcs = [...draftPlanProcs, {
+			key: `custom_proc_${Date.now()}`,
+			label: '', color: '#6366f1', abbr: '', shortcut: '', isDefault: false,
+		}];
+	}
+	function removePlanProc(i: number) {
+		draftPlanProcs = draftPlanProcs.filter((_, idx) => idx !== i);
+	}
+	async function handleSavePlanProcs() {
+		isPlanProcSaving = true;
+		try {
+			await planProcedures.save(draftPlanProcs.filter(p => p.label.trim() && p.abbr.trim()));
+			planProcSaved = true;
+			setTimeout(() => (planProcSaved = false), 2500);
+		} finally {
+			isPlanProcSaving = false;
+		}
+	}
+
 	// ── Filling Materials ──────────────────────────────────────────────────────────────
 	let draftFillingMaterials = $state<FillingMaterialConfig[]>([]);
 	let isFillingMatSaving    = $state(false);
@@ -613,6 +648,37 @@
 			setTimeout(() => (endoInstrSaved = false), 2500);
 		} finally {
 			isEndoInstrSaving = false;
+		}
+	}
+
+	// ── Shade guides ───────────────────────────────────────────────────────────────────
+	let draftShadeGuides  = $state<ShadeGuideConfig[]>([]);
+	let isShadeGuidesSaving = $state(false);
+	let shadeGuidesSaved    = $state(false);
+
+	$effect(() => {
+		if (!shadeGuides.loaded) {
+			shadeGuides.load();
+			return;
+		}
+		draftShadeGuides = untrack(() => shadeGuides.list.map(g => ({ ...g, shades: [...g.shades] })));
+	});
+
+
+	function addShadeGuide() {
+		draftShadeGuides = [...draftShadeGuides, { key: `custom_${Date.now()}`, label: '', shades: [] }];
+	}
+	function removeShadeGuide(i: number) {
+		draftShadeGuides = draftShadeGuides.filter((_, idx) => idx !== i);
+	}
+	async function handleSaveShadeGuides() {
+		isShadeGuidesSaving = true;
+		try {
+			await shadeGuides.save(draftShadeGuides.filter(g => g.label.trim()));
+			shadeGuidesSaved = true;
+			setTimeout(() => (shadeGuidesSaved = false), 2500);
+		} finally {
+			isShadeGuidesSaving = false;
 		}
 	}
 
@@ -763,6 +829,42 @@
 		if (!t || draftComplicationTypes.some(ct => complicationTypes.displayLabel(ct) === t)) return;
 		draftComplicationTypes = [...draftComplicationTypes, { key: 'custom_' + Date.now(), label: t }];
 		newComplicationTypeLabel = '';
+	}
+
+	// ── Text Highlight Colors ─────────────────────────────────────────────────
+	let draftHighlightColors = $state<TextHighlightColor[]>([]);
+	let highlightColorsSaving = $state(false);
+	let highlightColorsSaved  = $state(false);
+
+	$effect(() => {
+		if (activeSection === 'clinical') {
+			if (!textHighlightColors.loaded) textHighlightColors.load();
+			draftHighlightColors = untrack(() => textHighlightColors.list.map(c => ({ ...c })));
+		}
+	});
+
+	async function saveHighlightColors() {
+		highlightColorsSaving = true;
+		try {
+			await textHighlightColors.save([...draftHighlightColors]);
+			highlightColorsSaved = true;
+			setTimeout(() => (highlightColorsSaved = false), 2000);
+		} finally {
+			highlightColorsSaving = false;
+		}
+	}
+
+	function addHighlightColor() {
+		if (draftHighlightColors.length >= MAX_HIGHLIGHT_COLORS) return;
+		draftHighlightColors = [...draftHighlightColors, { hex: '#6366f1', label: '' }];
+	}
+
+	function removeHighlightColor(i: number) {
+		draftHighlightColors = draftHighlightColors.filter((_, idx) => idx !== i);
+	}
+
+	function updateHighlightColor(i: number, field: 'hex' | 'label', value: string) {
+		draftHighlightColors = draftHighlightColors.map((c, idx) => idx === i ? { ...c, [field]: value } : c);
 	}
 
 	// ── Rooms ──────────────────────────────────────────────────────────────────
@@ -1164,12 +1266,12 @@
 			{/if}
 		</div>
 
-		{@render navBtn('home', i18n.code === 'de' ? 'Übersicht' : 'Overview')}
-		{@render navBtn('general', i18n.code === 'de' ? 'Allgemein' : 'General')}
+		{@render navBtn('home', i18n.t.settings.sections.overview)}
+		{@render navBtn('general', i18n.t.settings.sections.general)}
 		{@render navBtn('team', i18n.t.staff.title)}
-		{@render navBtn('schedule', i18n.code === 'de' ? 'Terminplan' : 'Schedule')}
-		{@render navBtn('clinical', i18n.code === 'de' ? 'Klinisch' : 'Clinical')}
-		{@render navBtn('documents', i18n.code === 'de' ? 'Dokumente' : 'Documents')}
+		{@render navBtn('schedule', i18n.t.settings.sections.schedule)}
+		{@render navBtn('clinical', i18n.t.settings.sections.clinical)}
+		{@render navBtn('documents', i18n.t.settings.sections.documents)}
 		{@render navBtn('patients', i18n.t.nav.patients)}
 
 	</nav>
@@ -1179,12 +1281,11 @@
 		<div class="flex flex-col gap-8 max-w-2xl px-8 py-7">
 
 	{#if activeSection === 'home'}
-	{@const de = i18n.code === 'de'}
 	{@const nav = navigateTo}
 	<div class="flex flex-col gap-5">
 		<div>
-			<h2 class="text-base font-semibold">{de ? 'Einstellungen' : 'Settings'}</h2>
-			<p class="text-sm text-muted-foreground mt-0.5">{de ? 'Wähle einen Bereich oder tippe direkt ein Thema an.' : 'Select a section or jump directly to any topic.'}</p>
+			<h2 class="text-base font-semibold">{i18n.t.settings.homeTitle}</h2>
+			<p class="text-sm text-muted-foreground mt-0.5">{i18n.t.settings.homeSubtitle}</p>
 		</div>
 
 		<div class="grid grid-cols-2 gap-3">
@@ -1193,14 +1294,14 @@
 			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
 				<button type="button" onclick={() => nav('general')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-					<span class="text-sm font-semibold">{de ? 'Allgemein' : 'General'}</span>
+					<span class="text-sm font-semibold">{i18n.t.settings.sections.general}</span>
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Sprache & Darstellung' : 'Language & Appearance' },
-						{ label: de ? 'Vault-Pfad' : 'Vault Path' },
-						{ label: de ? 'Backup' : 'Backup' },
-						{ label: de ? 'Über die App' : 'About' },
+						{ label: i18n.t.settings.sections.appearance },
+						{ label: i18n.t.settings.sections.vault },
+						{ label: i18n.t.settings.sections.backup },
+						{ label: i18n.t.settings.sections.about },
 					] as item}
 						<button type="button" onclick={() => nav('general')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1218,8 +1319,8 @@
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Mitarbeiter & Arbeitszeiten' : 'Staff Members & Hours' },
-						{ label: de ? 'Rollen' : 'Roles' },
+						{ label: i18n.t.settings.sections.staffAndHours },
+						{ label: i18n.t.settings.sections.roles },
 					] as item}
 						<button type="button" onclick={() => nav('team')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1233,13 +1334,13 @@
 			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
 				<button type="button" onclick={() => nav('schedule')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-					<span class="text-sm font-semibold">{de ? 'Terminplan' : 'Schedule'}</span>
+					<span class="text-sm font-semibold">{i18n.t.settings.sections.schedule}</span>
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Praxis-Öffnungszeiten' : 'Practice Hours' },
-						{ label: de ? 'Behandlungsräume' : 'Rooms' },
-						{ label: de ? 'Terminarten' : 'Appointment Types' },
+						{ label: i18n.t.settings.sections.workingHours },
+						{ label: i18n.t.settings.sections.rooms },
+						{ label: i18n.t.settings.sections.appointmentTypes },
 					] as item}
 						<button type="button" onclick={() => nav('schedule')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1253,15 +1354,16 @@
 			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
 				<button type="button" onclick={() => nav('clinical')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.51 0 2.93.37 4.18 1.02"/><path d="M21 3l-9 9"/><path d="M15 3h6v6"/></svg>
-					<span class="text-sm font-semibold">{de ? 'Klinisch' : 'Clinical'}</span>
+					<span class="text-sm font-semibold">{i18n.t.settings.sections.clinical}</span>
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Klinische Tags' : 'Clinical Tags' },
-						{ label: de ? 'Komplikationstypen' : 'Complication Types' },
-						{ label: de ? 'Textbausteine' : 'Text Blocks' },
-						{ label: de ? 'Zahn-Tags & Symbole' : 'Dental Tags & Symbols' },
-						{ label: de ? 'Prothetik & Brücken' : 'Prosthetics & Bridges' },
+						{ label: i18n.t.settings.sections.clinicalTags },
+						{ label: i18n.t.settings.sections.complicationTypes },
+						{ label: i18n.t.settings.sections.textBlocks },
+						{ label: i18n.t.settings.sections.textHighlightColors },
+						{ label: i18n.t.settings.sections.dentalTagsAndSymbols },
+						{ label: i18n.t.settings.sections.prostheticsAndBridges },
 					] as item}
 						<button type="button" onclick={() => nav('clinical')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1275,12 +1377,12 @@
 			<div class="rounded-lg border bg-card overflow-hidden flex flex-col">
 				<button type="button" onclick={() => nav('documents')} class="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 transition-colors text-left border-b border-border group">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-					<span class="text-sm font-semibold">{de ? 'Dokumente' : 'Documents'}</span>
+					<span class="text-sm font-semibold">{i18n.t.settings.sections.documents}</span>
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Ordnerkategorien (!TEMPLATE)' : 'Folder Categories (!TEMPLATE)' },
-						{ label: de ? 'Dokumentvorlagen (!Documents)' : 'Document Templates (!Documents)' },
+						{ label: i18n.t.settings.sections.docCategories },
+						{ label: i18n.t.settings.sections.documentTemplates },
 					] as item}
 						<button type="button" onclick={() => nav('documents')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1298,8 +1400,8 @@
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: de ? 'Patienten verwalten' : 'Manage Patients' },
-						{ label: de ? 'Patientenexport' : 'Patient Export' },
+						{ label: i18n.t.settings.sections.patientManagement },
+						{ label: i18n.t.settings.sections.patientExport },
 					] as item}
 						<button type="button" onclick={() => nav('patients')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -1939,7 +2041,7 @@
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
 						</svg>
-						{i18n.code === 'de' ? 'Im Finder öffnen' : 'Open in Finder'}
+						{i18n.t.settings.docCategories.openInFinder}
 					</button>
 				{/if}
 			</div>
@@ -2116,9 +2218,7 @@
 			</div>
 
 			<p class="text-[10px] text-muted-foreground/70 leading-relaxed">
-				⚠️ {i18n.code === 'de'
-					? 'Das Umbenennen von <strong>Bezeichnung</strong> oder <strong>Symbol</strong> ist sicher — bestehende Dokumente behalten ihren Kategorieschlüssel. Das Löschen einer Kategorie löscht <em>keine</em> Dokumente. Der Ordnername kann nach der Erstellung nicht mehr geändert werden.'
-					: "Renaming a category's <strong>label</strong> or <strong>icon</strong> is safe — existing documents keep their category key. Deleting a category does <em>not</em> delete its documents. The folder name cannot be changed after creation."}
+				⚠️ {@html i18n.t.settings.docCategories.categoryRenameHint}
 			</p>
 			</div><!-- /p-5 -->
 		</div><!-- /card -->
@@ -2132,7 +2232,7 @@
 					<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
 				</svg>
 				<code class="text-sm font-semibold text-teal-800 dark:text-teal-200">!Documents/</code>
-				<span class="text-xs text-muted-foreground truncate">{i18n.code === 'de' ? 'Wiederverwendbare Dokumentvorlagen' : 'Reusable document templates'}</span>
+				<span class="text-xs text-muted-foreground truncate">{i18n.t.settings.docCategories.reusableTemplates}</span>
 			</div>
 			{#if vault.isConfigured && vault.path}
 				<button
@@ -2144,23 +2244,21 @@
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 						<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
 					</svg>
-					{i18n.code === 'de' ? 'Im Finder öffnen' : 'Open in Finder'}
+					{i18n.t.settings.docCategories.openInFinder}
 				</button>
 			{/if}
 		</div>
 
 		<!-- Explanation -->
 		<div class="px-4 py-2.5 border-b border-border/60 bg-muted/20 text-[11px] text-muted-foreground leading-relaxed">
-			{i18n.code === 'de'
-				? 'Legen Sie hier Vorlagendokumente ab (PDFs, Word-Dateien usw.). Im Patienten-Timeline gibt es einen "+ Vorlage"-Button, mit dem eine dieser Dateien in den Ordner des aktiven Patienten kopiert und als Dokument-Eintrag registriert wird — nützlich für Einwilligungsformulare, Behandlungsprotokolle oder andere patientenspezifische Unterlagen.'
-				: "Store reusable document templates here (PDFs, Word files, etc.). In a patient's timeline, use the \"+ Template\" button to copy one of these files into that patient's folder and register it as a document entry — useful for consent forms, treatment protocols, or any patient-specific starting documents."}
+			{i18n.t.settings.docCategories.docTemplatesDescription}
 		</div>
 
 		<!-- File list -->
 		<div class="p-4">
 			{#if docTemplateFiles.length === 0}
 				<p class="text-xs text-muted-foreground/60 text-center py-3 italic">
-					{i18n.code === 'de' ? 'Noch keine Vorlagen vorhanden. Dateien im Finder in diesen Ordner ablegen.' : 'No templates yet. Drop files into this folder in Finder to add them.'}
+					{i18n.t.settings.docCategories.noTemplates}
 				</p>
 			{:else}
 				<div class="flex flex-col gap-1">
@@ -2188,7 +2286,7 @@
 								type="button"
 								onclick={() => vault.path && openDocumentFile(`${vault.path}/!Documents/${tpl.filename}`)}
 								class="opacity-0 group-hover:opacity-100 flex items-center justify-center h-6 w-6 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-								title={i18n.code === 'de' ? 'Datei öffnen' : 'Open file'}
+								title={i18n.t.settings.docCategories.openFile}
 							>
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 									<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -2436,7 +2534,7 @@
 										type="text"
 										value={block.label}
 										oninput={(e) => updateBlock(i, 'label', (e.target as HTMLInputElement).value)}
-										placeholder="z.B. Composite-Füllung"
+										placeholder={i18n.t.settings.textBlocks.labelPlaceholder}
 										class="h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/30"
 									/>
 								</div>
@@ -2459,13 +2557,13 @@
 							<!-- Body -->
 							<div class="flex flex-col gap-1">
 								<label class="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-									Text <span class="normal-case font-normal">(__ = Platzhalter)</span>
+									{i18n.t.settings.textBlocks.bodyLabel} <span class="normal-case font-normal">({i18n.t.settings.textBlocks.placeholderHint})</span>
 								</label>
 								<textarea
 									value={block.body}
 									oninput={(e) => updateBlock(i, 'body', (e.target as HTMLTextAreaElement).value)}
 									rows={5}
-									placeholder="Templatetext… __ für Platzhalter"
+									placeholder={i18n.t.settings.textBlocks.bodyPlaceholder}
 									class="w-full resize-y rounded-md border border-input bg-background px-2.5 py-2 font-mono text-xs outline-none focus:border-ring focus:ring-1 focus:ring-ring/30"
 								></textarea>
 							</div>
@@ -2496,6 +2594,101 @@
 				{/if}
 				{#if duplicateBlockKeys.size > 0}
 					<span class="text-xs text-destructive">{i18n.t.chart.editTagsDialog.duplicateShortcut}: {[...duplicateBlockKeys].join(', ')}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.textHighlightColors.title}</h2>
+			<p class="text-sm text-muted-foreground">
+				{i18n.t.settings.textHighlightColors.description.replace('{n}', String(MAX_HIGHLIGHT_COLORS))}
+			</p>
+		</div>
+		<Separator />
+
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<!-- Live preview of the picker pill -->
+			<div class="flex items-center gap-2.5">
+				<span class="text-xs text-muted-foreground shrink-0">{i18n.t.settings.textHighlightColors.preview}:</span>
+				<div class="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 shadow-sm">
+					{#each draftHighlightColors as c}
+						<div
+							class="h-3.5 w-3.5 rounded-full shrink-0"
+							style="background:{c.hex};border:2px solid rgba(255,255,255,0.35);box-shadow:0 1px 3px rgba(0,0,0,0.2)"
+							title={c.label || c.hex}
+						></div>
+					{/each}
+					{#if draftHighlightColors.length > 0}
+						<div class="w-px h-3 bg-border mx-0.5 shrink-0"></div>
+					{/if}
+					<!-- Remove button placeholder -->
+					<div class="h-3.5 w-3.5 rounded-full border border-border shrink-0 flex items-center justify-center text-muted-foreground" style="font-size:7px;line-height:1">✕</div>
+				</div>
+				{#if draftHighlightColors.length === 0}
+					<span class="text-xs text-muted-foreground/60 italic">{i18n.t.settings.textHighlightColors.empty}</span>
+				{/if}
+			</div>
+
+			<Separator />
+
+			<!-- Color rows -->
+			{#each draftHighlightColors as color, i}
+				<div class="flex items-center gap-2">
+					<input
+						type="color"
+						value={color.hex}
+						oninput={(e) => updateHighlightColor(i, 'hex', (e.target as HTMLInputElement).value)}
+						class="h-8 w-8 shrink-0 rounded cursor-pointer border border-input p-0.5 bg-background"
+						title={color.label || color.hex}
+					/>
+					<input
+						type="text"
+						value={color.label}
+						oninput={(e) => updateHighlightColor(i, 'label', (e.target as HTMLInputElement).value)}
+						placeholder={i18n.t.settings.textHighlightColors.labelPlaceholder}
+						class="flex-1 h-8 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/30"
+					/>
+					<button
+						type="button"
+						onclick={() => removeHighlightColor(i)}
+						class="shrink-0 rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+						title={i18n.t.actions.delete}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+							<path d="M18 6L6 18M6 6l12 12"/>
+						</svg>
+					</button>
+				</div>
+			{/each}
+
+			<!-- Add button / max reached hint -->
+			{#if draftHighlightColors.length < MAX_HIGHLIGHT_COLORS}
+				<button
+					type="button"
+					onclick={addHighlightColor}
+					class="flex items-center gap-1.5 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors w-full"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+						<path d="M12 5v14M5 12h14"/>
+					</svg>
+					{i18n.t.settings.textHighlightColors.add}
+				</button>
+			{:else}
+				<p class="text-xs text-muted-foreground/60 text-center py-1">
+					{i18n.t.settings.textHighlightColors.maxReached.replace('{n}', String(MAX_HIGHLIGHT_COLORS))}
+				</p>
+			{/if}
+
+			<!-- Save -->
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={saveHighlightColors} disabled={highlightColorsSaving}>
+					{highlightColorsSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if highlightColorsSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
 				{/if}
 			</div>
 		</div>
@@ -3112,6 +3305,61 @@
 	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
 		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.shadeGuides.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.shadeGuides.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<div class="flex flex-col gap-3">
+				{#each draftShadeGuides as guide, i}
+					<div class="flex flex-col gap-1.5 rounded-md border border-border/60 p-3">
+						<div class="flex items-center gap-2">
+							<input
+								type="text"
+								class="border-input bg-background flex h-8 flex-1 rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+								placeholder={i18n.t.settings.shadeGuides.guideName}
+								bind:value={draftShadeGuides[i].label}
+							/>
+							<button
+								type="button"
+								onclick={() => removeShadeGuide(i)}
+								class="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+								title={i18n.t.actions.delete}
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+							</button>
+						</div>
+						<textarea
+							class="border-input bg-background min-h-[52px] w-full rounded-md border px-3 py-1.5 text-xs font-mono outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] resize-none"
+							placeholder={i18n.t.settings.shadeGuides.shadesPlaceholder}
+							value={draftShadeGuides[i].shades.join(', ')}
+							oninput={(e) => { draftShadeGuides[i].shades = (e.currentTarget as HTMLTextAreaElement).value.split(',').map(s => s.trim()).filter(Boolean); }}
+						></textarea>
+					</div>
+				{/each}
+			</div>
+			<button
+				type="button"
+				onclick={addShadeGuide}
+				class="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-foreground/50 hover:text-foreground transition-colors w-full"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.settings.shadeGuides.add}
+			</button>
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSaveShadeGuides} disabled={isShadeGuidesSaving}>
+					{isShadeGuidesSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if shadeGuidesSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.postTypes.title}</h2>
 			<p class="text-sm text-muted-foreground">{i18n.t.settings.postTypes.description}</p>
 		</div>
@@ -3156,12 +3404,101 @@
 		</div>
 	</section>
 
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.planProcedures.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.planProcedures.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<!-- Column headers -->
+			<div class="grid gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60 px-1" style="grid-template-columns: 1fr 5rem 4rem 4rem auto;">
+				<span>{i18n.t.settings.planProcedures.labelHeader}</span>
+				<span>{i18n.t.settings.planProcedures.colorLabel}</span>
+				<span>{i18n.t.settings.planProcedures.abbrHeader}</span>
+				<span>{i18n.t.settings.planProcedures.keyHeader}</span>
+				<span></span>
+			</div>
+			<div class="flex flex-col gap-2">
+				{#each draftPlanProcs as proc, i}
+					<div class="grid items-center gap-2" style="grid-template-columns: 1fr 5rem 4rem 4rem auto;">
+						<!-- Label -->
+						<div class="flex items-center gap-2 min-w-0">
+							{#if proc.isDefault}
+								<span class="text-[10px] px-1.5 py-px rounded bg-muted text-muted-foreground/60 font-medium shrink-0">{i18n.t.settings.planProcedures.defaultBadge}</span>
+							{/if}
+							<input
+								type="text"
+								class="border-input bg-background flex h-8 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] {proc.isDefault ? 'font-medium' : ''}"
+								placeholder={i18n.t.settings.planProcedures.labelPlaceholder}
+								bind:value={draftPlanProcs[i].label}
+							/>
+						</div>
+						<!-- Color swatch + picker -->
+						<div class="flex items-center gap-1.5">
+							<div class="h-6 w-6 rounded border border-border/60 shrink-0" style="background:{proc.color};"></div>
+							<input
+								type="color"
+								class="h-8 w-12 rounded border border-border/60 bg-background cursor-pointer p-0.5"
+								bind:value={draftPlanProcs[i].color}
+							/>
+						</div>
+						<!-- Abbreviation -->
+						<input
+							type="text"
+							maxlength="3"
+							class="border-input bg-background flex h-8 w-full rounded-md border px-3 py-1 text-sm font-mono outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+							placeholder={i18n.t.settings.planProcedures.abbrPlaceholder}
+							bind:value={draftPlanProcs[i].abbr}
+						/>
+						<!-- Keyboard shortcut -->
+						<input
+							type="text"
+							maxlength="1"
+							class="border-input bg-background flex h-8 w-full rounded-md border px-3 py-1 text-sm font-mono outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+							placeholder={i18n.t.settings.planProcedures.shortcutPlaceholder}
+							bind:value={draftPlanProcs[i].shortcut}
+							oninput={(e) => { draftPlanProcs[i].shortcut = (e.target as HTMLInputElement).value.toLowerCase().slice(0,1); }}
+						/>
+						<!-- Delete (only non-defaults or all if wanted) -->
+						<button
+							type="button"
+							onclick={() => removePlanProc(i)}
+							class="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+							title={i18n.t.actions.delete}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					</div>
+				{/each}
+			</div>
+			<!-- Add custom procedure -->
+			<button
+				type="button"
+				onclick={addPlanProc}
+				class="flex items-center gap-2 rounded-md border border-dashed border-muted-foreground/40 px-3 py-2 text-sm text-muted-foreground hover:border-foreground/50 hover:text-foreground transition-colors w-full"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.settings.planProcedures.add}
+			</button>
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSavePlanProcs} disabled={isPlanProcSaving}>
+					{isPlanProcSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if planProcSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
 	<Separator />
 
 	<section class="flex flex-col gap-4">
 		<div>
-			<h2 class="text-base font-semibold">{i18n.code === 'de' ? 'DMFT-Index' : 'DMFT Index'}</h2>
-			<p class="text-sm text-muted-foreground">{i18n.code === 'de' ? 'Einstellungen für die automatische DMFT-Berechnung im Zahnschema.' : 'Settings for automatic DMFT index calculation in the dental chart.'}</p>
+			<h2 class="text-base font-semibold">{i18n.t.settings.chart.dmftTitle}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.chart.dmftDesc}</p>
 		</div>
 		<Separator />
 		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
@@ -3174,7 +3511,7 @@
 				/>
 				<div>
 					<p class="text-sm font-medium">{i18n.t.settings.chart.dmftForAdults}</p>
-					<p class="text-xs text-muted-foreground">{i18n.code === 'de' ? 'Zeigt D/M/F-Aufschlüsselung im Zahnschema-Header an.' : 'Shows D/M/F breakdown in the dental chart header.'}</p>
+					<p class="text-xs text-muted-foreground">{i18n.t.settings.chart.dmftToggleDesc}</p>
 				</div>
 			</label>
 		</div>
@@ -3186,7 +3523,7 @@
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.workingHours}</h2>
-			<p class="text-sm text-muted-foreground">{i18n.code === 'de' ? 'Öffnungszeiten der Praxis für den Terminplaner.' : 'Practice opening hours — controls the visible range in the day view.'}</p>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.workingHoursDesc}</p>
 		</div>
 		<Separator />
 
@@ -3218,12 +3555,12 @@
 							<input type="time" bind:value={localWorkingHours[idx].start_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
 							<span class="text-xs text-muted-foreground">–</span>
 							<input type="time" bind:value={localWorkingHours[idx].end_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
-							<span class="text-xs text-muted-foreground ml-2">{i18n.code === 'de' ? 'Pause' : 'Break'}:</span>
+							<span class="text-xs text-muted-foreground ml-2">{i18n.t.settings.schedule.break}:</span>
 							<input type="time" bind:value={localWorkingHours[idx].break_start as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
 							<span class="text-xs text-muted-foreground">–</span>
 							<input type="time" bind:value={localWorkingHours[idx].break_end as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
 						{:else}
-							<span class="text-xs text-muted-foreground">{i18n.code === 'de' ? 'Geschlossen' : 'Closed'}</span>
+							<span class="text-xs text-muted-foreground">{i18n.t.settings.schedule.closed}</span>
 						{/if}
 					</div>
 				{/each}
@@ -3235,7 +3572,7 @@
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.rooms}</h2>
-			<p class="text-sm text-muted-foreground">Behandlungsräume und Stühle für den Terminplaner.</p>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.roomsDesc}</p>
 		</div>
 		<Separator />
 
@@ -3255,10 +3592,10 @@
 			{#if showAddRoom}
 				<div class="flex flex-col gap-2 border border-border rounded p-3 bg-muted/30">
 					<div class="grid grid-cols-2 gap-2">
-						<input type="text" placeholder="Name" bind:value={newRoomName} class={inputClass + ' col-span-2'} />
-						<input type="text" placeholder="Kürzel (z.B. S1)" bind:value={newRoomShort} class={inputClass} />
+						<input type="text" placeholder={i18n.t.common.name} bind:value={newRoomName} class={inputClass + ' col-span-2'} />
+						<input type="text" placeholder={i18n.t.settings.schedule.abbrPlaceholder} bind:value={newRoomShort} class={inputClass} />
 						<div class="flex items-center gap-2">
-							<label class="text-xs text-muted-foreground">Farbe</label>
+							<label class="text-xs text-muted-foreground">{i18n.t.settings.schedule.colorLabel}</label>
 							<input type="color" bind:value={newRoomColor} class="h-8 w-12 rounded border border-border cursor-pointer" />
 						</div>
 					</div>
@@ -3276,7 +3613,7 @@
 						{#if editingRoomId === room.id}
 							<div class="flex flex-1 items-center gap-2 flex-wrap">
 								<input type="text" bind:value={editRoomName} class={inputClass + ' flex-1 min-w-0'} />
-								<input type="text" bind:value={editRoomShort} placeholder="Kürzel" class={inputClass + ' w-20'} />
+								<input type="text" bind:value={editRoomShort} placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} class={inputClass + ' w-20'} />
 								<input type="color" bind:value={editRoomColor} class="h-8 w-10 rounded border border-border cursor-pointer" />
 								<Button size="sm" onclick={() => saveEditRoom(room.id)} disabled={roomsSaving}>{i18n.t.actions.save}</Button>
 								<Button size="sm" variant="outline" onclick={() => (editingRoomId = null)}>{i18n.t.actions.cancel}</Button>
@@ -3287,11 +3624,11 @@
 								<span class="text-xs text-muted-foreground">{room.short_name}</span>
 							{/if}
 							<span class="text-xs px-1.5 py-0.5 rounded-full {room.is_active ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}">
-								{room.is_active ? 'Aktiv' : 'Inaktiv'}
+								{room.is_active ? i18n.t.settings.schedule.active : i18n.t.settings.schedule.inactive}
 							</span>
 							<button class="text-xs text-muted-foreground hover:text-foreground" onclick={() => startEditRoom(room)}>{i18n.t.actions.edit}</button>
 							<button class="text-xs text-muted-foreground hover:text-foreground" onclick={() => handleToggleRoom(room)}>
-								{room.is_active ? 'Deakt.' : 'Aktiv.'}
+								{room.is_active ? i18n.t.settings.schedule.deactivate : i18n.t.settings.schedule.activate}
 							</button>
 						{/if}
 					</div>
@@ -3325,11 +3662,11 @@
 			{#if showAddApptType}
 				<div class="flex flex-col gap-2 border border-border rounded p-3 bg-muted/30">
 					<div class="grid grid-cols-2 gap-2">
-						<input type="text" placeholder="Name" bind:value={newApptTypeName} class={inputClass + ' col-span-2'} />
-						<input type="text" placeholder="Kürzel" bind:value={newApptTypeShort} class={inputClass} />
-						<input type="number" min="5" step="5" placeholder="Dauer (min)" bind:value={newApptTypeDuration} class={inputClass} />
+						<input type="text" placeholder={i18n.t.common.name} bind:value={newApptTypeName} class={inputClass + ' col-span-2'} />
+						<input type="text" placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} bind:value={newApptTypeShort} class={inputClass} />
+						<input type="number" min="5" step="5" placeholder={i18n.t.settings.schedule.durationPlaceholder} bind:value={newApptTypeDuration} class={inputClass} />
 						<div class="flex items-center gap-2">
-							<label class="text-xs text-muted-foreground">Farbe</label>
+							<label class="text-xs text-muted-foreground">{i18n.t.settings.schedule.colorLabel}</label>
 							<input type="color" bind:value={newApptTypeColor} class="h-8 w-12 rounded border border-border cursor-pointer" />
 						</div>
 					</div>
@@ -3347,7 +3684,7 @@
 						{#if editingApptTypeId === t.id}
 							<div class="flex flex-1 items-center gap-2 flex-wrap">
 								<input type="text" bind:value={editApptTypeName} class={inputClass + ' flex-1 min-w-0'} />
-								<input type="text" bind:value={editApptTypeShort} placeholder="Kürzel" class={inputClass + ' w-16'} />
+								<input type="text" bind:value={editApptTypeShort} placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} class={inputClass + ' w-16'} />
 								<input type="number" min="5" step="5" bind:value={editApptTypeDuration} class={inputClass + ' w-16'} />
 								<input type="color" bind:value={editApptTypeColor} class="h-8 w-10 rounded border border-border cursor-pointer" />
 								<Button size="sm" onclick={() => saveEditApptType(t.id)} disabled={apptTypesSaving}>{i18n.t.actions.save}</Button>

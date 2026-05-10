@@ -4,7 +4,7 @@
 	import { getFilteredEntries, getFilteredSummary } from '$lib/services/db';
 	import { i18n } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
-	import { downloadCSV, entriesToCSV } from '$lib/services/export';
+	import { downloadCSV, entriesToCSV, downloadJson } from '$lib/services/export';
 	import { Separator } from '$lib/components/ui/separator';
 	import type { CategoryStat, ReportFilters, ReportEntry } from '$lib/types';
 
@@ -106,9 +106,36 @@
 		const date = new Date().toISOString().slice(0, 10);
 		downloadCSV(csv, `dentvault_report_${date}.csv`);
 	}
+
+	function exportJSON() {
+		const date = new Date().toISOString().slice(0, 10);
+		downloadJson({ exportedAt: date, filters: buildFilters(), entries, summary }, `dentvault_report_${date}.json`);
+	}
+
+	function applyQuickFilter(preset: 'week' | 'month' | 'year') {
+		const today = new Date();
+		dateTo = today.toISOString().slice(0, 10);
+		const d = new Date(today);
+		if (preset === 'week')       d.setDate(d.getDate() - 6);
+		else if (preset === 'month') d.setDate(d.getDate() - 29);
+		else                         d.setFullYear(d.getFullYear() - 1);
+		dateFrom = d.toISOString().slice(0, 10);
+		runQuery();
+	}
 </script>
 
 <div class="flex flex-col gap-6">
+	<!-- Work-in-progress notice -->
+	<div class="flex items-start gap-3 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700/40 px-4 py-3">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400">
+			<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+		</svg>
+		<p class="text-sm text-amber-800 dark:text-amber-300">
+			<span class="font-semibold">Reports is on hold.</span>
+			The current filters and tables work, but the direction for deeper analytics — cohort comparisons, outcome trends, survival curves — hasn't been decided yet. This page will be redesigned once a clearer vision is formed.
+		</p>
+	</div>
+
 	<div class="flex items-start justify-between gap-4">
 		<div>
 			<h1 class="text-2xl font-bold tracking-tight">{i18n.t.nav.reports}</h1>
@@ -125,6 +152,20 @@
 				{activePatient.displayName}
 			</a>
 		{/if}
+	</div>
+
+	<!-- Quick filters -->
+	<div class="flex flex-wrap items-center gap-2">
+		<span class="text-xs text-muted-foreground font-medium">{i18n.t.reports.quickFilterLabel}</span>
+		<button onclick={() => applyQuickFilter('week')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+			{i18n.t.reports.quickThisWeek}
+		</button>
+		<button onclick={() => applyQuickFilter('month')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+			{i18n.t.reports.quickThisMonth}
+		</button>
+		<button onclick={() => applyQuickFilter('year')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+			{i18n.t.reports.quickThisYear}
+		</button>
 	</div>
 
 	<!-- Filter panel -->
@@ -270,14 +311,24 @@
 			<div class="rounded-lg border bg-card overflow-hidden">
 				<div class="flex items-center justify-between p-4 border-b">
 					<span class="text-sm font-medium">{entries.length}</span>
-					<button onclick={exportCSV} class="h-7 rounded-md border px-3 text-xs hover:bg-muted flex items-center gap-1.5">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
-							<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-							<polyline points="7 10 12 15 17 10"/>
-							<line x1="12" y1="15" x2="12" y2="3"/>
-						</svg>
-						{i18n.t.reports.exportCsv}
-					</button>
+					<div class="flex items-center gap-2">
+						<button onclick={exportCSV} class="h-7 rounded-md border px-3 text-xs hover:bg-muted flex items-center gap-1.5">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
+								<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+								<polyline points="7 10 12 15 17 10"/>
+								<line x1="12" y1="15" x2="12" y2="3"/>
+							</svg>
+							{i18n.t.reports.exportCsv}
+						</button>
+						<button onclick={exportJSON} class="h-7 rounded-md border px-3 text-xs hover:bg-muted flex items-center gap-1.5">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
+								<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+								<polyline points="7 10 12 15 17 10"/>
+								<line x1="12" y1="15" x2="12" y2="3"/>
+							</svg>
+							{i18n.t.reports.exportJson}
+						</button>
+					</div>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-xs">

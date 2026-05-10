@@ -8,6 +8,7 @@
 	import { listVaultFiles, type VaultFileInfo } from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
 	import TimelineView from '$lib/components/timeline/TimelineView.svelte';
+	import ParCaseView from '$lib/components/par/ParCaseView.svelte';
 	import PatientNotesBox from '$lib/components/patient/PatientNotesBox.svelte';
 	import MedicalHistoryBox from '$lib/components/patient/MedicalHistoryBox.svelte';
 	import AcuteProblemsBox from '$lib/components/patient/AcuteProblemsBox.svelte';
@@ -15,6 +16,7 @@
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import PatientExportDialog from '$lib/components/export/PatientExportDialog.svelte';
 
+	import { untrack } from 'svelte';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { i18n } from '$lib/i18n';
@@ -38,6 +40,9 @@
 	let pendingFiles       = $state<VaultFileInfo[]>([]);
 	let showNewFilesDialog = $state(false);
 
+
+	// PAR panel
+	let showPar = $state(false);
 
 	// Audit log dialog
 	let showAuditDialog = $state(false);
@@ -75,22 +80,36 @@
 	$effect(() => { loadPatient(); });
 
 	async function loadPatient() {
-		isLoading = true;
-		const result = await getPatient(patientId);
-		if (!result) { notFound = true; }
-		else {
-			patient = result;
-			activePatient.set(result.patient_id, result.firstname, result.lastname);
-			const [appts, acute] = await Promise.all([
-				getAppointmentsForPatient(patientId),
-				getAcuteText(patientId),
-			]);
-			appointments = appts;
-			acuteContent = acute;
-			if (acute.trim()) showAcute = true;
-			setTimeout(() => checkNewVaultFiles(), 300);
+		const id = patientId;
+		// Only show the loading spinner when switching to a DIFFERENT patient.
+		// If the effect re-runs spuriously for the same patient, skip the spinner
+		// so TimelineView and all other children aren't needlessly unmounted.
+		const currentId = untrack(() => patient?.patient_id ?? '');
+		if (id !== currentId) {
+			isLoading = true;
+			notFound = false;
 		}
-		isLoading = false;
+		try {
+			const result = await getPatient(id);
+			if (patientId !== id) return; // navigated away — discard stale load
+			if (!result) {
+				notFound = true;
+			} else {
+				patient = result;
+				activePatient.set(result.patient_id, result.firstname, result.lastname);
+				const [appts, acute] = await Promise.all([
+					getAppointmentsForPatient(id),
+					getAcuteText(id),
+				]);
+				if (patientId !== id) return; // navigated away
+				appointments = appts;
+				acuteContent = acute;
+				if (acute.trim()) showAcute = true;
+				if (id !== currentId) setTimeout(() => checkNewVaultFiles(), 300);
+			}
+		} finally {
+			if (patientId === id) isLoading = false;
+		}
 	}
 
 	async function checkNewVaultFiles() {
@@ -279,7 +298,7 @@
 						<button
 							type="button"
 							onclick={() => (showAcute = !showAcute)}
-							title="Akute Probleme"
+							title={i18n.t.patients.acuteProblems}
 							aria-pressed={showAcute}
 							class={[
 								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
@@ -303,7 +322,7 @@
 									<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
 								</svg>
 							{/if}
-							<span>Akut</span>
+							<span>{i18n.t.patients.acuteProblems}</span>
 						</button>
 						{#if showAcute}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showAcute = false)}></div>
@@ -332,7 +351,7 @@
 								<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
 								<line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/>
 							</svg>
-							<span>Anamnese</span>
+							<span>{i18n.t.patients.medicalHistory}</span>
 						</button>
 						{#if showMedical}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showMedical = false)}></div>
@@ -359,7 +378,7 @@
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
 								<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
 							</svg>
-							<span>Notizen</span>
+							<span>{i18n.t.common.notes}</span>
 						</button>
 						{#if showNotes}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showNotes = false)}></div>
@@ -368,6 +387,7 @@
 							</div>
 						{/if}
 					</div>
+
 
 					<!-- Export -->
 					<button

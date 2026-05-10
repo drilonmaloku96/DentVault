@@ -10,6 +10,7 @@
 		getTrackedFilePaths,
 		getTreatmentPlans,
 		insertTreatmentPlan,
+		getTreatmentPlanItems,
 		getChartData,
 		updateSnapshotChartData,
 		syncAppointmentFromTimelineEntry,
@@ -34,15 +35,14 @@
 	import TimelineEntryCard from './TimelineEntryCard.svelte';
 	import TimelineEntryForm from './TimelineEntryForm.svelte';
 	import TimelineEntryBar from './TimelineEntryBar.svelte';
-	import type { BarDraft } from './TimelineEntryBar.svelte';
 	import type { FormPrefill } from './TimelineEntryForm.svelte';
-	import PlanTimelineCard from './PlanTimelineCard.svelte';
 	import ChartSnapshotCard from './ChartSnapshotCard.svelte';
 	import OrthoSnapshotCard from './OrthoSnapshotCard.svelte';
 	import DocTemplatePickerDialog from '$lib/components/documents/DocTemplatePickerDialog.svelte';
 	import TreatmentPlanList from '$lib/components/treatment/TreatmentPlanList.svelte';
 	import DentalChartView from '$lib/components/dental/DentalChartView.svelte';
-	import ProbingChartDialog from '$lib/components/perio/ProbingChartDialog.svelte';
+	import TherapyPlanView from '$lib/components/therapy-plan/TherapyPlanView.svelte';
+	import ActivePlanBar from '$lib/components/therapy-plan/ActivePlanBar.svelte';
 	import OrthoChartDialog from '$lib/components/ortho/OrthoChartDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import { generateChartReport } from '$lib/services/chart-report';
@@ -61,10 +61,11 @@
 		patientFolder?: string;
 	} = $props();
 
-	let entries    = $state<TimelineEntry[]>([]);
-	let plansMap   = $state<Map<string, TreatmentPlan>>(new Map());
-	let isLoading  = $state(true);
-	let error      = $state('');
+	let entries       = $state<TimelineEntry[]>([]);
+	let plansMap      = $state<Map<string, TreatmentPlan>>(new Map());
+	let isLoading     = $state(true);
+	let hasEverLoaded = $state(false);
+	let error         = $state('');
 
 	// ── Filters ──────────────────────────────────────────────────────────
 	let activeFilters  = $state<Set<string>>(new Set());
@@ -72,29 +73,29 @@
 
 	// Dropdown state
 	let filterDropdownOpen = $state(false);
-	let filterSearch       = $state('');
 
 	// Text / date search
 	let searchQuery = $state('');
 
-	// All type options available for the filter dropdown (plan excluded — not useful to filter)
-	const TYPE_OPTIONS = $derived([
-		...entryTypes.list.map(t => ({ key: t.key, label: t.label, color: t.color })),
-		{ key: 'document',       label: i18n.t.documents.title,    color: undefined },
-		{ key: 'chart_snapshot', label: i18n.t.chart.title,        color: undefined },
-		{ key: 'ortho_snapshot', label: i18n.t.ortho.button,       color: undefined },
+	// Category-based filter: three high-level groups
+	const CATEGORY_FILTERS = $derived([
+		{
+			key: 'documentation',
+			label: i18n.t.timeline.filterCategories.documentation,
+			// All clinical/appointment types
+			types: new Set(entryTypes.list.map(t => t.key)),
+		},
+		{
+			key: 'files',
+			label: i18n.t.timeline.filterCategories.files,
+			types: new Set(['document']),
+		},
+		{
+			key: 'charts',
+			label: i18n.t.timeline.filterCategories.charts,
+			types: new Set(['chart_snapshot', 'ortho_snapshot']),
+		},
 	]);
-
-	const visibleTypeOptions = $derived(
-		filterSearch.trim()
-			? TYPE_OPTIONS.filter(o => o.label.toLowerCase().includes(filterSearch.toLowerCase()))
-			: TYPE_OPTIONS
-	);
-	const visibleDoctorOptions = $derived(
-		filterSearch.trim()
-			? doctors.list.filter(d => d.name.toLowerCase().includes(filterSearch.toLowerCase()))
-			: doctors.list
-	);
 
 	function toggleFilter(key: string) {
 		const next = new Set(activeFilters);
@@ -109,16 +110,25 @@
 
 	const activeFilterCount = $derived(activeFilters.size + (activeDoctorId !== null ? 1 : 0));
 
-	// Label lookup for active filter chips shown in trigger
 	const activeTypeLabels = $derived(
-		[...activeFilters].map(k => TYPE_OPTIONS.find(o => o.key === k)?.label ?? k)
+		[...activeFilters].map(k => CATEGORY_FILTERS.find(c => c.key === k)?.label ?? k)
 	);
 	const activeDoctorName = $derived(
 		activeDoctorId !== null ? (doctors.list.find(d => d.id === activeDoctorId)?.name ?? '') : ''
 	);
 
+	// Build the allowed entry_type set from active category filters
+	const allowedTypes = $derived((() => {
+		if (activeFilters.size === 0) return null;
+		const set = new Set<string>();
+		for (const cat of CATEGORY_FILTERS) {
+			if (activeFilters.has(cat.key)) cat.types.forEach(t => set.add(t));
+		}
+		return set;
+	})());
+
 	const filteredEntries = $derived((() => {
-		let list = activeFilters.size === 0 ? entries : entries.filter(e => activeFilters.has(e.entry_type));
+		let list = allowedTypes === null ? entries : entries.filter(e => allowedTypes.has(e.entry_type));
 		// Apply doctor filter
 		if (activeDoctorId !== null) {
 			list = list.filter(e => e.doctor_id === activeDoctorId);
@@ -157,8 +167,16 @@
 	// ── Plan sheet ────────────────────────────────────────────────────────
 	let planSheetOpen = $state(false);
 
+	// ── Therapy plan view ─────────────────────────────────────────────────
+	let therapyPlanOpen = $state(false);
+
+	// All non-completed/non-cancelled plans (drives ActivePlanBar buttons)
+	const ACTIVE_PLAN_STATUSES = new Set(['proposed', 'accepted', 'in_progress']);
+	const activePlans = $derived(
+		[...plansMap.values()].filter(p => ACTIVE_PLAN_STATUSES.has(p.status))
+	);
+
 	// ── Probing chart ─────────────────────────────────────────────────────
-	let showProbingChart = $state(false);
 
 	// ── Ortho / KIG dialog ────────────────────────────────────────────────
 	let showOrthoDialog = $state(false);
@@ -228,24 +246,30 @@
 
 	// ── Loading ───────────────────────────────────────────────────────────
 
+	function entryFingerprint(e: TimelineEntry) { return `${e.id}|${e.updated_at}`; }
+
 	async function loadEntries(scrollToBottom = true) {
-		// Only show the loading skeleton on the first load (entries not yet populated).
-		// Background refreshes (polling, post-save) update silently to prevent the
-		// skeleton from shrinking the page and snapping the scroll position upward.
-		const showSkeleton = entries.length === 0;
+		// Only show the loading skeleton on the very first load — never on background polls.
+		// Using entries.length === 0 was wrong: it fired on every poll for patients with
+		// no entries, causing a continuous skeleton flash every 5 seconds.
+		const showSkeleton = !hasEverLoaded;
 		try {
 			if (showSkeleton) isLoading = true;
 			error = '';
 			const freshEntries = await getTimelineEntries(patientId);
-			// Only reassign if something actually changed to avoid re-rendering all
-			// entry cards on every poll tick when nothing has changed (visible flicker).
-			if (JSON.stringify(freshEntries) !== JSON.stringify(entries)) {
+			hasEverLoaded = true;
+			// Lightweight fingerprint comparison — avoids full JSON stringify on every poll.
+			const freshPrint = freshEntries.map(entryFingerprint).join(',');
+			const curPrint   = entries.map(entryFingerprint).join(',');
+			if (freshPrint !== curPrint) {
 				entries = freshEntries;
 			}
 			// Also (re)load treatment plans so plan cards can render
 			const plans = await getTreatmentPlans(patientId);
 			const freshMap = new Map(plans.map(p => [p.plan_id, p]));
-			if (JSON.stringify([...freshMap]) !== JSON.stringify([...plansMap])) {
+			const freshMapPrint = plans.map(p => `${p.plan_id}|${p.updated_at}`).join(',');
+			const curMapPrint   = [...plansMap.values()].map(p => `${p.plan_id}|${p.updated_at}`).join(',');
+			if (freshMapPrint !== curMapPrint) {
 				plansMap = freshMap;
 			}
 		} catch (err) {
@@ -273,7 +297,10 @@
 		try {
 			const allFiles = await listVaultFiles(vault.path, patientFolder);
 			const tracked  = new Set(await getTrackedFilePaths(patientId));
-			untrackedFiles = allFiles.filter((f) => !tracked.has(f.rel_path));
+			const fresh = allFiles.filter((f) => !tracked.has(f.rel_path));
+			if (JSON.stringify(fresh) !== JSON.stringify(untrackedFiles)) {
+				untrackedFiles = fresh;
+			}
 		} catch {
 			// non-critical
 		}
@@ -334,17 +361,13 @@
 	function openAddForm() { editingEntry = undefined; formPrefill = undefined; formOpen = true; }
 	function openEditForm(entry: TimelineEntry) { editingEntry = entry; formPrefill = undefined; formOpen = true; }
 
-	function openAddFormFromBar(draft: BarDraft) {
-		editingEntry = undefined;
-		formPrefill = {
-			title:       draft.title,
-			description: draft.description,
-			entry_date:  draft.entry_date,
-			doctor_id:   draft.doctor_id,
-		};
-		formOpen = true;
-		// Clear the bar after a tick so the form opens cleanly
-		setTimeout(() => barRef?.reset(), 50);
+	async function handleBarSave(data: TimelineFormData) {
+		const newEntry = await insertTimelineEntry(patientId, data);
+		await loadEntries();
+		if (data.entry_type && data.entry_date) {
+			const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+			if (synced) showSyncedToast();
+		}
 	}
 
 	function openDeleteDialog(entry: TimelineEntry) {
@@ -441,12 +464,14 @@
 				{i18n.t.chart.title}
 			</Button>
 
-			<!-- Open Perio probing chart -->
-			<Button size="sm" variant="outline" onclick={() => (showProbingChart = true)}>
+			<!-- Open Therapy Plan -->
+			<Button size="sm" variant="outline" onclick={() => (therapyPlanOpen = true)}
+				class="{activePlans.length > 0 ? 'border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30' : ''}"
+			>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+					<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
 				</svg>
-				{i18n.t.perio.title}
+				{i18n.t.plans.title}
 			</Button>
 
 			<!-- Open KIG / Ortho assessment -->
@@ -471,7 +496,7 @@
 		<div class="relative">
 			<button
 				type="button"
-				onclick={() => { filterDropdownOpen = !filterDropdownOpen; filterSearch = ''; }}
+				onclick={() => { filterDropdownOpen = !filterDropdownOpen; }}
 				class="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted/50 transition-colors max-w-[340px]"
 			>
 				<!-- Filter icon -->
@@ -500,52 +525,33 @@
 				<div class="fixed inset-0 z-40" role="presentation" onclick={() => (filterDropdownOpen = false)}></div>
 
 				<!-- Dropdown panel -->
-				<div class="absolute top-full left-0 mt-1 z-50 w-60 rounded-lg border border-border bg-background shadow-lg overflow-hidden">
-					<!-- Search within dropdown -->
-					<div class="flex items-center gap-1.5 border-b border-border px-2.5 py-2">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-muted-foreground shrink-0">
-							<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-						</svg>
-						<input
-							type="text"
-							bind:value={filterSearch}
-							placeholder="Suchen…"
-							class="flex-1 text-xs bg-transparent outline-none placeholder:text-muted-foreground/50"
-						/>
-					</div>
-
-					<div class="max-h-72 overflow-y-auto py-1">
-						<!-- Entry types group -->
-						{#if visibleTypeOptions.length > 0}
-							<div class="px-2 pt-1 pb-0.5">
-								<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.settings.sections.entryTypes}</span>
-							</div>
-							{#each visibleTypeOptions as opt}
-								<button
-									type="button"
-									onclick={() => toggleFilter(opt.key)}
-									class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
-								>
-									<!-- Checkmark or empty box -->
-									<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${activeFilters.has(opt.key) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
-										{#if activeFilters.has(opt.key)}
-											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
-										{/if}
-									</span>
-									{#if opt.color}
-										<span class="h-2 w-2 rounded-full shrink-0" style="background:{opt.color}"></span>
+				<div class="absolute top-full left-0 mt-1 z-50 w-52 rounded-lg border border-border bg-background shadow-lg overflow-hidden">
+					<div class="py-1">
+						<!-- Category group -->
+						<div class="px-2 pt-1 pb-0.5">
+							<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.timeline.filter}</span>
+						</div>
+						{#each CATEGORY_FILTERS as cat}
+							<button
+								type="button"
+								onclick={() => toggleFilter(cat.key)}
+								class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
+							>
+								<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${activeFilters.has(cat.key) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+									{#if activeFilters.has(cat.key)}
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
 									{/if}
-									<span class="truncate">{opt.label}</span>
-								</button>
-							{/each}
-						{/if}
+								</span>
+								<span class="truncate">{cat.label}</span>
+							</button>
+						{/each}
 
 						<!-- Doctors group -->
-						{#if visibleDoctorOptions.length > 0}
+						{#if doctors.list.length > 0}
 							<div class="px-2 pt-2 pb-0.5 border-t border-border/40 mt-1">
 								<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.staff.title}</span>
 							</div>
-							{#each visibleDoctorOptions as doc (doc.id)}
+							{#each doctors.list as doc (doc.id)}
 								<button
 									type="button"
 									onclick={() => (activeDoctorId = activeDoctorId === doc.id ? null : doc.id)}
@@ -561,10 +567,6 @@
 								</button>
 							{/each}
 						{/if}
-
-						{#if visibleTypeOptions.length === 0 && visibleDoctorOptions.length === 0}
-							<p class="px-3 py-3 text-xs text-muted-foreground text-center">Keine Ergebnisse</p>
-						{/if}
 					</div>
 
 					<!-- Clear button -->
@@ -575,7 +577,7 @@
 								onclick={clearAllFilters}
 								class="w-full text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors py-0.5"
 							>
-								Filter zurücksetzen
+								{i18n.t.timeline.filterAll}
 							</button>
 						</div>
 					{/if}
@@ -591,7 +593,7 @@
 			<input
 				type="text"
 				bind:value={searchQuery}
-				placeholder="Text oder Datum suchen…"
+				placeholder={i18n.t.timeline.searchPlaceholder}
 				class="h-8 w-full rounded-md border border-input bg-background pl-8 pr-3 text-xs outline-none focus:border-ring placeholder:text-muted-foreground/50 transition-[border-color]"
 			/>
 			{#if searchQuery}
@@ -684,7 +686,7 @@
 		<!-- Spine line — slightly heavier for legibility -->
 		<div class="absolute left-[5.5px] top-2 bottom-2 w-[2px] rounded-full bg-border/70"></div>
 		<div class="pl-8">
-			{#each dateGroups as group, gi}
+			{#each dateGroups as group, gi (group.date)}
 				<!-- Year separator (when year changes between groups) -->
 				{#if gi === 0 || group.date.slice(0, 4) !== dateGroups[gi - 1].date.slice(0, 4)}
 					<div class="relative -ml-8 flex items-center gap-3 mb-3 {gi > 0 ? 'mt-4' : ''}">
@@ -714,11 +716,35 @@
 					{#each group.entries as entry (entry.id)}
 						<div class="relative -ml-8">
 							{#if entry.entry_type === 'plan'}
-								<PlanTimelineCard
-									{entry}
-									plan={plansMap.get(entry.plan_id)}
-									onOpen={() => (planSheetOpen = true)}
-								/>
+								{@const plan = plansMap.get(entry.plan_id)}
+								{@const planWasEdited = !!plan && plan.updated_at.slice(0, 10) !== plan.created_at.slice(0, 10)}
+								{@const planChangeLabel = !plan ? '' :
+									plan.status === 'completed' ? i18n.t.plans.status.completed :
+									plan.status === 'cancelled' ? i18n.t.plans.status.cancelled :
+									plan.status === 'accepted' || plan.status === 'in_progress' ? i18n.t.plans.status.active :
+									planWasEdited ? i18n.t.plans.status.edited : ''}
+								<!-- Spine dot -->
+								<div class="absolute left-0 mt-[15px] h-[9px] w-[9px] rounded-full bg-blue-400/60 ring-2 ring-background z-10"></div>
+								<!-- Slim plan indicator -->
+								<div class="ml-8 py-1 mb-1">
+									<button
+										type="button"
+										onclick={() => (therapyPlanOpen = true)}
+										class="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors group"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-blue-500/70 shrink-0">
+											<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+										</svg>
+										<span class="font-medium">{plan?.title ?? entry.title}</span>
+										{#if planChangeLabel}
+											<span class="text-muted-foreground/50">·</span>
+											<span class="{plan?.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : plan?.status === 'cancelled' ? 'text-red-500/70' : plan?.status === 'accepted' || plan?.status === 'in_progress' ? 'text-blue-500/70' : 'text-muted-foreground/60'}">{planChangeLabel}</span>
+										{/if}
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-3 w-3 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0">
+											<path d="M9 18l6-6-6-6"/>
+										</svg>
+									</button>
+								</div>
 							{:else if entry.entry_type === 'chart_snapshot'}
 								<ChartSnapshotCard
 									{entry}
@@ -743,6 +769,18 @@
 	</div>
 {/if}
 
+<!-- Active plan bar — shown when a non-completed plan exists -->
+{#if activePlans.length > 0}
+	<div class="mt-4 mb-2 flex flex-wrap gap-2">
+		{#each activePlans as plan (plan.plan_id)}
+			<ActivePlanBar
+				{plan}
+				onOpen={() => (therapyPlanOpen = true)}
+			/>
+		{/each}
+	</div>
+{/if}
+
 <!-- Spacer so the last timeline entry is never hidden under the fixed bar -->
 <div class="h-56"></div>
 <div bind:this={bottomAnchor}></div>
@@ -751,7 +789,7 @@
 <TimelineEntryBar
 	bind:this={barRef}
 	{patientId}
-	onOpen={openAddFormFromBar}
+	onSave={handleBarSave}
 />
 
 <!-- ── Add/Edit form dialog ────────────────────────────────────────────── -->
@@ -779,6 +817,13 @@
 	</DialogContent>
 </Dialog>
 
+<!-- ── Therapy Plan View ────────────────────────────────────────────── -->
+<TherapyPlanView
+	bind:open={therapyPlanOpen}
+	{patientId}
+	onChanged={() => loadEntries(false)}
+/>
+
 <!-- ── Treatment Plans sheet ───────────────────────────────────────────── -->
 <Sheet bind:open={planSheetOpen}>
 	<SheetContent side="right" class="sm:max-w-2xl overflow-y-auto p-6">
@@ -799,9 +844,6 @@
 		{/if}
 	</DialogContent>
 </Dialog>
-
-<!-- ── Perio probing chart dialog ──────────────────────────────────────── -->
-<ProbingChartDialog bind:open={showProbingChart} {patientId} onRecordSaved={() => {}} />
 
 <!-- ── KIG / Ortho assessment dialog ──────────────────────────────────── -->
 <OrthoChartDialog bind:open={showOrthoDialog} {patientId} existingEntry={viewingOrthoEntry} onSaved={() => { loadEntries(false); viewingOrthoEntry = null; }} />

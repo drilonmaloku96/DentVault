@@ -14,6 +14,7 @@ export interface Translations {
 		new: string; back: string; next: string; prev: string;
 		done: string; saveClose: string; open: string; copy: string;
 		dismiss: string; accept: string; apply: string; remove: string;
+		deselect: string;
 	};
 
 	// ── Common UI ─────────────────────────────────────────────────────
@@ -48,15 +49,18 @@ export interface Translations {
 			city: string; postalCode: string; country: string;
 			referralSource: string; smokingStatus: string; occupation: string;
 			allergies: string; bloodGroup: string;
+			recall: string;
 			emergencyContactName: string; emergencyContactPhone: string; emergencyContactRelation: string;
 			primaryPhysician: string; maritalStatus: string;
 		};
 		tabs: {
 			timeline: string; plans: string; chart: string;
-			perio: string; documents: string;
+			perio: string; documents: string; par: string;
 		};
 		maritalStatus: { single: string; married: string; divorced: string; widowed: string; partnered: string; };
 		medicalHistory: string; acuteProblems: string; conditions: string;
+		acuteProblemPlaceholder: string;
+		medicalHistoryPlaceholder: string;
 		editPatient: string; deletePatient: string;
 		deleteConfirm: string; deleteWarning: string;
 		formSections: {
@@ -69,17 +73,37 @@ export interface Translations {
 	timeline: {
 		title: string; addEntry: string; noEntries: string;
 		filter: string; filterAll: string; loading: string;
+		filterCategories: { files: string; documentation: string; charts: string };
 		entry: {
 			category: string; outcome: string; toothNumbers: string;
 			doctor: string; colleagues: string; relatedEntry: string;
 			addImage: string; viewImage: string; openExternal: string;
 			legacyProvider: string; complications: string; addComplication: string;
 			type: string; typePlaceholder: string; typeSynced: string;
+			notesPlaceholder: string;
 		};
 		snapshot: { take: string; view: string; title: string };
 		tagSuggestion: {
 			title: string; accept: string; dismiss: string;
 			relatedEntry: string; pickEntry: string;
+		};
+		searchPlaceholder: string;
+		bar: {
+			typeSelect: string;
+			staffButton: string;
+			staffSearch: string;
+			noResults: string;
+			detectedTeeth: string;
+			titlePlaceholder: string;
+			titleAriaLabel: string;
+			bodyPlaceholder: string;
+			saveButton: string;
+			saveTitle: string;
+			hintLine: string;
+			errorEmpty: string;
+			errorSave: string;
+			entryFallback: string;
+			formatting: { red: string; blue: string; green: string; remove: string; };
 		};
 	};
 
@@ -101,8 +125,59 @@ export interface Translations {
 		title: string; new: string; noPlans: string;
 		addItem: string; totalCost: string; completedCost: string;
 		linkEntry: string;
-		status: { draft: string; active: string; completed: string; cancelled: string };
+		openPlan: string;
+		activePlan: string;
+		noPlan: string;
+		createFirst: string;
+		selectTooth: string;
+		clearProcedure: string;
+		manualItem: string;
+		status: { draft: string; active: string; completed: string; cancelled: string; edited: string };
 		fields: { name: string; description: string; cost: string; tooth: string };
+		procedures: {
+			plan_extract: string;
+			plan_fill: string;
+			plan_crown: string;
+			plan_rct: string;
+			plan_bridge: string;
+			plan_implant: string;
+			plan_veneer: string;
+			plan_watch: string;
+			plan_partial_denture: string;
+			plan_full_denture: string;
+		};
+		deletePlan: string;
+		confirmDeleteShort: string;
+		archive: string;
+		noSteps: string;
+		stepSingular: string;
+		stepPlural: string;
+		currentFindings: string;
+		planningLabel: string;
+		planBridgeProsthesis: string;
+		chartHintText: string;
+		toothStepsHeader: string;
+		prosthetics: string;
+		manual: string;
+		stepPlaceholder: string;
+		noStepPlanned: string;
+		addStepLabel: string;
+		toothNotesPlaceholder: string;
+		planTooth: string;
+		editStructure: string;
+		countZero: string;
+		countSingular: string;
+		countPlural: string;
+		dragTeethCount: string;
+		teethLabel: string;
+		bridgeLabel: string;
+		prosthesisLabel: string;
+		abutmentLabel: string;
+		applyToAll: string;
+		applyToTooth: string;
+		selectToothThenKey: string;
+		restorationPlanHeader: string;
+		addManualStepButton: string;
 	};
 
 	// ── Dental chart ──────────────────────────────────────────────────
@@ -158,6 +233,8 @@ export interface Translations {
 			deleteConfirm: string;
 			saveSession: string;
 			sessionOf: string;
+			toothFallback: string;
+			findingsPlaceholder: string;
 		};
 		filling: {
 			material: string;
@@ -178,6 +255,11 @@ export interface Translations {
 		hidePrimaryTeeth: string;
 		legend: string;
 		legendHint: string;
+		multiSelect: {
+			teeth: string;
+			clear: string;
+		};
+
 		archSetup: {
 			title: string;
 			editArch: string;
@@ -195,7 +277,6 @@ export interface Translations {
 			restorative: string;
 			endodontic: string;
 			fixedProsthetics: string;
-			removable: string;
 			absent: string;
 			primary: string;
 			custom: string;
@@ -245,8 +326,45 @@ export interface Translations {
 				clockwise: string; counterclockwise: string;
 			};
 		};
+		shade: {
+			title: string;
+			guide: string;
+			noShade: string;
+			clear: string;
+		};
 		snapshotReport: { allHealthy: string; showMore: string; showLess: string; readOnly: string; reportTitle: string };
 		resetShortcuts: string; resetShortcutsConfirm: string;
+		prevTooth: string;
+		prevToothHint: string;
+		planningMode: string;
+		sameMandible: string;
+		firstSelectTooth: string;
+		planningAriaLabel: string;
+		restoration: {
+			edit: string;
+			newLabel: string;
+			editDialog: string;
+			createDialog: string;
+			bridgeTab: string;
+			prosthesisTab: string;
+			bridgeClickHint: string;
+			bridgeHint: string;
+			prosthesisClickHint: string;
+			abutmentToggle: string;
+			implantShort: string;
+			toothShort: string;
+			telescopeLegend: string;
+			bracketLegend: string;
+			attachmentLegend: string;
+			replacedLegend: string;
+			createBridge: string;
+			createProsthesis: string;
+			bridgeDescription: string;
+			prosthesisDescription: string;
+			toothRole: string;
+			implantRole: string;
+			ponticRole: string;
+		};
 		editTagsDialog: {
 			title: string; tagName: string; color: string;
 			stroke: string; pattern: string; shortcut: string;
@@ -273,6 +391,10 @@ export interface Translations {
 			sites: string; meanPd: string; pd4plus: string;
 			pd6plus: string; bopPct: string; teeth: string;
 		};
+		svgTeethLabel: string;
+		legendTtTrend: string;
+		legendGumMargin: string;
+		legendRecession: string;
 	};
 
 	// ── Documents ─────────────────────────────────────────────────────
@@ -291,9 +413,14 @@ export interface Translations {
 			entriesThisMonth: string; successRate: string; activePlans: string;
 			patientsServed: string; newPatients: string; treatments: string;
 		};
-		period: { week: string; month: string; year: string };
+		period: { week: string; month: string; year: string; custom: string };
+		periodLabel: string;
+		customRange: { from: string; to: string; apply: string };
 		categoryChart: string; outcomeTable: string; recentActivity: string;
 		drillDown: string; noData: string;
+		heatmapDayAbbrevs: string[];
+		typeColumn: string;
+		basedOnPatients: string;
 		providerOutcomes: string;
 		doctorActivity: string;
 		appointments: {
@@ -308,6 +435,7 @@ export interface Translations {
 			heatmap: string;
 			byDay: string;
 			minutes: string;
+			noSlotData: string;
 		};
 		demographics: {
 			title: string;
@@ -351,7 +479,9 @@ export interface Translations {
 
 	// ── Reports ───────────────────────────────────────────────────────
 	reports: {
-		title: string; filters: string; exportCsv: string; noResults: string;
+		title: string; filters: string; exportCsv: string; exportJson: string; noResults: string;
+		quickFilterLabel: string;
+		quickThisWeek: string; quickThisMonth: string; quickThisYear: string;
 		columns: {
 			date: string; patient: string; category: string; outcome: string;
 			teeth: string; doctor: string; notes: string;
@@ -441,12 +571,20 @@ export interface Translations {
 		saved: string; resetToDefaults: string;
 		uiScaleLabel: string;
 		uiScaleOptions: { '0.8': string; '0.9': string; '1': string; '1.1': string; '1.25': string; '1.5': string };
+		homeTitle: string;
+		homeSubtitle: string;
 		sections: {
+			overview: string;
 			general: string; vault: string; appearance: string;
 			docCategories: string; clinicalTags: string; staffRoles: string;
 			textBlocks: string; complicationTypes: string; entryTypes: string; backup: string; about: string;
+			textHighlightColors: string;
 			rooms: string; appointmentTypes: string; workingHours: string;
 			patientManagement: string;
+			schedule: string; clinical: string; documents: string;
+			dentalTagsAndSymbols: string; prostheticsAndBridges: string;
+			staffAndHours: string; roles: string;
+			documentTemplates: string; patientExport: string;
 		};
 		patientManagement: {
 			title: string;
@@ -471,6 +609,12 @@ export interface Translations {
 			templateFilesCol: string;
 			templateFrameHint: string;
 			addCategoryFolderHint: string;
+			categoryRenameHint: string;
+			reusableTemplates: string;
+			docTemplatesDescription: string;
+			noTemplates: string;
+			openInFinder: string;
+			openFile: string;
 		};
 		clinicalTags: {
 			acuteTitle: string; acuteDesc: string;
@@ -486,6 +630,8 @@ export interface Translations {
 			triggerLabel: string; bodyLabel: string;
 			resetToLangDefaults: string; resetConfirm: string;
 			placeholderHint: string;
+			labelPlaceholder: string;
+			bodyPlaceholder: string;
 		};
 		complicationTypes: {
 			title: string; description: string; add: string; deleteConfirm: string;
@@ -519,12 +665,41 @@ export interface Translations {
 			deleteConfirm: string;
 			labelPlaceholder: string;
 		};
+		shadeGuides: {
+			title: string;
+			description: string;
+			guideName: string;
+			shadesPlaceholder: string;
+			add: string;
+		};
+		textHighlightColors: {
+			title: string;
+			description: string;
+			add: string;
+			labelPlaceholder: string;
+			maxReached: string;
+			preview: string;
+			empty: string;
+		};
 		postTypes: {
 			title: string;
 			description: string;
 			add: string;
 			deleteConfirm: string;
 			labelPlaceholder: string;
+		};
+		planProcedures: {
+			title: string;
+			description: string;
+			add: string;
+			labelPlaceholder: string;
+			abbrPlaceholder: string;
+			shortcutPlaceholder: string;
+			colorLabel: string;
+			defaultBadge: string;
+			labelHeader: string;
+			abbrHeader: string;
+			keyHeader: string;
 		};
 		prosthesisTypeSettings: {
 			title: string;
@@ -547,6 +722,23 @@ export interface Translations {
 		};
 		chart: {
 			dmftForAdults: string;
+			dmftTitle: string;
+			dmftDesc: string;
+			dmftToggleDesc: string;
+		};
+		schedule: {
+			workingHoursDesc: string;
+			roomsDesc: string;
+			break: string;
+			closed: string;
+			colorLabel: string;
+			abbrPlaceholder: string;
+			abbrShortPlaceholder: string;
+			durationPlaceholder: string;
+			active: string;
+			inactive: string;
+			deactivate: string;
+			activate: string;
 		};
 	};
 
@@ -560,6 +752,7 @@ export interface Translations {
 		saveWorkingHours: string;
 		noWorkingHours: string;
 		colStart: string; colBreakStart: string; colBreakEnd: string; colEnd: string; colActive: string;
+		paletteHint: string;
 	};
 
 	// ── Complications ─────────────────────────────────────────────────
@@ -591,7 +784,7 @@ export interface Translations {
 
 	// ── Ortho / KIG classifications ───────────────────────────────────
 	ortho: {
-		// Used by PatientClassifications.svelte (legacy form, keep these)
+		// Used by PatientClassifications.svelte (legacy form — keep these unchanged)
 		title: string; pretreatment: string; posttreatment: string;
 		angleClass: { class_I: string; class_II_div1: string; class_II_div2: string; class_III: string };
 		molarRelationship: string; overjet: string; overbite: string;
@@ -599,30 +792,31 @@ export interface Translations {
 		crossbite: { none: string; anterior: string; posterior_unilateral: string; posterior_bilateral: string };
 		openBite: { none: string; anterior: string; posterior: string };
 		midlineDeviation: string; treatmentType: string; extractionPattern: string;
-		// KIG assessment dialog
+
+		// Assessment dialog — shared
 		button: string;
-		newAssessment: string; saveAssessment: string; history: string;
-		noHistory: string; examDate: string; doctor: string;
-		insuranceCovered: string; notCovered: string; leadingGroup: string;
+		newAssessment: string; saveAssessment: string;
+		examDate: string; doctor: string;
 		noFindings: string; deleteAssessment: string; deleteConfirm: string;
-		loadAssessment: string; mmLabel: string;
-		// KIG group names (A–P per PDF)
-		groups: { A: string; U: string; S: string; D: string; M: string; O: string; T: string; B: string; K: string; E: string; P: string };
-		// Grade descriptions, key = group+grade (e.g. 'D4', 'O3')
-		grades: {
-			A5: string;
-			U4: string;
-			S4: string; S5: string;
-			D1: string; D2: string; D4: string; D5: string;
-			M4: string; M5: string;
-			O1: string; O2: string; O3: string; O4: string; O5: string;
-			T1: string; T2: string; T3: string;
-			B4: string;
-			K2: string; K3: string; K4: string;
-			E1: string; E2: string; E3: string; E4: string;
-			P2: string; P3: string; P4: string;
+		mmLabel: string;
+
+		// IOTN — Dental Health Component
+		dhcTitle: string;
+		dhcNeedLevel: { '1': string; '2': string; '3': string; '4': string; '5': string };
+		dhcSubcategories: {
+			'2a': string; '2b': string; '2c': string; '2d': string; '2e': string; '2f': string; '2g': string; '2h': string; '2i': string;
+			'3a': string; '3b': string; '3c': string; '3d': string; '3e': string; '3f': string;
+			'4a': string; '4b': string; '4c': string; '4d': string; '4e': string; '4f': string;
+			'4h': string; '4i': string; '4j': string; '4k': string; '4l': string; '4m': string;
+			'5a': string; '5h': string; '5i': string; '5m': string; '5p': string; '5s': string;
 		};
-		// Optional clinical context fields
+		// IOTN — Aesthetic Component
+		acTitle: string;
+		acGradeDesc: { '1': string; '2': string; '3': string; '4': string; '5': string; '6': string; '7': string; '8': string; '9': string; '10': string };
+		// IOTN score label
+		iotnScore: string;
+
+		// Clinical context
 		angleClassLabel: string;
 		dentitionStage: string;
 		dentitionOptions: { primary: string; mixed: string; permanent: string };
@@ -632,6 +826,7 @@ export interface Translations {
 		facialProfile: string;
 		facialProfileOptions: { straight: string; convex: string; concave: string };
 		treatmentRecommendation: string;
+
 		// Bad habits
 		badHabitsLabel: string;
 		badHabitOptions: {
@@ -639,16 +834,77 @@ export interface Translations {
 			lipBiting: string; nailBiting: string; bruxism: string;
 			pacifierUse: string; penChewing: string;
 		};
-		// Bite (Biss) section
+
+		// Bite section
 		bissTitle: string;
-		bissRight: string;
-		bissLeft: string;
+		bissRight: string; bissLeft: string;
 		bissTypes: { neutral: string; distal: string; mesial: string };
-		praemolarenbreite: string;
-		praemolarenbreiteShort: string;
-		// Viewing past assessments
-		viewAssessment: string;
-		readOnly: string;
+		praemolarenbreite: string; praemolarenbreiteShort: string;
+
+		// IOTN group section headers
+		iotnGroupM: string;
+		iotnGroupOSagittal: string;
+		iotnGroupC: string;
+		iotnGroupD: string;
+		iotnGroupOVertical: string;
+		iotnGroupOther: string;
+
+		// IOTN dialog labels
+		iotnNone: string;
+		iotnOneTooth: string;
+		iotnTwoOrMore: string;
+		iotnPerQuadrant: string;
+		iotnRetainedTeeth: string;
+		iotnRetainedHint: string;
+		iotnNotScoredM: string;
+		iotnHypodontia: string;
+		iotnPositiveOverjet: string;
+		iotnCompetentLips: string;
+		iotnIncompetentLips: string;
+		iotnEvalGreatestPositive: string;
+		iotnReverseOverjet: string;
+		iotnNoMasticatoryDiff: string;
+		iotnWithDifficulties: string;
+		iotnEvalGreatestNegative: string;
+		iotnCrossbiteLabel: string;
+		iotnMmDiscrepancy: string;
+		iotnContactDisplacement: string;
+		iotnMmContactToContact: string;
+		iotnNotScoredD: string;
+		iotnDeepOverbite: string;
+		iotnOverbiteNoGingival: string;
+		iotnOverbiteGingival: string;
+		iotnOverbiteTrauma: string;
+		iotnOpenBite: string;
+		iotnMmVerticalDistance: string;
+		iotnEvalGreatestVertical: string;
+		iotnBm4mDesc: string;
+		iotnMmContactUnit: string;
+		iotnMmVertUnit: string;
+		iotnCondG: string;
+		iotnCondL: string;
+		iotnCondP: string;
+		iotnCondS: string;
+		iotnCondT: string;
+		iotnCondX: string;
+
+		// Viewing
+		viewAssessment: string; readOnly: string;
+		historyDropdownLabel: string; newAssessmentOption: string;
+
+		// Legacy KIG display (old snapshots — do not use in new UI)
+		insuranceCovered: string; notCovered: string; leadingGroup: string;
+		groups: { A: string; U: string; S: string; D: string; M: string; O: string; T: string; B: string; K: string; E: string; P: string };
+		grades: {
+			A5: string; U4: string; S4: string; S5: string;
+			D1: string; D2: string; D4: string; D5: string;
+			M4: string; M5: string;
+			O1: string; O2: string; O3: string; O4: string; O5: string;
+			T1: string; T2: string; T3: string;
+			B4: string; K2: string; K3: string; K4: string;
+			E1: string; E2: string; E3: string; E4: string;
+			P2: string; P3: string; P4: string;
+		};
 	};
 
 	// ── Patient sidebar tree ──────────────────────────────────────────────
@@ -667,6 +923,9 @@ export interface Translations {
 		activePlans: string; noPlans: string;
 		noEntries: string; noDocuments: string;
 		noTags: string; activeConditions: string;
+		timelineTitle: string;
+		openInFinder: string;
+		dragHint: string;
 	};
 
 	// ── Onboarding wizard ─────────────────────────────────────────────────
@@ -720,6 +979,7 @@ export interface Translations {
 		dateFrom: string;
 		dateTo: string;
 		allTime: string;
+		sectionsLabel: string;
 		sections: {
 			demographics: string;
 			medical: string;
@@ -776,5 +1036,76 @@ export interface Translations {
 		fillingMaterials: Array<{ key: string; label: string; color: string }>;
 		endoInstruments: Array<{ key: string; label: string }>;
 		workingDays: string[];
+		dayAbbrevs: string[];
+	};
+
+	// ── PAR (Parodontitis-Therapie) ──────────────────────────────────────────
+	par: {
+		title: string;
+		tab: string;
+		newCase: string;
+		noCase: string;
+		noCaseHint: string;
+		planType: { kasse: string; privat: string };
+		status: { active: string; completed: string; ended: string };
+		grade: string;
+		gradeLabel: { A: string; B: string; C: string };
+		gradeUpt: { A: string; B: string; C: string };
+		sgb22: string;
+		treatmentEnd: string;
+		setTreatmentEnd: string;
+		transferCase: string;
+		transferFrom: string;
+		transferStep: string;
+		transferUptPhase: string;
+		primaryDoctor: string;
+		stepTypes: {
+			AIT: string; BEVa: string; CPT: string; BEVb: string;
+			UPTd: string; UPTg: string; UPTc: string; KTB: string;
+		};
+		stepTypeShort: {
+			AIT: string; BEVa: string; CPT: string; BEVb: string;
+			UPTd: string; UPTg: string; UPTc: string; KTB: string;
+		};
+		stepStatus: { pending: string; active: string; done: string; locked: string };
+		newStep: string;
+		newStepHint: string;
+		noValidNextStep: string;
+		examDate: string;
+		startDate: string;
+		endDate: string;
+		approvalDate: string;
+		referral: string;
+		referralLabel: string;
+		sequence: string;
+		deleteCase: string;
+		deleteCaseConfirm: string;
+		deleteStep: string;
+		deleteStepConfirm: string;
+		endCaseTitle: string;
+		endCaseDesc: string;
+		endCaseConfirm: string;
+		caseEnded: string;
+		caseLocked: string;
+		newCaseDialog: {
+			title: string;
+			planTypeLabel: string;
+			doctorLabel: string;
+			gradeHint: string;
+			transferHint: string;
+		};
+		newStepDialog: {
+			title: string;
+			typeLabel: string;
+			dateLabel: string;
+			doctorLabel: string;
+			sequenceLabel: string;
+			validNextSteps: string;
+		};
+		grid: {
+			hintNumbers: string;
+			hintTabEnter: string;
+			hintRightClick: string;
+		};
 	};
 }

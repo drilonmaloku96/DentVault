@@ -19,7 +19,7 @@
 	import { i18n } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
-
+	import { textHighlightColors } from '$lib/stores/textHighlightColors.svelte';
 	let { children } = $props();
 
 	// Theme + vault + stores all init on mount
@@ -48,6 +48,7 @@
 		await workingHours.load();
 		// Load UI scale preference
 		await uiScale.load();
+		await textHighlightColors.load();
 	});
 
 	// Keep html[lang] in sync with the current language so <input type="date">
@@ -70,11 +71,19 @@
 			label: i18n.t.nav.dashboard,
 			href: '/dashboard',
 			icon: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+			badge: null as number | null,
 		},
 		{
 			label: i18n.t.nav.schedule,
 			href: '/schedule',
 			icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+			badge: null as number | null,
+		},
+		{
+			label: i18n.t.nav.reports,
+			href: '/reports',
+			icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+			badge: null as number | null,
 		},
 	]);
 </script>
@@ -154,6 +163,9 @@
 								<path d={item.icon} />
 							</svg>
 							{item.label}
+							{#if item.badge}
+								<span class="ml-auto flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">{item.badge}</span>
+							{/if}
 						</a>
 					{/each}
 
