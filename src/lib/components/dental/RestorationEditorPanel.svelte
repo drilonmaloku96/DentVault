@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { toFDI } from '$lib/utils';
 	import { Button } from '$lib/components/ui/button';
+	import { i18n } from '$lib/i18n';
 
 	// ── Types ──────────────────────────────────────────────────────────
 	export type BridgeRole = 'tooth' | 'implant' | 'pontic';
@@ -139,21 +140,21 @@
 	}
 
 	// ── Labels & colors ────────────────────────────────────────────────
-	const BRIDGE_ROLE_LABEL: Record<BridgeRole, string> = {
-		tooth:   'Zahn',
-		implant: 'Implantat',
-		pontic:  'Pontic',
-	};
+	const BRIDGE_ROLE_LABEL: Record<BridgeRole, string> = $derived({
+		tooth:   i18n.t.chart.restoration.toothRole,
+		implant: i18n.t.chart.restoration.implantRole,
+		pontic:  i18n.t.chart.restoration.ponticRole,
+	});
 	const BRIDGE_ROLE_COLOR: Record<BridgeRole, string> = {
 		tooth:   'border-border bg-background text-foreground hover:border-foreground/40',
 		implant: 'border-indigo-400 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300',
 		pontic:  'border-primary bg-primary/10 text-primary',
 	};
 
-	const PROSTHESIS_ROLE_LABEL: Record<ProsthesisRole, string> = {
-		telescope:  'Teleskop',
-		replaced:   'Ersetzt',
-	};
+	const PROSTHESIS_ROLE_LABEL: Record<ProsthesisRole, string> = $derived({
+		telescope:  i18n.t.chart.prosthesisTypes.telescope,
+		replaced:   i18n.t.chart.prosthesisTypes.replaced,
+	});
 	const PROSTHESIS_ROLE_COLOR: Record<ProsthesisRole, string> = {
 		telescope:  'border-sky-400 bg-sky-500 text-white',
 		replaced:   'border-blue-500 bg-blue-500 text-white',
@@ -169,11 +170,11 @@
 	<div class="flex items-center justify-between gap-2">
 		<div>
 			<h3 class="font-semibold text-sm">
-				{isExpand ? 'Restauration bearbeiten' : 'Neue Restauration'}
+				{isExpand ? i18n.t.chart.restoration.edit : i18n.t.chart.restoration.newLabel}
 			</h3>
 			{#if teeth.length > 0}
 				<p class="text-xs text-muted-foreground mt-0.5">
-					FDI {teeth.map(t => toFDI(t)).join(', ')} ({teeth.length} Zähne)
+					FDI {teeth.map(t => toFDI(t)).join(', ')} ({teeth.length} {i18n.t.perio.svgTeethLabel})
 				</p>
 			{/if}
 		</div>
@@ -191,7 +192,7 @@
 					: 'bg-background text-muted-foreground hover:bg-muted',
 			].join(' ')}
 		>
-			🔗 Brücke
+			{i18n.t.chart.restoration.bridgeTab}
 		</button>
 		<button
 			type="button"
@@ -203,7 +204,7 @@
 					: 'bg-background text-muted-foreground hover:bg-muted',
 			].join(' ')}
 		>
-			🦷 Prothese
+			{i18n.t.chart.restoration.prosthesisTab}
 		</button>
 	</div>
 
@@ -220,7 +221,7 @@
 							'flex flex-col items-center gap-0.5 rounded-md border px-3 py-2 text-sm transition-all font-medium',
 							BRIDGE_ROLE_COLOR[role],
 						].join(' ')}
-						title="Klicken zum Wechseln: Zahn → Implantat → Pontic"
+						title={i18n.t.chart.restoration.bridgeClickHint}
 					>
 						<span class="text-base font-semibold leading-none">{toFDI(tooth)}</span>
 						<span class="text-[9px] leading-none mt-0.5 opacity-80">
@@ -230,7 +231,7 @@
 				{/each}
 			</div>
 			<p class="text-[11px] text-muted-foreground">
-				Klicken zum Wechseln der Rolle. Pontics werden gestrichelt ohne Wurzel dargestellt.
+				{i18n.t.chart.restoration.bridgeHint}
 			</p>
 		{:else}
 			<!-- Prosthesis role chips -->
@@ -246,7 +247,7 @@
 								'flex flex-col items-center gap-0.5 rounded-md border px-3 py-2 text-sm transition-all font-medium',
 								PROSTHESIS_ROLE_COLOR[roleData.prosthesis_type],
 							].join(' ')}
-							title="Klicken zum Wechseln der Rolle"
+							title={i18n.t.chart.restoration.prosthesisClickHint}
 						>
 							<span class="text-base font-semibold leading-none">{toFDI(tooth)}</span>
 							<span class="text-[9px] leading-none mt-0.5 opacity-90">
@@ -258,36 +259,43 @@
 								type="button"
 								onclick={() => toggleAbutmentType(tooth)}
 								class="text-[10px] rounded border border-border px-1.5 py-0.5 bg-background text-muted-foreground hover:bg-muted transition-colors"
-								title="Zahn/Implantat umschalten"
+								title={i18n.t.chart.restoration.abutmentToggle}
 							>
-								{roleData.abutment_type === 'implant' ? '🔩 Impl.' : '🦷 Zahn'}
+								{roleData.abutment_type === 'implant' ? i18n.t.chart.restoration.implantShort : i18n.t.chart.restoration.toothShort}
 							</button>
 						{/if}
 					</div>
 				{/each}
 			</div>
 			<div class="text-[11px] text-muted-foreground space-y-0.5">
-				<p><strong>Teleskop</strong> = Doppelkrone auf Zahn/Implantat</p>
-				<p><strong>Klammer</strong> = Klammerverankerung</p>
-				<p><strong>Attachment</strong> = Implantat-Attachment</p>
-				<p><strong>Ersetzt</strong> = Zahn wird durch Prothese ersetzt</p>
+				<p>{i18n.t.chart.restoration.telescopeLegend}</p>
+				<p>{i18n.t.chart.restoration.bracketLegend}</p>
+				<p>{i18n.t.chart.restoration.attachmentLegend}</p>
+				<p>{i18n.t.chart.restoration.replacedLegend}</p>
 			</div>
 		{/if}
 	{/if}
 
-	<!-- Save button -->
-	<div class="mt-auto pt-2">
+	<!-- Save / Cancel buttons -->
+	<div class="mt-auto pt-2 flex gap-2">
 		<Button
-			class="w-full"
+			variant="outline"
+			class="flex-1"
+			onclick={onCancel}
+		>
+			{i18n.t.actions.cancel}
+		</Button>
+		<Button
+			class="flex-1"
 			onclick={handleConfirm}
 			disabled={!teeth || teeth.length === 0}
 		>
 			{#if isExpand}
-				Speichern
+				{i18n.t.actions.save}
 			{:else if mode === 'bridge'}
-				Brücke anlegen
+				{i18n.t.chart.restoration.createBridge}
 			{:else}
-				Prothese anlegen
+				{i18n.t.chart.restoration.createProsthesis}
 			{/if}
 		</Button>
 	</div>

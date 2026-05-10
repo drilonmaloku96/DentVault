@@ -144,6 +144,23 @@
 
 	const staffColCount = $derived(showPresenceOverlay && staffPresence.length > 0 ? staffPresence.length : 0);
 
+	// Slots with at least one doctor present (not on break) — used for out-of-hours dimming
+	const staffCoveredSlots = $derived.by(() => {
+		if (staffPresence.length === 0) return null;
+		const set = new Set<number>();
+		for (const s of staffPresence) {
+			const start = timeToSlot(s.start_time);
+			const end   = timeToSlot(s.end_time);
+			const bs    = s.break_start ? timeToSlot(s.break_start) : null;
+			const be    = s.break_end   ? timeToSlot(s.break_end)   : null;
+			for (let slot = start; slot < end; slot++) {
+				if (bs !== null && be !== null && slot >= bs && slot < be) continue;
+				set.add(slot);
+			}
+		}
+		return set;
+	});
+
 	// Pills: show all when hoverSlot is null, filter to present when on grid
 	const pillsToShow = $derived.by(() => {
 		if (!showPresenceOverlay || staffPresence.length === 0) return [];
@@ -769,6 +786,7 @@
 
 				<!-- Slot cells per room -->
 				{#each activeRooms as room, ri}
+					{@const slotCovered = staffCoveredSlots === null || staffCoveredSlots.has(slot)}
 					<div
 						class="relative border-border cursor-pointer"
 						data-slot={slot}
@@ -779,6 +797,8 @@
 							border-top: {isHourMark ? '1px solid hsl(var(--border))' : is15MinMark ? '1px solid hsl(var(--border) / 0.5)' : '1px solid hsl(var(--border) / 0.15)'};
 							background-color: {isBreak
 								? hexToRgba(room.color, 0.12)
+								: !slotCovered
+								? 'hsl(var(--muted) / 0.55)'
 								: hexToRgba(room.color, 0.06)};
 						"
 						role="gridcell"

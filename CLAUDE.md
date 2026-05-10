@@ -3,7 +3,8 @@
 ## What is DentVault?
 
 A cross-platform desktop dental patient management app for independent practitioners and small clinics.
-Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS v4 + shadcn-svelte**.
+Built with **Tauri 2
+ + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS v4 + shadcn-svelte**.
 
 **Core principle**: Every piece of clinical data must be structured, tagged, and queryable — not buried in free-text notes. The app's primary long-term value is clinical outcome tracking and statistical analysis across the patient population.
 
@@ -23,21 +24,15 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Colors**: oklch CSS custom properties in `src/app.css`
 - **shadcn-svelte**: components at `$lib/components/ui/`, install with `npx shadcn-svelte@1.1.1 add <name> -y`
 - **DB access**: exclusively through `src/lib/services/db.ts`, positional `$1, $2` params
-- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **45**.
+- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **41**.
 - **Types**: all interfaces in `src/lib/types.ts`
 - **Type check**: `npm run check` must pass with 0 errors after every change
 - **`untrack()`**: use in `$state()` initializers when reading props to suppress "captures initial value" warning
 - **Svelte 5 deep reactivity**: mutate `$state` object properties directly (`obj[key] = val`, `delete obj[key]`) — do NOT use spread+reassign (`obj = { ...obj }`) for per-property updates
 - **Dialog width override**: shadcn DialogContent has a built-in `sm:max-w-lg`; to widen a dialog override BOTH `max-w-[Xpx]` AND `sm:max-w-[Xpx]` in the `class` prop, otherwise the responsive variant wins
 - **Opening files externally**: do NOT use `openPath` from `@tauri-apps/plugin-opener` — it silently fails. Use `invoke('open_file_native', { path })` in `src/lib/services/files.ts`.
-- **Timeline polling (silent refresh)**: only show the loading skeleton when `entries.length === 0` (first load). Background polling must NOT set `isLoading = true` when entries already exist.
+- **Timeline polling (silent refresh)**: `hasEverLoaded` flag controls skeleton visibility — skeleton shows only on the very first fetch (`!hasEverLoaded`), never on background polls. Set `hasEverLoaded = true` after the first successful load. Background polling must NOT set `isLoading = true` once entries have been loaded at least once.
 - **Scroll to revealed element after image expand**: call `scrollIntoView` AFTER awaiting the image `load` event. Pattern: `if (!img.complete) await new Promise(r => img.addEventListener('load', r, { once: true }))` before measuring.
-- **Surface map format (dental chart)**: `dental_chart.surfaces` is a JSON object whose values are either a legacy `string` (tag key) or an extended object `{ tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean }`. Both `ToothDetailPanel.svelte` and `ToothChart.svelte` expose helpers `getSurfTag(v)`, `getSurfData(v)`, `getSurfFill(surfs, key, fallback)`, `isSurfInsufficient(surfs, key)`, `isSurfForeign(surfs, key)` that normalise both forms. Always use these helpers — never cast surfaces directly to `Record<string, string>`.
-- **`inlay` and `inlay_planned`** are surface-capable dental tag keys (purple, shortcuts N / J). Treat them the same as `filled` wherever filling-material logic applies (`FILLING_TAGS` set in `ToothDetailPanel`).
-- **Surface material visual**: Tag color is the background fill; material is shown as diagonal hatch overlay (`mat-hatch-{key}` SVG patterns in `<defs>`). Helpers: `getSurfMaterialKey(surfs, key)` in `ToothChart.svelte` returns the material key for per-surface hatch rendering; `getSurfMaterialColor()` still exists but is only used for the detail panel grid buttons. `filled`, `inlay`, `inlay_planned`, and `root_canal` are in `RENDER_CRITICAL_TAGS` — cannot be deleted, only renamed/recolored.
-- **Whole-tooth filling material**: Stored in `surfaceMap['*']` (special key, never a real surface). `ToothDetailPanel` reads/writes `'*'` when condition is a filling tag and no surface-level filling tags exist. `filledSurfaceKeys` excludes `'*'`. SVG renders whole-tooth hatch first, then per-surface hatch on top. Export pipeline: `exportPatient` / `generatePatientHTML` / `renderChartSVG` all accept `FillingMaterialConfig[]` — call sites in `PatientExportDialog.svelte` and `settings/+page.svelte` must pass `fillingMaterials.list`.
-- **Shortcut cycling**: `_shortcutCycle: Map<string, number>` in `DentalChartView` — pressing the same shortcut key cycles through all tags sharing that shortcut. Cleared when switching tooth.
-- **`<select>` value binding in Svelte 5**: Use `selected={value === opt.key}` on each `<option>` rather than `value={...}` on the `<select>` — the latter doesn't reliably update the displayed selection on reactive re-renders.
 - **`provider` field deprecated**: free-text `provider` column no longer shown in UI. Use `doctor_id` + `colleague_ids`. Legacy `provider` shown with "(legacy)" label in expanded entry view only.
 - **`TimelineEntryType` is now `string`**: loosened from strict union. `SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot'])` identifies system-only types. Legacy strings ('visit', 'procedure', etc.) via `LEGACY_LABELS` in `entryTypes.svelte.ts`.
 - **Timeline filter bar**: "Filter by" dropdown button (searchable, checkboxed types + doctors, grouped) + free-text/date search input (`searchQuery`). State: `activeFilters: Set<string>`, `activeDoctorId: number | null`, `filterDropdownOpen`, `filterSearch`, `searchQuery`.
@@ -53,17 +48,26 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Delete patient folder**: `delete_patient_folder(vault_path, patient_folder)` Rust command — called automatically when deleting patients from Settings → Patient Management.
 - **Patient search multi-word**: `searchPatients` matches `firstname || ' ' || lastname`, `lastname || ' ' || firstname`, `lastname || ', ' || firstname` — so "Max Muster", "Muster Max", "Muster, Max" all work.
 - **BookingPanel keyboard navigation**: ↑↓ arrows + Enter to select + Escape to close. `highlightedIndex` + `data-idx` + `scrollIntoView` pattern.
-- **Rich text in timeline entries**: `description` stores raw HTML. Both `TimelineEntryBar.svelte` and `TimelineEntryForm.svelte` use `contenteditable="true"` with `bind:innerHTML`. Card display uses `{@html}`. Shortcuts: Cmd/Ctrl+B/I/U. Toolbar buttons use `onmousedown` + `e.preventDefault()`. Selection API via TreeWalker for `@` mention and `/` text block detection.
+- **Rich text in timeline entries**: `description` stores raw HTML. `TimelineEntryBar.svelte` body editor uses `bind:this={editorEl}` (NOT `bind:innerHTML`) — reads innerHTML manually in `handleDescriptionInput` and on submit. `TimelineEntryForm.svelte` description editor uses `bind:innerHTML={description}`. Card display uses `{@html}`. Shortcuts: Cmd/Ctrl+B/I/U. Toolbar buttons use `onmousedown` + `e.preventDefault()`. Selection API via TreeWalker for `@` mention and `/` text block detection.
+- **Text color picker** (`src/lib/components/timeline/TextColorPicker.svelte`): Floating pill that appears above selected text in the documentation box. Colors are user-configurable via `textHighlightColors` store (Settings → Clinical → Text Highlight Colors) — defaults: red `#dc2626`, blue `#2563eb`, green `#16a34a`. Includes a remove button. Uses `document.execCommand('foreColor', false, hex)` / `'inherit'` to apply/remove. Built with vanilla DOM (`document.body.appendChild`) to escape any transformed ancestor (Dialog `translate-x/y` would break `position:fixed` children). `showPopup` always rebuilds fresh (no caching) so color list stays in sync with store. Activated by `mouseup`/`keyup` on the container element; dismissed by `mousedown`. Used in both `TimelineEntryBar.svelte` (passes `docBoxEl`) and `TimelineEntryForm.svelte` (passes `descContainerEl`). i18n keys: `timeline.bar.formatting.{red,blue,green,remove}`.
 - **Sticky patient header**: `sticky top-0 z-20` in `src/routes/patients/[patient_id]/+page.svelte`, height ≈ 76px. Uses `-mx-6 -mt-6 px-6 pt-6` to flush to scroll container edges. Timeline toolbar sticky at **`top-[76px]`** (`z-10`).
+- **Timeline entry bar body editor height**: `min-h-[52px] max-h-[140px] overflow-y-auto` — expands freely up to ~6 lines, then scrolls internally. The absolute-positioned Add button (`right-2 bottom-2`) stays fixed within the container; `pr-32` on the editor reserves space for it.
 - **Extended patient data model**: v31 adds 10 columns: `address`, `city`, `postal_code`, `country`, `emergency_contact_name/phone/relation`, `blood_group`, `primary_physician`, `marital_status`. `PatientStatus` includes `'deceased'`. `PatientForm` has 7 sections.
-- **Settings page — two-panel layout**: fixed left `<nav>` (208px, `w-52 shrink-0`) + scrollable right content. Outer wrapper `class="flex h-full overflow-hidden -m-6"`. `activeSection` (`$state<string>`, default `'general'`). Six nav items (flat, no sub-groups): `general` (language + appearance + vault + backup + about), `team` (staff + working hours), `clinical` (doc categories + clinical tags + complications + text blocks), `chart` (tags + prosthesis + bridge), `schedule` (rooms + appointment types), `patients` (management + export). Each page is one long scrollable view with `<Separator />` dividers between sub-sections.
+- **Settings page — two-panel layout**: fixed left `<nav>` (208px, `w-52 shrink-0`) + scrollable right content (has `use:scrollIndicator={{ zIndex: 45 }}`). Outer wrapper `class="flex h-full overflow-hidden -m-6"`. `activeSection` (`$state<string>`, default `'general'`). Seven nav items (flat, no sub-groups): `home` (overview landing grid), `general` (language + appearance + vault + backup + about), `team` (staff + working hours + roles), `schedule` (working hours + rooms + appointment types), `clinical` (clinical tags + complications + text blocks + **text highlight colors** + dental tags + prosthetics/bridges + plan procedures + DMFT), `documents` (folder categories/!TEMPLATE + document templates/!Documents), `patients` (management + export). Each page is one long scrollable view with `<Separator />` dividers between sub-sections.
 - **Settings scroll position memory**: `navigateTo(key)` saves `contentEl.scrollTop` into plain `Record<string, number>` before switching, restores via `tick().then(...)`. Plain object — not `$state`.
 - **Timeline toolbar — upload and plan buttons removed**: "Dokumente hochladen" and "Neuer Plan" buttons and all associated state/handlers removed from `TimelineView.svelte`.
-- **Timeline polling anti-flicker**: `loadEntries` compares `JSON.stringify(freshEntries)` against current state before reassigning — avoids full re-render when data is unchanged on background poll.
+- **Timeline polling anti-flicker**: `loadEntries` uses `id|updated_at` fingerprints instead of `JSON.stringify` — `entryFingerprint(e) = \`${e.id}|${e.updated_at}\`` joined with `','`. Same pattern for `plansMap` using `plan_id|updated_at`. Only reassigns state when fingerprint string changes — avoids full re-render on background poll when data is unchanged.
 - **`ortho_snapshot` timeline entries**: Ortho assessments are saved as `entry_type: 'ortho_snapshot'` timeline entries (not in `ortho_assessments` table). Same-date dedup: delete existing `ortho_snapshot` for the same date before inserting new one. Stored payload in `chart_data` JSON. Past entries are read-only (`is_locked: 1`). Rendered by `OrthoSnapshotCard.svelte`. Export reads them from timeline entries, not the DB table.
+- **IOTN ortho system** — `OrthoChartDialog.svelte` rebuilt on the Austrian IOTN standard. Condition-first flow: clinician picks the malformation type (missing/retained, overjet, crossbite, displacement, overbite, other), enters the measurement, and the DHC grade is **auto-derived**. Conditions: `i` (retained), `h` (hypodontia), `a` (positive overjet + lip competence), `b/m` fused (reverse overjet + masticatory difficulties — `b` = no difficulties → grades 2–4, `m` = with difficulties → grades 2–5, code auto-derived), `c` (crossbite RCP/ICP discrepancy), `d` (contact point displacement), `f` (deep overbite: 4-option selector), `e` (open bite), binary Sonstiges (`g/l/p/s/t/x`). DHC header shows the live leading finding. AC (1–10) is separate. Score stored as `dhc: IOTNDHCFinding` (worst finding) + `dhc_measurements` (full detail for re-loading). `OrthoSnapshotCard.svelte` detects IOTN (`dhc` key present) vs legacy KIG (`findings` array) at runtime and renders accordingly. New entries titled `'IOTN Assessment'`.
+- **`IOTNDHCFinding` type** (`src/lib/types.ts`): `{ grade: 1|2|3|4|5; subcategory: string; mm_value: number | null }`. `subcategory` is the condition code (`'a'`, `'b'`, `'m'`, `'c'`, etc.). `OrthoAssessment` has optional `dhc?: IOTNDHCFinding` and `ac_grade?: number` (new) alongside optional `findings?: OrthoKigEntry[]` (legacy KIG — do not remove).
+- **`TherapyPlanView.svelte` keyboard shortcuts**: Multi-tooth selection uses `altSelectedTeeth` (Alt+click or plain drag in plan mode) — separate from `DentalChartView`'s `ctrlSelectedTeeth`. Keyboard handler ($effect, active when dialog `open`): if `altSelectedTeeth.length > 0`, pressing a shortcut key calls `applyProcToSelection(procKey)` (applies to all selected teeth); if `altSelectedTeeth` is empty and `selectedTooth !== null`, calls `toggleProcedureOnTooth(selectedTooth, procKey)`. `PROC_SHORTCUT` is a `$derived` map of `procKey → shortcutKeyString`. Guard: skip if target is input/textarea.
+- **Plan timeline entries**: `insertTreatmentPlan` in `db.ts` auto-inserts a `plan` type `timeline_entry` linked via `plan_id`. `deleteTreatmentPlan` deletes the linked entry before the audit log. `updateTreatmentPlan` syncs the entry title when `title` changes. In `TimelineView.svelte`, `plan` entries render as a slim single-line indicator (icon + plan name + status label + chevron) that opens `TherapyPlanView` on click — no separate card component. `plansMap` (`Map<number, TreatmentPlan>`) is passed down to look up plan details by `plan_id`.
+- **PAR button removed** from patient top bar (`src/routes/patients/[patient_id]/+page.svelte`).
 - **Document Categories settings UX**: The category table/card is visually framed as the `!TEMPLATE/` folder (amber header, folder icon). Each category row = one subfolder on disk. An `!Documents/` card below shows that folder's file list with type icons, KB sizes, and open-file buttons.
-- **Timeline entry bar — Enter key submits**: plain Enter in description `contenteditable` submits. Shift+Enter inserts newline. Guard: `e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey`. **Critical**: always check `showMentionPalette || showPalette` before submitting — `bind:this` on conditionally-rendered palette components (`{#if showMentionPalette}`) can be null briefly while Svelte mounts them, causing `mentionPaletteRef?.handleKeydown(e)` to return `undefined` and fall through to `handleSubmit`. Both `TimelineEntryBar.svelte` and `TimelineEntryForm.svelte` have an explicit guard: `if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }` placed before the submit handler.
+- **Timeline entry bar — Enter key inserts newline**: plain Enter in the body `contenteditable` calls `insertBodyLineBreak()` which does `document.execCommand('insertHTML', false, '<br>​')`. The zero-width space (U+200B) after the `<br>` gives WebKit a real text node to land the cursor in — without it WebKit does not reliably render the cursor on the new line. `​` is stripped from `description` before saving via `.replace(/​/g, '')` in `handleSubmit`. Cmd/Ctrl+Enter submits. **Critical guard**: always check `showMentionPalette || showPalette` before any Enter handling — palette components are conditionally rendered and their refs can be null briefly, causing keydown to fall through unexpectedly.
+- **`applyToothHighlighting` cursor reset trap**: `applyToothHighlighting(el)` saves/restores the cursor as a plain text-character offset (`pre.toString().length`) which is blind to `<br>` elements. If it runs after a line-break insertion the cursor snaps back to the previous line. **Never dispatch a synthetic `input` event from within `insertBodyLineBreak()`** — that would trigger `handleDescriptionInput` → `applyToothHighlighting`. Instead, update state directly: `description = editorEl.innerHTML`. This is safe because pressing Enter cannot introduce a tooth-reference pattern.
 - **`@` mention → auto-removes `@` from editor**: `insertMention` calls `document.execCommand('insertText', false, '')` to delete the `@query` text — the doctor is added as a tag only, not inline in the description. Same pattern in both `TimelineEntryBar.svelte` (`insertMention`) and `TimelineEntryForm.svelte` (`insertMentionInForm`).
+- **`scrollIndicator` Svelte action** (`src/lib/actions/scrollIndicator.ts`): Attaches a floating `position:fixed` pill (chevron-down icon, primary accent color) to any overflow scroll container. Appears when content extends below visible area; fades out near bottom. Options: `zIndex` (default 40), `offset` (px from bottom edge, default 20), `threshold` (px proximity before fade, default 48). CSS animation injected once via `stylesInjected` singleton. Listeners: `scroll` (passive) + `ResizeObserver` + `MutationObserver(childList+subtree, no attributes/characterData). rAF deduplication via `schedule()`. Pill style: `var(--primary)` background, `var(--primary-foreground)` color. Apply with `use:scrollIndicator` on native HTML elements only (not Svelte components). Z-index convention: `40` for main content area, `45` for Settings right panel, `55` for inside dialogs (above shadcn z-50). Applied to: `<main>` in `+layout.svelte` (z:40), Settings right content panel (z:45), `OrthoChartDialog.svelte` scroll body (z:55), three scroll containers in `TherapyPlanView.svelte` (z:55).
 - **`TimelineEntryCard.svelte` — flat visual style**: Clinical entries use a borderless/card-free layout matching `ChartSnapshotCard`. Title row: type icon + bold title + category/outcome badges + muted date + 3-dot menu. Meta row: doctor dot + name, colleague colored pill badges. Description: `font-mono text-[13px] text-muted-foreground/80 leading-relaxed` with show-more/less at 350 chars. Actions: subtle text links (Edit, History). `descExpanded` state + `descIsLong` derived from `entry.description.length > 350`.
 - **`+ Template` button removed** from timeline toolbar (`TimelineView.svelte`). `DocTemplatePickerDialog` component and `showDocTemplatePicker` state remain in file but button is gone.
 - **Schedule calendar pointer system**: All calendar interactions (slot drag-create, appointment drag/resize, block drag/resize) are handled exclusively via `onGridPointerDown` / `onGridPointerMove` / `onGridPointerUp` on the grid container with `setPointerCapture`. Never add standalone `onclick` to appointment or block wrappers for interaction logic — it bypasses the pointer capture system.
@@ -89,7 +93,7 @@ generatePatientHTML()     ← assembles sections into full HTML document
   renderDemographics()    ← Patient, insurance, emergency contact
   renderMedical()         ← conditions, allergies, meds, acute/medical/misc text
                              acute + anamnese always included; misc notes optional (sections.notes)
-  renderOrtho()           ← OrthoClassification (legacy) + ortho_snapshot timeline entries
+  renderOrtho()           ← OrthoClassification (legacy) + ortho_snapshot timeline entries (IOTN + legacy KIG both handled)
   renderChart()           ← dental chart SVG + text summary
   renderTimeline()        ← all timeline entries, chart snapshots, complications, images
   renderPerio()           ← probing records per tooth
@@ -146,10 +150,15 @@ src/lib/i18n/
 1. **Add keys to `types.ts` first** — TypeScript errors if `de.ts` or `en.ts` missing a key
 2. **Add to both `de.ts` and `en.ts`** — never ship with one language missing
 3. **No hardcoded UI strings** — every visible string from `i18n.t.*` (exceptions: console logs, DB column names, code constants)
-4. **User-configurable defaults are bilingual** — follow `{ key, label? }[]` pattern; built-in keys resolve via `i18n.t.defaults.*`, custom items carry their own `label`
-5. **Dental tag labels** — `DentalTag.label` deprecated. Labels from `i18n.t.chart.tags[key].label` at render time via `dentalTags.getLabel(key)`. New tag keys need entries in both `de.ts` + `en.ts` under `chart.tags`.
-6. **Shortcuts are language-aware** — `chart.tags[key].defaultShortcut` differs per language. On switch, confirmation dialog offers to reset shortcuts.
-7. **Tag group labels** — `i18n.t.chart.tagGroups`: `general`, `restorative`, `endodontic`, `fixedProsthetics`, `removable`, `absent`, `custom`, `bridgeTagNote`, `prosthesisTagNote`
+4. **Never use `i18n.code === 'de' ? … : …` inline ternaries** — always add a proper key. The only permitted uses of `i18n.code` are: setting the HTML `lang` attribute, passing a BCP-47 locale string to `Intl` APIs, and CSS class selection. Everything else must go through `i18n.t.*`.
+5. **User-configurable defaults are bilingual** — follow `{ key, label? }[]` pattern; built-in keys resolve via `i18n.t.defaults.*`, custom items carry their own `label`
+6. **Dental tag labels** — `DentalTag.label` deprecated. Labels from `i18n.t.chart.tags[key].label` at render time via `dentalTags.getLabel(key)`. New tag keys need entries in both `de.ts` + `en.ts` under `chart.tags`.
+7. **Shortcuts are language-aware** — `chart.tags[key].defaultShortcut` differs per language. On switch, confirmation dialog offers to reset shortcuts.
+8. **Tag group labels** — `i18n.t.chart.tagGroups`: `general`, `restorative`, `endodontic`, `fixedProsthetics`, `removable`, `absent`, `custom`, `bridgeTagNote`, `prosthesisTagNote`
+9. **IOTN i18n keys** added to `ortho.*`: `dhcTitle`, `dhcNeedLevel` (grades 1–5), `dhcSubcategories` (all condition codes 2a–5x), `acTitle`, `acGradeDesc` (1–10), `iotnScore`. Legacy KIG keys (`groups`, `grades`, `insuranceCovered`, `notCovered`, `leadingGroup`) kept for backward-compat display of old snapshots — do not remove.
+10. **`plans.status.edited`** added to i18n — used in slim plan timeline indicator.
+11. **`defaults.dayAbbrevs`** — Sun-first abbreviated day names (7 items, index 0 = Sunday, matching SQL `strftime('%w')`). Use this instead of language ternaries for day-of-week labels in schedules/working-hours dialogs. `defaults.workingDays` has full names in same order.
+12. **Parameterized strings** use `.replace('{n}', String(value))` — e.g. `i18n.t.plans.countPlural.replace('{n}', String(count))`. Wrap numeric values in `String()` explicitly.
 
 ### Checklist for New Features
 
@@ -184,10 +193,7 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 - **Entry & Appointment Types (unified)** — `entryTypes` store is a thin derived view over `appointmentTypes.active`. One list for both timeline entry type dropdown and scheduler. `entryTypes.load()` is a no-op — `appointmentTypes.load()` handles loading. `TimelineEntryCard` uses `appointmentTypes.active.find(t => t.name === entry.entry_type)` for hex color; legacy types use `STATIC_TYPE_CONFIG`.
 - **Bridge Appearance** — `bridgeRoles` store (`src/lib/stores/bridgeRoles.svelte.ts`), 3 roles. Key: `'bridge_role_configs'`
 - **Prosthesis Type Appearance** — `prosthesisTypes` store (`src/lib/stores/prosthesisTypes.svelte.ts`), 2 types. Key: `'prosthesis_type_configs'`
-- **Post Types (root canal pins)** — `postTypes` store (`src/lib/stores/postTypes.svelte.ts`), 3 defaults. Key: `'post_type_configs'`. Settings › Chart.
-- **Endo Instrument Types** — `endoInstruments` store (`src/lib/stores/endoInstruments.svelte.ts`), 4 defaults. Key: `'endo_instrument_types'`. Settings › Chart.
-- **Filling Materials** — `fillingMaterials` store (`src/lib/stores/fillingMaterials.svelte.ts`), 6 defaults (composite, amalgam, gold, ceramic, glass_ionomer, temporary). Key: `'filling_material_configs'`. Settings › Chart. Surface values are backward-compatible: `string` (legacy tag key) or `{ tag, material?, origin?, insufficient? }` (extended). Helpers `getSurfTag()` / `getSurfData()` normalise both forms. `inlay` + `inlay_planned` added to `DEFAULT_DENTAL_TAGS` (shortcuts N / J).
-- **Tooth Notes** — `tooth_notes` table (v45): per-tooth timestamped notes with optional `reminder_date`. DB functions: `getToothNotes`, `saveToothNote`, `deleteToothNote`, `getAllToothNotesForPatient`, `getTeethWithNotes`, `getTeethWithDueReminders`. SVG: amber dot = has notes, red dot = overdue reminder. `DentalChartView` passes `teethWithNotes`/`teethWithDueReminders` sets to `ToothChart`. Refreshed via `onNotesChanged` callback from `ToothDetailPanel`.
+- **Text Highlight Colors** — `textHighlightColors` store (`src/lib/stores/textHighlightColors.svelte.ts`), max 8 colors. Key: `'text_highlight_colors'`. Default: red `#dc2626`, blue `#2563eb`, green `#16a34a`. Settings → Clinical → Text Highlight Colors. Used by `TextColorPicker.svelte`.
 - **"Reset to Defaults" buttons removed** from Settings — `DEFAULT_*` constants kept for onboarding only
 
 ### Checklist for New Features
@@ -202,9 +208,9 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 
 ## Data Model — DB Schema Overview
 
-Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 45`.
+Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 41`.
 
-**Key tables:** `patients`, `timeline_entries`, `treatment_plans`, `treatment_plan_items`, `documents`, `dental_chart`, `settings`, `doctors`, `ortho_classifications`, `entry_teeth`, `complications`, `dental_chart_history`, `probing_records`, `probing_measurements`, `probing_tooth_data`, `patient_conditions`, `appointment_rooms`, `appointments`, `schedule_blocks`, `staff_blockouts`, `doctor_working_hours`, `endo_records`, `endo_canals`, `tooth_notes`, `endo_records`, `endo_canals`
+**Key tables:** `patients`, `timeline_entries`, `treatment_plans`, `treatment_plan_items`, `documents`, `dental_chart`, `settings`, `doctors`, `ortho_classifications`, `entry_teeth`, `complications`, `dental_chart_history`, `probing_records`, `probing_measurements`, `probing_tooth_data`, `patient_conditions`, `appointment_rooms`, `appointments`, `schedule_blocks`, `staff_blockouts`, `doctor_working_hours`
 
 See `docs/claude/DB_SCHEMA.md` for full per-version descriptions and all DB function signatures.
 
@@ -249,20 +255,12 @@ The left sidebar (`src/routes/+layout.svelte`):
 - [x] Phase 7 (partial) — Backup & Export
 - [x] Phase 8 / 8b / 8c (partial) — Appointment Scheduling + UX polish + Block drag/resize
 - [x] Phase 9 / 9b / 9c (partial) — Dashboard Analytics Overhaul + UX polish
+- [x] Phase 10 (partial) — IOTN Ortho rebuild, plan timeline indicators, PAR removal
+- [x] i18n full audit — all hardcoded German strings replaced with `i18n.t.*` keys across all routes and components
 
 ---
 
 ## What to Build Next
-
-**Clinical Charting Roadmap** (see `docs/claude/ROADMAP_CLINICAL_CHARTING.md` for full spec):
-- [x] Stage 1 — Root Canal Granularity (per-canal status, apex focus, post types)
-- [x] Stage 2 — Endo Documentation Module (`endo_records` + `endo_canals`, `EndoDocDialog`)
-- [x] Stage 3 — Filling Material & Insufficiency (`fillingMaterials` store, extended surface JSON, material panel, SVG hatching/opacity)
-- [x] Stage 4 — Multi-Entry Tooth Notes + Reminder Dates (`tooth_notes` table, red/amber dot SVG indicators)
-- [x] Stage 5 — DMFT Score & Caries Sub-Types (derived, no schema change)
-- [x] Stage 6 — MIH Recording (hard-coded `mih` tag with grade 1–4, surface JSON, grade picker panel, SVG labels)
-- [x] Stage 7 — Tooth Position & Foreign Work Flag (4 columns on `dental_chart`)
-- [ ] Stage 8 — Tooth Color Recording & Quick-Entry Presets (`shade_manufacturers`, `tooth_shades`)
 
 **Phase 7 — remaining:**
 1. Multi-user roles — map `doctors` table to login/session concept
@@ -270,7 +268,7 @@ The left sidebar (`src/routes/+layout.svelte`):
 **Phase 8 — remaining:**
 2. Recall / reminder system
 3. Week/month schedule views
-4. Doctor working hours UI — table `doctor_working_hours` (v35) exists, no UI yet
+4. Doctor working hours UI — `DoctorWorkingHoursDialog.svelte` exists but is not yet surfaced in Settings (no route/nav entry)
 
 **Phase 9 — remaining:**
 6. Drill-down on heatmap / day chart
@@ -283,3 +281,6 @@ The left sidebar (`src/routes/+layout.svelte`):
 11. Cost / Billing module (deferred)
 12. Time-series outcome survival curves in Reports
 13. Cohort comparison (side-by-side group analysis)
+
+**Phase 10 — remaining:**
+14. `OrthoSnapshotCard` read-only view for legacy KIG entries could show a note "Recorded under legacy KIG system" instead of the insurance badge — low priority

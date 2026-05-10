@@ -285,7 +285,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <Dialog bind:open>
 	<DialogContent
-		class="max-w-[1200px] sm:max-w-[1200px] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0"
+		class="max-w-[1440px] sm:max-w-[1440px] max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0"
 		onkeydown={handleKeydown}
 	>
 		<!-- ── Header ─────────────────────────────────────────────────────── -->
@@ -416,7 +416,7 @@
 		<!-- ── Main content — two-column layout ──────────────────────────── -->
 		<div class="flex flex-1 min-h-0 overflow-hidden">
 			<!-- Left: SVG chart -->
-			<div class="overflow-y-auto overflow-x-auto" style="flex: 62 1 0; min-width: 0; padding: 12px 8px 8px;">
+			<div class="overflow-y-auto overflow-x-auto" style="flex: 70 1 0; min-width: 0; padding: 8px 6px 24px;">
 				<PerioSVGChart
 					{pocketDepths}
 					{bopSites}
@@ -433,7 +433,7 @@
 			<div class="w-px bg-border shrink-0"></div>
 
 			<!-- Right: Data entry panel -->
-			<div class="overflow-y-auto" style="flex: 38 1 0; min-width: 280px;">
+			<div class="overflow-y-auto" style="flex: 30 1 0; min-width: 260px; max-width: 320px;">
 				<PerioDataEntryPanel
 					toothNumber={selectedTooth}
 					{pocketDepths}

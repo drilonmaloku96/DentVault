@@ -37,6 +37,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	import type { DentalTag, PatternType, AppointmentRoom, AppointmentType, WorkingHoursEntry, Patient } from '$lib/types';
 	import { i18n, type LangCode } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
+	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 
 	// ── Active section (sidebar nav) ───────────────────────────────────────
 	let activeSection = $state('home');
@@ -1277,7 +1278,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	</nav>
 
 	<!-- ── Right Content Panel ── -->
-	<div class="flex-1 overflow-y-auto" bind:this={contentEl}>
+	<div class="flex-1 overflow-y-auto" bind:this={contentEl} use:scrollIndicator={{ zIndex: 45 }}>
 		<div class="flex flex-col gap-8 max-w-2xl px-8 py-7">
 
 	{#if activeSection === 'home'}

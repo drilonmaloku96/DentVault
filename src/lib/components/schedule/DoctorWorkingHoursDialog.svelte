@@ -12,10 +12,7 @@
 
 	let { doctor, open = $bindable(false), onClose }: Props = $props();
 
-	const DAY_NAMES_DE = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-	const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-	const dayNames = $derived(i18n.code === 'de' ? DAY_NAMES_DE : DAY_NAMES_EN);
+	const dayNames = $derived(i18n.t.defaults.dayAbbrevs);
 
 	const DEFAULT_HOURS: DoctorWorkingHoursFormData[] = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
 		day_of_week: d,

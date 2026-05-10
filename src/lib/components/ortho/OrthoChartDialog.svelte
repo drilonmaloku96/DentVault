@@ -7,6 +7,7 @@
 	import { formatDate } from '$lib/utils';
 	import type { Doctor } from '$lib/types';
 	import { untrack } from 'svelte';
+	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 
 	interface Props {
 		patientId: string;
@@ -425,7 +426,7 @@
 			<p class="text-destructive text-sm px-1 shrink-0">{loadError}</p>
 		{/if}
 
-		<div class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
+		<div use:scrollIndicator={{ zIndex: 55 }} class="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
 
 			<!-- History dropdown -->
 			{#if allSnapshots.length > 0}

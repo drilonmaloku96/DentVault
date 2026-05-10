@@ -36,7 +36,6 @@ export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
 	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E', wholeTooth: true },
 	{ key: 'impacted',   color: '#d6d3d1', strokeColor: '#78716c', pattern: 'solid',      shortcut: 'P', wholeTooth: true },
 	{ key: 'fractured',          color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid', shortcut: 'R' },
-	{ key: 'prosthesis',         color: '#dbeafe', strokeColor: '#3b82f6', pattern: 'horizontal', shortcut: 'T', wholeTooth: true },
 	{ key: 'erupting',           color: '#d1fae5', strokeColor: '#059669', pattern: 'solid', shortcut: 'D', wholeTooth: true },
 	{ key: 'persistent_primary', color: '#fef3c7', strokeColor: '#d97706', pattern: 'solid', shortcut: 'V', wholeTooth: true },
 	{ key: 'inlay',                color: '#ddd6fe', strokeColor: '#7c3aed', pattern: 'solid', shortcut: 'N' },
@@ -65,9 +64,12 @@ function createDentalTagsStore() {
 					const parsed = JSON.parse(stored) as DentalTag[];
 					if (Array.isArray(parsed) && parsed.length > 0) {
 						// Strip legacy `label` field silently (backwards compat); preserve wholeTooth
-						const cleaned = parsed.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
-							({ key, color, strokeColor, pattern, shortcut, wholeTooth } as DentalTag)
-						);
+						// Remove 'prosthesis' — set exclusively via prosthesis function, not as a direct tag
+						const cleaned = parsed
+							.filter(t => t.key !== 'prosthesis')
+							.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
+								({ key, color, strokeColor, pattern, shortcut, wholeTooth } as DentalTag)
+							);
 						// Merge any new default tags that aren't in the stored list yet
 						const storedKeys = new Set(cleaned.map(t => t.key));
 						const newDefaults = DEFAULT_DENTAL_TAGS.filter(t => !storedKeys.has(t.key));

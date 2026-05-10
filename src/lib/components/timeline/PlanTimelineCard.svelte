@@ -105,11 +105,19 @@
 			<p class="text-xs text-muted-foreground/60 italic">No procedures added yet</p>
 		{/if}
 
-		<!-- Date + cost -->
+		<!-- Date + cost + edited indicator -->
 		<div class="flex items-center gap-2 text-xs text-muted-foreground/70">
 			<span>{formatDate(entry.entry_date)}</span>
 			{#if plan}
 				<span>{formatCost(plan.total_estimated_cost)}</span>
+			{/if}
+			{#if plan && plan.updated_at.slice(0, 10) !== plan.created_at.slice(0, 10)}
+				<span class="inline-flex items-center gap-1 ml-auto text-muted-foreground/50">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5">
+						<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+					</svg>
+					{formatDate(plan.updated_at.slice(0, 10))}
+				</span>
 			{/if}
 		</div>
 	</button>

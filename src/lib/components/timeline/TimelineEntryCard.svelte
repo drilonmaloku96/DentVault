@@ -478,9 +478,9 @@
 			{#if entry.description}
 				<div class="mt-1.5 ml-[22px] text-[13px] text-muted-foreground/80 leading-relaxed font-mono">
 					{#if descExpanded || !descIsLong}
-						<div class="[&_strong]:text-foreground/90 [&_em]:italic [&_u]:underline">{@html entry.description}</div>
+						<div class="[&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
 					{:else}
-						<div class="line-clamp-4 [&_strong]:text-foreground/90 [&_em]:italic [&_u]:underline">{@html entry.description}</div>
+						<div class="line-clamp-4 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
 					{/if}
 				</div>
 				{#if descIsLong}

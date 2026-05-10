@@ -3,6 +3,7 @@
 	import { staffLabel } from '$lib/utils/staff';
 	import { staffRoles } from '$lib/stores/staffRoles.svelte';
 	import type { Doctor } from '$lib/types';
+	import { i18n } from '$lib/i18n';
 
 	let {
 		query,
@@ -59,7 +60,7 @@
 	<div class="flex items-center gap-1.5 border-b border-border px-3 py-1.5">
 		<span class="text-[10px] text-muted-foreground">
 			{#if query}<span class="font-mono text-foreground">@{query}</span> — {/if}
-			{filtered.length} Mitarbeiter · ↑↓ navigate · ↵ select
+			{i18n.t.staff.paletteHint.replace('{n}', String(filtered.length))}
 		</span>
 	</div>
 	<div class="flex flex-col overflow-y-auto" style="max-height:180px;">

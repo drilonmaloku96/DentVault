@@ -366,7 +366,7 @@
 		<a
 			href="/patients/{patient.patient_id}"
 			class="flex min-w-0 flex-1 flex-col rounded hover:bg-sidebar-accent/50 transition-colors px-1 -mx-1"
-			title="Zur Timeline"
+			title={i18n.t.sidebar.timelineTitle}
 		>
 			<span class="truncate text-[12px] font-semibold text-sidebar-foreground leading-snug hover:text-sidebar-primary transition-colors">
 				{patient.lastname}, {patient.firstname}
@@ -375,7 +375,7 @@
 		</a>
 		<button
 			type="button"
-			title="In Finder öffnen"
+			title={i18n.t.sidebar.openInFinder}
 			onclick={openPatientFolder}
 			class="shrink-0 rounded p-1 text-muted-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
 		>
@@ -468,7 +468,7 @@
 				<!-- Drag hint when dragging -->
 				{#if isDraggingTemplate}
 					<p class="mx-2 mt-1 mb-0.5 text-[9px] text-teal-600/70 italic text-center">
-						{i18n.code === 'de' ? 'Auf einen Ordner ziehen zum Kopieren' : 'Drop onto a folder below to copy'}
+						{i18n.t.sidebar.dragHint}
 					</p>
 				{/if}
 

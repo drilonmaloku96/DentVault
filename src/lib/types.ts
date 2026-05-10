@@ -182,47 +182,58 @@ export interface OrthoClassification {
 	updated_at: string;
 }
 
-// ── KIG (Kieferorthopädische Indikationsgruppen) ────────────────────────
+// ── KIG (legacy — kept for backward-compat display of old snapshots) ─────
 
 export type KigGroupCode = 'A' | 'U' | 'S' | 'D' | 'M' | 'O' | 'T' | 'B' | 'K' | 'E' | 'P';
 
-/** One KIG group finding within an assessment snapshot */
+/** @deprecated Legacy KIG finding stored in old ortho_snapshot entries */
 export interface OrthoKigEntry {
 	group: KigGroupCode;
-	grade: number; // valid grades depend on group
-	measured_value: number | null; // mm for D, M, O, T, E, P
+	grade: number;
+	measured_value: number | null;
+}
+
+// ── IOTN (Index of Orthodontic Treatment Need) ────────────────────────
+
+/** Single IOTN Dental Health Component finding */
+export interface IOTNDHCFinding {
+	grade: 1 | 2 | 3 | 4 | 5;
+	subcategory: string; // 'a'–'s'; empty string for grade 1
+	mm_value: number | null; // measured value where applicable
 }
 
 /** Bite classification type (sagittal relationship) */
 export type BissType = 'neutral' | 'distal' | 'mesial';
 
-/** Per-side bite measurement in Prämolarenbreite units */
+/** Per-side bite measurement in premolar-width units */
 export interface BissMeasurement {
 	type: BissType;
-	/** Number of Prämolarenbreiten (0.25–2.0 in 0.25 steps); null for neutral */
-	praemolarenbreite: number | null;
+	praemolarenbreite: number | null; // 0.25–2.0 in 0.25 steps; null for neutral
 }
 
-/** A single KIG assessment snapshot (like dental_chart_history) */
+/** Ortho assessment snapshot — supports both legacy KIG and new IOTN formats */
 export interface OrthoAssessment {
 	id: number;
 	patient_id: string;
-	exam_date: string; // ISO date
+	exam_date: string;
 	doctor_id: number | null;
-	findings: OrthoKigEntry[]; // stored as JSON
 	notes: string;
-	// Optional clinical context fields (v40)
-	dentition_stage: string;   // 'primary' | 'mixed' | 'permanent'
-	treatment_phase: string;   // 'expectative' | 'early' | 'main' | 'adult'
-	angle_class: string;       // 'class_I' | 'class_II_div1' | 'class_II_div2' | 'class_III'
-	cvm_stage: number;         // 0 = not set, 1–6
-	facial_profile: string;    // 'straight' | 'convex' | 'concave'
-	treatment_recommendation: string; // free text (removed from UI, kept for backward compat)
-	bad_habits?: string[]; // array of habit keys, e.g. ['thumbSucking', 'mouthBreathing']
-	// Bite classification per side (v41+, optional — not in older snapshots)
+	// Clinical context
+	dentition_stage: string;
+	treatment_phase: string;
+	angle_class: string;
+	cvm_stage: number;
+	facial_profile: string;
+	treatment_recommendation: string; // backward compat
+	bad_habits?: string[];
 	biss_right?: BissMeasurement | null;
 	biss_left?: BissMeasurement | null;
 	created_at: string;
+	// IOTN fields (new entries)
+	dhc?: IOTNDHCFinding;
+	ac_grade?: number; // 1–10; 0 or undefined = not recorded
+	// Legacy KIG fields (old entries only)
+	findings?: OrthoKigEntry[];
 }
 
 /** @deprecated use OrthoAssessment instead */
@@ -282,6 +293,17 @@ export type TreatmentPlanStatus =
 
 export type TreatmentPlanItemStatus = 'pending' | 'scheduled' | 'completed' | 'cancelled';
 
+/** A single ordered step in a treatment plan — stored in plan_chart_data JSON */
+export interface PlanStep {
+	id: string;            // UUID
+	teeth: number[];       // [tooth] for single-tooth, [13,14,15] for bridge — empty for manual
+	procKey: string;       // plan_* key, or 'manual' for non-chart steps
+	done: boolean;
+	addedAt: string;       // ISO timestamp — defines display order
+	bridgeGroupId?: string; // links to entries bridge_group_id for structural steps
+	label?: string;        // only for manual (procKey === 'manual') steps
+}
+
 export interface TreatmentPlan {
 	id: number;
 	plan_id: string;
@@ -290,6 +312,7 @@ export interface TreatmentPlan {
 	description: string;
 	status: TreatmentPlanStatus;
 	total_estimated_cost: number;
+	plan_chart_data: string; // JSON: Record<string, string> tooth_number_string → PlanProcedureKey
 	created_at: string;
 	updated_at: string;
 }
@@ -306,6 +329,8 @@ export interface TreatmentPlanItem {
 	completed_date: string;
 	notes: string;
 	timeline_entry_id: number | null;
+	tooth_number_int: number | null; // structured tooth number (Universal 1–32)
+	procedure_type: string;          // planning procedure key e.g. 'plan_crown'
 }
 
 export interface TreatmentPlanFormData {
@@ -379,6 +404,7 @@ export interface ToothChartEntry {
 	tipping: string;
 	rotation: string;
 	foreign_work: number; // 0 | 1
+	shade: string | null;
 	updated_at: string;
 }
 
@@ -396,6 +422,7 @@ export interface ToothChartFormData {
 	tipping?: string;
 	rotation?: string;
 	foreign_work?: number;
+	shade?: string | null;
 }
 
 // ── Clinical Exams ──────────────────────────────────────────────────────
@@ -958,5 +985,166 @@ export interface ToothNote {
 	reminder_date: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+// ── PAR (Parodontitis-Therapie) ────────────────────────────────────────────
+
+export type ParPlanType    = 'kasse' | 'privat';
+export type ParStatus      = 'active' | 'completed' | 'ended';
+export type ParGrade       = 'A' | 'B' | 'C';
+export type ParStepType    = 'AIT' | 'BEVa' | 'CPT' | 'BEVb' | 'UPTd' | 'UPTg' | 'UPTc' | 'KTB';
+export type ParSite        = 'db' | 'b' | 'mb' | 'ml' | 'l' | 'dl';
+export type ParToothStatus = 'implant' | 'destroyed' | 'missing';
+export type ParBopState    = 0 | 1 | 2; // none | bleeding | pus
+
+export interface ParCase {
+	id: number;
+	patient_id: string;
+	plan_type: ParPlanType;
+	status: ParStatus;
+	grade: ParGrade | null;
+	sgb22: boolean;
+	is_transfer: boolean;
+	transfer_from: string;
+	transfer_step: ParStepType | null;
+	transfer_upt: number | null;
+	end_date: string | null;
+	doctor_id: number | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ParAssessment {
+	id: number;
+	case_id: number;
+	type: ParStepType;
+	sequence: number;
+	exam_date: string;
+	doctor_id: number | null;
+	start_date: string | null;
+	end_date: string | null;
+	approval_date: string | null;
+	is_referral: boolean;
+	notes: string;
+	locked: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ParMeasurement {
+	id: number;
+	assessment_id: number;
+	tooth: number;
+	site: ParSite;
+	pocket: number | null;
+	recession: number | null;
+	bop: ParBopState;
+	plaque: number;
+}
+
+export interface ParToothData {
+	id: number;
+	assessment_id: number;
+	tooth: number;
+	mobility: number | null;
+	furcation_b: number | null;
+	furcation_m: number | null;
+	furcation_d: number | null;
+	vitality: number | null;
+	ait_planned: boolean;
+	cpt_planned: boolean;
+	status: ParToothStatus | null;
+}
+
+export interface ParBoneLevel {
+	id: number;
+	assessment_id: number;
+	jaw: 'upper' | 'lower';
+	points_json: string;
+}
+
+export interface ParAnamnesis {
+	id: number;
+	case_id: number;
+	diabetes: boolean;
+	hba1c: number | null;
+	smoking: boolean;
+	smoking_cpd: number | null;
+	smoking_years: number | null;
+	cardiovascular: boolean;
+	immunosuppression: boolean;
+	general_other: string;
+	prior_par: boolean;
+	prior_par_year: number | null;
+	family_history: boolean;
+	specific_other: string;
+	special_history: string;
+	assessor_done: boolean;
+	assessor_date: string | null;
+}
+
+export interface ParUptSession {
+	id: number;
+	case_id: number;
+	session: number;
+	window_start: string;
+	window_end: string;
+	delivered_date: string | null;
+	assessment_id: number | null;
+	appointment_id: number | null;
+}
+
+export interface ParAssessmentSnapshot {
+	assessment: ParAssessment;
+	measurements: ParMeasurement[];
+	toothData: ParToothData[];
+	boneLevels: ParBoneLevel[];
+}
+
+export interface ParToothSummary {
+	tooth: number;
+	maxPocket: number | null;
+	bopCount: number;
+	siteCount: number;
+	cal: number | null;
+	mobility: number | null;
+	status: ParToothStatus | null;
+	vitality: number | null;
+	aitPlanned: boolean;
+	cptPlanned: boolean;
+}
+
+export interface ParCaseStats {
+	bopPercent: number;
+	meanPocket: number;
+	maxPocket: number;
+	teethWithPocket6plus: number;
+	teethWithBop: number;
+	cal: number;
+	riskLevel: 'stable' | 'maintenance' | 'high_risk';
+}
+
+export interface UptSessionWindow {
+	session: number;
+	windowStart: string;
+	windowEnd: string;
+	deliveredDate: string | null;
+	appointmentId: number | null;
+	status: 'delivered_on_time' | 'delivered_late' | 'delivered_early' | 'overdue' | 'upcoming' | 'future';
+}
+
+export interface UptWindowResult {
+	sessions: UptSessionWindow[];
+	total: number;
+	baseDate: string;
+}
+
+export interface ParImprovementStats {
+	bopDelta: number;
+	meanPocketDelta: number;
+	cal_delta: number;
+	improvedTeeth: number;
+	worsenedTeeth: number;
+	teethWithPocket6Resolved: number;
 }
 

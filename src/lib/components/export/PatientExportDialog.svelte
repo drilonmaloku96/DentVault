@@ -163,7 +163,7 @@
 
 			<!-- Section checkboxes -->
 			<div class="flex flex-col gap-1.5">
-				<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{i18n.code === 'de' ? 'Abschnitte' : 'Sections'}</p>
+				<p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{i18n.t.export.sectionsLabel}</p>
 				<div class="grid grid-cols-2 gap-1">
 					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
 						<input type="checkbox" bind:checked={sectionDemographics} disabled={isExporting} class="rounded"/>

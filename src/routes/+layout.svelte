@@ -20,6 +20,7 @@
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { textHighlightColors } from '$lib/stores/textHighlightColors.svelte';
+	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 	let { children } = $props();
 
 	// Theme + vault + stores all init on mount
@@ -205,7 +206,7 @@
 		</aside>
 
 		<!-- ── Main Content ────────────────────────────────────────── -->
-		<main class="flex-1 overflow-auto">
+		<main use:scrollIndicator class="flex-1 overflow-auto">
 			<!-- Show a loading skeleton while vault is initialising -->
 			{#if !vault.initialized}
 				<div class="flex h-full items-center justify-center">

@@ -302,7 +302,7 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 	const row = (label: string, pre: string | number | null, post: string | number | null) =>
 		`<tr><th>${esc(label)}</th><td>${esc(String(pre ?? '—'))}</td><td>${esc(String(post ?? '—'))}</td></tr>`;
 
-	let html = `<div class="section avoid-break"><h2>${de ? 'KFO / KIG-Befunde' : 'Orthodontic / KIG Findings'}</h2>`;
+	let html = `<div class="section avoid-break"><h2>${de ? 'KFO / IOTN-Befunde' : 'Orthodontic / IOTN Findings'}</h2>`;
 
 	if (ortho) {
 		html += `<h3>${de ? 'Klassifikation' : 'Classification'}</h3>
@@ -320,17 +320,36 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 		if (ortho.notes) html += `<p>${esc(ortho.notes)}</p>`;
 	}
 
-	// KIG assessment snapshots
+	// Ortho assessment snapshots (IOTN new format or legacy KIG)
 	if (orthoAssessments.length > 0) {
-		html += `<h3 style="margin-top:1em">${de ? 'KIG-Aufnahmen' : 'KIG Assessments'} (${orthoAssessments.length})</h3>`;
+		html += `<h3 style="margin-top:1em">${de ? 'KFO / IOTN-Aufnahmen' : 'Ortho / IOTN Assessments'} (${orthoAssessments.length})</h3>`;
 		for (const a of orthoAssessments) {
-			const covered = a.findings.some(f => f.grade >= 3);
+			const isIOTN = a.dhc != null || 'ac_grade' in a;
+			const acGrade = (a as { ac_grade?: number }).ac_grade ?? 0;
+
+			// Build score header string
+			let scoreStr = '';
+			if (isIOTN) {
+				const dhc = a.dhc;
+				if (dhc) {
+					const sub = dhc.subcategory || '';
+					const mm  = dhc.mm_value != null ? ` ${dhc.mm_value}mm` : '';
+					scoreStr += `DHC ${sub || dhc.grade}${mm}`;
+				}
+				if (acGrade > 0) scoreStr += (scoreStr ? ' · ' : '') + `AC ${acGrade}`;
+			} else {
+				const covered = (a.findings ?? []).some((f: { grade: number }) => f.grade >= 3);
+				scoreStr = covered ? (de ? 'GKV-Leistungsanspruch (Grad ≥ 3)' : 'Insurance-covered (grade ≥ 3)') : (de ? 'Kein Anspruch' : 'Not covered');
+			}
+
+			const scoreColor = isIOTN
+				? ((a.dhc?.grade ?? 0) >= 4 || acGrade >= 8 ? '#dc2626' : (a.dhc?.grade ?? 0) >= 3 || acGrade >= 5 ? '#b45309' : '#6b7280')
+				: ((a.findings ?? []).some((f: { grade: number }) => f.grade >= 3) ? '#b45309' : '#6b7280');
+
 			html += `<div class="avoid-break" style="margin-bottom:1em;padding:0.75em;border:1px solid #e5e7eb;border-radius:6px">
 				<div style="display:flex;align-items:center;gap:1em;margin-bottom:0.5em">
-					<strong>${a.exam_date}</strong>
-					<span style="color:${covered ? '#b45309' : '#6b7280'};font-weight:600;font-size:0.85em">
-						${covered ? (de ? 'GKV-Leistungsanspruch (Grad ≥ 3)' : 'Insurance-covered (grade ≥ 3)') : (de ? 'Kein Anspruch' : 'Not covered')}
-					</span>
+					<strong>${esc(a.exam_date ?? '')}</strong>
+					<span style="color:${scoreColor};font-weight:600;font-size:0.85em;font-family:monospace">${esc(scoreStr)}</span>
 				</div>`;
 				// Context fields
 			const ctx: string[] = [];
@@ -349,20 +368,44 @@ function renderOrtho(data: PatientExportData, lang: LangCode): string {
 				html += `<p style="font-size:0.8em;color:#7c3aed;margin:0.25em 0"><strong>${de ? 'Habits:' : 'Bad Habits:'}</strong> ${esc(labels.join(', '))}</p>`;
 			}
 
-			if (a.findings.length > 0) {
+			// IOTN detail rows
+			if (isIOTN && a.dhc) {
+				const dhcSubcats: Record<string,string> = {
+					'2a':'Overjet > 3.5–6 mm, competent lips','2b':'Reverse overjet 0–1 mm','2c':'Crossbite ≤ 1 mm discrepancy','2d':'Displacement > 1–2 mm','2e':'Open bite > 1–2 mm','2f':'Overbite > ½ incisor ht, no trauma','2g':'Pre-/post-normal, no anomalies','2h':'Submerged deciduous','2i':'Crossbite ≤ 1 mm discrepancy',
+					'3a':'Overjet > 3.5–6 mm, incompetent lips','3b':'Reverse overjet > 1–3.5 mm','3c':'Crossbite > 1–2 mm','3d':'Displacement > 2–4 mm','3e':'Open bite > 2–4 mm','3f':'Complete overbite with trauma',
+					'4a':'Overjet > 6–9 mm','4b':'Reverse overjet > 3.5 mm, no difficulties','4c':'Crossbite > 2 mm','4d':'Severe displacement > 4 mm','4e':'Extreme open bite > 4 mm','4f':'Complete overbite with trauma','4h':'Hypodontia requiring ortho','4i':'Posterior lingual crossbite, no contact','4j':'Reverse overjet > 1–3.5 mm with difficulties','4k':'Submerged permanent teeth','4l':'Partially erupted, tipped/impacted','4m':'Supernumerary teeth',
+					'5a':'Overjet > 9 mm','5h':'Extensive hypodontia (>1 tooth/quadrant)','5i':'Impeded eruption (excl. 3rd molars)','5m':'Reverse overjet > 3.5 mm with difficulties','5p':'Cleft palate/craniofacial anomaly','5s':'Submerged deciduous teeth',
+				};
+				const needLevels: Record<number,string> = { 1:'No need', 2:'Little need', 3:'Moderate need', 4:'Great need', 5:'Very great need' };
+				const dhc = a.dhc;
+				const sub = dhc.subcategory || '';
+				const mm  = dhc.mm_value != null ? ` (${dhc.mm_value} mm)` : '';
+				const desc = sub ? (dhcSubcats[sub] ?? '') : '';
+				html += `<table class="info-table" style="font-size:0.85em">
+					<tr><th>DHC Grade</th><th>Subcategory</th><th>Description</th></tr>
+					<tr>
+						<td><strong>Grade ${dhc.grade}</strong> — ${esc(needLevels[dhc.grade] ?? '')}</td>
+						<td><strong>${esc(sub || '—')}</strong>${mm}</td>
+						<td style="color:#374151">${esc(desc)}</td>
+					</tr>
+				</table>`;
+				if (acGrade > 0) {
+					const acDescs: Record<number,string> = { 1:'Excellent', 2:'Good', 3:'Fairly good', 4:'Acceptable', 5:'Moderate', 6:'Moderate/poor', 7:'Poor', 8:'Very poor', 9:'Very poor — severe', 10:'Extremely poor' };
+					html += `<p style="font-size:0.85em;margin-top:0.35em"><strong>AC ${acGrade}</strong> — ${esc(acDescs[acGrade] ?? '')}</p>`;
+				}
+			} else if (!isIOTN && (a.findings ?? []).length > 0) {
+				// Legacy KIG table
 				html += `<table class="info-table" style="font-size:0.85em">
 					<tr>
 						<th>${de ? 'Gruppe' : 'Group'}</th>
 						<th>${de ? 'Grad' : 'Grade'}</th>
 						<th>${de ? 'Messwert' : 'Value'}</th>
-						<th>${de ? 'Kassenpflichtig' : 'Covered'}</th>
 					</tr>`;
-				for (const f of a.findings) {
+				for (const f of (a.findings ?? [])) {
 					html += `<tr>
-						<td><strong>${esc(f.group)}</strong></td>
+						<td><strong>${esc(String(f.group))}</strong></td>
 						<td>${f.grade}</td>
 						<td>${f.measured_value != null ? f.measured_value + ' mm' : '—'}</td>
-						<td style="color:${f.grade >= 3 ? '#16a34a' : '#6b7280'}">${f.grade >= 3 ? '✓' : '—'}</td>
 					</tr>`;
 				}
 				html += `</table>`;
@@ -536,11 +579,27 @@ function renderChart(
 	</table>`;
 	}
 
+	// Shade findings
+	const shadeRows = data.chartData
+		.filter(e => e.shade)
+		.sort((a, b) => a.tooth_number - b.tooth_number)
+		.map(e => `<tr><td>${toFDI(e.tooth_number)}</td><td>${esc(e.shade!)}</td></tr>`);
+
+	let shadeSection = '';
+	if (shadeRows.length > 0) {
+		shadeSection = `
+	<h3 style="margin-top:1em">${de ? 'Zahnfarben' : 'Tooth Shades'}</h3>
+	<table class="info-table" style="font-size:0.85em">
+		<thead><tr><th>${de ? 'Zahn' : 'Tooth'}</th><th>${de ? 'Farbe' : 'Shade'}</th></tr></thead>
+		<tbody>${shadeRows.join('')}</tbody>
+	</table>`;
+	}
+
 	return `
 <div class="section">
 	<h2>${de ? 'Zahnstatus (aktuell)' : 'Dental Chart (current)'}</h2>
 	<p style="font-size:0.85em;color:#64748b;margin-bottom:0.75em">${dmftLine}</p>
-	<div class="chart-container">${svgMarkup}</div>${toothTable}${positionSection}${toothNotesSection}
+	<div class="chart-container">${svgMarkup}</div>${toothTable}${positionSection}${shadeSection}${toothNotesSection}
 </div>`;
 }
 
@@ -721,6 +780,20 @@ function renderPerio(data: PatientExportData, lang: LangCode): string {
 	return html;
 }
 
+// Procedure key → human-readable label for export
+const PROC_LABELS: Record<string, { de: string; en: string }> = {
+	plan_extract:         { de: 'Extraktion',    en: 'Extraction' },
+	plan_fill:            { de: 'Füllung',        en: 'Filling' },
+	plan_crown:           { de: 'Krone',          en: 'Crown' },
+	plan_rct:             { de: 'Wurzelbehandlung', en: 'Root Canal' },
+	plan_bridge:          { de: 'Brücke',         en: 'Bridge' },
+	plan_implant:         { de: 'Implantat',      en: 'Implant' },
+	plan_veneer:          { de: 'Veneer',         en: 'Veneer' },
+	plan_partial_denture: { de: 'Teilprothese',   en: 'Partial Denture' },
+	plan_full_denture:    { de: 'Totalprothese',  en: 'Full Denture' },
+	plan_watch:           { de: 'Beobachten',     en: 'Watch' },
+};
+
 function renderPlans(data: PatientExportData, lang: LangCode): string {
 	const { plans, planItems } = data;
 	const de = lang === 'de';
@@ -733,10 +806,65 @@ function renderPlans(data: PatientExportData, lang: LangCode): string {
 		html += `<div class="plan avoid-break">`;
 		html += `<h3>${esc(plan.title)} <span class="plan-status">[${esc(plan.status)}]</span></h3>`;
 		if (plan.description) html += `<p>${esc(plan.description)}</p>`;
+
+		// Planned chart overview — parse { procedures, notes, entries } format (+ legacy fallbacks)
+		// procedures: Record<string, string[]> — tooth number → array of plan_* keys
+		// notes: Record<string, string> — tooth number → free-text notes
+		let procMap: Record<string, string[]> = {};
+		let notesMap: Record<string, string> = {};
+		try {
+			const parsed = JSON.parse(plan.plan_chart_data ?? '{}');
+			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+				if ('steps' in parsed) {
+					// New format: { steps: PlanStep[], notes, entries }
+					const steps = (parsed.steps ?? []) as Array<{ teeth: number[]; procKey: string; bridgeGroupId?: string }>;
+					notesMap = parsed.notes ?? {};
+					for (const step of steps) {
+						if (!step.bridgeGroupId) {
+							for (const t of step.teeth) {
+								const k = String(t);
+								if (!procMap[k]) procMap[k] = [];
+								if (!procMap[k].includes(step.procKey)) procMap[k].push(step.procKey);
+							}
+						}
+					}
+				} else if ('procedures' in parsed || 'entries' in parsed) {
+					const rawProcs = (parsed.procedures ?? {}) as Record<string, string | string[]>;
+					for (const [k, v] of Object.entries(rawProcs)) {
+						procMap[k] = Array.isArray(v) ? v : [v];
+					}
+					notesMap = parsed.notes ?? {};
+				} else {
+					// Legacy flat Record<string,string>
+					for (const [k, v] of Object.entries(parsed as Record<string, string>)) {
+						procMap[k] = [v];
+					}
+				}
+			}
+		} catch { /* ignore */ }
+
+		const procEntries = Object.entries(procMap)
+			.map(([toothStr, procs]) => ({ tooth: Number(toothStr), procs }))
+			.filter(r => r.procs.length > 0)
+			.sort((a, b) => a.tooth - b.tooth);
+
+		if (procEntries.length > 0) {
+			html += `<p class="plan-chart-header"><strong>${de ? 'Geplante Maßnahmen (Zahnschema)' : 'Planned Procedures (Dental Chart)'}:</strong></p>`;
+			html += `<table class="plan-table"><thead><tr><th>FDI</th><th>${de ? 'Maßnahmen' : 'Procedures'}</th><th>${de ? 'Notizen' : 'Notes'}</th></tr></thead><tbody>`;
+			for (const { tooth, procs } of procEntries) {
+				const fdi = String(toFDI(tooth));
+				const labels = procs.map(p => PROC_LABELS[p]?.[lang] ?? p).join(', ');
+				const note = notesMap[String(tooth)] ?? '';
+				html += `<tr><td>${esc(fdi)}</td><td>${esc(labels)}</td><td>${esc(note)}</td></tr>`;
+			}
+			html += '</tbody></table>';
+		}
+
 		if (items.length > 0) {
-			html += `<table class="plan-table"><thead><tr><th>#</th><th>${de ? 'Maßnahme' : 'Procedure'}</th><th>${de ? 'Zähne' : 'Teeth'}</th><th>${de ? 'Status' : 'Status'}</th><th>${de ? 'Kosten' : 'Cost'}</th></tr></thead><tbody>`;
+			html += `<table class="plan-table" style="margin-top:8px"><thead><tr><th>#</th><th>${de ? 'Maßnahme' : 'Procedure'}</th><th>${de ? 'Zähne' : 'Teeth'}</th><th>${de ? 'Status' : 'Status'}</th><th>${de ? 'Kosten' : 'Cost'}</th></tr></thead><tbody>`;
 			for (const item of items) {
-				html += `<tr><td>${item.sequence_order}</td><td>${esc(item.description)}</td><td>${esc(item.tooth_numbers)}</td><td>${esc(item.status)}</td><td>${item.estimated_cost ? item.estimated_cost.toFixed(2) : ''}</td></tr>`;
+				const statusDone = item.status === 'completed';
+				html += `<tr${statusDone ? ' class="item-done"' : ''}><td>${item.sequence_order}</td><td>${esc(item.description)}</td><td>${esc(item.tooth_numbers)}</td><td>${esc(item.status)}</td><td>${item.estimated_cost ? item.estimated_cost.toFixed(2) : ''}</td></tr>`;
 			}
 			html += '</tbody></table>';
 			const total = items.reduce((sum, i) => sum + (i.estimated_cost ?? 0), 0);

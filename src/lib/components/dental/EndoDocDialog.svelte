@@ -26,7 +26,7 @@
 
 	// ── Derived display values ──────────────────────────────────────────
 	const fdiNumber  = $derived(toFDI(toothNumber));
-	const toothLabel = $derived(FDI_TOOTH_NAMES[fdiNumber] ?? `Zahn ${fdiNumber}`);
+	const toothLabel = $derived(FDI_TOOTH_NAMES[fdiNumber] ?? i18n.t.chart.endo.toothFallback.replace('{n}', String(fdiNumber)));
 
 	// ── Data state ──────────────────────────────────────────────────────
 	let records         = $state<EndoRecord[]>([]);
@@ -327,7 +327,7 @@
 							bind:value={draftNotes}
 							disabled={isReadOnly}
 							rows={2}
-							placeholder={isReadOnly ? '' : 'Befund, Besonderheiten…'}
+							placeholder={isReadOnly ? '' : i18n.t.chart.endo.findingsPlaceholder}
 							class="text-sm border border-border rounded-md px-2.5 py-1.5 bg-background resize-none
 								disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-ring
 								placeholder:text-muted-foreground/50"

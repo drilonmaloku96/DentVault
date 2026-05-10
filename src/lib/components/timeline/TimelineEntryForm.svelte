@@ -27,6 +27,7 @@
 	import TagSuggestionBar from '$lib/components/ui/TagSuggestionBar.svelte';
 	import TextBlockPalette from '$lib/components/ui/TextBlockPalette.svelte';
 	import StaffMentionPalette from '$lib/components/ui/StaffMentionPalette.svelte';
+	import TextColorPicker from '$lib/components/timeline/TextColorPicker.svelte';
 	import type { TextBlock } from '$lib/stores/textBlocks.svelte';
 	import type { Doctor } from '$lib/types';
 
@@ -80,12 +81,12 @@
 	let errors = $state<Record<string, string>>({});
 	let isSaving = $state(false);
 	let submitError = $state('');
-	let showColleaguePicker = $state(false);
 
 	// ── Text block palette ───────────────────────────────────────────────
 	let showPalette      = $state(false);
 	let paletteQuery     = $state('');
 	let descEditorEl     = $state<HTMLDivElement | null>(null);
+	let descContainerEl  = $state<HTMLDivElement | null>(null);
 	let formPaletteRef   = $state<ReturnType<typeof TextBlockPalette> | null>(null);
 
 	// ── Staff mention palette ────────────────────────────────────────────
@@ -135,12 +136,6 @@
 		return { word: textBefore.slice(start), start, end };
 	}
 
-	function applyFormatForm(format: 'bold' | 'italic' | 'underline') {
-		descEditorEl?.focus();
-		document.execCommand(format, false);
-		description = descEditorEl?.innerHTML ?? description;
-	}
-
 	function handleDescInput() {
 		description = descEditorEl?.innerHTML ?? '';
 		const { word } = getCurrentWordForm();
@@ -164,8 +159,28 @@
 		document.execCommand('insertText', false, '');
 		description = descEditorEl.innerHTML;
 		showMentionPalette = false; mentionQuery = '';
-		if (!colleagueIds.includes(doc.id)) {
-			colleagueIds = [...colleagueIds, doc.id];
+		if (!allStaffIds.includes(doc.id)) {
+			toggleStaff(doc.id);
+		}
+	}
+
+	// All selected staff ids in order (primary first, then colleagues)
+	const allStaffIds = $derived([...(doctorId !== null ? [doctorId] : []), ...colleagueIds]);
+
+	function toggleStaff(id: number) {
+		if (doctorId === id) {
+			// Removing primary: promote first colleague, or clear
+			doctorId = colleagueIds[0] ?? null;
+			colleagueIds = colleagueIds.slice(1);
+		} else if (colleagueIds.includes(id)) {
+			colleagueIds = colleagueIds.filter(c => c !== id);
+		} else {
+			// Adding new
+			if (doctorId === null) {
+				doctorId = id;
+			} else {
+				colleagueIds = [...colleagueIds, id];
+			}
 		}
 	}
 
@@ -184,11 +199,7 @@
 		if (showPalette && formPaletteRef?.handleKeydown(e)) return;
 		if (e.key === 'Escape' && showMentionPalette) { showMentionPalette = false; return; }
 		if (e.key === 'Escape' && showPalette) { showPalette = false; return; }
-		// Block Enter from doing anything while any palette is open (guards against ref being null)
 		if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }
-		if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); applyFormatForm('bold'); return; }
-		if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); applyFormatForm('italic'); return; }
-		if ((e.ctrlKey || e.metaKey) && e.key === 'u') { e.preventDefault(); applyFormatForm('underline'); return; }
 	}
 
 	// Text fed to the keyword scanner: title + description combined
@@ -233,6 +244,19 @@
 			);
 			toothNumbers = merged.join(', ');
 		}
+	}
+
+	function isoToDisplay(iso: string): string {
+		if (!iso || iso.length !== 10) return iso;
+		const [y, m, d] = iso.split('-');
+		return `${d}/${m}/${y}`;
+	}
+
+	function displayToISO(display: string): string | null {
+		const match = display.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+		if (!match) return null;
+		const [, d, m, y] = match;
+		return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 	}
 
 	function validate(): boolean {
@@ -329,11 +353,25 @@
 			<div class="grid grid-cols-2 gap-3">
 				<div class="flex flex-col gap-1.5">
 					<Label for="entry-date">{i18n.t.common.date} <span class="text-destructive">*</span></Label>
-					<Input
+					<input
 						id="entry-date"
-						type="date"
-						bind:value={entryDate}
-						class={errors.entryDate ? 'border-destructive' : ''}
+						type="text"
+						placeholder="DD/MM/YYYY"
+						value={isoToDisplay(entryDate)}
+						oninput={(e) => {
+							const iso = displayToISO(e.currentTarget.value);
+							if (iso) entryDate = iso;
+						}}
+						onblur={(e) => {
+							const iso = displayToISO(e.currentTarget.value);
+							if (iso) {
+								entryDate = iso;
+								e.currentTarget.value = isoToDisplay(iso);
+							} else {
+								e.currentTarget.value = isoToDisplay(entryDate);
+							}
+						}}
+						class={`flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.entryDate ? 'border-destructive' : 'border-input'}`}
 					/>
 					{#if errors.entryDate}
 						<p class="text-xs text-destructive">{errors.entryDate}</p>
@@ -365,146 +403,41 @@
 				{/if}
 			</div>
 
-			<!-- Staff + Tooth numbers row -->
-			<div class="grid grid-cols-2 gap-3">
-				<div class="flex flex-col gap-1.5">
-					<Label for="staff-select">{i18n.t.staff.title}</Label>
-					{#if doctorId !== null}
-						{@const selectedDoc = doctors.map.get(doctorId)}
-						<!-- Selected: show chip with X to clear -->
-						<div class="flex items-center gap-1.5">
-							<span class="flex-1 flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-0">
-								{#if selectedDoc}
-									<span class="h-2 w-2 rounded-full shrink-0" style="background:{selectedDoc.color}"></span>
-									<span class="truncate">{staffLabel(selectedDoc)}</span>
-								{/if}
-							</span>
-							<button
-								type="button"
-								onclick={() => (doctorId = null)}
-								class="shrink-0 rounded-md border border-input bg-background p-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors"
-								title="Clear staff selection"
-								aria-label="Clear staff selection"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
-									<path d="M18 6L6 18M6 6l12 12"/>
-								</svg>
-							</button>
-						</div>
-					{:else}
-						<!-- Not selected: dropdown -->
-						<select
-							id="staff-select"
-							bind:value={doctorId}
-							class="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+			<!-- Staff chips -->
+			<div class="flex flex-col gap-1.5">
+				<Label>{i18n.t.staff.title}</Label>
+				<div class="flex flex-wrap gap-1.5">
+					{#each doctors.list.filter(d => d.show_in_doc_bar !== 0) as doc (doc.id)}
+						{@const active = allStaffIds.includes(doc.id)}
+						{@const idx = allStaffIds.indexOf(doc.id)}
+						<button
+							type="button"
+							onclick={() => toggleStaff(doc.id)}
+							style="--doc-color: {doc.color}"
+							class={[
+								'h-7 rounded-full border px-2.5 text-xs font-medium transition-all flex items-center gap-1',
+								active
+									? 'border-[var(--doc-color)] bg-[var(--doc-color)] text-white shadow-sm'
+									: 'border-border bg-transparent text-muted-foreground hover:border-[var(--doc-color)] hover:text-foreground',
+							].join(' ')}
+							title={active && idx === 0 ? 'Primary (click to remove)' : active ? 'Colleague (click to remove)' : 'Click to add'}
 						>
-							<option value={null}>— {i18n.t.staff.title} —</option>
-							{#each doctors.list as doc (doc.id)}
-								<option value={doc.id}>{staffLabel(doc)}{doc.specialty ? ` · ${doc.specialty}` : ''}</option>
-							{/each}
-						</select>
-						{#if doctors.list.length === 0}
-							<p class="text-[10px] text-muted-foreground/60">Add staff in Settings → Staff</p>
-						{/if}
+							{#if active && idx > 0}
+								<span class="opacity-75 text-[9px] font-bold leading-none">+</span>
+							{/if}
+							{staffLabel(doc)}{#if doc.specialty}<span class={['ml-0.5 text-[10px]', active ? 'opacity-75' : 'opacity-70'].join(' ')}> · {doc.specialty}</span>{/if}
+						</button>
+					{/each}
+					{#if doctors.list.filter(d => d.show_in_doc_bar !== 0).length === 0}
+						<p class="text-[10px] text-muted-foreground/60">Add staff in Settings → Staff</p>
 					{/if}
 				</div>
-
-				<div class="flex flex-col gap-1.5">
-					<Label for="tooth-numbers">{i18n.t.timeline.entry.toothNumbers}</Label>
-					<Input id="tooth-numbers" placeholder="14, 15, 16" bind:value={toothNumbers} />
-				</div>
 			</div>
-
-			<!-- Colleagues row -->
-			{#if colleagueIds.length > 0 || true}
-				<div class="flex flex-col gap-1.5">
-					<Label>{i18n.t.timeline.entry.colleagues}</Label>
-					<div class="flex flex-wrap items-center gap-1.5">
-						{#each colleagueIds as colId}
-							{#if doctors.map.get(colId)}
-								{@const col = doctors.map.get(colId)!}
-								<span
-									style="--col-color: {col.color}"
-									class="flex items-center gap-1 h-7 rounded-full border border-[var(--col-color)] bg-[var(--col-color)]/10 text-[var(--col-color)] px-2.5 text-xs font-medium"
-								>
-									{staffLabel(col)}
-									<button
-										type="button"
-										onclick={() => { colleagueIds = colleagueIds.filter(id => id !== colId); }}
-										class="ml-0.5 opacity-60 hover:opacity-100"
-										aria-label="Remove colleague"
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-2.5 w-2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-									</button>
-								</span>
-							{/if}
-						{/each}
-
-						{#if showColleaguePicker}
-							<div class="relative">
-								<div class="absolute bottom-full left-0 mb-1 z-50 rounded-lg border border-border bg-popover shadow-lg overflow-hidden" style="min-width:200px; max-width:280px;">
-									<div class="border-b border-border px-3 py-1.5">
-										<span class="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{i18n.t.timeline.entry.colleagues}</span>
-									</div>
-									<div class="flex flex-col overflow-y-auto" style="max-height:180px;">
-										{#each [...doctors.list].filter(d => d.show_in_doc_bar !== 0).sort((a, b) => { const aIsDoc = a.role === 'doctor'; const bIsDoc = b.role === 'doctor'; if (aIsDoc !== bIsDoc) return aIsDoc ? 1 : -1; return a.name.localeCompare(b.name); }) as doc}
-											<button
-												type="button"
-												onclick={() => {
-													if (!colleagueIds.includes(doc.id)) colleagueIds = [...colleagueIds, doc.id];
-													showColleaguePicker = false;
-												}}
-												class={[
-													'flex items-center gap-2 px-3 py-2 text-xs hover:bg-accent transition-colors text-left border-t border-border/50 first:border-t-0',
-													colleagueIds.includes(doc.id) ? 'opacity-50' : '',
-												].join(' ')}
-											>
-												<span class="h-2 w-2 rounded-full shrink-0" style="background:{doc.color}"></span>
-												<span class="font-medium truncate">{staffLabel(doc)}</span>
-											</button>
-										{/each}
-									</div>
-								</div>
-								<button type="button" onclick={() => (showColleaguePicker = false)}
-									class="h-7 rounded-full border border-border px-2.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors bg-background">
-									{i18n.t.actions.close}
-								</button>
-							</div>
-						{:else}
-							<button type="button" onclick={() => (showColleaguePicker = true)}
-								class="h-7 rounded-full border border-dashed border-border px-2.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors">
-								+ {i18n.t.timeline.entry.colleagues}
-							</button>
-						{/if}
-					</div>
-				</div>
-			{/if}
 
 			<!-- Description + Tag Suggestion Bar -->
 			<div class="flex flex-col gap-2">
 				<Label for="description">{i18n.t.common.notes}</Label>
-				<div class="relative">
-					<!-- Formatting toolbar -->
-					<div class="flex items-center gap-0.5 mb-1">
-						<button
-							type="button"
-							onmousedown={(e) => { e.preventDefault(); applyFormatForm('bold'); }}
-							class="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
-							title="Fett (⌘B)"
-						>B</button>
-						<button
-							type="button"
-							onmousedown={(e) => { e.preventDefault(); applyFormatForm('italic'); }}
-							class="h-6 w-6 rounded text-xs italic text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
-							title="Kursiv (⌘I)"
-						>I</button>
-						<button
-							type="button"
-							onmousedown={(e) => { e.preventDefault(); applyFormatForm('underline'); }}
-							class="h-6 w-6 rounded text-xs underline text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center justify-center select-none"
-							title="Unterstrichen (⌘U)"
-						>U</button>
-					</div>
+				<div class="relative" bind:this={descContainerEl}>
 					<!-- svelte-ignore a11y_interactive_supports_focus -->
 					<div
 						id="description"
@@ -513,7 +446,7 @@
 						contenteditable="true"
 						role="textbox"
 						aria-multiline="true"
-						data-placeholder="Notizen… (/ für Textbausteine, @ für Mitarbeiter)"
+						data-placeholder={i18n.t.timeline.entry.notesPlaceholder}
 						oninput={handleDescInput}
 						onkeydown={handleDescKeydown}
 						class="form-editor border-input bg-background block min-h-[80px] w-full rounded-md border px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -649,13 +582,12 @@
 	</DialogContent>
 </Dialog>
 
+<TextColorPicker containerEl={descContainerEl} />
+
 <style>
 	.form-editor:empty::before {
 		content: attr(data-placeholder);
 		color: hsl(var(--muted-foreground) / 0.6);
 		pointer-events: none;
 	}
-	.form-editor :global(b), .form-editor :global(strong) { font-weight: 600; }
-	.form-editor :global(i), .form-editor :global(em) { font-style: italic; }
-	.form-editor :global(u) { text-decoration: underline; }
 </style>

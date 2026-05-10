@@ -4,6 +4,7 @@
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
 	import { postTypes } from '$lib/stores/postTypes.svelte';
 	import { fillingMaterials } from '$lib/stores/fillingMaterials.svelte';
+	import { shadeGuides } from '$lib/stores/shadeGuides.svelte';
 
 	/** Live check — reads from the loaded store so user-configured wholeTooth is respected. */
 	function isWholeTooth(tagKey: string): boolean {
@@ -50,7 +51,7 @@
 		selectedSurface?: string | null;
 		shortcutTagKey?: { key: string; seq: number } | null;
 		horizontal?: boolean;
-		onSave: (toothNumber: number, data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number }) => Promise<void>;
+		onSave: (toothNumber: number, data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null }) => Promise<void>;
 		onClose: () => void;
 		onDissolveBridge?: (bridgeGroupId: string) => void;
 		onNotesChanged?: () => void;
@@ -87,6 +88,8 @@
 	let tipping           = $state(untrack(() => entry?.tipping ?? ''));
 	let rotation          = $state(untrack(() => entry?.rotation ?? ''));
 	let foreignWork       = $state(untrack(() => (entry?.foreign_work ?? 0) === 1));
+	let selectedShade     = $state<string | null>(untrack(() => entry?.shade ?? null));
+	let activeShadeGuide  = $state<string>(untrack(() => shadeGuides.list[0]?.key ?? ''));
 	let isSaving          = $state(false);
 	let savedPulse        = $state(false);
 
@@ -146,6 +149,10 @@
 		if (!fillingMaterials.loaded) fillingMaterials.load();
 	});
 
+	$effect(() => {
+		if (!shadeGuides.loaded) shadeGuides.load();
+	});
+
 	// ── Multi-select state ─────────────────────────────────────────────
 	let activeSurfaces = $state(new Set<string>());
 	let isDragging     = $state(false);
@@ -175,6 +182,7 @@
 			tipping           = entry?.tipping ?? '';
 			rotation          = entry?.rotation ?? '';
 			foreignWork       = (entry?.foreign_work ?? 0) === 1;
+			selectedShade     = entry?.shade ?? null;
 			surfaceMap        = parseSurfMap(entry?.surfaces);
 			rootDataMap       = parseRootMap(entry?.root_data);
 			activeSurfaces    = new Set();
@@ -236,6 +244,7 @@
 				tipping,
 				rotation,
 				foreign_work: foreignWork ? 1 : 0,
+				shade: selectedShade,
 			});
 			savedPulse = true;
 			setTimeout(() => (savedPulse = false), 1800);
@@ -964,6 +973,44 @@
 	</div>
 {/snippet}
 
+{#snippet shadeWidget()}
+	{@const currentGuide = shadeGuides.list.find(g => g.key === activeShadeGuide) ?? shadeGuides.list[0]}
+	<div class="flex flex-col gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-2.5">
+		<div class="flex items-center justify-between">
+			<span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{i18n.t.chart.shade.title}</span>
+			{#if selectedShade}
+				<button
+					type="button"
+					onclick={() => { selectedShade = null; doSave(); }}
+					class="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+				>{i18n.t.chart.shade.clear}</button>
+			{/if}
+		</div>
+		{#if shadeGuides.list.length > 1}
+			<div class="flex gap-1 flex-wrap">
+				{#each shadeGuides.list as guide}
+					<button
+						type="button"
+						onclick={() => activeShadeGuide = guide.key}
+						class="text-[10px] px-1.5 py-0.5 rounded border transition-colors {activeShadeGuide === guide.key ? 'border-ring bg-primary/10 text-foreground font-medium' : 'border-border/50 text-muted-foreground hover:border-ring/50'}"
+					>{guide.label}</button>
+				{/each}
+			</div>
+		{/if}
+		{#if currentGuide}
+			<div class="flex flex-wrap gap-1">
+				{#each currentGuide.shades as shade}
+					<button
+						type="button"
+						onclick={() => { selectedShade = shade === selectedShade ? null : shade; doSave(); }}
+						class="text-[10px] px-1.5 py-0.5 rounded border font-mono transition-colors {selectedShade === shade ? 'bg-blue-600 text-white border-blue-700' : 'border-border/60 text-foreground hover:border-ring/50 hover:bg-muted/60'}"
+					>{shade}</button>
+				{/each}
+			</div>
+		{/if}
+	</div>
+{/snippet}
+
 {#snippet notesDateWidget()}
 	<!-- Last examined date — unchanged -->
 	<div class="flex flex-col gap-1.5">
@@ -1133,9 +1180,10 @@
 			</div>
 			<!-- Divider -->
 			<div class="w-px bg-border self-stretch shrink-0"></div>
-			<!-- Column 3: Notes, date, position, history -->
+			<!-- Column 3: Notes, date, shade, position, history -->
 			<div class="shrink-0 flex flex-col gap-2.5" style="width:220px">
 				{@render notesDateWidget()}
+				{@render shadeWidget()}
 				{@render positionWidget()}
 				{@render historyWidget()}
 			</div>
@@ -1180,6 +1228,8 @@
 		</div>
 
 		{@render prosthesisAndDissolveWidget()}
+
+		{@render shadeWidget()}
 
 		{@render positionWidget()}
 

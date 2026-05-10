@@ -112,7 +112,7 @@
 		<textarea
 			bind:value={content}
 			oninput={handleInput}
-			placeholder="Akute Beschwerden, Medikamentenunverträglichkeiten, dringende Hinweise…"
+			placeholder={i18n.t.patients.acuteProblemPlaceholder}
 			rows={4}
 			class="w-full resize-y px-4 py-2 text-sm bg-transparent outline-none
 			       placeholder:text-red-300/50 leading-relaxed text-foreground

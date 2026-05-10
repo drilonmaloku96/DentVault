@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { TimelineEntry, OrthoAssessment, BissType } from '$lib/types';
+	import type { TimelineEntry, OrthoAssessment, BissType, IOTNDHCFinding } from '$lib/types';
 	import { formatDate } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 
@@ -16,14 +16,51 @@
 		catch { return null; }
 	});
 
-	const isCovered = $derived(assessment?.findings.some(f => f.grade >= 3) ?? false);
 	const today = new Date().toISOString().slice(0, 10);
 	const isEditable = $derived(entry.entry_date === today);
 
-	function gradeLabel(f: { group: string; grade: number; measured_value: number | null }) {
+	// Detect IOTN vs legacy KIG format
+	const isIOTN = $derived(assessment != null && (assessment.dhc != null || 'ac_grade' in (assessment as object)));
+	const isLegacyKIG = $derived(assessment != null && !isIOTN && Array.isArray((assessment as { findings?: unknown }).findings));
+
+	// ── IOTN display ──────────────────────────────────────────────────
+	const dhcFinding = $derived(assessment?.dhc as IOTNDHCFinding | undefined);
+	const acGrade    = $derived((assessment as { ac_grade?: number } | null)?.ac_grade ?? 0);
+
+	const iotnScoreLabel = $derived.by(() => {
+		const parts: string[] = [];
+		if (dhcFinding) {
+			const sub = dhcFinding.subcategory || '';
+			const mm  = dhcFinding.mm_value != null ? ` ${dhcFinding.mm_value}mm` : '';
+			// New format: subcategory is the condition code (e.g. 'a'), so show "A/4"
+			// Legacy format: subcategory was like '4a', so show as-is
+			const isNewFormat = sub.length <= 2 && sub === sub.toLowerCase();
+			parts.push(isNewFormat ? `DHC ${sub.toUpperCase()}/${dhcFinding.grade}${mm}` : `DHC ${sub}${mm}`);
+		}
+		if (acGrade > 0) parts.push(`AC ${acGrade}`);
+		return parts.join(' · ');
+	});
+
+	const iotnTreatmentLabel = $derived.by(() => {
+		const dhcG = dhcFinding?.grade ?? 0;
+		if (dhcG >= 4 || acGrade >= 8) return 'treatment-indicated';
+		if (dhcG === 3 || acGrade >= 5) return 'borderline';
+		return '';
+	});
+
+	// ── Legacy KIG display ────────────────────────────────────────────
+	const legacyFindings = $derived(
+		isLegacyKIG
+			? ((assessment as { findings?: { group: string; grade: number; measured_value: number | null }[] }).findings ?? [])
+			: []
+	);
+	const isCoveredLegacy = $derived(legacyFindings.some(f => f.grade >= 3));
+
+	function kigGradeLabel(f: { group: string; grade: number; measured_value: number | null }) {
 		return `${f.group}${f.grade}${f.measured_value !== null ? ` ${f.measured_value}mm` : ''}`;
 	}
 
+	// ── Shared: bite + context + habits ──────────────────────────────
 	function pbLabel(v: number): string {
 		const frac: Record<number, string> = { 0.25: '¼', 0.5: '½', 0.75: '¾' };
 		const whole = Math.floor(v);
@@ -42,7 +79,6 @@
 
 	const bissLabels = $derived([bissLabel('right'), bissLabel('left')].filter(Boolean));
 
-	// ── Readable context fields ────────────────────────────────────
 	function resolveOption(value: string | undefined, map: Record<string, string>): string {
 		if (!value) return '';
 		return map[value] ?? value;
@@ -57,7 +93,7 @@
 		if (tp) parts.push(`${i18n.t.ortho.treatmentPhase}: ${tp}`);
 		const ac = resolveOption(assessment.angle_class, i18n.t.ortho.angleClass as Record<string, string>);
 		if (ac) parts.push(`${i18n.t.ortho.angleClassLabel}: ${ac}`);
-		if (assessment.cvm_stage > 0) parts.push(`CVM ${assessment.cvm_stage}`);
+		if (assessment.cvm_stage && assessment.cvm_stage > 0) parts.push(`CVM ${assessment.cvm_stage}`);
 		const fp = resolveOption(assessment.facial_profile, i18n.t.ortho.facialProfileOptions as Record<string, string>);
 		if (fp) parts.push(`${i18n.t.ortho.facialProfile}: ${fp}`);
 		return parts;
@@ -72,30 +108,40 @@
 </script>
 
 <div class="mb-2 ml-8">
-	<!-- Timeline dot -->
 	<div class="absolute left-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-violet-500 ring-2 ring-background mt-1.5"></div>
 
 	<div class="py-1.5">
-		<!-- Title row — clickable to open -->
+		<!-- Title row -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="flex items-center gap-2 w-full rounded-md px-1.5 py-1 -mx-1.5 {onView ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}"
 			onclick={onView}
 		>
-			<!-- KIG icon -->
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-violet-500 shrink-0">
 				<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
 				<polyline points="9 2 9 9 16 9"/>
 				<line x1="12" y1="13" x2="12" y2="17"/>
 				<line x1="10" y1="15" x2="14" y2="15"/>
 			</svg>
-			<span class="text-sm font-semibold text-foreground">{i18n.t.ortho.button}</span>
+
+			<span class="text-sm font-semibold text-foreground">{entry.title || i18n.t.ortho.button}</span>
 			<span class="text-[10px] text-muted-foreground/50">{formatDate(entry.entry_date)}</span>
 
-			{#if assessment}
-				<span class="ml-1 px-1.5 py-0 rounded-full text-[10px] font-medium {isCovered ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-muted text-muted-foreground'}">
-					{isCovered ? i18n.t.ortho.insuranceCovered : i18n.t.ortho.notCovered}
+			{#if isIOTN && iotnScoreLabel}
+				<!-- IOTN score badge -->
+				<span class="ml-1 font-mono text-[10px] font-semibold px-1.5 py-0 rounded
+					{iotnTreatmentLabel === 'treatment-indicated'
+						? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+						: iotnTreatmentLabel === 'borderline'
+						? 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+						: 'bg-muted text-muted-foreground'}">
+					{iotnScoreLabel}
+				</span>
+			{:else if isLegacyKIG}
+				<!-- Legacy insurance badge -->
+				<span class="ml-1 px-1.5 py-0 rounded-full text-[10px] font-medium {isCoveredLegacy ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-muted text-muted-foreground'}">
+					{isCoveredLegacy ? i18n.t.ortho.insuranceCovered : i18n.t.ortho.notCovered}
 				</span>
 			{/if}
 
@@ -112,7 +158,7 @@
 			{/if}
 		</div>
 
-		<!-- Context fields (readable text) -->
+		<!-- Context fields -->
 		{#if contextParts.length > 0}
 			<p class="text-[11px] text-muted-foreground/80 mt-0.5 ml-5.5 leading-snug">
 				{contextParts.join(' · ')}
@@ -126,12 +172,35 @@
 			</p>
 		{/if}
 
-		<!-- Findings chips -->
-		{#if assessment?.findings && assessment.findings.length > 0}
+		<!-- IOTN DHC detail -->
+		{#if isIOTN && dhcFinding}
+			{@const dhcSub   = dhcFinding.subcategory || ''}
+			{@const dhcIsNew = dhcSub.length <= 2 && dhcSub === dhcSub.toLowerCase()}
+			{@const dhcLabel = dhcIsNew ? `${dhcSub.toUpperCase()}/${dhcFinding.grade}` : (dhcSub || String(dhcFinding.grade))}
 			<div class="flex flex-wrap gap-1 mt-1 ml-5.5">
-				{#each assessment.findings as f}
+				<span class="px-1.5 py-0 rounded text-[10px] font-mono
+					{(dhcFinding.grade >= 4) ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+					 dhcFinding.grade === 3 ? 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+					 'bg-muted text-muted-foreground'}">
+					DHC {dhcLabel}{dhcFinding.mm_value != null ? ` ${dhcFinding.mm_value}mm` : ''}
+				</span>
+				{#if acGrade > 0}
+					<span class="px-1.5 py-0 rounded text-[10px] font-mono
+						{acGrade >= 8 ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+						 acGrade >= 5 ? 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+						 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}">
+						AC {acGrade}
+					</span>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Legacy KIG findings chips -->
+		{#if isLegacyKIG && legacyFindings.length > 0}
+			<div class="flex flex-wrap gap-1 mt-1 ml-5.5">
+				{#each legacyFindings as f}
 					<span class="px-1.5 py-0 rounded text-[10px] font-mono {f.grade >= 3 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-muted text-muted-foreground'}">
-						{gradeLabel(f)}
+						{kigGradeLabel(f)}
 					</span>
 				{/each}
 			</div>
@@ -144,11 +213,6 @@
 					<span class="px-1.5 py-0 rounded text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">{lbl}</span>
 				{/each}
 			</div>
-		{/if}
-
-		<!-- Legacy treatment recommendation (backward compat for old entries) -->
-		{#if assessment?.treatment_recommendation}
-			<p class="text-[11px] text-muted-foreground/60 mt-0.5 ml-5.5 line-clamp-1 italic">→ {assessment.treatment_recommendation}</p>
 		{/if}
 
 		<!-- Notes -->

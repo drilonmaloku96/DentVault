@@ -15,6 +15,7 @@
 		onBridgeRangeSelected = undefined,
 		chartingTooth = null,
 		shiftSelectedTeeth = [],
+		ctrlSelectedTeeth = [],
 		showPrimary    = false,
 		showPermanent  = true,
 		showLegend     = true,
@@ -22,12 +23,13 @@
 		teethWithDueReminders = undefined,
 	}: {
 		chartData: ToothChartEntry[];
-		onToothClick: (toothNumber: number, shiftHeld: boolean) => void;
+		onToothClick: (toothNumber: number, shiftHeld: boolean, ctrlHeld: boolean) => void;
 		selectedTooth?: number | null;
 		selectedSurface?: string | null;
 		onBridgeRangeSelected?: (teeth: number[]) => void;
 		chartingTooth?: number | null;
 		shiftSelectedTeeth?: number[];
+		ctrlSelectedTeeth?: number[];
 		showPrimary?: boolean;
 		showPermanent?: boolean;
 		showLegend?: boolean;
@@ -41,7 +43,6 @@
 		{ label: i18n.t.chart.tagGroups.restorative,      keys: ['decayed', 'filled'] },
 		{ label: i18n.t.chart.tagGroups.endodontic,       keys: ['root_canal'] },
 		{ label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
-		{ label: i18n.t.chart.tagGroups.removable,        keys: ['prosthesis'] },
 		{ label: i18n.t.chart.tagGroups.absent,           keys: ['missing', 'extracted'] },
 		{ label: i18n.t.chart.tagGroups.primary,          keys: ['erupting', 'persistent_primary'] },
 	]);
@@ -50,6 +51,7 @@
 	const SW = 46;
 	const VW = SW * 16;
 	const VH = 304;
+	const BL_PAD = 18; // side padding added to viewBox for B/L orientation labels
 
 	// Dynamic viewBox: primary-only mode crops to the middle zone to eliminate blank space
 	const svgViewBoxY = $derived(!showPermanent && showPrimary ? 110 : 0);
@@ -170,6 +172,13 @@
 		return v.material ?? null;
 	}
 
+	/** Returns the keyboard shortcut letter for a surface tag, or '' if none. Skips mih (grade shown separately). */
+	function getSurfShortcut(s: Partial<Record<string, SurfaceValue>>, key: string): string {
+		const tag = getSurfTag(s[key]);
+		if (!tag || tag === 'healthy' || tag === 'mih') return '';
+		return dentalTags.getByKey(tag)?.shortcut?.toUpperCase() ?? '';
+	}
+
 	/** Returns MIH grade (1–4) if the surface is tagged mih, otherwise null. */
 	function getSurfGrade(s: Partial<Record<string, SurfaceValue>>, key: string): number | null {
 		const v = s[key];
@@ -194,6 +203,9 @@
 		superior: '↑', inferior: '↓', clockwise: '↻', counterclockwise: '↺',
 	};
 
+	// Whole-tooth conditions that have dedicated visuals — skip Kürzel for these
+	const KUERZEL_SKIP_COND = new Set(['healthy', 'missing', 'extracted', 'bridge', 'prosthesis']);
+
 	// ── Root canal per-canal colors ─────────────────────────────────────
 	type RootDataMap = Record<string, { status?: string; post?: string | null; apex?: boolean }>;
 	const CANAL_FILL:   Record<string, string> = { none: '#f5f3ff', filled: '#dbeafe', insufficient: '#fee2e2', dressing: '#fef3c7' };
@@ -215,7 +227,7 @@
 	}
 
 	function dividedSquare(x: number, y: number, w: number, h: number): ToothGeom {
-		const m = Math.max(5, Math.round(w * 0.26));
+		const m = Math.max(6, Math.round(w * 0.30));
 		const x2 = x + w, y2 = y + h;
 		const ix = x + m, iy = y + m, ix2 = x2 - m, iy2 = y2 - m;
 		const pts = (...pairs: number[]) =>
@@ -309,6 +321,7 @@
 	let dragCurrentTooth = $state<number | null>(null);
 	let isDragging = $state(false);
 	let dragShiftHeld = $state(false);
+	let dragCtrlHeld  = $state(false);
 
 	const bridgeDragRange = $derived.by<number[]>(() => {
 		if (dragStartTooth === null || dragCurrentTooth === null) return [];
@@ -371,6 +384,7 @@
 		dragCurrentTooth = tooth;
 		isDragging = false;
 		dragShiftHeld = e.shiftKey;
+		dragCtrlHeld  = e.ctrlKey || e.metaKey; // ctrlKey = Win/Linux, metaKey = Cmd on Mac
 		svgEl?.setPointerCapture(e.pointerId);
 		e.preventDefault();
 	}
@@ -390,20 +404,27 @@
 		const range = bridgeDragRange;
 		const wasDragging = isDragging;
 		const shiftHeld = dragShiftHeld;
+		const ctrlHeld  = dragCtrlHeld;
 		dragStartTooth = null;
 		dragCurrentTooth = null;
 		isDragging = false;
 		dragShiftHeld = false;
+		dragCtrlHeld  = false;
 
-		if (wasDragging && shiftHeld && range.length >= 1) {
-			// Shift+drag: add the entire dragged range to the multi-selection
+		if (ctrlHeld && range.length >= 1) {
+			// Ctrl+click/drag: multi-select teeth for bulk tag assignment
 			for (const tooth of range) {
-				onToothClick(tooth, true);
+				onToothClick(tooth, false, true);
+			}
+		} else if (wasDragging && shiftHeld && range.length >= 1) {
+			// Shift+drag: add the entire dragged range to the shift multi-selection
+			for (const tooth of range) {
+				onToothClick(tooth, true, false);
 			}
 		} else if (wasDragging && range.length > 1 && onBridgeRangeSelected && !shiftHeld) {
 			onBridgeRangeSelected(range);
-		} else if (!wasDragging && range.length === 1) {
-			onToothClick(range[0], shiftHeld);
+		} else if (!wasDragging && range.length >= 1) {
+			onToothClick(range[0], shiftHeld, false);
 		}
 	}
 </script>
@@ -411,7 +432,7 @@
 <div class="overflow-x-auto rounded-md">
 	<svg
 		bind:this={svgEl}
-		viewBox="0 {svgViewBoxY} {VW} {svgViewBoxH}"
+		viewBox="-{BL_PAD} {svgViewBoxY} {VW + BL_PAD * 2} {svgViewBoxH}"
 		class="w-full"
 		style="min-width:560px; display:block; margin:0 auto; touch-action:none; outline:none;"
 		xmlns="http://www.w3.org/2000/svg"
@@ -539,6 +560,18 @@
 		<text x="180" y={VH - 5} font-size="9" fill="#94a3b8" text-anchor="middle" font-family="sans-serif" font-weight="600">Q4</text>
 		<text x="556" y={VH - 5} font-size="9" fill="#94a3b8" text-anchor="middle" font-family="sans-serif" font-weight="600">Q3</text>
 
+		<!-- B/L orientation indicators — placed in side margins outside tooth columns -->
+		<!-- Upper jaw: B=buccal (outer/top), L=lingual (inner/bottom near arch) -->
+		<text x={-BL_PAD + 4} y="75"  font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">B</text>
+		<text x={-BL_PAD + 4} y="104" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">L</text>
+		<text x={VW + BL_PAD - 4} y="75"  font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">B</text>
+		<text x={VW + BL_PAD - 4} y="104" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">L</text>
+		<!-- Lower jaw: L=lingual (inner/top near arch), B=buccal (outer/bottom) -->
+		<text x={-BL_PAD + 4} y="214" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">L</text>
+		<text x={-BL_PAD + 4} y="243" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">B</text>
+		<text x={VW + BL_PAD - 4} y="214" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">L</text>
+		<text x={VW + BL_PAD - 4} y="243" font-size="10" fill="#64748b" text-anchor="middle" font-family="sans-serif" font-weight="700" class="pointer-events-none select-none">B</text>
+
 		<!-- ── Bridge bars / Prosthesis lines (rendered before teeth so teeth sit on top) ── -->
 		{#each bridgeGroups as [, group]}
 			{#if group.kind === 'bridge'}
@@ -604,6 +637,7 @@
 			{@const sel       = selectedTooth === tooth}
 			{@const charting  = chartingTooth === tooth}
 			{@const shiftSel  = shiftSelectedTeeth.includes(tooth)}
+			{@const ctrlSel   = ctrlSelectedTeeth.includes(tooth)}
 			{@const dashed    = isDashed(cond)}
 			{@const isPontic          = entry?.bridge_role === 'pontic'}
 			{@const isProsthesisReplaced = entry?.condition === 'prosthesis' && entry?.prosthesis_type === 'replaced'}
@@ -707,6 +741,21 @@
 							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
 						{/if}
 					{/each}
+
+				<!-- Surface tag Kürzel -->
+				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
+					{@const stag  = getSurfTag(surfs[sk])}
+					{@const short = getSurfShortcut(surfs, sk)}
+					{#if short}
+						{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, true)}
+						<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(stag)} pointer-events="none" opacity="0.85">{short}</text>
+					{/if}
+				{/each}
+				<!-- Whole-tooth condition Kürzel (occlusal center, when O has no surface override) -->
+				{@const condKuerzel = !KUERZEL_SKIP_COND.has(cond) ? (dentalTags.getByKey(cond)?.shortcut?.toUpperCase() ?? '') : ''}
+				{#if condKuerzel && !getSurfShortcut(surfs, 'O')}
+					<text x={g.ix + g.iw / 2} y={g.iy + g.ih / 2} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(cond)} pointer-events="none" opacity="0.85">{condKuerzel}</text>
+				{/if}
 				{/if}
 
 				<!-- Structural lines -->
@@ -762,6 +811,12 @@
 						fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 3" rx="3"
 						pointer-events="none"/>
 				{/if}
+				<!-- Ctrl-select ring -->
+				{#if ctrlSel}
+					<rect x={g.ox - 3} y={g.oy - 3} width={g.ow + 6} height={g.oh + 6}
+						fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4 3" rx="3"
+						pointer-events="none"/>
+				{/if}
 				<!-- Prosthesis type badge -->
 				{#if entry?.prosthesis_type && !isAbsent}
 					{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
@@ -784,6 +839,10 @@
 				{/if}
 				{#if entry?.migration || entry?.tipping || entry?.rotation}
 					<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
+				{/if}
+				<!-- Shade indicator -->
+				{#if entry?.shade}
+					<text x={g.ox + g.ow / 2} y={g.oy + g.oh + 6} text-anchor="middle" dominant-baseline="middle" font-size="4.5" font-weight="600" fill="#1e40af" font-family="monospace" pointer-events="none" opacity="0.9">{entry.shade}</text>
 				{/if}
 			</g>
 			</g><!-- end infraOffset wrapper -->
@@ -988,6 +1047,10 @@
 					{#if entry?.migration || entry?.tipping || entry?.rotation}
 						<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
 					{/if}
+					<!-- Shade indicator -->
+					{#if entry?.shade}
+						<text x={g.ox + g.ow / 2} y={g.oy - 4} text-anchor="middle" dominant-baseline="auto" font-size="4.5" font-weight="600" fill="#1e40af" font-family="monospace" pointer-events="none" opacity="0.9">{entry.shade}</text>
+					{/if}
 				</g>
 			{/if}
 		{/each}
@@ -1005,6 +1068,7 @@
 			{@const sel       = selectedTooth === tooth}
 			{@const charting  = chartingTooth === tooth}
 			{@const shiftSel  = shiftSelectedTeeth.includes(tooth)}
+			{@const ctrlSel   = ctrlSelectedTeeth.includes(tooth)}
 			{@const dashed    = isDashed(cond)}
 				{@const isPontic          = entry?.bridge_role === 'pontic'}
 			{@const isProsthesisReplaced = entry?.condition === 'prosthesis' && entry?.prosthesis_type === 'replaced'}
@@ -1101,6 +1165,21 @@
 							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
 						{/if}
 					{/each}
+
+				<!-- Surface tag Kürzel -->
+				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
+					{@const stag  = getSurfTag(surfs[sk])}
+					{@const short = getSurfShortcut(surfs, sk)}
+					{#if short}
+						{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, false)}
+						<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(stag)} pointer-events="none" opacity="0.85">{short}</text>
+					{/if}
+				{/each}
+				<!-- Whole-tooth condition Kürzel (occlusal center, when O has no surface override) -->
+				{@const condKuerzel = !KUERZEL_SKIP_COND.has(cond) ? (dentalTags.getByKey(cond)?.shortcut?.toUpperCase() ?? '') : ''}
+				{#if condKuerzel && !getSurfShortcut(surfs, 'O')}
+					<text x={g.ix + g.iw / 2} y={g.iy + g.ih / 2} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(cond)} pointer-events="none" opacity="0.85">{condKuerzel}</text>
+				{/if}
 				{/if}
 
 				<rect x={g.ix} y={g.iy} width={g.iw} height={g.ih} fill="none" stroke={sc} stroke-width="0.7" opacity={divOp}/>
@@ -1152,6 +1231,12 @@
 						fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 3" rx="3"
 						pointer-events="none"/>
 				{/if}
+				<!-- Ctrl-select ring -->
+				{#if ctrlSel}
+					<rect x={g.ox - 3} y={g.oy - 3} width={g.ow + 6} height={g.oh + 6}
+						fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4 3" rx="3"
+						pointer-events="none"/>
+				{/if}
 				<!-- Prosthesis type badge -->
 				{#if entry?.prosthesis_type && !isAbsent}
 					{@const ptCfg = prosthesisTypes.getConfig(entry.prosthesis_type)}
@@ -1174,6 +1259,10 @@
 				{/if}
 				{#if entry?.migration || entry?.tipping || entry?.rotation}
 					<text x={g.ox + 2} y={g.oy + g.oh - 2} text-anchor="start" dominant-baseline="auto" font-size="4.5" fill="#64748b" pointer-events="none" opacity="0.85">{(entry?.migration ? POSITION_ABBR[entry.migration] ?? '' : '') + (entry?.tipping && entry.tipping !== entry.migration ? POSITION_ABBR[entry.tipping] ?? '' : '') + (entry?.rotation ? POSITION_ABBR[entry.rotation] ?? '' : '')}</text>
+				{/if}
+				<!-- Shade indicator -->
+				{#if entry?.shade}
+					<text x={g.ox + g.ow / 2} y={g.oy - 4} text-anchor="middle" dominant-baseline="auto" font-size="4.5" font-weight="600" fill="#1e40af" font-family="monospace" pointer-events="none" opacity="0.9">{entry.shade}</text>
 				{/if}
 			</g>
 			</g><!-- end infraOffset wrapper -->

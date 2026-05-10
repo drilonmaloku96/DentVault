@@ -32,6 +32,10 @@
 		onToothSaved = undefined,
 		snapshotEditMode = false,
 		onSnapshotSave = undefined,
+		// Planning mode — chart operates on plan data; clinical chart shown as ghost
+		planningMode = false,
+		planningData = undefined,
+		onPlanSave = undefined,
 	}: {
 		patientId: string;
 		snapshotData?: ToothChartEntry[];
@@ -39,12 +43,17 @@
 		onToothSaved?: () => void;
 		snapshotEditMode?: boolean;
 		onSnapshotSave?: (data: ToothChartEntry[]) => void;
+		planningMode?: boolean;
+		planningData?: ToothChartEntry[];
+		onPlanSave?: (data: ToothChartEntry[]) => Promise<void>;
 	} = $props();
 
 	const isSnapshotMode   = $derived(snapshotData !== undefined);
 	const isSnapshotReadOnly = $derived(isSnapshotMode && !snapshotEditMode);
 
 	let chartData              = $state<ToothChartEntry[]>([]);
+	// Planning mode: separate state for planned chart (clinical chartData shown as ghost)
+	let planningChartData      = $state<ToothChartEntry[]>([]);
 	let teethWithNotes         = $state<Set<number>>(new Set());
 	let teethWithDueReminders  = $state<Set<number>>(new Set());
 	let dmftEnabled            = $state(true); // loaded from 'dmft_for_adults' setting
@@ -71,6 +80,7 @@
 
 	// Virtual chartData for arch setup mode: absent teeth show as missing, present teeth show normally
 	const displayChartData = $derived.by(() => {
+		if (planningMode) return planningChartData;
 		if (!archSetupMode) return chartData;
 		const editType = archEditingType ?? archDentitionType ?? 'mixed';
 		const editSet  = new Set(getTeethForDentition(editType));
@@ -85,7 +95,7 @@
 					condition: 'missing', notes: '', surfaces: '{}',
 					last_examined: '', updated_at: '', root_data: '{}',
 					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
-					migration: '', tipping: '', rotation: '', foreign_work: 0,
+					migration: '', tipping: '', rotation: '', foreign_work: 0, shade: null,
 				});
 			}
 		}
@@ -121,7 +131,7 @@
 	// Tracks which index was last used per shortcut key, so repeated presses cycle through tags
 	const _shortcutCycle = new Map<string, number>();
 	let selectedEntry   = $derived(
-		chartData.find(e => e.tooth_number === selectedTooth) ?? null
+		(planningMode ? planningChartData : chartData).find(e => e.tooth_number === selectedTooth) ?? null
 	);
 
 	// Reset selected surface when tooth changes
@@ -163,22 +173,33 @@
 				if (archSetupMode) { archSetupMode = false; archEditingType = null; return; }
 				if (restorationEditTeeth !== null) { cancelRestorationEdit(); return; }
 				if (shiftSelectedTeeth.length > 0) { shiftSelectedTeeth = []; return; }
+				if (ctrlSelectedTeeth.length > 0) { ctrlSelectedTeeth = []; return; }
 				if (chartingMode) { exitCharting(); }
 				else { shortcutTagKey = null; selectedTooth = null; selectedSurface = null; }
 				return;
 			}
 
-			// Tag shortcut keys — forward to the detail panel via prop
+			// Tag shortcut keys — apply to multi-selection or forward to single-tooth detail panel
 			// If multiple tags share the same shortcut, repeated presses cycle through them
-			if (selectedTooth !== null && e.key.length === 1) {
+			if (e.key.length === 1) {
 				const lower = e.key.toLowerCase();
 				const matches = dentalTags.list.filter(t => t.shortcut?.toLowerCase() === lower);
 				if (matches.length > 0) {
-					e.preventDefault();
-					const prev = _shortcutCycle.get(lower) ?? -1;
-					const next = (prev + 1) % matches.length;
-					_shortcutCycle.set(lower, next);
-					shortcutTagKey = { key: matches[next].key, seq: ++_shortcutSeq };
+					if (ctrlSelectedTeeth.length > 0 && !isSnapshotReadOnly && !planningMode) {
+						// Multi-select: apply directly to all selected teeth
+						e.preventDefault();
+						const prev = _shortcutCycle.get(lower) ?? -1;
+						const next = (prev + 1) % matches.length;
+						_shortcutCycle.set(lower, next);
+						applyBulkCondition(matches[next].key);
+					} else if (selectedTooth !== null) {
+						// Single tooth: forward to ToothDetailPanel via prop
+						e.preventDefault();
+						const prev = _shortcutCycle.get(lower) ?? -1;
+						const next = (prev + 1) % matches.length;
+						_shortcutCycle.set(lower, next);
+						shortcutTagKey = { key: matches[next].key, seq: ++_shortcutSeq };
+					}
 				}
 			}
 		}
@@ -204,6 +225,7 @@
 	// ── Bridge / Prosthesis workflow ─────────────────────────────────
 	let restorationEditTeeth = $state<number[] | null>(null);
 	let shiftSelectedTeeth = $state<number[]>([]);
+	let ctrlSelectedTeeth  = $state<number[]>([]);
 	let hintMessage = $state<string | null>(null);
 	let chartWasModified = $state(false);
 	let _hintTimer: ReturnType<typeof setTimeout> | null = null;
@@ -258,10 +280,13 @@
 	// ── Open existing restoration editor ──────────────────────────────
 	async function openExistingRestorationEditor(toothNum: number) {
 		if (isSnapshotReadOnly) return;
-		const entry = chartData.find(e => e.tooth_number === toothNum);
+		const activeData = planningMode ? planningChartData : chartData;
+		const entry = activeData.find(e => e.tooth_number === toothNum);
 		if (!entry?.bridge_group_id) return;
 		const groupId = entry.bridge_group_id;
-		const members = await getBridgeGroup(patientId, groupId);
+		const members = planningMode
+			? getPlanBridgeGroup(groupId)
+			: await getBridgeGroup(patientId, groupId);
 		// A group is a prosthesis if any member has prosthesis_type set (works for old+new data)
 		const isBridge = !members.some(m => m.prosthesis_type != null);
 		expandingGroupId = groupId;
@@ -300,9 +325,71 @@
 		openNewRestorationEditor(teeth);
 	}
 
+	// ── Planning mode helpers ─────────────────────────────────────────
+	function upsertPlanEntry(toothNumber: number, data: Partial<ToothChartEntry>) {
+		const idx = planningChartData.findIndex(e => e.tooth_number === toothNumber);
+		const now = new Date().toISOString();
+		if (idx >= 0) {
+			planningChartData[idx] = { ...planningChartData[idx], ...data, updated_at: now };
+		} else {
+			planningChartData = [...planningChartData, {
+				id: toothNumber, patient_id: patientId, tooth_number: toothNumber,
+				bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
+				condition: 'healthy', notes: '', surfaces: '{}', last_examined: '',
+				root_data: '{}', migration: '', tipping: '', rotation: '', foreign_work: 0, shade: null,
+				updated_at: now,
+				...data,
+			} as ToothChartEntry];
+		}
+	}
+
+	function getPlanBridgeGroup(groupId: string): ToothChartEntry[] {
+		return planningChartData.filter(e => e.bridge_group_id === groupId);
+	}
+
 	async function handleRestorationConfirm(result: RestorationResult) {
 		if (!restorationEditTeeth) return;
 		const groupId = expandingGroupId ?? crypto.randomUUID();
+
+		if (planningMode) {
+			// Planning mode: operate entirely on planningChartData, no DB writes
+			if (expandingGroupId) {
+				const oldMembers = getPlanBridgeGroup(expandingGroupId);
+				for (const m of oldMembers) {
+					if (!restorationEditTeeth.includes(m.tooth_number)) {
+						upsertPlanEntry(m.tooth_number, { condition: 'healthy', bridge_group_id: null, bridge_role: null, prosthesis_type: null });
+					}
+				}
+			}
+			if (result.type === 'bridge') {
+				for (const tooth of restorationEditTeeth) {
+					const isPontic  = result.ponticTeeth.includes(tooth);
+					const isImplant = result.implantAbutments.includes(tooth);
+					upsertPlanEntry(tooth, {
+						condition: isImplant ? 'implant' : 'bridge',
+						bridge_group_id: groupId, bridge_role: isPontic ? 'pontic' : 'abutment',
+						abutment_type: null, prosthesis_type: null,
+					});
+				}
+			} else {
+				for (const tooth of restorationEditTeeth) {
+					const role = result.prosthesisRoles.get(tooth);
+					if (!role) continue;
+					const isReplaced      = role.prosthesis_type === 'replaced';
+					const isImplantAnchor = !isReplaced && role.abutment_type === 'implant';
+					upsertPlanEntry(tooth, {
+						condition: isImplantAnchor ? 'implant' : 'prosthesis',
+						bridge_group_id: groupId, bridge_role: isReplaced ? 'pontic' : 'abutment',
+						abutment_type: null, prosthesis_type: role.prosthesis_type,
+					});
+				}
+			}
+			await onPlanSave?.(planningChartData);
+			cancelRestorationEdit();
+			return;
+		}
+
+		// Normal (clinical) mode
 		// If expanding: reset any old group members that were removed from the new set
 		if (expandingGroupId) {
 			const oldMembers = await getBridgeGroup(patientId, expandingGroupId);
@@ -353,6 +440,15 @@
 	}
 
 	async function handleDissolveGroup(bridgeGroupId: string) {
+		if (planningMode) {
+			const members = getPlanBridgeGroup(bridgeGroupId);
+			for (const member of members) {
+				upsertPlanEntry(member.tooth_number, { condition: 'healthy', bridge_group_id: null, bridge_role: null, prosthesis_type: null });
+			}
+			selectedTooth = null;
+			await onPlanSave?.(planningChartData);
+			return;
+		}
 		const members = await getBridgeGroup(patientId, bridgeGroupId);
 		for (const member of members) {
 			await upsertToothChartEntry(patientId, member.tooth_number, {
@@ -382,6 +478,7 @@
 	function exitCharting() {
 		chartingMode = false;
 	}
+
 
 	function chartingAdvance() {
 		if (chartingDone) { exitCharting(); return; }
@@ -428,6 +525,7 @@
 
 	/** Confirm the arch picker — saves tooth presence state (works for all dentition types). */
 	async function confirmMixedSetup() {
+		if (planningMode) return; // arch setup operates on clinical DB, not plan data
 		const dentitionType = archEditingType ?? archDentitionType ?? 'mixed';
 		const allTeeth = getTeethForDentition(dentitionType);
 		for (const t of allTeeth) {
@@ -516,10 +614,32 @@
 		};
 	});
 
+	async function applyBulkCondition(tagKey: string) {
+		for (const t of ctrlSelectedTeeth) {
+			await upsertToothChartEntry(patientId, t, { condition: tagKey });
+		}
+		chartData = await getChartData(patientId);
+		onToothSaved?.();
+		chartWasModified = true;
+		ctrlSelectedTeeth = [];
+	}
+
 	onMount(async () => {
 		if (snapshotData !== undefined) {
 			await Promise.all([dentalTags.load(), prosthesisTypes.load(), bridgeRoles.load()]);
 			chartData = snapshotData;
+			isLoading = false;
+			return;
+		}
+		if (planningMode) {
+			const [chart] = await Promise.all([
+				getChartData(patientId),
+				dentalTags.load(),
+				prosthesisTypes.load(),
+				bridgeRoles.load(),
+			]);
+			chartData = chart; // clinical data → ghost layer
+			planningChartData = [...(planningData ?? [])];
 			isLoading = false;
 			return;
 		}
@@ -549,8 +669,13 @@
 
 	async function handleToothSave(
 		toothNumber: number,
-		data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number },
+		data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null },
 	) {
+		if (planningMode) {
+			upsertPlanEntry(toothNumber, data);
+			await onPlanSave?.(planningChartData);
+			return;
+		}
 		if (isSnapshotMode && snapshotEditMode) {
 			const idx = chartData.findIndex(t => t.tooth_number === toothNumber);
 			const now = new Date().toISOString();
@@ -629,22 +754,22 @@
 							onclick={chartingBack}
 							disabled={chartingIndex === 0}
 							class="rounded p-1 text-muted-foreground hover:bg-muted transition-colors disabled:opacity-30"
-							aria-label="Vorheriger Zahn"
-							title="Vorheriger Zahn (Shift+Enter)"
+							aria-label={i18n.t.chart.prevTooth}
+							title={i18n.t.chart.prevToothHint}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 								<path d="M15 18l-6-6 6-6"/>
 							</svg>
 						</button>
 						<span class="text-xs font-semibold text-foreground">
-							Charting — Zahn {chartingIndex + 1}/32
+							Charting — {i18n.t.common.tooth} {chartingIndex + 1}/32
 							{#if selectedTooth !== null}
 								<span class="text-muted-foreground font-normal">(FDI {toFDI(selectedTooth)})</span>
 							{/if}
 						</span>
 					</div>
 					<Button size="sm" variant="outline" onclick={exitCharting} class="h-7 text-xs px-2">
-						Fertig
+						{i18n.t.actions.done}
 					</Button>
 				</div>
 				<div class="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -695,6 +820,12 @@
 							<span class="text-xs font-medium text-amber-600 dark:text-amber-400">Editing snapshot</span>
 						</div>
 					{/if}
+					{#if planningMode}
+						<div class="flex items-center gap-1.5 mb-1">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-amber-500 shrink-0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+							<span class="text-xs font-semibold text-amber-600 dark:text-amber-400">{i18n.t.chart.planningMode}</span>
+						</div>
+					{/if}
 					<h3 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Dental Chart</h3>
 					{#if dmftEnabled && !isSnapshotMode && chartData.length > 0}
 						<div class="flex items-center gap-2 mt-1 flex-wrap">
@@ -714,7 +845,7 @@
 					{/if}
 				</div>
 				<div class="flex items-center gap-2">
-					{#if !isSnapshotMode}
+					{#if !isSnapshotMode && !planningMode}
 						<!-- Arch type button -->
 						<button
 							onclick={enterEditArch}
@@ -759,18 +890,35 @@
 
 		<!-- ── Full-width chart with legend overlay ── -->
 		<div class="relative">
+			{#if planningMode}
+				<!-- Ghost: clinical dental chart shown at low opacity behind the planning chart -->
+				<div class="absolute inset-0 pointer-events-none select-none overflow-hidden"
+					style="filter: grayscale(1) opacity(0.14) saturate(0); z-index: 0;">
+					<ToothChart
+						chartData={chartData}
+						selectedTooth={null}
+						selectedSurface={null}
+						showPrimary={effectiveShowPrimary}
+						showPermanent={effectiveShowPermanent}
+						showLegend={false}
+						onToothClick={() => {}}
+					/>
+				</div>
+			{/if}
+			<div style={planningMode ? "position: relative; z-index: 1;" : ""}>
 			<ToothChart
 				chartData={displayChartData}
 				{selectedTooth}
 				{selectedSurface}
 				chartingTooth={chartingMode ? selectedTooth : null}
 				{shiftSelectedTeeth}
+				{ctrlSelectedTeeth}
 				showPrimary={chartingMode ? false : effectiveShowPrimary}
 				showPermanent={chartingMode ? true : effectiveShowPermanent}
 				showLegend={false}
 				{teethWithNotes}
 				{teethWithDueReminders}
-				onToothClick={async (n, shiftHeld) => {
+				onToothClick={async (n, shiftHeld, ctrlHeld = false) => {
 					// In arch setup mode: clicking toggles tooth presence, nothing else
 					if (archSetupMode) {
 						const next = new Set(archPresentTeeth);
@@ -778,14 +926,25 @@
 						archPresentTeeth = next;
 						return;
 					}
+					// Ctrl: multi-select teeth for bulk tag assignment
+					if (ctrlHeld && !isSnapshotReadOnly && !planningMode) {
+						shiftSelectedTeeth = [];
+						selectedTooth = null;
+						const i = ctrlSelectedTeeth.indexOf(n);
+						ctrlSelectedTeeth = i >= 0
+							? ctrlSelectedTeeth.filter(t => t !== n)
+							: [...ctrlSelectedTeeth, n];
+						return;
+					}
 					if (shiftHeld && !isSnapshotReadOnly) {
+						ctrlSelectedTeeth = [];
 						if (isPrimaryTooth(n)) return;
 						const isUpper = n <= 16;
 						if (shiftSelectedTeeth.length > 0) {
 							if (isPrimaryTooth(shiftSelectedTeeth[0])) { shiftSelectedTeeth = []; return; }
 							const existingIsUpper = shiftSelectedTeeth[0] <= 16;
 							if (isUpper !== existingIsUpper) {
-								showHint('Nur Zähne im selben Kiefer auswählbar');
+								showHint(i18n.t.chart.sameMandible);
 								return;
 							}
 						}
@@ -798,8 +957,9 @@
 						return;
 					}
 					// Normal click
+					ctrlSelectedTeeth = [];
 					shiftSelectedTeeth = [];
-					const clickedEntry = chartData.find(e => e.tooth_number === n);
+					const clickedEntry = (planningMode ? planningChartData : chartData).find(e => e.tooth_number === n);
 					if (clickedEntry?.bridge_group_id && !isSnapshotReadOnly) {
 						await openExistingRestorationEditor(n);
 						return;
@@ -817,9 +977,10 @@
 				}}
 				onBridgeRangeSelected={!isSnapshotReadOnly ? handleBridgeRangeSelected : undefined}
 			/>
+			</div>
 
 			<!-- Legend overlay (button-pinned or Ctrl-held) -->
-			{#if legendVisible || ctrlHeld}
+			{#if legendVisible}
 				<TagLegendOverlay
 					{ctrlHeld}
 					onClose={() => legendVisible = false}
@@ -835,10 +996,39 @@
 			<!-- No-tooth-selected Enter hint -->
 			{#if noToothHint}
 				<div class="absolute top-2 left-1/2 -translate-x-1/2 z-30 rounded-full bg-blue-100 border border-blue-300 text-blue-800 px-4 py-1.5 text-xs font-medium shadow-sm">
-					{i18n.code === 'de' ? 'Zuerst einen Zahn auswählen' : 'Select a tooth first'}
+					{i18n.t.chart.firstSelectTooth}
 				</div>
 			{/if}
 		</div>
+
+		<!-- ── Ctrl multi-select bulk action bar ── -->
+		{#if ctrlSelectedTeeth.length > 0 && !isSnapshotReadOnly && !planningMode}
+			<div class="flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50/80 px-3 py-2 mt-2 flex-wrap dark:border-violet-800/50 dark:bg-violet-950/30">
+				<span class="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-violet-700 dark:text-violet-300">
+					<span class="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-bold text-white">{ctrlSelectedTeeth.length}</span>
+					{i18n.t.chart.multiSelect.teeth}
+				</span>
+				<div class="mx-1 h-3 w-px bg-violet-300 dark:bg-violet-700 shrink-0"></div>
+				{#each dentalTags.list as tag}
+					<button
+						type="button"
+						onclick={() => applyBulkCondition(tag.key)}
+						class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all opacity-80 hover:opacity-100"
+						style="background:{tag.color}; border-color:{tag.strokeColor}; color:{tag.strokeColor};"
+					>
+						{dentalTags.getLabel(tag.key)}
+						{#if tag.shortcut}<kbd class="ml-0.5 rounded bg-black/10 px-1 font-mono text-[9px] leading-tight">{tag.shortcut}</kbd>{/if}
+					</button>
+				{/each}
+				<button
+					type="button"
+					onclick={() => ctrlSelectedTeeth = []}
+					class="ml-auto text-[11px] text-violet-500 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-200 shrink-0"
+				>
+					{i18n.t.chart.multiSelect.clear}
+				</button>
+			</div>
+		{/if}
 
 		<!-- ── Bottom panel ── -->
 		{#if archSetupMode}

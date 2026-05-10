@@ -39,7 +39,7 @@
 	let staffBlockouts = $state<StaffBlockout[]>([]);
 	let allStaffBlockouts = $state<StaffBlockout[]>([]);
 	let staffPresence = $state<StaffPresenceInfo[]>([]);
-	let showPresenceOverlay = $state(false);
+	let showPresenceOverlay = $state(true);
 	let isLoading = $state(false);
 
 	// Sheet state (booking)

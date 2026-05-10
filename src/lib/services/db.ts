@@ -728,9 +728,126 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 	{ version: 47, sql: `ALTER TABLE dental_chart ADD COLUMN tipping TEXT DEFAULT ''` },
 	{ version: 48, sql: `ALTER TABLE dental_chart ADD COLUMN rotation TEXT DEFAULT ''` },
 	{ version: 49, sql: `ALTER TABLE dental_chart ADD COLUMN foreign_work INTEGER DEFAULT 0` },
+	{ version: 50, sql: `ALTER TABLE treatment_plans ADD COLUMN plan_chart_data TEXT DEFAULT '{}'` },
+	{ version: 51, sql: `ALTER TABLE treatment_plan_items ADD COLUMN tooth_number_int INTEGER` },
+	{ version: 52, sql: `ALTER TABLE treatment_plan_items ADD COLUMN procedure_type TEXT DEFAULT ''` },
+	{ version: 53, sql: `ALTER TABLE dental_chart ADD COLUMN shade TEXT DEFAULT NULL` },
+	{ version: 54, sql: `ALTER TABLE patients ADD COLUMN recall_due TEXT DEFAULT NULL` },
+	// ── v55: PAR cases ──────────────────────────────────────────────────────
+	{ version: 55, sql: `CREATE TABLE IF NOT EXISTS par_cases (
+		id          INTEGER PRIMARY KEY AUTOINCREMENT,
+		patient_id  TEXT    NOT NULL,
+		plan_type   TEXT    NOT NULL DEFAULT 'kasse',
+		status      TEXT    NOT NULL DEFAULT 'active',
+		grade       TEXT    DEFAULT NULL,
+		sgb22       INTEGER DEFAULT 0,
+		is_transfer INTEGER DEFAULT 0,
+		transfer_from TEXT  DEFAULT '',
+		transfer_step TEXT  DEFAULT NULL,
+		transfer_upt  INTEGER DEFAULT NULL,
+		end_date    TEXT    DEFAULT NULL,
+		doctor_id   INTEGER DEFAULT NULL,
+		created_at  TEXT    NOT NULL,
+		updated_at  TEXT    NOT NULL,
+		FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
+		FOREIGN KEY (doctor_id)  REFERENCES doctors(id)
+	)` },
+	{ version: 55, sql: `CREATE INDEX IF NOT EXISTS idx_par_cases_patient ON par_cases(patient_id)` },
+	// ── v56: PAR assessments ─────────────────────────────────────────────────
+	{ version: 56, sql: `CREATE TABLE IF NOT EXISTS par_assessments (
+		id            INTEGER PRIMARY KEY AUTOINCREMENT,
+		case_id       INTEGER NOT NULL,
+		type          TEXT    NOT NULL,
+		sequence      INTEGER DEFAULT 1,
+		exam_date     TEXT    NOT NULL,
+		doctor_id     INTEGER DEFAULT NULL,
+		start_date    TEXT    DEFAULT NULL,
+		end_date      TEXT    DEFAULT NULL,
+		approval_date TEXT    DEFAULT NULL,
+		is_referral   INTEGER DEFAULT 0,
+		notes         TEXT    DEFAULT '',
+		locked        INTEGER DEFAULT 0,
+		created_at    TEXT    NOT NULL,
+		updated_at    TEXT    NOT NULL,
+		FOREIGN KEY (case_id)   REFERENCES par_cases(id)   ON DELETE CASCADE,
+		FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+	)` },
+	{ version: 56, sql: `CREATE INDEX IF NOT EXISTS idx_par_assessments_case ON par_assessments(case_id)` },
+	// ── v57: PAR measurements, tooth data, bone levels ───────────────────────
+	{ version: 57, sql: `CREATE TABLE IF NOT EXISTS par_measurements (
+		id             INTEGER PRIMARY KEY AUTOINCREMENT,
+		assessment_id  INTEGER NOT NULL,
+		tooth          INTEGER NOT NULL,
+		site           TEXT    NOT NULL,
+		pocket         INTEGER,
+		recession      INTEGER,
+		bop            INTEGER DEFAULT 0,
+		plaque         INTEGER DEFAULT 0,
+		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE,
+		UNIQUE(assessment_id, tooth, site)
+	)` },
+	{ version: 57, sql: `CREATE TABLE IF NOT EXISTS par_tooth_data (
+		id             INTEGER PRIMARY KEY AUTOINCREMENT,
+		assessment_id  INTEGER NOT NULL,
+		tooth          INTEGER NOT NULL,
+		mobility       INTEGER DEFAULT NULL,
+		furcation_b    INTEGER DEFAULT NULL,
+		furcation_m    INTEGER DEFAULT NULL,
+		furcation_d    INTEGER DEFAULT NULL,
+		vitality       INTEGER DEFAULT NULL,
+		ait_planned    INTEGER DEFAULT 0,
+		cpt_planned    INTEGER DEFAULT 0,
+		status         TEXT    DEFAULT NULL,
+		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE,
+		UNIQUE(assessment_id, tooth)
+	)` },
+	{ version: 57, sql: `CREATE TABLE IF NOT EXISTS par_bone_levels (
+		id             INTEGER PRIMARY KEY AUTOINCREMENT,
+		assessment_id  INTEGER NOT NULL,
+		jaw            TEXT    NOT NULL,
+		points_json    TEXT    NOT NULL DEFAULT '[]',
+		UNIQUE(assessment_id, jaw),
+		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE
+	)` },
+	{ version: 57, sql: `CREATE INDEX IF NOT EXISTS idx_par_measurements_ass ON par_measurements(assessment_id, tooth)` },
+	{ version: 57, sql: `CREATE INDEX IF NOT EXISTS idx_par_tooth_data_ass ON par_tooth_data(assessment_id, tooth)` },
+	// ── v58: PAR anamnesis + UPT schedule ────────────────────────────────────
+	{ version: 58, sql: `CREATE TABLE IF NOT EXISTS par_anamnesis (
+		id               INTEGER PRIMARY KEY AUTOINCREMENT,
+		case_id          INTEGER NOT NULL UNIQUE,
+		diabetes         INTEGER DEFAULT 0,
+		hba1c            REAL    DEFAULT NULL,
+		smoking          INTEGER DEFAULT 0,
+		smoking_cpd      INTEGER DEFAULT NULL,
+		smoking_years    INTEGER DEFAULT NULL,
+		cardiovascular   INTEGER DEFAULT 0,
+		immunosuppression INTEGER DEFAULT 0,
+		general_other    TEXT    DEFAULT '',
+		prior_par        INTEGER DEFAULT 0,
+		prior_par_year   INTEGER DEFAULT NULL,
+		family_history   INTEGER DEFAULT 0,
+		specific_other   TEXT    DEFAULT '',
+		special_history  TEXT    DEFAULT '',
+		assessor_done    INTEGER DEFAULT 0,
+		assessor_date    TEXT    DEFAULT NULL,
+		FOREIGN KEY (case_id) REFERENCES par_cases(id) ON DELETE CASCADE
+	)` },
+	{ version: 58, sql: `CREATE TABLE IF NOT EXISTS par_upt_schedule (
+		id              INTEGER PRIMARY KEY AUTOINCREMENT,
+		case_id         INTEGER NOT NULL,
+		session         INTEGER NOT NULL,
+		window_start    TEXT    NOT NULL,
+		window_end      TEXT    NOT NULL,
+		delivered_date  TEXT    DEFAULT NULL,
+		assessment_id   INTEGER DEFAULT NULL,
+		appointment_id  INTEGER DEFAULT NULL,
+		UNIQUE(case_id, session),
+		FOREIGN KEY (case_id)       REFERENCES par_cases(id)       ON DELETE CASCADE,
+		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id)
+	)` },
 ];
 
-const LATEST_VERSION = 49;
+const LATEST_VERSION = 58;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -1361,6 +1478,17 @@ export async function insertTreatmentPlan(
 		[planId, patientId, data.title, data.description ?? '', data.status ?? 'proposed', now, now],
 	);
 
+	// Create a linked timeline entry so plan creation shows in the timeline
+	const entryDate = now.slice(0, 10);
+	await conn.execute(
+		`INSERT INTO timeline_entries
+		  (patient_id, entry_date, entry_type, title, provider, tooth_numbers, description,
+		   treatment_category, treatment_outcome, related_entry_id, attachments, document_id,
+		   plan_id, chart_data, is_locked, doctor_id, colleague_ids, created_at, updated_at)
+		 VALUES ($1, $2, 'plan', $3, '', '', '', '', '', NULL, '[]', NULL, $4, '', 0, NULL, '', $5, $5)`,
+		[patientId, entryDate, data.title, planId, now],
+	);
+
 	const rows = await conn.select<TreatmentPlan[]>(
 		'SELECT * FROM treatment_plans WHERE plan_id = $1',
 		[planId],
@@ -1409,6 +1537,14 @@ export async function updateTreatmentPlan(
 		`UPDATE treatment_plans SET ${fields.join(', ')} WHERE plan_id = $${idx}`,
 		values,
 	);
+
+	// Keep the linked plan timeline entry title in sync if title changed
+	if ('title' in data && data.title) {
+		await conn.execute(
+			`UPDATE timeline_entries SET title = $1, updated_at = $2 WHERE plan_id = $3 AND entry_type = 'plan'`,
+			[data.title, now, planId],
+		).catch(() => {});
+	}
 }
 
 export async function deleteTreatmentPlan(planId: string): Promise<void> {
@@ -1421,6 +1557,12 @@ export async function deleteTreatmentPlan(planId: string): Promise<void> {
 	await conn.execute('DELETE FROM treatment_plans WHERE plan_id = $1', [planId]);
 
 	if (before) {
+		// Remove the linked plan timeline entry
+		await conn.execute(
+			`DELETE FROM timeline_entries WHERE patient_id = $1 AND plan_id = $2 AND entry_type = 'plan'`,
+			[before.patient_id, planId],
+		).catch(() => {});
+
 		try {
 			const patientName = await getPatientDisplayName(before.patient_id);
 			const user = await getCurrentUser();
@@ -1523,6 +1665,56 @@ export async function recomputePlanCost(planId: string): Promise<void> {
 		 updated_at = $2
 		 WHERE plan_id = $1`,
 		[planId, now],
+	);
+}
+
+// ── Therapy Plan Chart Data ────────────────────────────────────────────
+
+export async function updatePlanChartData(planId: string, chartDataJson: string): Promise<void> {
+	const conn = await getDb();
+	const now = nowISO();
+	await conn.execute(
+		'UPDATE treatment_plans SET plan_chart_data = $1, updated_at = $2 WHERE plan_id = $3',
+		[chartDataJson, now, planId],
+	);
+}
+
+export async function upsertPlanChartItem(
+	planId: string,
+	toothNumberInt: number,
+	procedureType: string,
+	description: string,
+): Promise<void> {
+	const conn = await getDb();
+	const existing = await conn.select<TreatmentPlanItem[]>(
+		'SELECT * FROM treatment_plan_items WHERE plan_id = $1 AND tooth_number_int = $2',
+		[planId, toothNumberInt],
+	);
+	if (existing.length > 0) {
+		await conn.execute(
+			'UPDATE treatment_plan_items SET procedure_type = $1, description = $2 WHERE id = $3',
+			[procedureType, description, existing[0].id],
+		);
+	} else {
+		const countRows = await conn.select<{ n: number }[]>(
+			'SELECT COUNT(*) AS n FROM treatment_plan_items WHERE plan_id = $1',
+			[planId],
+		);
+		const nextOrder = (countRows[0]?.n ?? 0) + 1;
+		await conn.execute(
+			`INSERT INTO treatment_plan_items
+			  (plan_id, sequence_order, description, procedure_type, tooth_number_int, tooth_numbers, estimated_cost, status)
+			 VALUES ($1, $2, $3, $4, $5, $6, 0, 'pending')`,
+			[planId, nextOrder, description, procedureType, toothNumberInt, String(toothNumberInt)],
+		);
+	}
+}
+
+export async function deletePlanChartItem(planId: string, toothNumberInt: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		'DELETE FROM treatment_plan_items WHERE plan_id = $1 AND tooth_number_int = $2',
+		[planId, toothNumberInt],
 	);
 }
 
@@ -1780,8 +1972,8 @@ export async function upsertToothChartEntry(
 
 	if (!existing) {
 		await conn.execute(
-			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, root_data, updated_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, root_data, shade, updated_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 			[
 				patientId,
 				toothNumber,
@@ -1794,6 +1986,7 @@ export async function upsertToothChartEntry(
 				data.abutment_type ?? null,
 				data.prosthesis_type ?? null,
 				data.root_data ?? '{}',
+				data.shade ?? null,
 				now,
 			],
 		);
@@ -2942,6 +3135,84 @@ export async function getAppointmentHeatmap(from: string, to: string): Promise<A
 	);
 }
 
+/** Daily activity buckets for sparkline rendering (entries_count, patients_served, new_patients per date) */
+export async function getActivityTimeSeries(from: string, to: string): Promise<Array<{
+	date: string;
+	patients_served: number;
+	entries_count: number;
+	new_patients: number;
+}>> {
+	const conn = await getDb();
+	const [actRows, patRows] = await Promise.all([
+		conn.select<{ date: string; patients_served: number; entries_count: number }[]>(
+			`SELECT date(entry_date) as date,
+			        COUNT(DISTINCT patient_id) as patients_served,
+			        COUNT(*) as entries_count
+			 FROM timeline_entries
+			 WHERE entry_date BETWEEN $1 AND $2
+			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot')
+			 GROUP BY date(entry_date)
+			 ORDER BY date`,
+			[from, to],
+		),
+		conn.select<{ date: string; new_patients: number }[]>(
+			`SELECT date(created_at) as date, COUNT(*) as new_patients
+			 FROM patients
+			 WHERE date(created_at) BETWEEN $1 AND $2
+			 GROUP BY date(created_at)
+			 ORDER BY date`,
+			[from, to],
+		),
+	]);
+	const map = new Map<string, { patients_served: number; entries_count: number; new_patients: number }>();
+	for (const r of actRows) map.set(r.date, { patients_served: r.patients_served, entries_count: r.entries_count, new_patients: 0 });
+	for (const r of patRows) {
+		const e = map.get(r.date);
+		if (e) e.new_patients = r.new_patients;
+		else map.set(r.date, { patients_served: 0, entries_count: 0, new_patients: r.new_patients });
+	}
+	return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, v]) => ({ date, ...v }));
+}
+
+/** Appointments for a given day-of-week (0=Sun…6=Sat) and optional hour within a date range */
+export async function getAppointmentsForSlot(
+	dayOfWeek: number,
+	hour: number | null,
+	from: string,
+	to: string,
+): Promise<Array<{
+	id: string;
+	patient_id: string;
+	patient_name: string;
+	doctor_name: string;
+	type_name: string;
+	start_time: string;
+	duration_min: number;
+	status: string;
+}>> {
+	const conn = await getDb();
+	const hourClause = hour !== null ? `AND CAST(strftime('%H', a.start_time) AS INTEGER) = $4` : '';
+	const params: (string | number)[] = hour !== null ? [from, to, dayOfWeek, hour] : [from, to, dayOfWeek];
+	return conn.select(
+		`SELECT a.id, a.patient_id,
+		        (p.firstname || ' ' || p.lastname) as patient_name,
+		        COALESCE(d.name, '') as doctor_name,
+		        COALESCE(at.name, a.title, '') as type_name,
+		        a.start_time, a.duration_min, a.status
+		 FROM appointments a
+		 JOIN patients p ON a.patient_id = p.patient_id
+		 LEFT JOIN doctors d ON a.doctor_id = d.id
+		 LEFT JOIN appointment_types at ON a.type_id = at.id
+		 WHERE date(a.start_time) BETWEEN $1 AND $2
+		   AND CAST(strftime('%w', a.start_time) AS INTEGER) = $3
+		   ${hourClause}
+		   AND a.status != 'cancelled'
+		 ORDER BY a.start_time
+		 LIMIT 100`,
+		params,
+	);
+}
+
 /** Patient demographics: avg age, age buckets, gender counts, referral source counts */
 export async function getPatientDemographics(): Promise<{
 	avg_age: number | null;
@@ -3571,4 +3842,415 @@ export async function getTeethWithDueReminders(patientId: string, today: string)
 		[patientId, today],
 	);
 	return new Set(rows.map(r => r.tooth_number));
+}
+
+// ── PAR Cases ──────────────────────────────────────────────────────────────
+
+export async function getParCases(patientId: string): Promise<import('$lib/types').ParCase[]> {
+	const conn = await getDb();
+	const rows = await conn.select<import('$lib/types').ParCase[]>(
+		'SELECT * FROM par_cases WHERE patient_id = $1 ORDER BY created_at DESC',
+		[patientId],
+	);
+	return rows.map(r => ({
+		...r,
+		sgb22: Boolean(r.sgb22),
+		is_transfer: Boolean(r.is_transfer),
+	}));
+}
+
+export async function getParCase(id: number): Promise<import('$lib/types').ParCase | null> {
+	const conn = await getDb();
+	const rows = await conn.select<import('$lib/types').ParCase[]>(
+		'SELECT * FROM par_cases WHERE id = $1',
+		[id],
+	);
+	if (!rows[0]) return null;
+	const r = rows[0];
+	return { ...r, sgb22: Boolean(r.sgb22), is_transfer: Boolean(r.is_transfer) };
+}
+
+export async function createParCase(
+	patientId: string,
+	data: {
+		plan_type?: 'kasse' | 'privat';
+		grade?: 'A' | 'B' | 'C' | null;
+		sgb22?: boolean;
+		is_transfer?: boolean;
+		transfer_from?: string;
+		transfer_step?: string | null;
+		transfer_upt?: number | null;
+		doctor_id?: number | null;
+	},
+): Promise<number> {
+	const conn = await getDb();
+	const now = nowISO();
+	const res = await conn.execute(
+		`INSERT INTO par_cases (patient_id, plan_type, status, grade, sgb22, is_transfer, transfer_from, transfer_step, transfer_upt, doctor_id, created_at, updated_at)
+		 VALUES ($1, $2, 'active', $3, $4, $5, $6, $7, $8, $9, $10, $10)`,
+		[
+			patientId,
+			data.plan_type ?? 'kasse',
+			data.grade ?? null,
+			data.sgb22 ? 1 : 0,
+			data.is_transfer ? 1 : 0,
+			data.transfer_from ?? '',
+			data.transfer_step ?? null,
+			data.transfer_upt ?? null,
+			data.doctor_id ?? null,
+			now,
+		],
+	);
+	return res.lastInsertId as number;
+}
+
+export async function updateParCase(
+	id: number,
+	patch: Partial<{
+		plan_type: 'kasse' | 'privat';
+		status: 'active' | 'completed' | 'ended';
+		grade: 'A' | 'B' | 'C' | null;
+		sgb22: boolean;
+		is_transfer: boolean;
+		transfer_from: string;
+		transfer_step: string | null;
+		transfer_upt: number | null;
+		end_date: string | null;
+		doctor_id: number | null;
+	}>,
+): Promise<void> {
+	const conn = await getDb();
+	const now = nowISO();
+	const sets: string[] = ['updated_at = $1'];
+	const vals: unknown[] = [now];
+	let i = 2;
+	const add = (col: string, val: unknown) => { sets.push(`${col} = $${i++}`); vals.push(val); };
+	if (patch.plan_type    !== undefined) add('plan_type',    patch.plan_type);
+	if (patch.status       !== undefined) add('status',       patch.status);
+	if (patch.grade        !== undefined) add('grade',        patch.grade);
+	if (patch.sgb22        !== undefined) add('sgb22',        patch.sgb22 ? 1 : 0);
+	if (patch.is_transfer  !== undefined) add('is_transfer',  patch.is_transfer ? 1 : 0);
+	if (patch.transfer_from !== undefined) add('transfer_from', patch.transfer_from);
+	if (patch.transfer_step !== undefined) add('transfer_step', patch.transfer_step);
+	if (patch.transfer_upt  !== undefined) add('transfer_upt',  patch.transfer_upt);
+	if (patch.end_date      !== undefined) add('end_date',      patch.end_date);
+	if (patch.doctor_id     !== undefined) add('doctor_id',     patch.doctor_id);
+	vals.push(id);
+	await conn.execute(`UPDATE par_cases SET ${sets.join(', ')} WHERE id = $${i}`, vals);
+}
+
+export async function deleteParCase(id: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM par_cases WHERE id = $1', [id]);
+}
+
+// ── PAR Assessments ────────────────────────────────────────────────────────
+
+export async function getParAssessments(caseId: number): Promise<import('$lib/types').ParAssessment[]> {
+	const conn = await getDb();
+	const rows = await conn.select<import('$lib/types').ParAssessment[]>(
+		'SELECT * FROM par_assessments WHERE case_id = $1 ORDER BY exam_date ASC, created_at ASC',
+		[caseId],
+	);
+	return rows.map(r => ({
+		...r,
+		is_referral: Boolean(r.is_referral),
+		locked: Boolean(r.locked),
+	}));
+}
+
+export async function getParAssessment(id: number): Promise<import('$lib/types').ParAssessment | null> {
+	const conn = await getDb();
+	const rows = await conn.select<import('$lib/types').ParAssessment[]>(
+		'SELECT * FROM par_assessments WHERE id = $1',
+		[id],
+	);
+	if (!rows[0]) return null;
+	const r = rows[0];
+	return { ...r, is_referral: Boolean(r.is_referral), locked: Boolean(r.locked) };
+}
+
+export async function createParAssessment(
+	caseId: number,
+	data: {
+		type: string;
+		sequence?: number;
+		exam_date: string;
+		doctor_id?: number | null;
+		start_date?: string | null;
+		end_date?: string | null;
+		notes?: string;
+	},
+): Promise<number> {
+	const conn = await getDb();
+	const now = nowISO();
+	const res = await conn.execute(
+		`INSERT INTO par_assessments (case_id, type, sequence, exam_date, doctor_id, start_date, end_date, notes, locked, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $9)`,
+		[
+			caseId,
+			data.type,
+			data.sequence ?? 1,
+			data.exam_date,
+			data.doctor_id ?? null,
+			data.start_date ?? null,
+			data.end_date ?? null,
+			data.notes ?? '',
+			now,
+		],
+	);
+	return res.lastInsertId as number;
+}
+
+export async function updateParAssessment(
+	id: number,
+	patch: Partial<{
+		exam_date: string;
+		doctor_id: number | null;
+		start_date: string | null;
+		end_date: string | null;
+		approval_date: string | null;
+		is_referral: boolean;
+		notes: string;
+		locked: boolean;
+	}>,
+): Promise<void> {
+	const conn = await getDb();
+	const now = nowISO();
+	const sets: string[] = ['updated_at = $1'];
+	const vals: unknown[] = [now];
+	let i = 2;
+	const add = (col: string, val: unknown) => { sets.push(`${col} = $${i++}`); vals.push(val); };
+	if (patch.exam_date     !== undefined) add('exam_date',     patch.exam_date);
+	if (patch.doctor_id     !== undefined) add('doctor_id',     patch.doctor_id);
+	if (patch.start_date    !== undefined) add('start_date',    patch.start_date);
+	if (patch.end_date      !== undefined) add('end_date',      patch.end_date);
+	if (patch.approval_date !== undefined) add('approval_date', patch.approval_date);
+	if (patch.is_referral   !== undefined) add('is_referral',   patch.is_referral ? 1 : 0);
+	if (patch.notes         !== undefined) add('notes',         patch.notes);
+	if (patch.locked        !== undefined) add('locked',        patch.locked ? 1 : 0);
+	vals.push(id);
+	await conn.execute(`UPDATE par_assessments SET ${sets.join(', ')} WHERE id = $${i}`, vals);
+}
+
+export async function deleteParAssessment(id: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM par_assessments WHERE id = $1', [id]);
+}
+
+export async function lockParCaseAssessments(caseId: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		'UPDATE par_assessments SET locked = 1, updated_at = $1 WHERE case_id = $2',
+		[nowISO(), caseId],
+	);
+}
+
+// ── PAR Measurements ─────────────────────────────────────────────────────────
+
+export async function getParMeasurements(assessmentId: number): Promise<import('$lib/types').ParMeasurement[]> {
+	const conn = await getDb();
+	const rows = await conn.select<any[]>(
+		'SELECT * FROM par_measurements WHERE assessment_id = $1 ORDER BY tooth, site',
+		[assessmentId],
+	);
+	return rows.map(r => ({
+		id: r.id, assessment_id: r.assessment_id, tooth: r.tooth, site: r.site as import('$lib/types').ParSite,
+		pocket: r.pocket, recession: r.recession, bop: r.bop as import('$lib/types').ParBopState, plaque: r.plaque,
+	}));
+}
+
+export async function bulkUpsertParMeasurements(
+	assessmentId: number,
+	rows: Omit<import('$lib/types').ParMeasurement, 'id' | 'assessment_id'>[],
+): Promise<void> {
+	const conn = await getDb();
+	for (const r of rows) {
+		await conn.execute(
+			`INSERT INTO par_measurements (assessment_id, tooth, site, pocket, recession, bop, plaque)
+			 VALUES ($1,$2,$3,$4,$5,$6,$7)
+			 ON CONFLICT(assessment_id, tooth, site) DO UPDATE SET
+			   pocket=$4, recession=$5, bop=$6, plaque=$7`,
+			[assessmentId, r.tooth, r.site, r.pocket, r.recession, r.bop, r.plaque],
+		);
+	}
+}
+
+// ── PAR Tooth Data ────────────────────────────────────────────────────────────
+
+export async function getParToothData(assessmentId: number): Promise<import('$lib/types').ParToothData[]> {
+	const conn = await getDb();
+	const rows = await conn.select<any[]>(
+		'SELECT * FROM par_tooth_data WHERE assessment_id = $1 ORDER BY tooth',
+		[assessmentId],
+	);
+	return rows.map(r => ({
+		id: r.id, assessment_id: r.assessment_id, tooth: r.tooth,
+		mobility: r.mobility, furcation_b: r.furcation_b, furcation_m: r.furcation_m,
+		furcation_d: r.furcation_d, vitality: r.vitality,
+		ait_planned: !!r.ait_planned, cpt_planned: !!r.cpt_planned,
+		status: r.status as import('$lib/types').ParToothStatus | null,
+	}));
+}
+
+export async function upsertParToothData(
+	assessmentId: number,
+	tooth: number,
+	patch: Partial<Omit<import('$lib/types').ParToothData, 'id' | 'assessment_id' | 'tooth'>>,
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`INSERT OR IGNORE INTO par_tooth_data (assessment_id, tooth) VALUES ($1, $2)`,
+		[assessmentId, tooth],
+	);
+	const sets: string[] = [];
+	const vals: unknown[] = [];
+	let i = 1;
+	if (patch.mobility       !== undefined) { sets.push(`mobility=$${i}`);       vals.push(patch.mobility); i++; }
+	if (patch.furcation_b    !== undefined) { sets.push(`furcation_b=$${i}`);    vals.push(patch.furcation_b); i++; }
+	if (patch.furcation_m    !== undefined) { sets.push(`furcation_m=$${i}`);    vals.push(patch.furcation_m); i++; }
+	if (patch.furcation_d    !== undefined) { sets.push(`furcation_d=$${i}`);    vals.push(patch.furcation_d); i++; }
+	if (patch.vitality       !== undefined) { sets.push(`vitality=$${i}`);       vals.push(patch.vitality); i++; }
+	if (patch.ait_planned    !== undefined) { sets.push(`ait_planned=$${i}`);    vals.push(patch.ait_planned ? 1 : 0); i++; }
+	if (patch.cpt_planned    !== undefined) { sets.push(`cpt_planned=$${i}`);    vals.push(patch.cpt_planned ? 1 : 0); i++; }
+	if (patch.status         !== undefined) { sets.push(`status=$${i}`);         vals.push(patch.status); i++; }
+	if (sets.length === 0) return;
+	vals.push(assessmentId, tooth);
+	await conn.execute(
+		`UPDATE par_tooth_data SET ${sets.join(', ')} WHERE assessment_id = $${i} AND tooth = $${i + 1}`,
+		vals,
+	);
+}
+
+// ── PAR Bone Levels ───────────────────────────────────────────────────────────
+
+export async function getParBoneLevel(
+	assessmentId: number,
+	jaw: 'upper' | 'lower',
+): Promise<import('$lib/types').ParBoneLevel | null> {
+	const conn = await getDb();
+	const rows = await conn.select<any[]>(
+		'SELECT * FROM par_bone_levels WHERE assessment_id = $1 AND jaw = $2',
+		[assessmentId, jaw],
+	);
+	if (rows.length === 0) return null;
+	return rows[0] as import('$lib/types').ParBoneLevel;
+}
+
+export async function upsertParBoneLevel(
+	assessmentId: number,
+	jaw: 'upper' | 'lower',
+	points: { x: number; y: number }[],
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`INSERT INTO par_bone_levels (assessment_id, jaw, points_json)
+		 VALUES ($1,$2,$3)
+		 ON CONFLICT(assessment_id, jaw) DO UPDATE SET points_json=$3`,
+		[assessmentId, jaw, JSON.stringify(points)],
+	);
+}
+
+// ── PAR Anamnesis ─────────────────────────────────────────────────────────────
+
+export async function getParAnamnesis(caseId: number): Promise<import('$lib/types').ParAnamnesis | null> {
+	const conn = await getDb();
+	const rows = await conn.select<any[]>(
+		'SELECT * FROM par_anamnesis WHERE case_id = $1',
+		[caseId],
+	);
+	if (rows.length === 0) return null;
+	const r = rows[0];
+	return {
+		id: r.id, case_id: r.case_id,
+		diabetes: !!r.diabetes, hba1c: r.hba1c,
+		smoking: !!r.smoking, smoking_cpd: r.smoking_cpd, smoking_years: r.smoking_years,
+		cardiovascular: !!r.cardiovascular, immunosuppression: !!r.immunosuppression,
+		general_other: r.general_other ?? '',
+		prior_par: !!r.prior_par, prior_par_year: r.prior_par_year,
+		family_history: !!r.family_history, specific_other: r.specific_other ?? '',
+		special_history: r.special_history ?? '',
+		assessor_done: !!r.assessor_done, assessor_date: r.assessor_date,
+	};
+}
+
+export async function upsertParAnamnesis(
+	caseId: number,
+	data: Partial<Omit<import('$lib/types').ParAnamnesis, 'id' | 'case_id'>>,
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`INSERT OR IGNORE INTO par_anamnesis (case_id) VALUES ($1)`,
+		[caseId],
+	);
+	const sets: string[] = [];
+	const vals: unknown[] = [];
+	let i = 1;
+	const boolFields = ['diabetes', 'smoking', 'cardiovascular', 'immunosuppression', 'prior_par', 'family_history', 'assessor_done'] as const;
+	const numFields  = ['hba1c', 'smoking_cpd', 'smoking_years', 'prior_par_year'] as const;
+	const strFields  = ['general_other', 'specific_other', 'special_history', 'assessor_date'] as const;
+	for (const f of boolFields) {
+		if (data[f] !== undefined) { sets.push(`${f}=$${i}`); vals.push(data[f] ? 1 : 0); i++; }
+	}
+	for (const f of numFields) {
+		if (data[f] !== undefined) { sets.push(`${f}=$${i}`); vals.push(data[f]); i++; }
+	}
+	for (const f of strFields) {
+		if (data[f] !== undefined) { sets.push(`${f}=$${i}`); vals.push(data[f]); i++; }
+	}
+	if (sets.length === 0) return;
+	vals.push(caseId);
+	await conn.execute(
+		`UPDATE par_anamnesis SET ${sets.join(', ')} WHERE case_id = $${i}`,
+		vals,
+	);
+}
+
+// ── PAR UPT Schedule ──────────────────────────────────────────────────────────
+
+export async function getParUptSchedule(caseId: number): Promise<import('$lib/types').ParUptSession[]> {
+	const conn = await getDb();
+	const rows = await conn.select<any[]>(
+		'SELECT * FROM par_upt_schedule WHERE case_id = $1 ORDER BY session',
+		[caseId],
+	);
+	return rows as import('$lib/types').ParUptSession[];
+}
+
+export async function upsertParUptSchedule(
+	caseId: number,
+	sessions: Omit<import('$lib/types').ParUptSession, 'id'>[],
+): Promise<void> {
+	const conn = await getDb();
+	for (const s of sessions) {
+		await conn.execute(
+			`INSERT INTO par_upt_schedule (case_id, session, window_start, window_end, delivered_date, assessment_id, appointment_id)
+			 VALUES ($1,$2,$3,$4,$5,$6,$7)
+			 ON CONFLICT(case_id, session) DO UPDATE SET
+			   window_start=$3, window_end=$4, delivered_date=$5, assessment_id=$6, appointment_id=$7`,
+			[caseId, s.session, s.window_start, s.window_end, s.delivered_date, s.assessment_id, s.appointment_id],
+		);
+	}
+}
+
+// ── PAR Snapshot ──────────────────────────────────────────────────────────────
+
+export async function loadParAssessmentSnapshot(assessmentId: number): Promise<import('$lib/types').ParAssessmentSnapshot> {
+	const conn = await getDb();
+	const [assessment, measurements, toothData, boneLevelRows] = await Promise.all([
+		getParAssessment(assessmentId),
+		getParMeasurements(assessmentId),
+		getParToothData(assessmentId),
+		conn.select<any[]>(
+			'SELECT * FROM par_bone_levels WHERE assessment_id = $1',
+			[assessmentId],
+		),
+	]);
+	if (!assessment) throw new Error(`PAR assessment ${assessmentId} not found`);
+	return {
+		assessment,
+		measurements,
+		toothData,
+		boneLevels: boneLevelRows as import('$lib/types').ParBoneLevel[],
+	};
 }

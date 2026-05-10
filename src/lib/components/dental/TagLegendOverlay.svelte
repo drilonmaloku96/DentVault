@@ -14,7 +14,6 @@
 		{ label: i18n.t.chart.tagGroups.restorative,      keys: ['decayed', 'filled'] },
 		{ label: i18n.t.chart.tagGroups.endodontic,       keys: ['root_canal'] },
 		{ label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
-		{ label: i18n.t.chart.tagGroups.removable,        keys: ['prosthesis'] },
 		{ label: i18n.t.chart.tagGroups.absent,           keys: ['missing', 'extracted'] },
 		{ label: i18n.t.chart.tagGroups.primary,          keys: ['erupting', 'persistent_primary'] },
 	]);

@@ -12,6 +12,8 @@
 		getDoctorActivityStats,
 		getAppointmentPeriodStats,
 		getAppointmentHeatmap,
+		getActivityTimeSeries,
+		getAppointmentsForSlot,
 		getPatientDemographics,
 		getPatientVisitCounts,
 	} from '$lib/services/db';
@@ -35,10 +37,14 @@
 	$effect(() => { navState.setDashboardTab(activeTab); });
 
 	// ── Period toggle (shared across all activity cards) ──────────────────
-	type Period = 'week' | 'month' | 'year';
+	type Period = 'week' | 'month' | 'year' | 'custom';
 	let period = $state<Period>('month');
+	let customFrom = $state('');
+	let customTo   = $state('');
+	let showCustomPicker = $state(false);
 
 	function periodDates(p: Period): { from: string; to: string } {
+		if (p === 'custom') return { from: customFrom, to: customTo };
 		const today = new Date();
 		const to = today.toISOString().slice(0, 10);
 		const d = new Date(today);
@@ -46,6 +52,13 @@
 		else if (p === 'month') d.setDate(d.getDate() - 29);
 		else d.setFullYear(d.getFullYear() - 1);
 		return { from: d.toISOString().slice(0, 10), to };
+	}
+
+	function applyCustomRange() {
+		if (!customFrom || !customTo || customFrom > customTo) return;
+		period = 'custom';
+		showCustomPicker = false;
+		if (!isLoading) loadActivityData();
 	}
 
 	// ── State ─────────────────────────────────────────────────────────────
@@ -65,6 +78,31 @@
 	let appointmentStats = $state({ total: 0, completed: 0, cancelled: 0, no_show: 0, avg_duration_min: 0 });
 	let appointmentHeatmap = $state<Array<{ day_of_week: number; hour: number; count: number }>>([]);
 
+	// Sparkline time-series data
+	let activityTimeSeries = $state<Array<{ date: string; patients_served: number; entries_count: number; new_patients: number }>>([]);
+
+	// Heatmap drill-down state
+	let drillDay  = $state<number | null>(null);
+	let drillHour = $state<number | null>(null);
+	let drillAppts = $state<Array<{ id: string; patient_id: string; patient_name: string; doctor_name: string; type_name: string; start_time: string; duration_min: number; status: string }>>([]);
+	let isDrillLoading = $state(false);
+
+	async function openDrill(day: number, hour: number | null) {
+		drillDay = day;
+		drillHour = hour;
+		isDrillLoading = true;
+		drillAppts = [];
+		const { from, to } = periodDates(period);
+		drillAppts = await getAppointmentsForSlot(day, hour, from, to);
+		isDrillLoading = false;
+	}
+
+	function closeDrill() {
+		drillDay = null;
+		drillHour = null;
+		drillAppts = [];
+	}
+
 	// Today / this week patient visit counts (from appointments)
 	let visitCounts = $state<{ today: number; week: number }>({ today: 0, week: 0 });
 
@@ -78,23 +116,26 @@
 
 	async function loadActivityData() {
 		isActivityLoading = true;
+		closeDrill();
 		const { from, to } = periodDates(period);
-		const [activity, doctors, apptStats, heatmap] = await Promise.all([
+		const [activity, doctors, apptStats, heatmap, timeSeries] = await Promise.all([
 			getActivityStats(from, to),
 			getDoctorActivityStats(from, to),
 			getAppointmentPeriodStats(from, to),
 			getAppointmentHeatmap(from, to),
+			getActivityTimeSeries(from, to),
 		]);
 		activityStats = activity;
 		doctorActivity = doctors;
 		appointmentStats = apptStats;
 		appointmentHeatmap = heatmap;
+		activityTimeSeries = timeSeries;
 		isActivityLoading = false;
 	}
 
 	onMount(async () => {
 		const { from, to } = periodDates(period);
-		const [counts, cats, outcomes, rate, recent, upcoming, providers, activity, doctors, apptStats, heatmap, demo, visits] = await Promise.all([
+		const [counts, cats, outcomes, rate, recent, upcoming, providers, activity, doctors, apptStats, heatmap, timeSeries, demo, visits] = await Promise.all([
 			getPatientStatusCounts(),
 			getCategoryStats(),
 			getOutcomeStats(),
@@ -106,6 +147,7 @@
 			getDoctorActivityStats(from, to),
 			getAppointmentPeriodStats(from, to),
 			getAppointmentHeatmap(from, to),
+			getActivityTimeSeries(from, to),
 			getPatientDemographics(),
 			getPatientVisitCounts(new Date().toISOString().slice(0, 10)),
 		]);
@@ -120,6 +162,7 @@
 		doctorActivity = doctors;
 		appointmentStats = apptStats;
 		appointmentHeatmap = heatmap;
+		activityTimeSeries = timeSeries;
 		demographics = demo;
 		visitCounts = visits;
 		isLoading = false;
@@ -216,16 +259,21 @@
 		return Math.round((n / total) * 100) + '%';
 	}
 
-	const periodLabel = $derived(i18n.t.dashboard.period[period]);
+	const periodLabel = $derived(
+		period === 'custom'
+			? (customFrom && customTo ? `${customFrom} – ${customTo}` : i18n.t.dashboard.period.custom)
+			: i18n.t.dashboard.period[period]
+	);
+
+	// Sparkline value arrays derived from time series
+	const sparkPatientsServed = $derived(activityTimeSeries.map(d => d.patients_served));
+	const sparkNewPatients    = $derived(activityTimeSeries.map(d => d.new_patients));
+	const sparkTreatments     = $derived(activityTimeSeries.map(d => d.entries_count));
 
 	// ── Heatmap helpers ────────────────────────────────────────────────
 	// strftime %w: 0=Sun, 1=Mon … 6=Sat → reorder to Mon-Sun for display
 	const HEATMAP_DAYS = [1, 2, 3, 4, 5, 6, 0]; // Mon … Sun
-	const HEATMAP_DAY_LABELS = $derived(
-		i18n.code === 'de'
-			? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-			: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-	);
+	const HEATMAP_DAY_LABELS = $derived(i18n.t.dashboard.heatmapDayAbbrevs);
 	const HEATMAP_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
 	const heatmapMap = $derived(() => {
@@ -260,11 +308,12 @@
 	const totalGender = $derived(demographics.gender_counts.reduce((s, g) => s + g.count, 0));
 	const totalReferral = $derived(demographics.referral_counts.reduce((s, r) => s + r.count, 0));
 
-	const GENDER_LABELS = $derived<Record<string, string>>(
-		i18n.code === 'de'
-			? { male: 'Männlich', female: 'Weiblich', other: 'Divers', unknown: 'Unbekannt' }
-			: { male: 'Male', female: 'Female', other: 'Other', unknown: 'Unknown' },
-	);
+	const GENDER_LABELS = $derived<Record<string, string>>({
+		male: i18n.t.patients.gender.male,
+		female: i18n.t.patients.gender.female,
+		other: i18n.t.patients.gender.other,
+		unknown: i18n.t.patients.gender.unknown,
+	});
 	const GENDER_COLORS: Record<string, string> = {
 		male: '#3b82f6', female: '#ec4899', other: '#a855f7', unknown: '#6b7280',
 	};
@@ -276,6 +325,16 @@
 		appointmentStats.total > 0 ? Math.round(100 * appointmentStats.no_show / appointmentStats.total) : 0,
 	);
 </script>
+
+{#snippet sparkline(values: number[], color: string)}
+	{@const max = Math.max(...values, 1)}
+	{@const W = 64}
+	{@const H = 20}
+	{@const pts = values.map((v, i) => `${(i / Math.max(values.length - 1, 1)) * W},${H - (v / max) * (H - 2) - 1}`).join(' ')}
+	<svg width={W} height={H} viewBox="0 0 {W} {H}" class="overflow-visible opacity-70 shrink-0">
+		<polyline points={pts} fill="none" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
+{/snippet}
 
 <div class="flex flex-col gap-8">
 
@@ -370,25 +429,53 @@
 		<div class="flex flex-col gap-3">
 
 			<!-- Period toggle pill row -->
-			<div class="flex items-center gap-2">
-				<span class="text-xs text-muted-foreground font-medium">Zeitraum:</span>
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="text-xs text-muted-foreground font-medium">{i18n.t.dashboard.periodLabel}</span>
 				<div class="flex rounded-lg border border-border overflow-hidden">
-					{#each (['week', 'month', 'year'] as Period[]) as p}
+					{#each (['week', 'month', 'year'] as const) as p}
 						<button
 							class="px-3 py-1.5 text-xs font-medium transition-colors
 								{period === p
 									? 'bg-primary text-primary-foreground'
 									: 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							onclick={() => (period = p)}
+							onclick={() => { period = p; showCustomPicker = false; }}
 						>
 							{i18n.t.dashboard.period[p]}
 						</button>
 					{/each}
+					<button
+						class="px-3 py-1.5 text-xs font-medium transition-colors border-l border-border
+							{period === 'custom'
+								? 'bg-primary text-primary-foreground'
+								: 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						onclick={() => { showCustomPicker = !showCustomPicker; }}
+					>
+						{i18n.t.dashboard.period.custom}
+					</button>
 				</div>
 				{#if isActivityLoading}
 					<span class="text-xs text-muted-foreground/50 animate-pulse">↻</span>
 				{/if}
 			</div>
+
+			<!-- Custom date range picker (inline, shown when toggled) -->
+			{#if showCustomPicker}
+				<div class="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+					<span class="text-xs text-muted-foreground font-medium">{i18n.t.dashboard.customRange.from}</span>
+					<input type="date" bind:value={customFrom}
+						class="h-7 rounded border border-border bg-background px-2 text-xs" />
+					<span class="text-xs text-muted-foreground">{i18n.t.dashboard.customRange.to}</span>
+					<input type="date" bind:value={customTo}
+						class="h-7 rounded border border-border bg-background px-2 text-xs" />
+					<button
+						onclick={applyCustomRange}
+						disabled={!customFrom || !customTo || customFrom > customTo}
+						class="h-7 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
+					>
+						{i18n.t.dashboard.customRange.apply}
+					</button>
+				</div>
+			{/if}
 
 			<!-- 4 Stat Cards -->
 			<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -408,7 +495,12 @@
 					<span class="text-3xl font-bold tabular-nums {isActivityLoading ? 'opacity-50' : ''}">
 						{activityStats.patients_served}
 					</span>
-					<span class="text-xs text-muted-foreground mt-1">{periodLabel}</span>
+					<div class="flex items-end justify-between mt-1">
+						<span class="text-xs text-muted-foreground">{periodLabel}</span>
+						{#if sparkPatientsServed.length > 1}
+							{@render sparkline(sparkPatientsServed, '#3b82f6')}
+						{/if}
+					</div>
 				</div>
 
 				<!-- New Patients (period) -->
@@ -417,7 +509,12 @@
 					<span class="text-3xl font-bold tabular-nums text-primary {isActivityLoading ? 'opacity-50' : ''}">
 						{activityStats.new_patients}
 					</span>
-					<span class="text-xs text-muted-foreground mt-1">{periodLabel}</span>
+					<div class="flex items-end justify-between mt-1">
+						<span class="text-xs text-muted-foreground">{periodLabel}</span>
+						{#if sparkNewPatients.length > 1}
+							{@render sparkline(sparkNewPatients, '#8b5cf6')}
+						{/if}
+					</div>
 				</div>
 
 				<!-- Treatments / Entries (period) -->
@@ -426,7 +523,12 @@
 					<span class="text-3xl font-bold tabular-nums {isActivityLoading ? 'opacity-50' : ''}">
 						{activityStats.entries_count}
 					</span>
-					<span class="text-xs text-muted-foreground mt-1">{periodLabel}</span>
+					<div class="flex items-end justify-between mt-1">
+						<span class="text-xs text-muted-foreground">{periodLabel}</span>
+						{#if sparkTreatments.length > 1}
+							{@render sparkline(sparkTreatments, '#10b981')}
+						{/if}
+					</div>
 				</div>
 
 			</div>
@@ -512,13 +614,18 @@
 					{#each HEATMAP_DAYS as dayIdx, di}
 						{@const total = dayTotals().get(dayIdx) ?? 0}
 						{@const pctW = maxDayTotal() > 0 ? Math.round((total / maxDayTotal()) * 100) : 0}
-						<div class="flex items-center gap-2 text-xs {isActivityLoading ? 'opacity-50' : ''}">
-							<span class="w-6 shrink-0 text-muted-foreground text-right">{HEATMAP_DAY_LABELS[di]}</span>
+						{@const isActiveDrill = drillDay === dayIdx && drillHour === null}
+						<button
+							type="button"
+							onclick={() => total > 0 ? openDrill(dayIdx, null) : undefined}
+							class="flex items-center gap-2 text-xs w-full text-left rounded px-0.5 transition-colors {isActivityLoading ? 'opacity-50' : ''} {total > 0 ? 'hover:bg-muted/60 cursor-pointer' : 'cursor-default'} {isActiveDrill ? 'bg-blue-50 dark:bg-blue-950/30' : ''}"
+						>
+							<span class="w-6 shrink-0 text-muted-foreground text-right font-medium {isActiveDrill ? 'text-blue-600 dark:text-blue-400' : ''}">{HEATMAP_DAY_LABELS[di]}</span>
 							<div class="flex-1 h-3 rounded-full bg-muted overflow-hidden">
-								<div class="h-full rounded-full bg-blue-400 transition-all duration-500" style="width:{pctW}%"></div>
+								<div class="h-full rounded-full transition-all duration-500 {isActiveDrill ? 'bg-blue-500' : 'bg-blue-400'}" style="width:{pctW}%"></div>
 							</div>
 							<span class="w-5 tabular-nums text-muted-foreground text-right">{total}</span>
-						</div>
+						</button>
 					{/each}
 				</div>
 			</div>
@@ -547,11 +654,14 @@
 									{@const count = heatmapMap().get(`${dayIdx}-${hour}`) ?? 0}
 									{@const intensity = maxHeatCount() > 0 ? count / maxHeatCount() : 0}
 									{@const alpha = count > 0 ? (0.18 + intensity * 0.72).toFixed(2) : '0.04'}
-									<div
-										class="h-5 rounded-[3px] transition-colors"
+									{@const isActiveDrill = drillDay === dayIdx && drillHour === hour}
+									<button
+										type="button"
+										onclick={() => count > 0 ? openDrill(dayIdx, hour) : undefined}
+										class="h-5 rounded-[3px] transition-all {count > 0 ? 'cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-offset-0' : 'cursor-default'} {isActiveDrill ? 'ring-2 ring-blue-500' : ''}"
 										style="background:rgba(59,130,246,{alpha})"
 										title="{count} appt {String(hour).padStart(2,'0')}:00 {HEATMAP_DAY_LABELS[HEATMAP_DAYS.indexOf(dayIdx)]}"
-									></div>
+									></button>
 								{/each}
 							{/each}
 						</div>
@@ -570,6 +680,67 @@
 			</div>
 		</div>
 
+		<!-- ── Heatmap Drill-Down Panel ── -->
+		{#if drillDay !== null}
+			{@const drillDayLabel = HEATMAP_DAY_LABELS[HEATMAP_DAYS.indexOf(drillDay)]}
+			{@const drillTitle = drillHour !== null
+				? `${drillDayLabel} ${String(drillHour).padStart(2,'0')}:00`
+				: drillDayLabel}
+			<div class="rounded-lg border bg-blue-50/60 dark:bg-blue-950/20 border-blue-200/60 dark:border-blue-800/40 overflow-hidden">
+				<div class="flex items-center justify-between px-5 py-3 border-b border-blue-200/60 dark:border-blue-800/40">
+					<div class="flex items-center gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-blue-500">
+							<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+						</svg>
+						<h3 class="text-sm font-semibold text-blue-900 dark:text-blue-200">{drillTitle}</h3>
+						{#if !isDrillLoading}
+							<span class="text-xs text-blue-600/70 dark:text-blue-400/70 tabular-nums">({drillAppts.length})</span>
+						{/if}
+					</div>
+					<button onclick={closeDrill} class="text-xs text-blue-500/70 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-2 py-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40">
+						✕
+					</button>
+				</div>
+
+				{#if isDrillLoading}
+					<div class="p-4 flex items-center gap-2 text-xs text-muted-foreground">
+						<span class="animate-spin">↻</span> {i18n.t.common.loading}
+					</div>
+				{:else if drillAppts.length === 0}
+					<p class="px-5 py-4 text-sm text-muted-foreground">{i18n.t.dashboard.appointments.noSlotData}</p>
+				{:else}
+					<div class="overflow-x-auto">
+						<table class="w-full text-xs">
+							<thead class="bg-blue-100/50 dark:bg-blue-900/20">
+								<tr>
+									<th class="text-left px-4 py-2 font-medium text-blue-800/70 dark:text-blue-300/70">{i18n.t.reports.columns.date}</th>
+									<th class="text-left px-4 py-2 font-medium text-blue-800/70 dark:text-blue-300/70">{i18n.t.reports.columns.patient}</th>
+									<th class="text-left px-4 py-2 font-medium text-blue-800/70 dark:text-blue-300/70">{i18n.t.reports.columns.doctor}</th>
+									<th class="text-left px-4 py-2 font-medium text-blue-800/70 dark:text-blue-300/70">{i18n.t.dashboard.typeColumn}</th>
+									<th class="text-right px-4 py-2 font-medium text-blue-800/70 dark:text-blue-300/70">{i18n.t.dashboard.appointments.minutes}</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-blue-100 dark:divide-blue-900/30">
+								{#each drillAppts as appt}
+									<tr class="hover:bg-blue-100/40 dark:hover:bg-blue-900/20 transition-colors">
+										<td class="px-4 py-2 text-muted-foreground">{appt.start_time.slice(0, 10)}</td>
+										<td class="px-4 py-2">
+											<a href="/patients/{appt.patient_id}" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors">
+												{appt.patient_name}
+											</a>
+										</td>
+										<td class="px-4 py-2 text-muted-foreground">{appt.doctor_name || '—'}</td>
+										<td class="px-4 py-2 text-muted-foreground">{appt.type_name || '—'}</td>
+										<td class="px-4 py-2 text-right tabular-nums text-muted-foreground">{appt.duration_min}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
 		<!-- ── Patient Demographics ── -->
 		<div class="grid gap-6 lg:grid-cols-[1fr_1fr_1fr]">
 
@@ -582,7 +753,7 @@
 						<span class="text-sm text-muted-foreground">{i18n.t.dashboard.demographics.years} · Ø {i18n.t.dashboard.demographics.avgAge.toLowerCase()}</span>
 					</div>
 					<div class="text-xs text-muted-foreground">
-						{i18n.code === 'de' ? 'Basierend auf' : 'Based on'} {totalPatientsWithDob} {i18n.code === 'de' ? 'Patienten mit Geburtsdatum' : 'patients with date of birth'}
+						{i18n.t.dashboard.basedOnPatients.replace('{n}', String(totalPatientsWithDob))}
 					</div>
 				{:else}
 					<p class="text-sm text-muted-foreground">{i18n.t.dashboard.noData}</p>
