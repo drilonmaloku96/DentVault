@@ -1,26 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getPatient, getDocuments, getAppointmentsForPatient, getAcuteText } from '$lib/services/db';
+	import { getPatient, getAppointmentsForPatient, getAcuteText } from '$lib/services/db';
 	import type { Appointment } from '$lib/types';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
 	import type { Patient } from '$lib/types';
-	import { listVaultFiles, type VaultFileInfo } from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
 	import TimelineView from '$lib/components/timeline/TimelineView.svelte';
 	import ParCaseView from '$lib/components/par/ParCaseView.svelte';
 	import PatientNotesBox from '$lib/components/patient/PatientNotesBox.svelte';
 	import MedicalHistoryBox from '$lib/components/patient/MedicalHistoryBox.svelte';
 	import AcuteProblemsBox from '$lib/components/patient/AcuteProblemsBox.svelte';
-	import NewFilesDialog from '$lib/components/documents/NewFilesDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import PatientExportDialog from '$lib/components/export/PatientExportDialog.svelte';
+	import FloatingPanel from '$lib/components/ui/FloatingPanel.svelte';
 
 	import { untrack } from 'svelte';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { i18n } from '$lib/i18n';
 	import { formatDate, formatDateTime } from '$lib/utils';
+	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 
 	const patientId = $derived(page.params.patient_id ?? '');
 
@@ -33,13 +33,11 @@
 	let showNotes   = $state(false);
 	let showMedical = $state(false);
 
+	// Staggered initial positions for floating panels
+	const panelBaseX = typeof window !== 'undefined' ? Math.max(20, Math.floor(window.innerWidth / 2) - 210) : 400;
+
 	// Acute content preview
 	let acuteContent = $state('');
-
-	// New-file detection
-	let pendingFiles       = $state<VaultFileInfo[]>([]);
-	let showNewFilesDialog = $state(false);
-
 
 	// PAR panel
 	let showPar = $state(false);
@@ -105,26 +103,9 @@
 				appointments = appts;
 				acuteContent = acute;
 				if (acute.trim()) showAcute = true;
-				if (id !== currentId) setTimeout(() => checkNewVaultFiles(), 300);
 			}
 		} finally {
 			if (patientId === id) isLoading = false;
-		}
-	}
-
-	async function checkNewVaultFiles() {
-		if (!vault.path || !patient) return;
-		try {
-			const folder = vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id);
-			const [onDisk, inDb] = await Promise.all([
-				listVaultFiles(vault.path, folder),
-				getDocuments(patient.patient_id),
-			]);
-			const registered = new Set(inDb.map(d => d.rel_path || d.abs_path));
-			pendingFiles = onDisk.filter(f => !registered.has(f.rel_path));
-			if (pendingFiles.length > 0) showNewFilesDialog = true;
-		} catch {
-			// Vault not configured or folder doesn't exist yet — silently ignore
 		}
 	}
 
@@ -294,99 +275,75 @@
 				<div class="flex items-center gap-1.5 shrink-0">
 
 					<!-- Acute problems -->
-					<div class="relative">
-						<button
-							type="button"
-							onclick={() => (showAcute = !showAcute)}
-							title={i18n.t.patients.acuteProblems}
-							aria-pressed={showAcute}
-							class={[
-								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
-								acuteContent.trim()
-									? 'border-red-500 bg-red-500 text-white shadow-sm shadow-red-500/30 hover:bg-red-600'
-									: showAcute
-										? 'border-red-300 bg-red-50 text-red-600 dark:bg-red-950/40 dark:border-red-700 dark:text-red-400'
-										: 'border-transparent text-red-400/60 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-800 dark:hover:text-red-400',
-							].join(' ')}
-						>
-							<!-- filled triangle when has content, outline when empty -->
-							{#if acuteContent.trim()}
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 shrink-0">
-									<path d="M12 2L2 22h20L12 2z"/>
-									<rect x="11" y="9" width="2" height="5" fill="white"/>
-									<rect x="11" y="16" width="2" height="2" fill="white"/>
-								</svg>
-							{:else}
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
-									<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-									<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-								</svg>
-							{/if}
-							<span>{i18n.t.patients.acuteProblems}</span>
-						</button>
-						{#if showAcute}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showAcute = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
-								<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
-							</div>
+					<button
+						type="button"
+						onclick={() => (showAcute = !showAcute)}
+						title={i18n.t.patients.acuteProblems}
+						aria-pressed={showAcute}
+						class={[
+							'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+							acuteContent.trim()
+								? 'border-red-500 bg-red-500 text-white shadow-sm shadow-red-500/30 hover:bg-red-600'
+								: showAcute
+									? 'border-red-300 bg-red-50 text-red-600 dark:bg-red-950/40 dark:border-red-700 dark:text-red-400'
+									: 'border-transparent text-red-400/60 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-800 dark:hover:text-red-400',
+						].join(' ')}
+					>
+						{#if acuteContent.trim()}
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 shrink-0">
+								<path d="M12 2L2 22h20L12 2z"/>
+								<rect x="11" y="9" width="2" height="5" fill="white"/>
+								<rect x="11" y="16" width="2" height="2" fill="white"/>
+							</svg>
+						{:else}
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+								<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+								<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+							</svg>
 						{/if}
-					</div>
+						<span>{i18n.t.patients.acuteProblems}</span>
+					</button>
 
 					<!-- Medical history -->
-					<div class="relative">
-						<button
-							type="button"
-							onclick={() => (showMedical = !showMedical)}
-							title="Medical History"
-							aria-pressed={showMedical}
-							class={[
-								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
-								showMedical
-									? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-400'
-									: 'border-transparent text-amber-500/60 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:hover:border-amber-800 dark:hover:text-amber-400',
-							].join(' ')}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
-								<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-								<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-								<line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/>
-							</svg>
-							<span>{i18n.t.patients.medicalHistory}</span>
-						</button>
-						{#if showMedical}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showMedical = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
-								<MedicalHistoryBox patientId={patient.patient_id} />
-							</div>
-						{/if}
-					</div>
+					<button
+						type="button"
+						onclick={() => (showMedical = !showMedical)}
+						title={i18n.t.patients.medicalHistory}
+						aria-pressed={showMedical}
+						class={[
+							'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+							showMedical
+								? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-400'
+								: 'border-transparent text-amber-500/60 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:hover:border-amber-800 dark:hover:text-amber-400',
+						].join(' ')}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+							<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+							<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+							<line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/>
+						</svg>
+						<span>{i18n.t.patients.medicalHistory}</span>
+					</button>
 
 					<!-- Notes -->
-					<div class="relative">
-						<button
-							type="button"
-							onclick={() => (showNotes = !showNotes)}
-							title="Notes"
-							aria-pressed={showNotes}
-							class={[
-								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
-								showNotes
-									? 'border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:border-violet-700 dark:text-violet-400'
-									: 'border-transparent text-violet-400/60 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:hover:border-violet-800 dark:hover:text-violet-400',
-							].join(' ')}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
-								<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-							</svg>
-							<span>{i18n.t.common.notes}</span>
-						</button>
-						{#if showNotes}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showNotes = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
-								<PatientNotesBox patientId={patient.patient_id} />
-							</div>
-						{/if}
-					</div>
+					<button
+						type="button"
+						onclick={() => (showNotes = !showNotes)}
+						title={i18n.t.common.notes}
+						aria-pressed={showNotes}
+						class={[
+							'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
+							showNotes
+								? 'border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:border-violet-700 dark:text-violet-400'
+								: 'border-transparent text-violet-400/60 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 dark:hover:border-violet-800 dark:hover:text-violet-400',
+						].join(' ')}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+							<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+						</svg>
+						<span>{i18n.t.common.notes}</span>
+					</button>
+
 
 
 					<!-- Export -->
@@ -424,17 +381,41 @@
 			patientFolder={vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id)}
 		/>
 
-	</div>
-{/if}
+	<!-- Floating panels -->
+	{#if showAcute}
+		<FloatingPanel
+			title={i18n.t.patients.acuteProblems}
+			onclose={() => (showAcute = false)}
+			initialX={panelBaseX}
+			initialY={90}
+		>
+			<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
+		</FloatingPanel>
+	{/if}
 
-<!-- New vault files detected dialog -->
-{#if showNewFilesDialog && patient}
-	<NewFilesDialog
-		bind:open={showNewFilesDialog}
-		{pendingFiles}
-		patientId={patient.patient_id}
-		onDone={() => { showNewFilesDialog = false; pendingFiles = []; }}
-	/>
+	{#if showMedical}
+		<FloatingPanel
+			title={i18n.t.patients.medicalHistory}
+			onclose={() => (showMedical = false)}
+			initialX={panelBaseX + 40}
+			initialY={130}
+		>
+			<MedicalHistoryBox patientId={patient.patient_id} />
+		</FloatingPanel>
+	{/if}
+
+	{#if showNotes}
+		<FloatingPanel
+			title={i18n.t.common.notes}
+			onclose={() => (showNotes = false)}
+			initialX={panelBaseX + 80}
+			initialY={170}
+		>
+			<PatientNotesBox patientId={patient.patient_id} />
+		</FloatingPanel>
+	{/if}
+
+	</div>
 {/if}
 
 {#if patient}

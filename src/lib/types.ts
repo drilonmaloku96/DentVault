@@ -61,7 +61,7 @@ export interface PatientFormData {
 
 export type TimelineEntryType = string;
 /** System-only entry types — never shown in user-configurable dropdowns */
-export const SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot']);
+export const SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot', 'ceph_snapshot']);
 
 export type TreatmentCategory =
 	| 'endodontics'
@@ -716,7 +716,9 @@ export interface ReportEntry {
 
 // ── Appointment Scheduling ────────────────────────────────────────────
 
-export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+/** System-defined statuses that carry automatic timestamp logic. Custom statuses stored in settings are also valid string values. */
+export const SYSTEM_APPOINTMENT_STATUSES = ['scheduled', 'waiting', 'in_treatment', 'completed', 'cancelled', 'no_show'] as const;
+export type AppointmentStatus = string;
 
 export interface AppointmentRoom {
 	id: string;
@@ -770,6 +772,9 @@ export interface Appointment {
 	title: string | null;
 	notes: string | null;
 	status: AppointmentStatus;
+	arrival_time: string | null;
+	treatment_start_time: string | null;
+	treatment_end_time: string | null;
 	timeline_entry_id: string | null;
 	created_at: string;
 	updated_at: string;
@@ -795,6 +800,54 @@ export interface AppointmentFormData {
 	title: string;
 	notes: string;
 	status: AppointmentStatus;
+}
+
+export interface PatientAppointmentStats {
+	total: number;
+	cancelled_count: number;
+	no_show_count: number;
+	tracked_count: number;
+	avg_minutes_offset: number | null;
+	avg_wait_minutes: number | null;
+	avg_actual_duration_min: number | null;
+	avg_duration_deviation: number | null;
+}
+
+export interface DoctorTreatmentStat {
+	type_id: string | null;
+	type_name: string | null;
+	type_color: string | null;
+	appointment_count: number;
+	avg_planned_duration: number;
+	avg_actual_duration: number | null;
+	avg_deviation: number | null;
+}
+
+export interface DoctorPerformanceKPI {
+	doctor_id: string;
+	doctor_name: string;
+	doctor_color: string;
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+	working_days: number;
+	avg_planned_duration: number | null;
+	avg_actual_duration: number | null;
+	avg_deviation: number | null;
+}
+
+export interface DoctorMonthlyTrend {
+	month: string; // 'YYYY-MM'
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+}
+
+export interface DoctorDowStat {
+	dow: number; // 0=Sun, 6=Sat
+	count: number;
 }
 
 export interface WorkingHoursEntry {

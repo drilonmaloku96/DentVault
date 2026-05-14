@@ -7,6 +7,7 @@
 		getAppointmentsForDate,
 		insertAppointment,
 		updateAppointment,
+		updateAppointmentStatus,
 		deleteAppointment,
 		getPatient,
 		getScheduleBlocksForDate,
@@ -20,7 +21,7 @@
 		deleteStaffBlockout,
 		getStaffPresenceForDay,
 	} from '$lib/services/db';
-	import type { Appointment, AppointmentFormData, ScheduleBlock, ScheduleBlockFormData, StaffBlockout, StaffBlockoutFormData, StaffPresenceInfo } from '$lib/types';
+	import type { Appointment, AppointmentFormData, AppointmentStatus, ScheduleBlock, ScheduleBlockFormData, StaffBlockout, StaffBlockoutFormData, StaffPresenceInfo } from '$lib/types';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { navState } from '$lib/stores/navState.svelte';
 	import DayView from '$lib/components/schedule/DayView.svelte';
@@ -301,6 +302,18 @@
 		await loadDay();
 	}
 
+	async function handleAppointmentStatusChange(id: string, status: AppointmentStatus) {
+		await updateAppointmentStatus(id, status);
+		// Optimistically update local state for instant UI feedback
+		const idx = appointments.findIndex(a => a.id === id);
+		if (idx !== -1) {
+			appointments[idx].status = status;
+			if (status === 'waiting' && !appointments[idx].arrival_time) {
+				appointments[idx].arrival_time = new Date().toISOString();
+			}
+		}
+	}
+
 	async function handleBlockoutDelete(id: string) {
 		await deleteStaffBlockout(id);
 		const [dayBlockouts, all] = await Promise.all([
@@ -521,6 +534,7 @@
 					onSlotClick={handleSlotClick}
 					onAppointmentDoubleClick={handleAppointmentClick}
 				onAppointmentQuickUpdate={handleAppointmentQuickUpdate}
+					onAppointmentStatusChange={handleAppointmentStatusChange}
 					onDragCreate={handleDragCreate}
 					onBlockClick={handleBlockClick}
 					onBlockQuickUpdate={handleBlockQuickUpdate}

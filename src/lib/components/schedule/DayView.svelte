@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { Appointment, AppointmentRoom, WorkingHoursEntry, ScheduleBlock, StaffPresenceInfo } from '$lib/types';
+	import type { Appointment, AppointmentRoom, WorkingHoursEntry, ScheduleBlock, StaffPresenceInfo, AppointmentStatus } from '$lib/types';
 	import AppointmentBlock from './AppointmentBlock.svelte';
+	import AppointmentContextMenu from './AppointmentContextMenu.svelte';
 	import ScheduleBlockCell from './ScheduleBlockCell.svelte';
 	import { i18n } from '$lib/i18n';
 	import { goto } from '$app/navigation';
@@ -20,6 +21,7 @@
 	onAppointmentDoubleClick?: (appointment: Appointment) => void;
 	onAppointmentQuickUpdate?: (id: string, startTime: string, endTime: string, durationMin: number, roomId: string) => void;
 	onBlockQuickUpdate?: (id: string, startTime: string, endTime: string, roomId: string) => void;
+	onAppointmentStatusChange?: (id: string, status: AppointmentStatus) => void;
 	}
 
 	let {
@@ -37,7 +39,26 @@
 		onAppointmentDoubleClick,
 		onAppointmentQuickUpdate,
 		onBlockQuickUpdate,
+		onAppointmentStatusChange,
 	}: Props = $props();
+
+	// ── Context menu state ──────────────────────────────────────────────
+	let ctxMenuAppt = $state<Appointment | null>(null);
+	let ctxMenuX = $state(0);
+	let ctxMenuY = $state(0);
+
+	function openContextMenu(e: MouseEvent, appt: Appointment) {
+		e.preventDefault();
+		e.stopPropagation();
+		const z = parseFloat(document.documentElement.style.zoom) || 1;
+		ctxMenuAppt = appt;
+		ctxMenuX = e.clientX / z;
+		ctxMenuY = e.clientY / z;
+	}
+
+	function closeContextMenu() {
+		ctxMenuAppt = null;
+	}
 
 	const SLOT_HEIGHT = 8; // px per 5-min slot
 	const SLOTS_PER_HOUR = 12;
@@ -282,6 +303,9 @@
 	}
 
 	function onGridPointerDown(e: PointerEvent) {
+		// Ignore non-primary (right-click, middle-click) — let contextmenu fire naturally
+		if (e.button !== 0) return;
+
 		const target = e.target as HTMLElement;
 
 		// ── Appointment interaction ───────────────────────────────────
@@ -962,6 +986,7 @@
 					<div
 						class="z-10 p-0.5"
 						data-appt-id={appt.id}
+						oncontextmenu={(e) => openContextMenu(e, appt)}
 						style="
 							grid-column: {col};
 							grid-row: {getRowStart(startSlot)} / span {getRowSpan(startSlot, endSlot)};
@@ -1047,4 +1072,17 @@
 			{/if}
 		</div>
 	</div>
+{/if}
+
+{#if ctxMenuAppt}
+	<AppointmentContextMenu
+		appointment={ctxMenuAppt}
+		x={ctxMenuX}
+		y={ctxMenuY}
+		onStatusChange={(id, status) => {
+			onAppointmentStatusChange?.(id, status);
+			closeContextMenu();
+		}}
+		onClose={closeContextMenu}
+	/>
 {/if}

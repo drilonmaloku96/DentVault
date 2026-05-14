@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { i18n } from '$lib/i18n';
-	import type { Appointment, AppointmentFormData, AppointmentStatus, Patient, ScheduleBlockFormData } from '$lib/types';
+	import type { Appointment, AppointmentFormData, Patient, ScheduleBlockFormData } from '$lib/types';
+	import { appointmentStatusLabels } from '$lib/stores/appointmentStatusLabels.svelte';
 	import type { DragSelection } from './DragCreatePopover.svelte';
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
@@ -110,7 +111,7 @@
 
 	let title  = $state(appointment?.title ?? '');
 	let notes  = $state(appointment?.notes ?? '');
-	let status = $state<AppointmentStatus>(appointment?.status ?? 'scheduled');
+	let status = $state<string>(appointment?.status ?? 'scheduled');
 
 	// Computed duration label (kept in sync whenever start or end changes)
 	const computedDuration = $derived(() => {
@@ -226,12 +227,22 @@
 
 	let confirmDelete = $state(false);
 
-	const STATUS_OPTIONS: { value: AppointmentStatus; label: () => string; color: string }[] = [
-		{ value: 'scheduled',  label: () => i18n.t.schedule.statuses.scheduled,  color: 'bg-primary text-primary-foreground' },
-		{ value: 'completed',  label: () => i18n.t.schedule.statuses.completed,  color: 'bg-green-600 text-white' },
-		{ value: 'cancelled',  label: () => i18n.t.schedule.statuses.cancelled,  color: 'bg-destructive text-destructive-foreground' },
-		{ value: 'no_show',    label: () => i18n.t.schedule.statuses.no_show,    color: 'bg-orange-500 text-white' },
-	];
+	const SYSTEM_STATUS_COLORS: Record<string, string> = {
+		scheduled:    'bg-primary text-primary-foreground',
+		waiting:      'bg-amber-500 text-white',
+		in_treatment: 'bg-blue-600 text-white',
+		completed:    'bg-green-600 text-white',
+		cancelled:    'bg-destructive text-destructive-foreground',
+		no_show:      'bg-orange-500 text-white',
+	};
+
+	const STATUS_OPTIONS = $derived(
+		appointmentStatusLabels.allStatuses().map(s => ({
+			value: s.key,
+			label: () => appointmentStatusLabels.getLabel(s.key),
+			color: SYSTEM_STATUS_COLORS[s.key] ?? 'bg-purple-500 text-white',
+		}))
+	);
 
 	const ic = 'border border-border rounded px-2 py-1.5 text-sm bg-background w-full outline-none focus:border-ring focus:ring-1 focus:ring-ring/50';
 </script>

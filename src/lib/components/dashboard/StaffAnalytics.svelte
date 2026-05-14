@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { i18n } from '$lib/i18n';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { getAbsenceStatsByYear, getAppointmentStatsByDoctor } from '$lib/services/db';
-	import type { AbsenceStat, AppointmentDoctorStat, Doctor } from '$lib/types';
+	import { getAbsenceStatsByYear, getAppointmentStatsByDoctor, getDoctorTreatmentStats } from '$lib/services/db';
+	import type { AbsenceStat, AppointmentDoctorStat, DoctorTreatmentStat, Doctor } from '$lib/types';
 	import DoctorWorkingHoursDialog from '$lib/components/schedule/DoctorWorkingHoursDialog.svelte';
 
 	// ── Filters ───────────────────────────────────────────────────────
@@ -19,15 +19,24 @@
 	// ── Data ──────────────────────────────────────────────────────────
 	let absenceStats = $state<AbsenceStat[]>([]);
 	let apptStats = $state<AppointmentDoctorStat[]>([]);
+	let treatmentStats = $state<DoctorTreatmentStat[]>([]);
 	let isLoading = $state(false);
 
 	async function load() {
 		isLoading = true;
 		try {
-			[absenceStats, apptStats] = await Promise.all([
+			const baseLoads: Promise<unknown>[] = [
 				getAbsenceStatsByYear(selectedYear),
 				getAppointmentStatsByDoctor(dateFrom, dateTo),
-			]);
+			];
+			const [abs, appt] = await Promise.all(baseLoads) as [AbsenceStat[], AppointmentDoctorStat[]];
+			absenceStats = abs;
+			apptStats = appt;
+			if (selectedDoctorId) {
+				treatmentStats = await getDoctorTreatmentStats(selectedDoctorId, dateFrom, dateTo);
+			} else {
+				treatmentStats = [];
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -343,6 +352,94 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- ── Treatment Times (only when a specific doctor is selected) ── -->
+		{#if selectedDoctorId}
+			<div class="rounded-lg border bg-card overflow-hidden">
+				<div class="px-5 py-4 border-b">
+					<h2 class="text-sm font-semibold">{i18n.t.dashboard.staff.treatmentTimes.title}</h2>
+					<p class="text-xs text-muted-foreground mt-0.5">{i18n.t.dashboard.staff.treatmentTimes.subtitle}</p>
+				</div>
+
+				{#if treatmentStats.length === 0}
+					<p class="text-sm text-muted-foreground text-center py-6">{i18n.t.dashboard.staff.treatmentTimes.noData}</p>
+				{:else}
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm">
+							<thead class="bg-muted/40 border-b">
+								<tr>
+									<th class="text-left px-5 py-2.5 font-medium text-muted-foreground text-xs">{i18n.t.dashboard.staff.treatmentTimes.type}</th>
+									<th class="text-center px-3 py-2.5 font-medium text-muted-foreground text-xs">{i18n.t.dashboard.staff.treatmentTimes.count}</th>
+									<th class="text-center px-3 py-2.5 font-medium text-muted-foreground text-xs">{i18n.t.dashboard.staff.treatmentTimes.planned}</th>
+									<th class="text-center px-3 py-2.5 font-medium text-muted-foreground text-xs">{i18n.t.dashboard.staff.treatmentTimes.actual}</th>
+									<th class="text-right px-5 py-2.5 font-medium text-muted-foreground text-xs">{i18n.t.dashboard.staff.treatmentTimes.deviation}</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-border/40">
+								{#each treatmentStats as s}
+									{@const dev = s.avg_deviation}
+									{@const devAbs = dev !== null ? Math.abs(Math.round(dev)) : null}
+									<tr class="hover:bg-muted/20 transition-colors">
+										<td class="px-5 py-3">
+											<div class="flex items-center gap-2">
+												{#if s.type_color}
+													<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {s.type_color}"></span>
+												{/if}
+												<span class="font-medium">{s.type_name ?? '—'}</span>
+											</div>
+										</td>
+										<td class="px-3 py-3 text-center tabular-nums font-bold">{s.appointment_count}</td>
+										<td class="px-3 py-3 text-center tabular-nums text-muted-foreground">
+											{s.avg_planned_duration > 0 ? `${Math.round(s.avg_planned_duration)} min` : '—'}
+										</td>
+										<td class="px-3 py-3 text-center tabular-nums">
+											{s.avg_actual_duration !== null ? `${Math.round(s.avg_actual_duration)} min` : '—'}
+										</td>
+										<td class="px-5 py-3 text-right tabular-nums">
+											{#if dev === null || devAbs === null}
+												<span class="text-muted-foreground/40">—</span>
+											{:else if devAbs <= 2}
+												<span class="text-emerald-600 dark:text-emerald-400 font-medium">{i18n.t.dashboard.staff.treatmentTimes.onTime}</span>
+											{:else if dev > 0}
+												<span class="text-red-500 font-medium">+{devAbs} {i18n.t.dashboard.staff.treatmentTimes.overTime}</span>
+											{:else}
+												<span class="text-blue-500 font-medium">−{devAbs} {i18n.t.dashboard.staff.treatmentTimes.underTime}</span>
+											{/if}
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+
+					<!-- Deviation bar per type -->
+					<div class="px-5 py-4 border-t flex flex-col gap-3">
+						{#each treatmentStats.filter(s => s.avg_actual_duration !== null) as s}
+							{@const planned = s.avg_planned_duration}
+							{@const actual = s.avg_actual_duration ?? 0}
+							{@const max = Math.max(planned, actual, 1)}
+							<div class="flex items-center gap-3">
+								<span class="text-xs text-muted-foreground w-28 truncate shrink-0 text-right">{s.type_name ?? '—'}</span>
+								<div class="flex-1 flex flex-col gap-1">
+									<div class="flex h-2 rounded-full overflow-hidden bg-muted relative">
+										<div class="h-full rounded-full bg-muted-foreground/30 transition-all" style="width: {(planned/max)*100}%"></div>
+									</div>
+									<div class="flex h-2 rounded-full overflow-hidden bg-muted relative">
+										<div class="h-full rounded-full transition-all {actual > planned ? 'bg-red-400 dark:bg-red-500' : 'bg-emerald-400 dark:bg-emerald-500'}" style="width: {(actual/max)*100}%"></div>
+									</div>
+								</div>
+								<span class="text-xs tabular-nums text-muted-foreground w-12 shrink-0 text-right">{Math.round(actual)}m</span>
+							</div>
+						{/each}
+						<div class="flex gap-4 flex-wrap pt-1">
+							<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-muted-foreground/30"></span> {i18n.t.dashboard.staff.treatmentTimes.planned}</span>
+							<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-emerald-400 dark:bg-emerald-500"></span> {i18n.t.dashboard.staff.treatmentTimes.actual} (under)</span>
+							<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-red-400 dark:bg-red-500"></span> {i18n.t.dashboard.staff.treatmentTimes.actual} (over)</span>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 	{/if}
 </div>

@@ -13,8 +13,15 @@
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { insertDocument, insertTimelineEntry } from '$lib/services/db';
 	import { docCategories } from '$lib/stores/categories.svelte';
+	import { cephSelection, isCephCompatible, isCephFileType } from '$lib/stores/cephSelection.svelte';
 
 	let { patient }: { patient: Patient } = $props();
+
+	// Clear ceph selection when switching patients
+	$effect(() => {
+		void patient.patient_id;
+		cephSelection.clear();
+	});
 
 	let files       = $state<VaultFileInfo[]>([]);
 	let isLoading   = $state(true);
@@ -171,7 +178,26 @@
 	const patientFolders = $derived(buildPatientTree(files));
 	const totalFiles     = $derived(files.length);
 
-	// ── Mount ───────────────────────────────────────────────────────────
+	// ── Mount + polling ─────────────────────────────────────────────────
+
+	let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+	async function refreshFiles() {
+		if (!vault.path || !patientFolder) return;
+		try {
+			const [result, tpl] = await Promise.all([
+				listVaultFiles(vault.path, patientFolder),
+				listDocTemplates(vault.path),
+			]);
+			// Fingerprint to avoid unnecessary re-renders
+			const newPrint = result.map(f => f.rel_path).join(',');
+			const curPrint = files.map(f => f.rel_path).join(',');
+			if (newPrint !== curPrint) files = result;
+			docTemplates = tpl;
+		} catch {
+			// non-critical background refresh
+		}
+	}
 
 	onMount(async () => {
 		if (!vault.path || !patientFolder) { isLoading = false; return; }
@@ -190,9 +216,11 @@
 		} finally {
 			isLoading = false;
 		}
+		pollInterval = setInterval(refreshFiles, 3000);
 	});
 
 	onDestroy(() => {
+		if (pollInterval) clearInterval(pollInterval);
 		// Clean up global listeners if component unmounts mid-drag
 		document.removeEventListener('mousemove', onGlobalMouseMove);
 		document.removeEventListener('mouseup', onGlobalMouseUp);
@@ -629,22 +657,64 @@
 		{#if isOpen}
 			<div class="ml-[{depth > 0 ? (depth * 14) + 19 : 19}px] border-l-2 border-sidebar-border/50 pl-[10px] flex flex-col gap-0.5 pb-1">
 				{#each node.files as file (file.abs_path)}
+					{@const isCephSelected = cephSelection.file?.abs_path === file.abs_path}
+					{@const isSelectable = isCephCompatible(file.filename)}
+					{@const isCephType = isCephFileType(file.filename)}
 					<button
 						type="button"
+						onclick={() => { if (isSelectable) cephSelection.select(isCephSelected ? null : file); }}
 						ondblclick={() => openFile(file)}
-						title="{file.filename}\n{formatFileSize(file.file_size)}"
-						class="flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left hover:bg-sidebar-accent/60 transition-colors group"
+						title={isSelectable
+							? `${file.filename}\n${formatFileSize(file.file_size)}\nClick to select for Ceph analysis`
+							: `${file.filename}\n${formatFileSize(file.file_size)}`}
+						class={[
+							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group',
+							isCephSelected
+								? 'bg-cyan-100 dark:bg-cyan-950/40 ring-1 ring-cyan-400/60'
+								: 'hover:bg-sidebar-accent/60',
+						].join(' ')}
 					>
-						<svg class="h-3 w-3 shrink-0 text-muted-foreground/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-							<polyline points="14 2 14 8 20 8"/>
-						</svg>
-						<span class="flex-1 truncate text-[11px] text-sidebar-foreground font-mono">
+						{#if isCephType}
+							<!-- .ceph file icon: skull shape -->
+							<svg class="h-3 w-3 shrink-0 {isCephSelected ? 'text-cyan-500' : 'text-cyan-600/50'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+								<circle cx="12" cy="10" r="7"/>
+								<path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+								<path d="M9 10h.01M15 10h.01"/>
+							</svg>
+						{:else if isSelectable}
+							<!-- image file icon -->
+							<svg class="h-3 w-3 shrink-0 {isCephSelected ? 'text-cyan-500' : 'text-muted-foreground/70'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+								<circle cx="8.5" cy="8.5" r="1.5"/>
+								<polyline points="21 15 16 10 5 21"/>
+							</svg>
+						{:else}
+							<svg class="h-3 w-3 shrink-0 text-muted-foreground/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+								<polyline points="14 2 14 8 20 8"/>
+							</svg>
+						{/if}
+						<span class={[
+							'flex-1 truncate text-[11px] font-mono',
+							isCephSelected
+								? 'text-cyan-700 dark:text-cyan-400 font-semibold'
+								: isCephType
+									? 'text-cyan-600/70 dark:text-cyan-500/70'
+									: 'text-sidebar-foreground',
+						].join(' ')}>
 							{file.filename}
 						</span>
-						<span class="shrink-0 text-[9px] text-muted-foreground/60 tabular-nums">
-							{formatFileSize(file.file_size)}
-						</span>
+						{#if isCephSelected}
+							<svg class="h-3 w-3 shrink-0 text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<circle cx="12" cy="10" r="7"/>
+								<path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+								<path d="M9 10h.01M15 10h.01"/>
+							</svg>
+						{:else}
+							<span class="shrink-0 text-[9px] text-muted-foreground/60 tabular-nums">
+								{formatFileSize(file.file_size)}
+							</span>
+						{/if}
 					</button>
 				{/each}
 

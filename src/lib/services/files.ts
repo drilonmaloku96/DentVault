@@ -202,9 +202,55 @@ export async function deletePatientFolder(vaultPath: string, patientFolder: stri
 	await invoke<void>('delete_patient_folder', { vaultPath, patientFolder });
 }
 
+/**
+ * Copy a file from srcPath to destPath on disk, creating parent directories as needed.
+ * Returns the file size in bytes.
+ */
+export async function copyFileToVault(srcPath: string, destPath: string): Promise<number> {
+	return invoke<number>('copy_file_to_vault', { srcPath, destPath });
+}
+
 /** Write a UTF-8 string to a file, creating parent directories as needed. */
 export async function writeTextFile(destPath: string, content: string): Promise<void> {
 	await invoke<void>('write_text_file', { destPath, content });
+}
+
+/** Decode a base64 string and write the raw bytes to a file (used to save PDF from Cephalyzer iframe). */
+export async function writeBase64File(destPath: string, base64Content: string): Promise<void> {
+	await invoke<void>('write_base64_file', { destPath, base64Content });
+}
+
+// ── Patient folder tree ────────────────────────────────────────────────────
+
+export interface FolderNode {
+	name: string;
+	rel_path: string;
+	children: FolderNode[];
+}
+
+/** Return the folder tree for a patient (category folders + subfolders). */
+export async function listPatientFolders(vaultPath: string, patientFolder: string): Promise<FolderNode[]> {
+	return invoke<FolderNode[]>('list_patient_folders', { vaultPath, patientFolder });
+}
+
+/** Create a new subfolder inside a patient's vault. Returns the new folder's rel_path. */
+export async function createPatientSubfolder(
+	vaultPath: string,
+	patientFolder: string,
+	parentRel: string,
+	folderName: string,
+): Promise<string> {
+	return invoke<string>('create_patient_subfolder', { vaultPath, patientFolder, parentRel, folderName });
+}
+
+/** Move a patient vault folder to a new parent folder. */
+export async function movePatientFolder(
+	vaultPath: string,
+	patientFolder: string,
+	srcRel: string,
+	destParentRel: string,
+): Promise<void> {
+	await invoke<void>('move_patient_folder', { vaultPath, patientFolder, srcRel, destParentRel });
 }
 
 /**

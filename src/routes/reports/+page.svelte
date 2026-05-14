@@ -1,388 +1,289 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { getFilteredEntries, getFilteredSummary } from '$lib/services/db';
+	import {
+		getAllDoctorKPIs,
+		getDoctorPerformanceKPI,
+		getDoctorMonthlyTrend,
+		getDoctorDowDistribution,
+		getDoctorTreatmentStats,
+	} from '$lib/services/db';
 	import { i18n } from '$lib/i18n';
-	import { activePatient } from '$lib/stores/activePatient.svelte';
-	import { downloadCSV, entriesToCSV, downloadJson } from '$lib/services/export';
-	import { Separator } from '$lib/components/ui/separator';
-	import type { CategoryStat, ReportFilters, ReportEntry } from '$lib/types';
+	import type {
+		DoctorPerformanceKPI,
+		DoctorMonthlyTrend,
+		DoctorDowStat,
+		DoctorTreatmentStat,
+	} from '$lib/types';
 
-	const CATEGORY_LABELS = $derived<Record<string, string>>({
-		endodontics: i18n.t.categories.endodontics,
-		orthodontics: i18n.t.categories.orthodontics,
-		prosthodontics: i18n.t.categories.prosthodontics,
-		periodontics: i18n.t.categories.periodontics,
-		oral_surgery: i18n.t.categories.oral_surgery,
-		restorative: i18n.t.categories.restorative,
-		preventive: i18n.t.categories.preventive,
-		imaging: i18n.t.categories.imaging,
-		other: i18n.t.categories.other,
-	});
+	// ── Date range state ─────────────────────────────────────────────────
+	const today = new Date();
+	const todayStr = today.toISOString().slice(0, 10);
 
-	const OUTCOME_LABELS = $derived<Record<string, string>>({
-		successful: i18n.t.outcomes.successful,
-		retreated: i18n.t.outcomes.retreated,
-		failed_extracted: i18n.t.outcomes.failed_extracted,
-		failed_other: i18n.t.outcomes.failed_other,
-		ongoing: i18n.t.outcomes.ongoing,
-		unknown: i18n.t.outcomes.unknown,
-	});
+	function firstDayOfMonth(d: Date): string {
+		return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+	}
+	function offsetMonths(d: Date, n: number): Date {
+		return new Date(d.getFullYear(), d.getMonth() + n, 1);
+	}
 
-	// Filter state
-	let dateFrom = $state('');
-	let dateTo = $state('');
-	let selectedCategories = $state<Set<string>>(new Set());
-	let selectedOutcomes = $state<Set<string>>(new Set());
-	let doctorId = $state<number | null>(null);
-	let toothInput = $state('');
+	let dateFrom = $state(firstDayOfMonth(today));
+	let dateTo = $state(todayStr);
+	let selectedDoctorId = $state<string>('');
 
-	// Results
-	let entries = $state<ReportEntry[]>([]);
-	let summary = $state<{
-		total: number;
-		byCategory: CategoryStat[];
-		byOutcome: { outcome: string; count: number }[];
-		byProvider: { doctor_name: string; total: number; successful: number }[];
-	} | null>(null);
+	// ── Data state ───────────────────────────────────────────────────────
+	let allKpis = $state<DoctorPerformanceKPI[]>([]);
+	let singleKpi = $state<DoctorPerformanceKPI | null>(null);
+	let monthlyTrend = $state<DoctorMonthlyTrend[]>([]);
+	let dowStats = $state<DoctorDowStat[]>([]);
+	let treatmentStats = $state<DoctorTreatmentStat[]>([]);
 	let isLoading = $state(false);
-	let hasRun = $state(false);
 
-	let activeTab = $state<'summary' | 'table' | 'providers'>('summary');
+	// ── Derived helpers ──────────────────────────────────────────────────
+	const isAllDoctors = $derived(selectedDoctorId === '');
 
-	const CATEGORIES = ['endodontics', 'orthodontics', 'prosthodontics', 'periodontics', 'oral_surgery', 'restorative', 'preventive', 'imaging', 'other'];
-	const OUTCOMES = ['successful', 'retreated', 'failed_extracted', 'failed_other', 'ongoing', 'unknown'];
-
-	function buildFilters(): ReportFilters {
-		const teeth = toothInput
-			? toothInput.split(',').map(t => parseInt(t.trim())).filter(n => !isNaN(n) && n >= 1 && n <= 32)
-			: undefined;
-		return {
-			dateFrom: dateFrom || undefined,
-			dateTo: dateTo || undefined,
-			categories: selectedCategories.size > 0 ? [...selectedCategories] : undefined,
-			outcomes: selectedOutcomes.size > 0 ? [...selectedOutcomes] : undefined,
-			doctorId: doctorId,
-			toothNumbers: teeth,
-		};
+	function avgPerDay(kpi: DoctorPerformanceKPI): string {
+		if (!kpi.working_days) return '—';
+		return (kpi.total / kpi.working_days).toFixed(1);
 	}
 
-	async function runQuery() {
+	function completionRate(kpi: DoctorPerformanceKPI): string {
+		const resolved = kpi.completed + kpi.cancelled + kpi.no_show;
+		if (!resolved) return '—';
+		return Math.round((kpi.completed / resolved) * 100) + '%';
+	}
+
+	function completionRateNum(kpi: DoctorPerformanceKPI): number {
+		const resolved = kpi.completed + kpi.cancelled + kpi.no_show;
+		if (!resolved) return 0;
+		return Math.round((kpi.completed / resolved) * 100);
+	}
+
+	function deviationLabel(dev: number | null): string {
+		if (dev === null) return '—';
+		const sign = dev > 0 ? '+' : '';
+		return `${sign}${dev.toFixed(1)} ${i18n.t.reports.performance.minutes}`;
+	}
+
+	function deviationColor(dev: number | null): string {
+		if (dev === null) return 'text-muted-foreground';
+		if (Math.abs(dev) <= 2) return 'text-emerald-600 dark:text-emerald-400';
+		if (dev > 0) return 'text-red-500 dark:text-red-400';
+		return 'text-blue-500 dark:text-blue-400';
+	}
+
+	// ── Monthly trend chart helpers ──────────────────────────────────────
+	const maxMonthTotal = $derived(Math.max(1, ...monthlyTrend.map(m => m.total)));
+
+	function allMonthsInRange(from: string, to: string): string[] {
+		const months: string[] = [];
+		let cur = new Date(from.slice(0, 7) + '-01');
+		const end = new Date(to.slice(0, 7) + '-01');
+		while (cur <= end) {
+			months.push(cur.toISOString().slice(0, 7));
+			cur = offsetMonths(cur, 1);
+		}
+		return months.slice(-12); // cap at 12 months for readability
+	}
+
+	const trendMonths = $derived(allMonthsInRange(dateFrom, dateTo));
+
+	function trendForMonth(month: string): DoctorMonthlyTrend {
+		return monthlyTrend.find(m => m.month === month) ?? { month, total: 0, completed: 0, cancelled: 0, no_show: 0 };
+	}
+
+	function monthLabel(month: string): string {
+		const [year, mon] = month.split('-');
+		return new Date(Number(year), Number(mon) - 1, 1).toLocaleString(i18n.t.meta.code === 'de' ? 'de-DE' : 'en-GB', { month: 'short' });
+	}
+
+	// ── DoW chart helpers ────────────────────────────────────────────────
+	// dayAbbrevs is Sun-first (index 0=Sun), matching SQLite strftime('%w')
+	const DOW_LABELS = $derived(i18n.t.defaults.dayAbbrevs); // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+	const maxDow = $derived(Math.max(1, ...dowStats.map(d => d.count)));
+
+	function dowCount(dow: number): number {
+		return dowStats.find(d => d.dow === dow)?.count ?? 0;
+	}
+
+	// ── Quick date presets ───────────────────────────────────────────────
+	function applyPreset(preset: 'month' | 'quarter' | 'year') {
+		dateTo = todayStr;
+		if (preset === 'month') {
+			dateFrom = firstDayOfMonth(today);
+		} else if (preset === 'quarter') {
+			dateFrom = firstDayOfMonth(offsetMonths(today, -2));
+		} else {
+			dateFrom = `${today.getFullYear()}-01-01`;
+		}
+		load();
+	}
+
+	// ── Load data ────────────────────────────────────────────────────────
+	async function load() {
+		if (!dateFrom || !dateTo) return;
 		isLoading = true;
-		hasRun = true;
-		const filters = buildFilters();
-		const [e, s] = await Promise.all([getFilteredEntries(filters), getFilteredSummary(filters)]);
-		entries = e;
-		summary = s;
-		isLoading = false;
+		try {
+			if (isAllDoctors) {
+				[allKpis] = await Promise.all([getAllDoctorKPIs(dateFrom, dateTo)]);
+				singleKpi = null;
+				monthlyTrend = [];
+				dowStats = [];
+				treatmentStats = [];
+			} else {
+				[singleKpi, monthlyTrend, dowStats, treatmentStats] = await Promise.all([
+					getDoctorPerformanceKPI(selectedDoctorId, dateFrom, dateTo),
+					getDoctorMonthlyTrend(selectedDoctorId, dateFrom, dateTo),
+					getDoctorDowDistribution(selectedDoctorId, dateFrom, dateTo),
+					getDoctorTreatmentStats(selectedDoctorId, dateFrom, dateTo),
+				]);
+				allKpis = [];
+			}
+		} finally {
+			isLoading = false;
+		}
 	}
 
-	function resetFilters() {
-		dateFrom = '';
-		dateTo = '';
-		selectedCategories = new Set();
-		selectedOutcomes = new Set();
-		doctorId = null;
-		toothInput = '';
-		entries = [];
-		summary = null;
-		hasRun = false;
-	}
+	onMount(() => {
+		doctors.load();
+	});
 
-	function toggleCategory(cat: string) {
-		const s = new Set(selectedCategories);
-		s.has(cat) ? s.delete(cat) : s.add(cat);
-		selectedCategories = s;
-	}
-
-	function toggleOutcome(out: string) {
-		const s = new Set(selectedOutcomes);
-		s.has(out) ? s.delete(out) : s.add(out);
-		selectedOutcomes = s;
-	}
-
-	function exportCSV() {
-		const csv = entriesToCSV(entries);
-		const date = new Date().toISOString().slice(0, 10);
-		downloadCSV(csv, `dentvault_report_${date}.csv`);
-	}
-
-	function exportJSON() {
-		const date = new Date().toISOString().slice(0, 10);
-		downloadJson({ exportedAt: date, filters: buildFilters(), entries, summary }, `dentvault_report_${date}.json`);
-	}
-
-	function applyQuickFilter(preset: 'week' | 'month' | 'year') {
-		const today = new Date();
-		dateTo = today.toISOString().slice(0, 10);
-		const d = new Date(today);
-		if (preset === 'week')       d.setDate(d.getDate() - 6);
-		else if (preset === 'month') d.setDate(d.getDate() - 29);
-		else                         d.setFullYear(d.getFullYear() - 1);
-		dateFrom = d.toISOString().slice(0, 10);
-		runQuery();
-	}
+	$effect(() => {
+		// tracks selectedDoctorId, dateFrom, dateTo — fires on mount and on any change
+		selectedDoctorId;
+		dateFrom;
+		dateTo;
+		load();
+	});
 </script>
 
 <div class="flex flex-col gap-6">
-	<!-- Work-in-progress notice -->
-	<div class="flex items-start gap-3 rounded-lg border border-amber-300/60 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700/40 px-4 py-3">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400">
-			<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-		</svg>
-		<p class="text-sm text-amber-800 dark:text-amber-300">
-			<span class="font-semibold">Reports is on hold.</span>
-			The current filters and tables work, but the direction for deeper analytics — cohort comparisons, outcome trends, survival curves — hasn't been decided yet. This page will be redesigned once a clearer vision is formed.
-		</p>
+
+	<!-- Header -->
+	<div>
+		<h1 class="text-2xl font-bold tracking-tight">{i18n.t.reports.performance.title}</h1>
+		<p class="text-sm text-muted-foreground mt-0.5">{i18n.t.reports.performance.subtitle}</p>
 	</div>
 
-	<div class="flex items-start justify-between gap-4">
-		<div>
-			<h1 class="text-2xl font-bold tracking-tight">{i18n.t.nav.reports}</h1>
-			<p class="text-sm text-muted-foreground mt-0.5">{i18n.t.reports.title}</p>
-		</div>
-		{#if activePatient.id}
-			<a
-				href="/patients/{activePatient.id}"
-				class="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors mt-1"
+	<!-- Controls -->
+	<div class="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
+		<!-- Doctor selector -->
+		<div class="flex items-center gap-2">
+			<label class="text-xs font-medium text-muted-foreground whitespace-nowrap">{i18n.t.reports.performance.selectDoctor}</label>
+			<select
+				bind:value={selectedDoctorId}
+				class="h-8 rounded-md border border-border bg-background px-2 text-xs min-w-[160px]"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-muted-foreground">
-					<path d="M19 12H5M12 19l-7-7 7-7"/>
-				</svg>
-				{activePatient.displayName}
-			</a>
-		{/if}
-	</div>
-
-	<!-- Quick filters -->
-	<div class="flex flex-wrap items-center gap-2">
-		<span class="text-xs text-muted-foreground font-medium">{i18n.t.reports.quickFilterLabel}</span>
-		<button onclick={() => applyQuickFilter('week')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-			{i18n.t.reports.quickThisWeek}
-		</button>
-		<button onclick={() => applyQuickFilter('month')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-			{i18n.t.reports.quickThisMonth}
-		</button>
-		<button onclick={() => applyQuickFilter('year')} class="h-7 rounded-full border border-border bg-background px-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-			{i18n.t.reports.quickThisYear}
-		</button>
-	</div>
-
-	<!-- Filter panel -->
-	<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-		<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{i18n.t.reports.filters}</h2>
-		<Separator />
-
-		<!-- Date range -->
-		<div class="flex flex-wrap items-center gap-3">
-			<label class="text-xs font-medium text-muted-foreground w-20 shrink-0">{i18n.t.dashboard.filters.dateFrom}</label>
-			<input type="date" bind:value={dateFrom} class="h-7 rounded border border-border bg-background px-2 text-xs" />
-			<span class="text-xs text-muted-foreground">to</span>
-			<input type="date" bind:value={dateTo} class="h-7 rounded border border-border bg-background px-2 text-xs" />
-		</div>
-
-		<!-- Provider -->
-		<div class="flex flex-wrap items-center gap-3">
-			<label class="text-xs font-medium text-muted-foreground w-20 shrink-0">{i18n.t.dashboard.filters.doctor}</label>
-			<select bind:value={doctorId} class="h-7 rounded border border-border bg-background px-2 text-xs">
-				<option value={null}>{i18n.t.dashboard.filters.allDoctors}</option>
+				<option value="">{i18n.t.reports.performance.allDoctors}</option>
 				{#each doctors.list as doc}
-					<option value={doc.id}>{doc.name}</option>
+					<option value={String(doc.id)}>{doc.name}</option>
 				{/each}
 			</select>
 		</div>
 
-		<!-- Teeth -->
-		<div class="flex flex-wrap items-center gap-3">
-			<label class="text-xs font-medium text-muted-foreground w-20 shrink-0">{i18n.t.reports.columns.teeth}</label>
-			<input type="text" bind:value={toothInput} placeholder="e.g. 14, 36" class="h-7 rounded border border-border bg-background px-2 text-xs w-40" />
-			<span class="text-[10px] text-muted-foreground/60">comma-separated tooth numbers</span>
+		<div class="h-5 w-px bg-border hidden sm:block"></div>
+
+		<!-- Date range -->
+		<div class="flex items-center gap-2 flex-wrap">
+			<input type="date" bind:value={dateFrom} class="h-8 rounded-md border border-border bg-background px-2 text-xs" />
+			<span class="text-xs text-muted-foreground">–</span>
+			<input type="date" bind:value={dateTo} class="h-8 rounded-md border border-border bg-background px-2 text-xs" />
 		</div>
 
-		<!-- Categories -->
-		<div class="flex flex-wrap items-start gap-3">
-			<label class="text-xs font-medium text-muted-foreground w-20 shrink-0 mt-1.5">{i18n.t.reports.columns.category}</label>
-			<div class="flex flex-wrap gap-1.5">
-				{#each CATEGORIES as cat}
-					<button
-						type="button"
-						onclick={() => toggleCategory(cat)}
-						class={`h-6 rounded-full px-2.5 text-[10px] font-medium border transition-colors ${selectedCategories.has(cat) ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border hover:border-foreground/40'}`}
-					>
-						{CATEGORY_LABELS[cat] ?? cat}
-					</button>
-				{/each}
-			</div>
-		</div>
+		<div class="h-5 w-px bg-border hidden sm:block"></div>
 
-		<!-- Outcomes -->
-		<div class="flex flex-wrap items-start gap-3">
-			<label class="text-xs font-medium text-muted-foreground w-20 shrink-0 mt-1.5">{i18n.t.reports.columns.outcome}</label>
-			<div class="flex flex-wrap gap-1.5">
-				{#each OUTCOMES as out}
-					<button
-						type="button"
-						onclick={() => toggleOutcome(out)}
-						class={`h-6 rounded-full px-2.5 text-[10px] font-medium border transition-colors ${selectedOutcomes.has(out) ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border hover:border-foreground/40'}`}
-					>
-						{OUTCOME_LABELS[out] ?? out}
-					</button>
-				{/each}
-			</div>
-		</div>
-
-		<!-- Actions -->
-		<div class="flex items-center gap-2 pt-1 border-t">
-			<button onclick={runQuery} class="h-8 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-				{i18n.t.actions.apply}
+		<!-- Quick presets -->
+		<div class="flex items-center gap-1.5">
+			<button
+				onclick={() => applyPreset('month')}
+				class="h-7 rounded-full border border-border bg-background px-3 text-[11px] text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+			>
+				{i18n.t.reports.performance.quickThisMonth}
 			</button>
-			<button onclick={resetFilters} class="h-8 rounded-md border px-3 text-xs text-muted-foreground hover:bg-muted transition-colors">
-				{i18n.t.actions.reset}
+			<button
+				onclick={() => applyPreset('quarter')}
+				class="h-7 rounded-full border border-border bg-background px-3 text-[11px] text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+			>
+				{i18n.t.reports.performance.quickLast3Months}
+			</button>
+			<button
+				onclick={() => applyPreset('year')}
+				class="h-7 rounded-full border border-border bg-background px-3 text-[11px] text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+			>
+				{i18n.t.reports.performance.quickThisYear}
 			</button>
 		</div>
 	</div>
 
-	<!-- Results -->
+	<!-- Loading skeleton -->
 	{#if isLoading}
-		<div class="h-32 animate-pulse rounded-lg border bg-muted"></div>
-	{:else if hasRun && summary}
-		<!-- Tabs -->
-		<div class="flex items-center gap-0 border-b">
-			{#each (['summary', 'table', 'providers'] as const) as tab}
-				<button
-					onclick={() => activeTab = tab}
-					class={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${activeTab === tab ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-				>
-					{tab === 'summary' ? i18n.t.common.all : tab === 'table' ? `${entries.length}` : i18n.t.reports.columns.doctor}
-				</button>
-			{/each}
+		<div class="flex flex-col gap-4">
+			<div class="h-28 animate-pulse rounded-lg border bg-muted"></div>
+			<div class="h-40 animate-pulse rounded-lg border bg-muted"></div>
 		</div>
 
-		{#if activeTab === 'summary'}
-			<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-				<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					<div class="rounded-lg border p-4">
-						<div class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.common.all}</div>
-						<div class="text-3xl font-bold tabular-nums mt-1">{summary.total}</div>
-					</div>
-					<div class="rounded-lg border p-4">
-						<div class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.dashboard.stats.successRate}</div>
-						<div class="text-3xl font-bold tabular-nums mt-1 text-emerald-600">
-							{#if summary.byOutcome.find(o => o.outcome === 'successful') && summary.total > 0}
-								{Math.round(100 * (summary.byOutcome.find(o => o.outcome === 'successful')?.count ?? 0) / summary.total)}%
-							{:else}—{/if}
-						</div>
-					</div>
-				</div>
-
-				{#if summary.byCategory.length > 0}
-					<div>
-						<h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3">{i18n.t.reports.columns.category}</h3>
-						<div class="flex flex-col gap-2">
-							{#each summary.byCategory as stat}
-								<div class="flex items-center gap-3">
-									<div class="w-28 shrink-0 text-xs text-muted-foreground text-right truncate">{CATEGORY_LABELS[stat.category] ?? stat.category}</div>
-									<div class="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-										<div class="h-full rounded-full bg-primary transition-all" style="width: {summary.byCategory[0].count > 0 ? Math.round(stat.count / summary.byCategory[0].count * 100) : 0}%"></div>
-									</div>
-									<span class="text-xs tabular-nums text-muted-foreground w-8 text-right">{stat.count}</span>
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				{#if summary.byOutcome.length > 0}
-					<div>
-						<h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3">{i18n.t.reports.columns.outcome}</h3>
-						<div class="flex flex-wrap gap-2">
-							{#each summary.byOutcome as stat}
-								<div class="rounded-lg border p-3 text-center min-w-[80px]">
-									<div class="text-lg font-bold tabular-nums">{stat.count}</div>
-									<div class="text-[10px] text-muted-foreground mt-0.5">{OUTCOME_LABELS[stat.outcome] ?? stat.outcome}</div>
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
+	<!-- ── All Doctors Comparison ── -->
+	{:else if isAllDoctors}
+		{#if allKpis.length === 0}
+			<div class="rounded-lg border border-dashed p-12 text-center">
+				<p class="text-sm text-muted-foreground">{i18n.t.reports.performance.noData}</p>
 			</div>
-
-		{:else if activeTab === 'table'}
+		{:else}
 			<div class="rounded-lg border bg-card overflow-hidden">
-				<div class="flex items-center justify-between p-4 border-b">
-					<span class="text-sm font-medium">{entries.length}</span>
-					<div class="flex items-center gap-2">
-						<button onclick={exportCSV} class="h-7 rounded-md border px-3 text-xs hover:bg-muted flex items-center gap-1.5">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
-								<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-								<polyline points="7 10 12 15 17 10"/>
-								<line x1="12" y1="15" x2="12" y2="3"/>
-							</svg>
-							{i18n.t.reports.exportCsv}
-						</button>
-						<button onclick={exportJSON} class="h-7 rounded-md border px-3 text-xs hover:bg-muted flex items-center gap-1.5">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
-								<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-								<polyline points="7 10 12 15 17 10"/>
-								<line x1="12" y1="15" x2="12" y2="3"/>
-							</svg>
-							{i18n.t.reports.exportJson}
-						</button>
-					</div>
+				<div class="px-5 py-3 border-b">
+					<h2 class="text-sm font-semibold">{i18n.t.reports.performance.comparisonTable}</h2>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-xs">
 						<thead class="bg-muted/40">
 							<tr>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.date}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.patient}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.category}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.common.name}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.teeth}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.doctor}</th>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.outcome}</th>
+								<th class="text-left px-4 py-2.5 font-medium text-muted-foreground">{i18n.t.common.doctor}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colTotal}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colWorkingDays}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colAvgPerDay}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colCompletion}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colCancelled}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colNoShow}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colAvgPlanned}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colAvgActual}</th>
+								<th class="text-center px-3 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.performance.colDeviation}</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-border/40">
-							{#each entries as e}
+							{#each allKpis as kpi}
+								{@const rate = completionRateNum(kpi)}
 								<tr class="hover:bg-muted/20">
-									<td class="px-3 py-2 text-muted-foreground">{e.entry_date}</td>
-									<td class="px-3 py-2"><a href="/patients/{e.patient_id}" class="hover:text-primary hover:underline">{e.patient_name}</a></td>
-									<td class="px-3 py-2">{(CATEGORY_LABELS[e.treatment_category] ?? e.treatment_category) || '—'}</td>
-									<td class="px-3 py-2 max-w-[200px] truncate" title={e.title}>{e.title}</td>
-									<td class="px-3 py-2 text-muted-foreground">{e.tooth_numbers || '—'}</td>
-									<td class="px-3 py-2 text-muted-foreground">{e.doctor_name || '—'}</td>
-									<td class="px-3 py-2">{(OUTCOME_LABELS[e.treatment_outcome] ?? e.treatment_outcome) || '—'}</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-
-		{:else if activeTab === 'providers'}
-			<div class="rounded-lg border bg-card overflow-hidden">
-				<div class="overflow-x-auto">
-					<table class="w-full text-xs">
-						<thead class="bg-muted/40">
-							<tr>
-								<th class="text-left px-3 py-2 font-medium text-muted-foreground">{i18n.t.reports.columns.doctor}</th>
-								<th class="text-center px-3 py-2 font-medium text-muted-foreground">{i18n.t.common.all}</th>
-								<th class="text-center px-3 py-2 font-medium text-emerald-600">{i18n.t.outcomes.successful}</th>
-								<th class="text-center px-3 py-2 font-medium text-muted-foreground">{i18n.t.dashboard.stats.successRate}</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border/40">
-							{#each summary.byProvider as prov}
-								{@const rate = prov.total > 0 ? Math.round(100 * prov.successful / prov.total) : null}
-								<tr class="hover:bg-muted/20">
-									<td class="px-3 py-2 font-medium">{prov.doctor_name}</td>
-									<td class="px-3 py-2 text-center tabular-nums">{prov.total}</td>
-									<td class="px-3 py-2 text-center tabular-nums text-emerald-600">{prov.successful}</td>
-									<td class="px-3 py-2 text-center tabular-nums">
-										{#if rate !== null}
-											<span class={rate >= 90 ? 'text-emerald-600' : rate >= 70 ? 'text-amber-600' : 'text-red-500'}>{rate}%</span>
+									<td class="px-4 py-2.5 font-medium">
+										<div class="flex items-center gap-2">
+											<span class="h-2.5 w-2.5 rounded-full shrink-0" style="background:{kpi.doctor_color}"></span>
+											<button
+												onclick={() => { selectedDoctorId = kpi.doctor_id; }}
+												class="hover:text-primary hover:underline text-left"
+											>
+												{kpi.doctor_name}
+											</button>
+										</div>
+									</td>
+									<td class="px-3 py-2.5 text-center tabular-nums font-medium">{kpi.total}</td>
+									<td class="px-3 py-2.5 text-center tabular-nums text-muted-foreground">{kpi.working_days}</td>
+									<td class="px-3 py-2.5 text-center tabular-nums">{avgPerDay(kpi)}</td>
+									<td class="px-3 py-2.5 text-center tabular-nums">
+										{#if kpi.total > 0}
+											<span class={rate >= 85 ? 'text-emerald-600' : rate >= 65 ? 'text-amber-600' : 'text-red-500'}>
+												{rate}%
+											</span>
 										{:else}—{/if}
+									</td>
+									<td class="px-3 py-2.5 text-center tabular-nums text-red-500">{kpi.cancelled || '—'}</td>
+									<td class="px-3 py-2.5 text-center tabular-nums text-orange-500">{kpi.no_show || '—'}</td>
+									<td class="px-3 py-2.5 text-center tabular-nums text-muted-foreground">
+										{kpi.avg_planned_duration != null ? `${kpi.avg_planned_duration} ${i18n.t.reports.performance.minutes}` : '—'}
+									</td>
+									<td class="px-3 py-2.5 text-center tabular-nums text-muted-foreground">
+										{kpi.avg_actual_duration != null ? `${kpi.avg_actual_duration} ${i18n.t.reports.performance.minutes}` : '—'}
+									</td>
+									<td class="px-3 py-2.5 text-center tabular-nums {deviationColor(kpi.avg_deviation)}">
+										{deviationLabel(kpi.avg_deviation)}
 									</td>
 								</tr>
 							{/each}
@@ -392,13 +293,225 @@
 			</div>
 		{/if}
 
-	{:else if hasRun}
-		<div class="rounded-lg border border-dashed p-12 text-center">
-			<p class="text-sm text-muted-foreground">{i18n.t.reports.noResults}</p>
+	<!-- ── Single Doctor Deep Dive ── -->
+	{:else if singleKpi}
+		{@const kpi = singleKpi}
+		{@const rate = completionRateNum(kpi)}
+
+		<!-- KPI cards row -->
+		<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+			<!-- Total -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-1">
+				<span class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.reports.performance.kpi.total}</span>
+				<span class="text-3xl font-bold tabular-nums">{kpi.total}</span>
+				<span class="text-[11px] text-muted-foreground">{kpi.working_days} {i18n.t.reports.performance.days}</span>
+			</div>
+			<!-- Avg/Day -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-1">
+				<span class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.reports.performance.kpi.avgPerDay}</span>
+				<span class="text-3xl font-bold tabular-nums">{avgPerDay(kpi)}</span>
+				<span class="text-[11px] text-muted-foreground">{i18n.t.reports.performance.kpi.workingDays}</span>
+			</div>
+			<!-- Completion rate -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-1">
+				<span class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.reports.performance.kpi.completionRate}</span>
+				<span class="text-3xl font-bold tabular-nums {rate >= 85 ? 'text-emerald-600' : rate >= 65 ? 'text-amber-600' : 'text-red-500'}">{completionRate(kpi)}</span>
+				<span class="text-[11px] text-muted-foreground">{kpi.completed} / {kpi.completed + kpi.cancelled + kpi.no_show}</span>
+			</div>
+			<!-- Avg deviation -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-1">
+				<span class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{i18n.t.reports.performance.kpi.avgDeviation}</span>
+				<span class="text-3xl font-bold tabular-nums {deviationColor(kpi.avg_deviation)}">{deviationLabel(kpi.avg_deviation)}</span>
+				{#if kpi.avg_deviation !== null}
+					<span class="text-[11px] {deviationColor(kpi.avg_deviation)}">
+						{Math.abs(kpi.avg_deviation) <= 2
+							? i18n.t.reports.performance.onTime
+							: kpi.avg_deviation > 0
+								? i18n.t.reports.performance.overTime
+								: i18n.t.reports.performance.underTime}
+					</span>
+				{:else}
+					<span class="text-[11px] text-muted-foreground">{i18n.t.common.noData}</span>
+				{/if}
+			</div>
 		</div>
-	{:else}
+
+		<!-- Secondary stats strip -->
+		<div class="flex flex-wrap gap-3">
+			<div class="rounded-md border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[130px]">
+				<div>
+					<div class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.reports.performance.kpi.cancelled}</div>
+					<div class="text-lg font-semibold tabular-nums text-red-500">{kpi.cancelled}</div>
+				</div>
+			</div>
+			<div class="rounded-md border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[130px]">
+				<div>
+					<div class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.reports.performance.kpi.noShow}</div>
+					<div class="text-lg font-semibold tabular-nums text-orange-500">{kpi.no_show}</div>
+				</div>
+			</div>
+			{#if kpi.avg_planned_duration != null}
+				<div class="rounded-md border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[130px]">
+					<div>
+						<div class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.reports.performance.kpi.avgPlanned}</div>
+						<div class="text-lg font-semibold tabular-nums">{kpi.avg_planned_duration} <span class="text-xs font-normal text-muted-foreground">{i18n.t.reports.performance.minutes}</span></div>
+					</div>
+				</div>
+			{/if}
+			{#if kpi.avg_actual_duration != null}
+				<div class="rounded-md border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[130px]">
+					<div>
+						<div class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.reports.performance.kpi.avgActual}</div>
+						<div class="text-lg font-semibold tabular-nums">{kpi.avg_actual_duration} <span class="text-xs font-normal text-muted-foreground">{i18n.t.reports.performance.minutes}</span></div>
+					</div>
+				</div>
+			{/if}
+		</div>
+
+		<!-- Monthly trend -->
+		{#if trendMonths.length > 0}
+			<div class="rounded-lg border bg-card p-5">
+				<h2 class="text-sm font-semibold mb-4">{i18n.t.reports.performance.monthlyTrend}</h2>
+				<div class="flex items-end gap-1.5 h-32 overflow-x-auto pb-1">
+					{#each trendMonths as month}
+						{@const m = trendForMonth(month)}
+						{@const completedH = maxMonthTotal > 0 ? Math.round((m.completed / maxMonthTotal) * 112) : 0}
+						{@const cancelledH = maxMonthTotal > 0 ? Math.round((m.cancelled / maxMonthTotal) * 112) : 0}
+						{@const noShowH = maxMonthTotal > 0 ? Math.round((m.no_show / maxMonthTotal) * 112) : 0}
+						<div class="flex flex-col items-center gap-1 min-w-[36px]">
+							<div class="flex flex-col-reverse items-center gap-px w-6">
+								{#if completedH > 0}
+									<div
+										class="w-full rounded-sm bg-emerald-500/80"
+										style="height:{completedH}px"
+										title="{i18n.t.reports.performance.completed}: {m.completed}"
+									></div>
+								{/if}
+								{#if cancelledH > 0}
+									<div
+										class="w-full rounded-sm bg-red-400/70"
+										style="height:{cancelledH}px"
+										title="{i18n.t.reports.performance.cancelled}: {m.cancelled}"
+									></div>
+								{/if}
+								{#if noShowH > 0}
+									<div
+										class="w-full rounded-sm bg-orange-400/70"
+										style="height:{noShowH}px"
+										title="{i18n.t.reports.performance.noShow}: {m.no_show}"
+									></div>
+								{/if}
+								{#if m.total === 0}
+									<div class="w-full h-1 rounded-sm bg-border"></div>
+								{/if}
+							</div>
+							<span class="text-[9px] text-muted-foreground">{monthLabel(month)}</span>
+							{#if m.total > 0}
+								<span class="text-[9px] tabular-nums font-medium">{m.total}</span>
+							{/if}
+						</div>
+					{/each}
+				</div>
+				<!-- Legend -->
+				<div class="flex items-center gap-4 mt-3 pt-3 border-t">
+					<div class="flex items-center gap-1.5">
+						<span class="h-2 w-4 rounded-sm bg-emerald-500/80 inline-block"></span>
+						<span class="text-[11px] text-muted-foreground">{i18n.t.reports.performance.completed}</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<span class="h-2 w-4 rounded-sm bg-red-400/70 inline-block"></span>
+						<span class="text-[11px] text-muted-foreground">{i18n.t.reports.performance.cancelled}</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<span class="h-2 w-4 rounded-sm bg-orange-400/70 inline-block"></span>
+						<span class="text-[11px] text-muted-foreground">{i18n.t.reports.performance.noShow}</span>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- DoW distribution + Treatment types (side by side on wide screens) -->
+		<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+			<!-- Day of week -->
+			<div class="rounded-lg border bg-card p-5">
+				<h2 class="text-sm font-semibold mb-4">{i18n.t.reports.performance.dowDistribution}</h2>
+				<div class="flex flex-col gap-2">
+					{#each [1, 2, 3, 4, 5, 6, 0] as dow}
+						{@const count = dowCount(dow)}
+						{@const pct = maxDow > 0 ? (count / maxDow) * 100 : 0}
+						<div class="flex items-center gap-2">
+							<span class="text-xs text-muted-foreground w-8 shrink-0">{DOW_LABELS[dow]}</span>
+							<div class="flex-1 h-5 rounded bg-muted/40 overflow-hidden relative">
+								<div
+									class="h-full rounded bg-primary/70 transition-all duration-300"
+									style="width:{pct}%"
+								></div>
+							</div>
+							<span class="text-xs tabular-nums text-muted-foreground w-6 text-right">{count}</span>
+						</div>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Treatment types -->
+			<div class="rounded-lg border bg-card p-5">
+				<h2 class="text-sm font-semibold mb-4">{i18n.t.reports.performance.treatmentTypes}</h2>
+				{#if treatmentStats.length === 0}
+					<p class="text-xs text-muted-foreground">{i18n.t.reports.performance.noData}</p>
+				{:else}
+					<div class="flex flex-col gap-3">
+						{#each treatmentStats as stat}
+							{@const maxDur = Math.max(stat.avg_planned_duration ?? 0, stat.avg_actual_duration ?? 0, 1)}
+							<div class="flex flex-col gap-1">
+								<div class="flex items-center justify-between">
+									<div class="flex items-center gap-1.5">
+										{#if stat.type_color}
+											<span class="h-2 w-2 rounded-full shrink-0" style="background:{stat.type_color}"></span>
+										{/if}
+										<span class="text-xs font-medium truncate">{stat.type_name ?? i18n.t.common.unknown}</span>
+									</div>
+									<div class="flex items-center gap-3 text-[11px] tabular-nums">
+										<span class="text-muted-foreground">×{stat.appointment_count}</span>
+										<span class={deviationColor(stat.avg_deviation)}>{deviationLabel(stat.avg_deviation)}</span>
+									</div>
+								</div>
+								<!-- Dual bar: planned vs actual -->
+								{#if stat.avg_planned_duration != null}
+									<div class="flex flex-col gap-0.5">
+										<div class="flex items-center gap-1.5">
+											<span class="text-[9px] text-muted-foreground/70 w-12 text-right">{i18n.t.dashboard.staff.treatmentTimes.planned}</span>
+											<div class="flex-1 h-2.5 rounded bg-muted/40 overflow-hidden">
+												<div class="h-full rounded bg-primary/50" style="width:{Math.round((stat.avg_planned_duration / maxDur) * 100)}%"></div>
+											</div>
+											<span class="text-[10px] tabular-nums text-muted-foreground w-12">{stat.avg_planned_duration} {i18n.t.reports.performance.minutes}</span>
+										</div>
+										{#if stat.avg_actual_duration != null}
+											<div class="flex items-center gap-1.5">
+												<span class="text-[9px] text-muted-foreground/70 w-12 text-right">{i18n.t.dashboard.staff.treatmentTimes.actual}</span>
+												<div class="flex-1 h-2.5 rounded bg-muted/40 overflow-hidden">
+													<div
+														class="h-full rounded {stat.avg_deviation != null && stat.avg_deviation > 2 ? 'bg-red-400/70' : stat.avg_deviation != null && stat.avg_deviation < -2 ? 'bg-blue-400/70' : 'bg-emerald-500/70'}"
+														style="width:{Math.round((stat.avg_actual_duration / maxDur) * 100)}%"
+													></div>
+												</div>
+												<span class="text-[10px] tabular-nums text-muted-foreground w-12">{stat.avg_actual_duration} {i18n.t.reports.performance.minutes}</span>
+											</div>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
+
+	<!-- No doctor selected but also no data somehow -->
+	{:else if !isLoading}
 		<div class="rounded-lg border border-dashed p-12 text-center">
-			<p class="text-sm text-muted-foreground">{i18n.t.reports.filters}</p>
+			<p class="text-sm text-muted-foreground">{i18n.t.reports.performance.noData}</p>
 		</div>
 	{/if}
+
 </div>

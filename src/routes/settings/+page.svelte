@@ -33,6 +33,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import { appointmentStatusLabels, ALL_STATUSES } from '$lib/stores/appointmentStatusLabels.svelte';
 	import StaffWorkingHoursGrid from '$lib/components/schedule/StaffWorkingHoursGrid.svelte';
 	import type { DentalTag, PatternType, AppointmentRoom, AppointmentType, WorkingHoursEntry, Patient } from '$lib/types';
 	import { i18n, type LangCode } from '$lib/i18n';
@@ -959,6 +960,55 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		await appointmentTypes.remove(id);
 	}
 
+	// ── Appointment Status Labels ───────────────────────────────────────────────
+	const STATUS_META: Record<string, { icon: string; dot: string; defaultKey: () => string }> = {
+		scheduled:    { icon: '📅', dot: 'bg-primary',     defaultKey: () => i18n.t.schedule.statuses.scheduled },
+		waiting:      { icon: '⏳', dot: 'bg-amber-500',   defaultKey: () => i18n.t.schedule.statuses.waiting },
+		in_treatment: { icon: '🦷', dot: 'bg-blue-600',    defaultKey: () => i18n.t.schedule.statuses.in_treatment },
+		completed:    { icon: '✓',  dot: 'bg-green-600',   defaultKey: () => i18n.t.schedule.statuses.completed },
+		cancelled:    { icon: '✕',  dot: 'bg-destructive', defaultKey: () => i18n.t.schedule.statuses.cancelled },
+		no_show:      { icon: '✗',  dot: 'bg-orange-500',  defaultKey: () => i18n.t.schedule.statuses.no_show },
+	};
+
+	let statusLabelDraft = $state<Record<string, string>>({});
+	let statusLabelsSaving = $state(false);
+	let statusLabelsSaved  = $state(false);
+
+	$effect(() => {
+		const o = appointmentStatusLabels.overrides;
+		statusLabelDraft = { ...o };
+	});
+
+	async function saveStatusLabels() {
+		statusLabelsSaving = true;
+		try {
+			await appointmentStatusLabels.saveLabels({ ...statusLabelDraft });
+			statusLabelsSaved = true;
+			setTimeout(() => (statusLabelsSaved = false), 2000);
+		} finally {
+			statusLabelsSaving = false;
+		}
+	}
+
+	let newCustomStatusName = $state('');
+	let customStatusSaving = $state(false);
+
+	async function handleAddCustomStatus() {
+		const name = newCustomStatusName.trim();
+		if (!name) return;
+		customStatusSaving = true;
+		try {
+			await appointmentStatusLabels.addCustomStatus(name);
+			newCustomStatusName = '';
+		} finally {
+			customStatusSaving = false;
+		}
+	}
+
+	async function handleRemoveCustomStatus(key: string) {
+		await appointmentStatusLabels.removeCustomStatus(key);
+	}
+
 	// ── Working Hours ───────────────────────────────────────────────────────────
 	let localWorkingHours = $state<WorkingHoursEntry[]>([...workingHours.hours]);
 	let workingHoursSaving = $state(false);
@@ -1342,6 +1392,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{ label: i18n.t.settings.sections.workingHours },
 						{ label: i18n.t.settings.sections.rooms },
 						{ label: i18n.t.settings.sections.appointmentTypes },
+						{ label: i18n.t.settings.sections.appointmentStatuses },
 					] as item}
 						<button type="button" onclick={() => nav('schedule')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
 							<span class="w-1 h-1 rounded-full bg-muted-foreground/30 shrink-0"></span>
@@ -3702,6 +3753,93 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{/if}
 					</div>
 				{/each}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.sections.appointmentStatuses}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.appointmentStatuses.description}</p>
+		</div>
+		<Separator />
+
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.sections.appointmentStatuses}</span>
+				{#if statusLabelsSaved}
+					<span class="text-xs text-emerald-600">{i18n.t.settings.schedule.appointmentStatuses.saved}!</span>
+				{/if}
+			</div>
+
+			<div class="flex flex-col divide-y divide-border">
+				{#each ALL_STATUSES as status}
+					{@const meta = STATUS_META[status]}
+					<div class="flex items-center gap-3 py-3">
+						<span class="text-base w-5 text-center shrink-0">{meta.icon}</span>
+						<span class="h-2 w-2 rounded-full shrink-0 {meta.dot}"></span>
+						<span class="w-32 shrink-0 text-sm text-muted-foreground">{meta.defaultKey()}</span>
+						<input
+							type="text"
+							placeholder={i18n.t.settings.schedule.appointmentStatuses.labelPlaceholder}
+							bind:value={statusLabelDraft[status]}
+							class="flex-1 h-8 rounded border border-border bg-background px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
+						/>
+					</div>
+				{/each}
+			</div>
+
+			<div class="flex items-center gap-2 pt-1 border-t">
+				<Button size="sm" onclick={saveStatusLabels} disabled={statusLabelsSaving}>
+					{i18n.t.actions.save}
+				</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					onclick={() => { statusLabelDraft = {}; }}
+					disabled={statusLabelsSaving}
+				>
+					{i18n.t.actions.reset}
+				</Button>
+			</div>
+
+			<!-- Custom statuses -->
+			<div class="pt-2 border-t flex flex-col gap-3">
+				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.appointmentStatuses.customTitle}</span>
+
+				{#if appointmentStatusLabels.custom.length > 0}
+					<div class="flex flex-col divide-y divide-border">
+						{#each appointmentStatusLabels.custom as cs}
+							<div class="flex items-center gap-3 py-2.5">
+								<span class="text-base w-5 text-center shrink-0 text-purple-500">●</span>
+								<span class="flex-1 text-sm font-medium">{cs.label}</span>
+								<span class="text-[10px] text-muted-foreground font-mono">{cs.key}</span>
+								<button
+									type="button"
+									class="text-xs text-destructive hover:text-destructive/80"
+									onclick={() => handleRemoveCustomStatus(cs.key)}
+								>{i18n.t.actions.delete}</button>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+				<div class="flex items-center gap-2">
+					<input
+						type="text"
+						placeholder={i18n.t.settings.schedule.appointmentStatuses.newStatusPlaceholder}
+						bind:value={newCustomStatusName}
+						onkeydown={(e) => { if (e.key === 'Enter') handleAddCustomStatus(); }}
+						class="flex-1 h-8 rounded border border-border bg-background px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
+					/>
+					<Button
+						size="sm"
+						onclick={handleAddCustomStatus}
+						disabled={!newCustomStatusName.trim() || customStatusSaving}
+					>{i18n.t.actions.add}</Button>
+				</div>
+				<p class="text-[11px] text-muted-foreground">{i18n.t.settings.schedule.appointmentStatuses.customHint}</p>
 			</div>
 		</div>
 	</section>

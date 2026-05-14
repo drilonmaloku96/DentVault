@@ -704,6 +704,34 @@ function renderTimeline(
 				const snapshotSvg = renderChartSVG(snapshotChart, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs);
 				html += `<div class="chart-container chart-snapshot">${snapshotSvg}</div>`;
 			} catch { /* skip malformed snapshot */ }
+		} else if (entry.entry_type === 'ceph_snapshot' && entry.chart_data) {
+			try {
+				const cephData = JSON.parse(entry.chart_data) as {
+					imageName?: string;
+					pointCount?: number;
+					hasRefScale?: boolean;
+					templateName?: string;
+					clinicalNotes?: string;
+					measurements?: {
+						angular: Array<{ name: string; value: number | null; standard: { value: number; deviation: number } | null }>;
+						linear: Array<{ name: string; value: number | null; standard: { value: number; deviation: number } | null }>;
+					};
+				};
+				const imgName = cephData.imageName ? `<p style="font-size:11px;color:#666">${esc(cephData.imageName)}${cephData.templateName ? ' · ' + esc(cephData.templateName) : ''}${cephData.pointCount != null ? ' · ' + cephData.pointCount + ' pts' : ''}</p>` : '';
+				html += imgName;
+				if (cephData.measurements?.angular?.length) {
+					html += `<table style="font-size:11px;border-collapse:collapse;width:100%;margin:4px 0"><thead><tr style="border-bottom:1px solid #ddd"><th style="text-align:left;padding:2px 4px">${de ? 'Messung' : 'Measurement'}</th><th style="text-align:right;padding:2px 4px">${de ? 'Standard' : 'Standard'}</th><th style="text-align:right;padding:2px 4px">${de ? 'Aktuell' : 'Current'}</th></tr></thead><tbody>`;
+					for (const m of cephData.measurements.angular) {
+						const std = m.standard ? `${m.standard.value}±${m.standard.deviation}` : '—';
+						const val = m.value !== null ? m.value.toFixed(1) + '°' : '—';
+						html += `<tr style="border-bottom:1px solid #eee"><td style="padding:2px 4px">${esc(m.name)}</td><td style="text-align:right;padding:2px 4px">${esc(std)}</td><td style="text-align:right;padding:2px 4px">${esc(val)}</td></tr>`;
+					}
+					html += `</tbody></table>`;
+				}
+				if (cephData.clinicalNotes?.trim()) {
+					html += `<p style="font-size:11px;color:#444;margin:4px 0">${esc(cephData.clinicalNotes)}</p>`;
+				}
+			} catch { /* skip malformed ceph snapshot */ }
 		} else if (entry.description?.trim()) {
 			html += `<div class="entry-desc">${entry.description}</div>`;
 		}

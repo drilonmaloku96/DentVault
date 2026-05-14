@@ -231,22 +231,23 @@
 			<!-- Single compact row -->
 			<div class="group/doc flex items-center gap-2 rounded py-1 -mx-1 px-1 hover:bg-muted/20 transition-colors">
 
-				<!-- File icon / tiny image thumbnail -->
+				<!-- File icon + filename — for images, the whole area is the expand trigger -->
 				{#if docFile && isImageMime(docFile.mime)}
 					<button
 						type="button"
 						onclick={handleImageClick}
-						class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted hover:opacity-75 transition-opacity"
-						title="Click to preview"
+						class="flex items-center gap-2 flex-1 min-w-0 rounded hover:bg-muted/40 transition-colors -mx-1 px-1 py-0.5 text-left"
+						title="Click to preview · Double-click to open"
 					>
-						<img src={fileToAssetUrl(resolvedDocPath)} alt={docFile.name} class="h-full w-full object-cover"/>
+						<span class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted">
+							<img src={fileToAssetUrl(resolvedDocPath)} alt={docFile.name} class="h-full w-full object-cover"/>
+						</span>
+						<span class="text-[13px] font-medium truncate leading-none">{entry.title}</span>
 					</button>
 				{:else}
 					<span class="shrink-0 text-sm leading-none select-none text-muted-foreground/50">{mimeIcon(docFile?.mime ?? '')}</span>
+					<span class="text-[13px] font-medium truncate flex-1 leading-none" title={entry.title}>{entry.title}</span>
 				{/if}
-
-				<!-- Filename -->
-				<span class="text-[13px] font-medium truncate flex-1 leading-none" title={entry.title}>{entry.title}</span>
 
 				<!-- Category badge (no redundant "File" label) -->
 				{#if entry.treatment_category}

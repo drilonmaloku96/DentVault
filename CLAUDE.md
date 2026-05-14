@@ -24,7 +24,7 @@ Built with **Tauri 2
 - **Colors**: oklch CSS custom properties in `src/app.css`
 - **shadcn-svelte**: components at `$lib/components/ui/`, install with `npx shadcn-svelte@1.1.1 add <name> -y`
 - **DB access**: exclusively through `src/lib/services/db.ts`, positional `$1, $2` params
-- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **41**.
+- **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` constant after adding. Current version: **60**.
 - **Types**: all interfaces in `src/lib/types.ts`
 - **Type check**: `npm run check` must pass with 0 errors after every change
 - **`untrack()`**: use in `$state()` initializers when reading props to suppress "captures initial value" warning
@@ -35,6 +35,7 @@ Built with **Tauri 2
 - **Scroll to revealed element after image expand**: call `scrollIntoView` AFTER awaiting the image `load` event. Pattern: `if (!img.complete) await new Promise(r => img.addEventListener('load', r, { once: true }))` before measuring.
 - **`provider` field deprecated**: free-text `provider` column no longer shown in UI. Use `doctor_id` + `colleague_ids`. Legacy `provider` shown with "(legacy)" label in expanded entry view only.
 - **`TimelineEntryType` is now `string`**: loosened from strict union. `SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot'])` identifies system-only types. Legacy strings ('visit', 'procedure', etc.) via `LEGACY_LABELS` in `entryTypes.svelte.ts`.
+  - **`AppointmentStatus` is now `string`**: loosened from strict union (same pattern as `TimelineEntryType`). `SYSTEM_APPOINTMENT_STATUSES = ['scheduled', 'waiting', 'in_treatment', 'completed', 'cancelled', 'no_show'] as const` in `types.ts` identifies built-in statuses for business logic. Custom statuses are stored in settings and resolved via `appointmentStatusLabels` store.
 - **Timeline filter bar**: "Filter by" dropdown button (searchable, checkboxed types + doctors, grouped) + free-text/date search input (`searchQuery`). State: `activeFilters: Set<string>`, `activeDoctorId: number | null`, `filterDropdownOpen`, `filterSearch`, `searchQuery`.
 - **`entry_teeth` sync**: whenever inserting/updating `timeline_entries` with `tooth_numbers`, call `syncEntryTeeth(entryId, toothNumbers)`.
 - **CSV export**: `entriesToCSV(entries)` + `downloadCSV(csv, filename)` from `src/lib/services/export.ts`.
@@ -63,6 +64,12 @@ Built with **Tauri 2
 - **`TherapyPlanView.svelte` keyboard shortcuts**: Multi-tooth selection uses `altSelectedTeeth` (Alt+click or plain drag in plan mode) — separate from `DentalChartView`'s `ctrlSelectedTeeth`. Keyboard handler ($effect, active when dialog `open`): if `altSelectedTeeth.length > 0`, pressing a shortcut key calls `applyProcToSelection(procKey)` (applies to all selected teeth); if `altSelectedTeeth` is empty and `selectedTooth !== null`, calls `toggleProcedureOnTooth(selectedTooth, procKey)`. `PROC_SHORTCUT` is a `$derived` map of `procKey → shortcutKeyString`. Guard: skip if target is input/textarea.
 - **Plan timeline entries**: `insertTreatmentPlan` in `db.ts` auto-inserts a `plan` type `timeline_entry` linked via `plan_id`. `deleteTreatmentPlan` deletes the linked entry before the audit log. `updateTreatmentPlan` syncs the entry title when `title` changes. In `TimelineView.svelte`, `plan` entries render as a slim single-line indicator (icon + plan name + status label + chevron) that opens `TherapyPlanView` on click — no separate card component. `plansMap` (`Map<number, TreatmentPlan>`) is passed down to look up plan details by `plan_id`.
 - **PAR button removed** from patient top bar (`src/routes/patients/[patient_id]/+page.svelte`).
+- **`FloatingPanel.svelte`** (`src/lib/components/ui/FloatingPanel.svelte`): Draggable, resizable floating window. Drag: pointer events with `setPointerCapture` on the title bar div. Resize: CSS `resize: both` on the root element. Size retention: a `ResizeObserver` reads `el.offsetWidth`/`el.offsetHeight` into `width`/`height` `$state` on every resize — required because CSS `resize: both` writes inline style directly and Svelte's reactive style binding would overwrite it on every re-render, snapping the panel back to its default size. Position tracked in `x`/`y` `$state`. Dims to 40% opacity when the user scrolls (document `wheel` capture) or clicks outside (`mousedown` capture); `onmouseenter` restores opacity. `initialX`/`initialY` must use `untrack(() => initialX)` in the `$state()` initializer to suppress Svelte 5 "captures initial value" warning.
+- **`bind:this` + `$state` on conditionally-rendered elements**: In Svelte 5 runes mode, `bind:this` on an element inside `{#if}` updates the `$state` signal asynchronously — the element may be in the DOM but the signal hasn't propagated yet. **Do NOT use a `$state` ref for immediate DOM reads in event handlers.** Use plain `let` instead and get the element from `e.currentTarget` inside the handler. Example: `let textareaEl: HTMLTextAreaElement | null = null` set via `textareaEl = e.currentTarget as HTMLTextAreaElement` in `oninput`.
+- **Inline `+` tag trigger** (`AcuteProblemsBox`, `MedicalHistoryBox`): `@mention`-style tag search activated by typing `+` in the textarea. In `oninput`, check `ta.value.slice(0, ta.selectionStart).match(/\+(\S*)$/)` — matches while the cursor sits right after `+` with non-space chars. Space cancels naturally (regex fails → `handleInput` sees `triggerFromTextarea = true` with no match → clears state). Enter selects the highlighted suggestion and removes the `+query` text from the textarea via `content = val.slice(0, triggerPos) + val.slice(cursor)`. `ta` must come from `e.currentTarget`, not `bind:this` (see rule above).
+- **Floating panel content scaling**: Box components inside `FloatingPanel` must use `h-full flex flex-col` on their outer div and `flex-1 min-h-0 resize-none` on textareas so content fills and scales with the panel as it is resized.
+- **Suggestion pill blur prevention**: `onmousedown={(e) => e.preventDefault()}` on suggestion buttons prevents the focused search input (or textarea) from losing focus before the click event fires. Required for any dropdown/suggestion UI where `onblur` of the input cancels the suggestion list.
+- **Patient top bar panels — floating windows**: Acute Problems, Medical History, and Notes now render as `FloatingPanel` instances (not centered modals). No backdrop. Positions staggered at `(panelBaseX, 90)`, `(panelBaseX+40, 130)`, `(panelBaseX+80, 170)` where `panelBaseX = Math.max(20, Math.floor(window.innerWidth / 2) - 210)`.
 - **Document Categories settings UX**: The category table/card is visually framed as the `!TEMPLATE/` folder (amber header, folder icon). Each category row = one subfolder on disk. An `!Documents/` card below shows that folder's file list with type icons, KB sizes, and open-file buttons.
 - **Timeline entry bar — Enter key inserts newline**: plain Enter in the body `contenteditable` calls `insertBodyLineBreak()` which does `document.execCommand('insertHTML', false, '<br>​')`. The zero-width space (U+200B) after the `<br>` gives WebKit a real text node to land the cursor in — without it WebKit does not reliably render the cursor on the new line. `​` is stripped from `description` before saving via `.replace(/​/g, '')` in `handleSubmit`. Cmd/Ctrl+Enter submits. **Critical guard**: always check `showMentionPalette || showPalette` before any Enter handling — palette components are conditionally rendered and their refs can be null briefly, causing keydown to fall through unexpectedly.
 - **`applyToothHighlighting` cursor reset trap**: `applyToothHighlighting(el)` saves/restores the cursor as a plain text-character offset (`pre.toString().length`) which is blind to `<br>` elements. If it runs after a line-break insertion the cursor snaps back to the previous line. **Never dispatch a synthetic `input` event from within `insertBodyLineBreak()`** — that would trigger `handleDescriptionInput` → `applyToothHighlighting`. Instead, update state directly: `description = editorEl.innerHTML`. This is safe because pressing Enter cannot introduce a tooth-reference pattern.
@@ -75,6 +82,13 @@ Built with **Tauri 2
 - **Schedule block interactions**: Identical pattern to appointments. Single click → selects (shows ring, enables drag-move + edge-resize). Double click → opens `ScheduleBlockEditDialog`. Detection via `data-block-id` on wrapper div and `data-block-handle="top|bottom"` on resize handles inside `ScheduleBlockCell.svelte`. Quick-update callback: `onBlockQuickUpdate(id, startTime, endTime, roomId)`. Block drag state mirrors appointment drag state (prefix `block*` vs `appt*`).
 - **`ScheduleBlockCell.svelte`**: Accepts `isSelected?: boolean` prop — shows color ring. Has `data-block-handle="top"` and `data-block-handle="bottom"` resize handle divs. No `onclick` prop — parent wrapper handles all pointer events.
 - **Deselect on empty click**: Clicking empty calendar area (slot drag path with no movement) clears both `selectedApptId` and `selectedBlockId`.
+- **Default startup route**: App always opens at `/schedule`. Root `src/routes/+page.svelte` does `goto('/schedule', { replaceState: true })`. Do not change back to `/patients`.
+- **OS file drag-and-drop (Tauri WKWebView)**: `dataTransfer.files` is always empty in Tauri's WKWebView — Tauri intercepts OS drops at the native layer. Use `listen('tauri://drag-drop', event => { paths = event.payload.paths })` from `@tauri-apps/api/event`. Also: even internal HTML5 drags on `draggable="true"` elements fire `tauri://drag-enter` — use pointer events (`setPointerCapture` + `onpointermove` + `document.elementsFromPoint`) for any in-page drag-to-reorganize. `draggable="true"` must never appear on interactive elements inside the app.
+- **`VaultDropDialog` — vault-relative paths**: When inserting a dropped file, `rel_path` in `documents` table and `path` in `attachments` JSON must be **relative to vault root** — i.e. `{patientFolder}/{selected}/{filename}`. `toAbsPath(relPath, vault.path)` in `TimelineEntryCard` prepends vault root, so including `patientFolder` is required for the image URL to resolve correctly.
+- **`VaultDropDialog` — folder drag targets**: `data-folder-rel` attribute on DOM elements marks drop targets for `elementsFromPoint`. Empty string `""` = vault root. The scroll container and the "New folder" bar both carry `data-folder-rel=""`. When checking destination, use `dest === null` (not `!dest`) to treat `""` as a valid root drop.
+- **`NewFilesDialog` removed**: The automatic vault-scan / "New Files Detected" system (`checkNewVaultFiles`, `NewFilesDialog`, `scanVaultForUntrackedFiles`) is fully removed. Do not re-implement. Files enter the timeline exclusively via `VaultDropDialog` (OS drag-and-drop).
+- **Left sidebar auto-refresh**: `PatientTreeView.svelte` polls `listVaultFiles` every 3 seconds using a `rel_path` join fingerprint — only reassigns `files` state when the list actually changes, preventing needless re-renders.
+- **Timeline image expand click area**: In `TimelineEntryCard.svelte`, for `document` entries where `isImageMime(docFile.mime)` is true, the thumbnail **and** the filename are wrapped together in a single `<button onclick={handleImageClick}>`. Single click toggles the expanded preview; double-click opens in the system app via `handleOpenFile`.
 
 ---
 
@@ -194,6 +208,7 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 - **Bridge Appearance** — `bridgeRoles` store (`src/lib/stores/bridgeRoles.svelte.ts`), 3 roles. Key: `'bridge_role_configs'`
 - **Prosthesis Type Appearance** — `prosthesisTypes` store (`src/lib/stores/prosthesisTypes.svelte.ts`), 2 types. Key: `'prosthesis_type_configs'`
 - **Text Highlight Colors** — `textHighlightColors` store (`src/lib/stores/textHighlightColors.svelte.ts`), max 8 colors. Key: `'text_highlight_colors'`. Default: red `#dc2626`, blue `#2563eb`, green `#16a34a`. Settings → Clinical → Text Highlight Colors. Used by `TextColorPicker.svelte`.
+- **Appointment Statuses** — `appointmentStatusLabels` store (`src/lib/stores/appointmentStatusLabels.svelte.ts`). Two settings keys: `appointment_status_labels` (override labels for system statuses) + `appointment_status_custom` (custom status array as `{ key, label }[]`). `allStatuses()` returns system + custom in order. `getMeta(s)` returns icon + colorClass. `getLabel(s)` resolves override → custom lookup → i18n fallback. Custom keys auto-generated as `custom_` + snake_case label. Settings → Schedule → Appointment Statuses. Loaded in `+layout.svelte` `onMount`.
 - **"Reset to Defaults" buttons removed** from Settings — `DEFAULT_*` constants kept for onboarding only
 
 ### Checklist for New Features
@@ -208,13 +223,165 @@ Before implementing any feature as hard-coded, ask: "Could this be user-configur
 
 ## Data Model — DB Schema Overview
 
-Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 41`.
+Migrations in `SCHEMA_STATEMENTS` in `src/lib/services/db.ts`. **NEVER modify existing migrations — always append new ones.** `LATEST_VERSION = 60`.
 
 **Key tables:** `patients`, `timeline_entries`, `treatment_plans`, `treatment_plan_items`, `documents`, `dental_chart`, `settings`, `doctors`, `ortho_classifications`, `entry_teeth`, `complications`, `dental_chart_history`, `probing_records`, `probing_measurements`, `probing_tooth_data`, `patient_conditions`, `appointment_rooms`, `appointments`, `schedule_blocks`, `staff_blockouts`, `doctor_working_hours`
 
 See `docs/claude/DB_SCHEMA.md` for full per-version descriptions and all DB function signatures.
 
 ---
+
+## Appointment Lifecycle & Time Tracking
+
+### Status Flow
+
+Every appointment passes through a defined sequence of statuses. Each transition records a timestamp that enables both patient and doctor analytics.
+
+```
+scheduled → waiting → in_treatment → completed
+                   ↘               ↗
+                    cancelled / no_show
+```
+
+| Status | Meaning | Timestamp recorded |
+|--------|---------|-------------------|
+| `scheduled` | Appointment booked, not yet started | — |
+| `waiting` | Patient has arrived at the practice | `arrival_time = NOW()` (once, never overwritten) |
+| `in_treatment` | Patient is on the dental chair | `arrival_time` (if not set), `treatment_start_time = NOW()` (once) |
+| `completed` | Treatment finished, session documented | — (set via context menu or BookingPanel) |
+| `cancelled` | Appointment cancelled | `cancelled_at = NOW()` (once) |
+| `no_show` | Patient did not appear | `no_show_recorded_at = NOW()` (once) |
+
+Status transitions are set via:
+1. **Right-click context menu** on any appointment block in the day view → instant status change, no dialog
+2. **BookingPanel** (double-click an appointment) → status dropdown in the edit form
+
+### Time Columns on `appointments` Table
+
+| Column | Type | Set when |
+|--------|------|---------|
+| `start_time` | TEXT (ISO) | Appointment created — the *planned* start |
+| `end_time` | TEXT (ISO) | Appointment created — the *planned* end |
+| `arrival_time` | TEXT (ISO) | Status → `waiting` (first time only) |
+| `treatment_start_time` | TEXT (ISO) | Status → `in_treatment` (first time only) |
+| `treatment_end_time` | TEXT (ISO) | Auto-set by `syncAppointmentFromTimelineEntry` when a doctor saves a timeline entry linked to this appointment and `treatment_start_time` is set |
+| `cancelled_at` | TEXT (ISO) | Status → `cancelled` (once) |
+| `no_show_recorded_at` | TEXT (ISO) | Status → `no_show` (once) |
+
+**"First time only" rule**: all temporal columns except `updated_at` use `CASE WHEN col IS NULL THEN NOW() ELSE col END` — once written, they are never overwritten by status changes. This preserves the first-observed timestamp even if a status is changed back and forth.
+
+### The treatment_end_time Auto-Capture
+
+When a doctor saves a clinical timeline entry (in `TimelineView.svelte`) that matches the appointment's type and date, `syncAppointmentFromTimelineEntry` fires and:
+1. Links `timeline_entry_id` on the appointment
+2. Syncs `type_id` to the matching appointment type
+3. **If `treatment_start_time IS NOT NULL` and `treatment_end_time IS NULL`** → sets `treatment_end_time = NOW()`
+4. **If the appointment has no `doctor_id` yet** → assigns the timeline entry's `doctor_id` to the appointment
+
+This makes "saving the clinical note" the natural endpoint of the treatment session — no extra manual step required.
+
+`syncAppointmentFromTimelineEntry` signature:
+```ts
+syncAppointmentFromTimelineEntry(
+  patientId: string,
+  entryDate: string,
+  entryId: string,
+  entryTypeName: string,
+  doctorId?: string | null,  // from data.doctor_id on the timeline entry
+): Promise<boolean>
+```
+
+### Visual Indicators in the Day View
+
+| Status | Left border | Background | Dot indicator |
+|--------|-------------|------------|---------------|
+| `scheduled` | appointment type color | type color @ 12% | — |
+| `waiting` | amber `#d97706` | amber @ 10% | pulsing amber dot |
+| `in_treatment` | blue `#2563eb` | blue @ 10% | pulsing blue dot |
+| `completed` | type color | type color @ 12% | ✓ green, 60% opacity |
+| `cancelled` | type color | type color @ 12% | ✕ red, greyscale + 40% opacity |
+| `no_show` | type color | type color @ 12% | ✗ orange |
+
+### Derived Patient Statistics (`getPatientAppointmentStats`)
+
+Computes for all past appointments of a patient (i.e. `start_time < NOW()`):
+
+| Metric | Formula | Shown when |
+|--------|---------|-----------|
+| `avg_minutes_offset` | `(arrival_time − start_time) / 60` | `arrival_time` is set on ≥1 appointment |
+| `avg_wait_minutes` | `(treatment_start_time − arrival_time) / 60` | Both times are set |
+| `avg_actual_duration_min` | `(treatment_end_time − treatment_start_time) / 60` | Both times are set |
+| `avg_duration_deviation` | `avg_actual_duration_min − duration_min` | Both treatment times are set |
+| `cancelled_count` | `SUM(status = 'cancelled')` | Always |
+| `no_show_count` | `SUM(status = 'no_show')` | Always |
+| `tracked_count` | `SUM(arrival_time IS NOT NULL)` | Always |
+
+**Displayed on**: `src/routes/patients/[patient_id]/info/+page.svelte` — "Terminstatistik / Appointment Statistics" card. Color coding:
+- Punctuality: orange = late, blue = early, green = on time (≤2 min)
+- Wait time: orange if > 15 min avg (signals systemic delay at the practice)
+- Duration deviation: green = within ±2 min, orange = over, blue = under
+
+### Derived Doctor Statistics (`getDoctorTreatmentStats`)
+
+For a specific doctor, grouped by appointment type, over a date range. Only counts appointments that have *both* `treatment_start_time` and `treatment_end_time` — i.e. those that went through the full tracked flow.
+
+| Column | Meaning |
+|--------|---------|
+| `appointment_count` | How many appointments of this type this doctor has tracked |
+| `avg_planned_duration` | Average `duration_min` from those appointments |
+| `avg_actual_duration` | Average `(treatment_end_time − treatment_start_time) / 60` |
+| `avg_deviation` | `avg_actual_duration − avg_planned_duration` (positive = runs over) |
+
+**Displayed in**: `StaffAnalytics.svelte` (Dashboard → Staff tab) when a specific doctor is selected. Shows a table plus a dual-bar chart (planned vs actual) per appointment type. Deviation is color-coded: green ≤ 2 min, red = over, blue = under.
+
+**Purpose for clinic management**: Identifies whether appointment slots are correctly sized per treatment type per doctor. A doctor who consistently runs +10 min on "Füllung" slots is causing schedule overruns; the slots should be lengthened or the workflow optimised.
+
+### Architecture Notes
+
+- **No separate stats table** — all metrics are derived at query time from the `appointments` table columns. This keeps data in one place, avoids synchronisation bugs, and lets the queries adapt to any date range or filter.
+- **NULL safety** — all avg calculations use `CASE WHEN ... IS NOT NULL THEN ... ELSE NULL END` so SQLite's `AVG()` ignores untracked appointments rather than counting them as zero.
+- **Optimistic UI on status change** — the schedule page updates `appointments[idx].status` and `arrival_time` in local state immediately; no reload required. The DB write happens in the background via `updateAppointmentStatus`.
+- **context menu suppression fix** — `onGridPointerDown` in `DayView.svelte` has an early `if (e.button !== 0) return` guard. Without this, the pointer capture system called `preventDefault()` on right-clicks, which suppressed the `contextmenu` event before it reached the appointment wrapper div.
+
+---
+
+
+## Doctor Performance Analytics
+
+The `/reports` route is a standalone doctor performance dashboard (no longer a clinical filter report). Navigation link restored in the left sidebar.
+
+### Data Sources
+
+Four DB functions in `src/lib/services/db.ts`:
+
+| Function | Returns | Query |
+|----------|---------|-------|
+| `getDoctorPerformanceKPI(doctorId, dateFrom, dateTo)` | `DoctorPerformanceKPI` | Aggregated appointment counts, completion/cancel/no-show rates, avg planned/actual duration, working days |
+| `getAllDoctorKPIs(dateFrom, dateTo)` | `DoctorPerformanceKPI[]` | Same query without doctor filter — all doctors in one call |
+| `getDoctorMonthlyTrend(doctorId, dateFrom, dateTo)` | `DoctorMonthlyTrend[]` | `strftime('%Y-%m', start_time)` GROUP BY month |
+| `getDoctorDowDistribution(doctorId, dateFrom, dateTo)` | `DoctorDowStat[]` | `strftime('%w')` weekday distribution, excludes cancelled/no_show |
+
+### Types (in `src/lib/types.ts`)
+
+```ts
+interface DoctorPerformanceKPI {
+  doctor_id: string; doctor_name: string; doctor_color: string;
+  total: number; completed: number; cancelled: number; no_show: number;
+  working_days: number;
+  avg_planned_duration: number | null; avg_actual_duration: number | null; avg_deviation: number | null;
+}
+interface DoctorMonthlyTrend { month: string; total: number; completed: number; cancelled: number; no_show: number; }
+interface DoctorDowStat { dow: number; count: number; }
+```
+
+### Page Architecture (`src/routes/reports/+page.svelte`)
+
+Controls: doctor selector (all or single), date range inputs, quick preset buttons (this month / last 3 months / this year).
+
+- **All-doctors view**: comparison table with colored doctor dots, clickable name drills into single-doctor view
+- **Single-doctor view**: 4 KPI cards (total, avg/day, completion rate, avg deviation) + secondary stats strip (cancelled, no-show, avg planned/actual) + monthly trend vertical bars (completed=green, cancelled=red, no-show=orange) + day-of-week horizontal bars (Mon-first: 1,2,3,4,5,6,0) + treatment types dual-bar table (reuses `getDoctorTreatmentStats`)
+
+All charts are CSS-only (no charting library). `` reloads on any filter change.
 
 ## Vault Storage Structure
 
@@ -253,8 +420,8 @@ The left sidebar (`src/routes/+layout.svelte`):
 - [x] Phase 5 — Documents & Attachments
 - [x] Phase 6 / 6b / 6c / 6d / 6e / 6f / 6g — Dashboard, Analytics, Perio, Onboarding, Rich text, UX polish
 - [x] Phase 7 (partial) — Backup & Export
-- [x] Phase 8 / 8b / 8c (partial) — Appointment Scheduling + UX polish + Block drag/resize
-- [x] Phase 9 / 9b / 9c (partial) — Dashboard Analytics Overhaul + UX polish
+- [x] Phase 8 / 8b / 8c / 8d — Appointment Scheduling + UX polish + Block drag/resize + Appointment status lifecycle + Treatment time tracking + Custom appointment statuses
+- [x] Phase 9 / 9b / 9c / 9d — Dashboard Analytics Overhaul + UX polish + Doctor Performance Analytics (reports page)
 - [x] Phase 10 (partial) — IOTN Ortho rebuild, plan timeline indicators, PAR removal
 - [x] i18n full audit — all hardcoded German strings replaced with `i18n.t.*` keys across all routes and components
 
@@ -274,7 +441,6 @@ The left sidebar (`src/routes/+layout.svelte`):
 6. Drill-down on heatmap / day chart
 7. Dashboard date range override (custom range beyond period toggle)
 8. Time-series trend sparklines on stat cards
-9. Reports page re-integration (route `/reports` exists, nav link removed)
 
 **Clinical intelligence — remaining:**
 10. Make keyword mappings user-configurable in Settings (`src/lib/services/keyword-engine.ts` done, needs Settings UI)
@@ -284,3 +450,50 @@ The left sidebar (`src/routes/+layout.svelte`):
 
 **Phase 10 — remaining:**
 14. `OrthoSnapshotCard` read-only view for legacy KIG entries could show a note "Recorded under legacy KIG system" instead of the insurance badge — low priority
+
+---
+
+## Cephalyzer Integration
+
+Cephalyzer (React cephalometric X-ray analysis app) is embedded inside DentVault as a full-screen iframe. See root `../CLAUDE.md` for the full cross-app architecture.
+
+### Key files
+
+- **`src/lib/stores/cephSelection.svelte.ts`** — Svelte 5 reactive store holding the currently selected vault file for Ceph analysis. PatientTreeView writes to it on single-click; TimelineView's Ceph button reads from it.
+- **`src/routes/patients/[patient_id]/ceph/+page.svelte`** — Hosts the Cephalyzer iframe, bridges postMessages, handles `SAVE_CEPH` (writes `.ceph` file via Rust `write_text_file`) and `NAVIGATE_BACK` (calls `goto(/patients/${id})`).
+- **`src/routes/+layout.svelte`** — Derives `isCephPage = page.url.pathname.endsWith('/ceph')`. When true: hides `<aside>`, sets `overflow-hidden` on `<main>`, removes `p-6` from content wrapper.
+
+### postMessage protocol (parent side)
+
+| Received from iframe | Action in `ceph/+page.svelte` |
+|----------------------|-------------------------------|
+| `SAVE_CEPH { content, filename }` | Write file to X-ray's directory via `writeTextFile`, reply with `SAVE_CEPH_RESULT { success, path }` |
+| `NAVIGATE_BACK` | `goto(/patients/${patientId})` |
+
+| Sent to iframe (in `onIframeLoad`) | Trigger |
+|------------------------------------|---------|
+| `LOAD_IMAGE { url, name, patientName }` | File is an image extension |
+| `LOAD_CEPH { content, patientName }` | File ends in `.ceph` |
+
+### cephSelection store
+
+```ts
+// src/lib/stores/cephSelection.svelte.ts
+cephSelection.select(file: VaultFileInfo | null)  // PatientTreeView calls on click
+cephSelection.clear()                               // Called when patient changes
+cephSelection.file                                  // Currently selected file (reactive)
+isCephCompatible(filename)  // true for png/jpg/jpeg/gif/tif/tiff/.ceph
+isCephFileType(filename)    // true only for .ceph
+```
+
+### Ceph button in TimelineView
+
+Lives in the Chart/Plan/Ortho toolbar row. Cyan-tinted when a file is selected; disabled/faded otherwise. Uses `cephSelection.file` from the store. Navigates to `/patients/${patientId}/ceph?filePath=...&fileName=...`.
+
+### Layout rules for ceph route
+
+- `isCephPage` hides the entire `<aside>` sidebar
+- `<main>` class switches from `overflow-auto` to `overflow-hidden`
+- Inner content wrapper: `{isCephPage ? '' : 'p-6'}` — no padding on ceph page
+- Ceph page itself uses `<div class="flex flex-col h-full">` (no `-m-6` needed)
+- `convertFileSrc(path)` converts filesystem path to Tauri asset URL for image loading and `.ceph` file fetching

@@ -48,6 +48,11 @@ import type {
 	Appointment,
 	AppointmentFormData,
 	AppointmentStatus,
+	PatientAppointmentStats,
+	DoctorTreatmentStat,
+	DoctorPerformanceKPI,
+	DoctorMonthlyTrend,
+	DoctorDowStat,
 	ScheduleBlock,
 	ScheduleBlockFormData,
 	StaffBlockout,
@@ -845,9 +850,12 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 		FOREIGN KEY (case_id)       REFERENCES par_cases(id)       ON DELETE CASCADE,
 		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id)
 	)` },
+	{ version: 59, sql: `ALTER TABLE appointments ADD COLUMN arrival_time TEXT DEFAULT NULL` },
+	{ version: 60, sql: `ALTER TABLE appointments ADD COLUMN treatment_start_time TEXT DEFAULT NULL` },
+	{ version: 60, sql: `ALTER TABLE appointments ADD COLUMN treatment_end_time TEXT DEFAULT NULL` },
 ];
 
-const LATEST_VERSION = 58;
+const LATEST_VERSION = 60;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -3424,6 +3432,12 @@ export async function updateAppointment(id: string, data: Partial<AppointmentFor
 		fields.push(`no_show_recorded_at = CASE WHEN $${i} = 'no_show' AND no_show_recorded_at IS NULL THEN datetime('now') ELSE no_show_recorded_at END`);
 		values.push(data.status);
 		i++;
+		fields.push(`arrival_time = CASE WHEN $${i} = 'waiting' AND arrival_time IS NULL THEN datetime('now') ELSE arrival_time END`);
+		values.push(data.status);
+		i++;
+		fields.push(`treatment_start_time = CASE WHEN $${i} = 'in_treatment' AND treatment_start_time IS NULL THEN datetime('now') ELSE treatment_start_time END`);
+		values.push(data.status);
+		i++;
 	}
 	if (fields.length === 0) return;
 	fields.push(`updated_at=$${i++}`);
@@ -3439,35 +3453,132 @@ export async function deleteAppointment(id: string): Promise<void> {
 
 export async function updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
 	const conn = await getDb();
-	await conn.execute(
-		'UPDATE appointments SET status=$1, updated_at=$2 WHERE id=$3',
-		[status, new Date().toISOString(), id],
+	const now = new Date().toISOString();
+	if (status === 'waiting') {
+		await conn.execute(
+			`UPDATE appointments SET status=$1, updated_at=$2,
+			 arrival_time = CASE WHEN arrival_time IS NULL THEN $3 ELSE arrival_time END
+			 WHERE id=$4`,
+			[status, now, now, id],
+		);
+	} else if (status === 'in_treatment') {
+		await conn.execute(
+			`UPDATE appointments SET status=$1, updated_at=$2,
+			 arrival_time = CASE WHEN arrival_time IS NULL THEN $3 ELSE arrival_time END,
+			 treatment_start_time = CASE WHEN treatment_start_time IS NULL THEN $4 ELSE treatment_start_time END
+			 WHERE id=$5`,
+			[status, now, now, now, id],
+		);
+	} else {
+		await conn.execute(
+			'UPDATE appointments SET status=$1, updated_at=$2 WHERE id=$3',
+			[status, now, id],
+		);
+	}
+}
+
+export async function getPatientAppointmentStats(patientId: string): Promise<PatientAppointmentStats> {
+	const conn = await getDb();
+	const rows = await conn.select<PatientAppointmentStats[]>(
+		`SELECT
+			COUNT(*) AS total,
+			SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
+			SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) AS no_show_count,
+			SUM(CASE WHEN arrival_time IS NOT NULL THEN 1 ELSE 0 END) AS tracked_count,
+			AVG(CASE
+				WHEN arrival_time IS NOT NULL
+				THEN (strftime('%s', arrival_time) - strftime('%s', start_time)) / 60.0
+				ELSE NULL
+			END) AS avg_minutes_offset,
+			AVG(CASE
+				WHEN arrival_time IS NOT NULL AND treatment_start_time IS NOT NULL
+				THEN (strftime('%s', treatment_start_time) - strftime('%s', arrival_time)) / 60.0
+				ELSE NULL
+			END) AS avg_wait_minutes,
+			AVG(CASE
+				WHEN treatment_start_time IS NOT NULL AND treatment_end_time IS NOT NULL
+				THEN (strftime('%s', treatment_end_time) - strftime('%s', treatment_start_time)) / 60.0
+				ELSE NULL
+			END) AS avg_actual_duration_min,
+			AVG(CASE
+				WHEN treatment_start_time IS NOT NULL AND treatment_end_time IS NOT NULL
+				THEN (strftime('%s', treatment_end_time) - strftime('%s', treatment_start_time)) / 60.0 - duration_min
+				ELSE NULL
+			END) AS avg_duration_deviation
+		FROM appointments
+		WHERE patient_id = $1 AND start_time < datetime('now')`,
+		[patientId],
+	);
+	return rows[0] ?? {
+		total: 0, cancelled_count: 0, no_show_count: 0, tracked_count: 0,
+		avg_minutes_offset: null, avg_wait_minutes: null, avg_actual_duration_min: null, avg_duration_deviation: null,
+	};
+}
+
+/**
+ * Per-appointment-type treatment time breakdown for a doctor.
+ * Only counts appointments that have both treatment_start_time and treatment_end_time.
+ */
+export async function getDoctorTreatmentStats(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorTreatmentStat[]> {
+	const conn = await getDb();
+	return conn.select<DoctorTreatmentStat[]>(
+		`SELECT
+			a.type_id,
+			at.name AS type_name,
+			at.color AS type_color,
+			COUNT(*) AS appointment_count,
+			ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+			ROUND(AVG(CASE
+				WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+				THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+				ELSE NULL
+			END), 1) AS avg_actual_duration,
+			ROUND(AVG(CASE
+				WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+				THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+				ELSE NULL
+			END), 1) AS avg_deviation
+		FROM appointments a
+		LEFT JOIN appointment_types at ON a.type_id = at.id
+		WHERE a.doctor_id = $1
+			AND a.start_time >= $2 || 'T00:00:00'
+			AND a.start_time <= $3 || 'T23:59:59'
+			AND a.treatment_end_time IS NOT NULL
+		GROUP BY a.type_id
+		ORDER BY appointment_count DESC`,
+		[doctorId, dateFrom, dateTo],
 	);
 }
 
 /**
  * When a timeline entry is saved with a specific entry type (appointment type name),
- * find any scheduled appointment for that patient on the same date and update its
- * type_id to match + link timeline_entry_id. Returns true if an appointment was synced.
+ * find the matching appointment for that patient on the same date and:
+ * - Link it via timeline_entry_id + sync type_id
+ * - If the appointment was in_treatment and has treatment_start_time, record treatment_end_time = NOW()
+ * - If a doctorId is provided and the appointment has no doctor yet, assign it
+ * Returns true if an appointment was synced.
  */
 export async function syncAppointmentFromTimelineEntry(
 	patientId: string,
 	entryDate: string,
 	entryId: string,
 	entryTypeName: string,
+	doctorId?: string | null,
 ): Promise<boolean> {
 	if (!entryTypeName) return false;
 	const conn = await getDb();
-	// Look up appointment type by name
 	const types = await conn.select<{ id: string }[]>(
 		`SELECT id FROM appointment_types WHERE name=$1 AND is_active=1 LIMIT 1`,
 		[entryTypeName],
 	);
 	if (types.length === 0) return false;
 	const typeId = types[0].id;
-	// Find a non-cancelled/no-show appointment for this patient on this date
-	const appts = await conn.select<{ id: string }[]>(
-		`SELECT id FROM appointments
+	const appts = await conn.select<{ id: string; treatment_start_time: string | null; doctor_id: string | null }[]>(
+		`SELECT id, treatment_start_time, doctor_id FROM appointments
 		 WHERE patient_id=$1 AND date(start_time)=date($2)
 		   AND status NOT IN ('cancelled','no_show')
 		 ORDER BY start_time
@@ -3475,9 +3586,19 @@ export async function syncAppointmentFromTimelineEntry(
 		[patientId, entryDate],
 	);
 	if (appts.length === 0) return false;
+	const appt = appts[0];
+	const now = new Date().toISOString();
+	// Record treatment_end_time when treatment was actively tracked
+	const setTreatmentEnd = appt.treatment_start_time ? `treatment_end_time = CASE WHEN treatment_end_time IS NULL THEN '${now}' ELSE treatment_end_time END,` : '';
+	// Assign doctor to appointment if not already set and one performed the treatment
+	const resolvedDoctorId = (!appt.doctor_id && doctorId) ? doctorId : appt.doctor_id;
 	await conn.execute(
-		`UPDATE appointments SET type_id=$1, timeline_entry_id=$2, updated_at=$3 WHERE id=$4`,
-		[typeId, entryId, new Date().toISOString(), appts[0].id],
+		`UPDATE appointments SET
+		   type_id=$1, timeline_entry_id=$2, updated_at=$3,
+		   ${setTreatmentEnd}
+		   doctor_id=COALESCE(doctor_id, $4)
+		 WHERE id=$5`,
+		[typeId, entryId, now, resolvedDoctorId ?? null, appt.id],
 	);
 	return true;
 }
@@ -3663,6 +3784,120 @@ export async function getAppointmentStatsByDoctor(dateFrom: string, dateTo: stri
 		 GROUP BY d.id, d.name, d.color
 		 ORDER BY d.name`,
 		[dateFrom, dateTo]
+	);
+}
+
+/** Full performance KPIs for a specific doctor over a date range. */
+export async function getDoctorPerformanceKPI(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorPerformanceKPI | null> {
+	const db = await getDb();
+	const rows = await db.select<DoctorPerformanceKPI[]>(
+		`SELECT
+		   d.id AS doctor_id, d.name AS doctor_name, d.color AS doctor_color,
+		   COUNT(a.id) AS total,
+		   COALESCE(SUM(CASE WHEN a.status='completed'  THEN 1 ELSE 0 END), 0) AS completed,
+		   COALESCE(SUM(CASE WHEN a.status='cancelled'  THEN 1 ELSE 0 END), 0) AS cancelled,
+		   COALESCE(SUM(CASE WHEN a.status='no_show'    THEN 1 ELSE 0 END), 0) AS no_show,
+		   COUNT(DISTINCT date(a.start_time)) AS working_days,
+		   ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+		     ELSE NULL END), 1) AS avg_actual_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+		     ELSE NULL END), 1) AS avg_deviation
+		 FROM doctors d
+		 LEFT JOIN appointments a ON a.doctor_id = d.id
+		   AND a.start_time >= $2 || 'T00:00:00'
+		   AND a.start_time <= $3 || 'T23:59:59'
+		 WHERE d.id = $1
+		 GROUP BY d.id, d.name, d.color`,
+		[doctorId, dateFrom, dateTo],
+	);
+	return rows[0] ?? null;
+}
+
+/** Full performance KPIs for all doctors over a date range. */
+export async function getAllDoctorKPIs(
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorPerformanceKPI[]> {
+	const db = await getDb();
+	return db.select<DoctorPerformanceKPI[]>(
+		`SELECT
+		   d.id AS doctor_id, d.name AS doctor_name, d.color AS doctor_color,
+		   COUNT(a.id) AS total,
+		   COALESCE(SUM(CASE WHEN a.status='completed'  THEN 1 ELSE 0 END), 0) AS completed,
+		   COALESCE(SUM(CASE WHEN a.status='cancelled'  THEN 1 ELSE 0 END), 0) AS cancelled,
+		   COALESCE(SUM(CASE WHEN a.status='no_show'    THEN 1 ELSE 0 END), 0) AS no_show,
+		   COUNT(DISTINCT date(a.start_time)) AS working_days,
+		   ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+		     ELSE NULL END), 1) AS avg_actual_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+		     ELSE NULL END), 1) AS avg_deviation
+		 FROM doctors d
+		 LEFT JOIN appointments a ON a.doctor_id = d.id
+		   AND a.start_time >= $1 || 'T00:00:00'
+		   AND a.start_time <= $2 || 'T23:59:59'
+		 GROUP BY d.id, d.name, d.color
+		 ORDER BY d.name`,
+		[dateFrom, dateTo],
+	);
+}
+
+/** Month-by-month appointment trend for a doctor over a date range. */
+export async function getDoctorMonthlyTrend(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorMonthlyTrend[]> {
+	const db = await getDb();
+	return db.select<DoctorMonthlyTrend[]>(
+		`SELECT
+		   strftime('%Y-%m', start_time) AS month,
+		   COUNT(*) AS total,
+		   SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) AS completed,
+		   SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) AS cancelled,
+		   SUM(CASE WHEN status='no_show'   THEN 1 ELSE 0 END) AS no_show
+		 FROM appointments
+		 WHERE doctor_id = $1
+		   AND start_time >= $2 || 'T00:00:00'
+		   AND start_time <= $3 || 'T23:59:59'
+		 GROUP BY month
+		 ORDER BY month`,
+		[doctorId, dateFrom, dateTo],
+	);
+}
+
+/** Day-of-week appointment distribution for a doctor over a date range. */
+export async function getDoctorDowDistribution(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorDowStat[]> {
+	const db = await getDb();
+	return db.select<DoctorDowStat[]>(
+		`SELECT
+		   CAST(strftime('%w', start_time) AS INTEGER) AS dow,
+		   COUNT(*) AS count
+		 FROM appointments
+		 WHERE doctor_id = $1
+		   AND start_time >= $2 || 'T00:00:00'
+		   AND start_time <= $3 || 'T23:59:59'
+		   AND status NOT IN ('cancelled', 'no_show')
+		 GROUP BY dow
+		 ORDER BY dow`,
+		[doctorId, dateFrom, dateTo],
 	);
 }
 

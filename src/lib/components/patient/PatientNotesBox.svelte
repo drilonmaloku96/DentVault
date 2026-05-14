@@ -42,7 +42,7 @@
 </script>
 
 <!-- Plain scratch-pad editor — no header bar, just a clean textarea that auto-saves -->
-<div class="rounded-lg border border-border bg-card overflow-hidden">
+<div class="rounded-lg border border-border bg-card overflow-hidden h-full flex flex-col">
 
 	<!-- Minimal title + save status row -->
 	<div class="flex items-center justify-between px-4 pt-3 pb-1">
@@ -66,8 +66,7 @@
 			bind:value={content}
 			oninput={handleInput}
 			placeholder="Anything goes — allergies, personal context, reminders, observations…"
-			rows={5}
-			class="w-full resize-y px-4 py-2 pb-3 text-sm bg-transparent outline-none
+			class="w-full flex-1 min-h-0 resize-none px-4 py-2 pb-3 text-sm bg-transparent outline-none
 			       placeholder:text-muted-foreground/35 leading-relaxed text-foreground
 			       focus:outline-none"
 		></textarea>

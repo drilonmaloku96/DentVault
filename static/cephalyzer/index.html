@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="./cephalyzer-logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cephalyzer</title>
+
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-49RMEYQCTH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      // Enhanced configuration for better tracking
+      gtag('config', 'G-49RMEYQCTH', {
+        page_title: 'Cephalyzer - Cephalometric Analysis Tool',
+        page_location: window.location.href,
+        page_path: window.location.pathname,
+        send_page_view: true,
+        cookie_flags: 'SameSite=None;Secure'
+      });
+
+      // Log to verify GA is loading
+      console.log('GA4 Script loaded for G-49RMEYQCTH');
+
+      // Send test event after page loads
+      window.addEventListener('load', function() {
+        gtag('event', 'page_loaded', {
+          event_category: 'engagement',
+          event_label: 'initial_load',
+          value: 1
+        });
+        console.log('📊 GA Test event sent: page_loaded');
+      });
+    </script>
+    <script type="module" crossorigin src="./assets/index.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

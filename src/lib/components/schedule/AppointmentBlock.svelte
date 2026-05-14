@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Appointment } from '$lib/types';
 	import { i18n } from '$lib/i18n';
+	import { appointmentStatusLabels } from '$lib/stores/appointmentStatusLabels.svelte';
 
 	interface Props {
 		appointment: Appointment;
@@ -35,13 +36,7 @@
 		return `${start}–${end}`;
 	});
 
-	const statusLabel = $derived(() => {
-		const s = appointment.status;
-		if (s === 'completed') return i18n.t.schedule.statuses.completed;
-		if (s === 'cancelled') return i18n.t.schedule.statuses.cancelled;
-		if (s === 'no_show') return i18n.t.schedule.statuses.no_show;
-		return i18n.t.schedule.statuses.scheduled;
-	});
+	const statusLabel = $derived(() => appointmentStatusLabels.getLabel(appointment.status));
 
 	// ── Portal action ───────────────────────────────────────────────────
 	function portal(node: HTMLElement) {
@@ -115,6 +110,8 @@
 			cursor: grab;
 			{appointment.status === 'completed' ? 'opacity: 0.6;' : ''}
 			{appointment.status === 'cancelled' ? 'opacity: 0.4; filter: grayscale(0.6);' : ''}
+			{appointment.status === 'waiting' ? 'border-left-color: #d97706; background-color: rgba(217,119,6,0.10);' : ''}
+			{appointment.status === 'in_treatment' ? 'border-left-color: #2563eb; background-color: rgba(37,99,235,0.10);' : ''}
 		"
 	>
 		{#if isCompact}
@@ -137,6 +134,16 @@
 						<span class="text-green-600">✓</span>
 					{:else if appointment.status === 'no_show'}
 						<span class="text-red-500">✗</span>
+					{:else if appointment.status === 'waiting'}
+						<span class="relative flex h-2 w-2 shrink-0">
+							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+							<span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+						</span>
+					{:else if appointment.status === 'in_treatment'}
+						<span class="relative flex h-2 w-2 shrink-0">
+							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+							<span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+						</span>
 					{/if}
 				</div>
 				<span class="text-muted-foreground">{timeRange()}</span>
@@ -222,6 +229,8 @@
 					{appointment.status === 'completed' ? 'text-green-600' : ''}
 					{appointment.status === 'cancelled' ? 'text-destructive' : ''}
 					{appointment.status === 'no_show' ? 'text-orange-500' : ''}
+					{appointment.status === 'waiting' ? 'text-amber-600 dark:text-amber-400' : ''}
+					{appointment.status === 'in_treatment' ? 'text-blue-600 dark:text-blue-400' : ''}
 				">{statusLabel()}</span>
 			</div>
 

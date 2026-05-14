@@ -20,6 +20,7 @@
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { textHighlightColors } from '$lib/stores/textHighlightColors.svelte';
+	import { appointmentStatusLabels } from '$lib/stores/appointmentStatusLabels.svelte';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 	let { children } = $props();
 
@@ -50,6 +51,7 @@
 		// Load UI scale preference
 		await uiScale.load();
 		await textHighlightColors.load();
+		await appointmentStatusLabels.load();
 	});
 
 	// Keep html[lang] in sync with the current language so <input type="date">
@@ -60,6 +62,9 @@
 
 	// Sidebar ref (so other parts of the app can trigger a reload)
 	let sidebarRef = $state<ReturnType<typeof PatientSidebar> | null>(null);
+
+	// Hide sidebar when Cephalyzer is open so it gets full width
+	const isCephPage = $derived(page.url.pathname.endsWith('/ceph'));
 
 	function onVaultConfigured() {
 		// Vault was just set up — navigate to dashboard
@@ -101,7 +106,8 @@
 {:else}
 	<div class="flex h-screen overflow-hidden bg-background">
 
-		<!-- ── Left Sidebar ────────────────────────────────────────── -->
+		<!-- ── Left Sidebar — hidden on Cephalyzer page ─────────── -->
+		{#if !isCephPage}
 		<aside class="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">
 
 			<!-- Back button / branding -->
@@ -204,9 +210,10 @@
 				</nav>
 			</div>
 		</aside>
+		{/if}
 
 		<!-- ── Main Content ────────────────────────────────────────── -->
-		<main use:scrollIndicator class="flex-1 overflow-auto">
+		<main use:scrollIndicator class="flex-1 {isCephPage ? 'overflow-hidden' : 'overflow-auto'}">
 			<!-- Show a loading skeleton while vault is initialising -->
 			{#if !vault.initialized}
 				<div class="flex h-full items-center justify-center">
@@ -219,7 +226,7 @@
 					</div>
 				</div>
 			{:else}
-				<div class="h-full p-6">
+				<div class="h-full {isCephPage ? '' : 'p-6'}">
 					{@render children()}
 				</div>
 			{/if}

@@ -67,6 +67,24 @@ export interface Translations {
 			personal: string; contact: string; address: string;
 			emergencyContact: string; insurance: string; clinical: string; demographics: string;
 		};
+		appointmentStats: {
+			title: string;
+			totalAppointments: string;
+			cancellations: string;
+			noShows: string;
+			avgPunctuality: string;
+			minutesLate: string;
+			minutesEarly: string;
+			punctual: string;
+			noData: string;
+			trackedOf: string;
+			avgWaitTime: string;
+			avgActualDuration: string;
+			avgDurationDeviation: string;
+			overPlanned: string;
+			underPlanned: string;
+			minutes: string;
+		};
 	};
 
 	// ── Timeline ──────────────────────────────────────────────────────
@@ -474,6 +492,19 @@ export interface Translations {
 			};
 			workingHours: string;
 			workingHoursDesc: string;
+			treatmentTimes: {
+				title: string;
+				subtitle: string;
+				noData: string;
+				type: string;
+				count: string;
+				planned: string;
+				actual: string;
+				deviation: string;
+				overTime: string;
+				underTime: string;
+				onTime: string;
+			};
 		};
 	};
 
@@ -485,6 +516,49 @@ export interface Translations {
 		columns: {
 			date: string; patient: string; category: string; outcome: string;
 			teeth: string; doctor: string; notes: string;
+		};
+		performance: {
+			title: string;
+			subtitle: string;
+			selectDoctor: string;
+			allDoctors: string;
+			noData: string;
+			loading: string;
+			quickThisMonth: string;
+			quickLast3Months: string;
+			quickThisYear: string;
+			kpi: {
+				total: string;
+				avgPerDay: string;
+				completionRate: string;
+				avgDeviation: string;
+				cancelled: string;
+				noShow: string;
+				avgPlanned: string;
+				avgActual: string;
+				workingDays: string;
+			};
+			monthlyTrend: string;
+			dowDistribution: string;
+			treatmentTypes: string;
+			comparisonTable: string;
+			colTotal: string;
+			colAvgPerDay: string;
+			colCompletion: string;
+			colCancelled: string;
+			colNoShow: string;
+			colAvgPlanned: string;
+			colAvgActual: string;
+			colDeviation: string;
+			colWorkingDays: string;
+			minutes: string;
+			days: string;
+			onTime: string;
+			overTime: string;
+			underTime: string;
+			completed: string;
+			cancelled: string;
+			noShow: string;
 		};
 	};
 
@@ -507,9 +581,14 @@ export interface Translations {
 		status: string;
 		statuses: {
 			scheduled: string;
+			waiting: string;
+			in_treatment: string;
 			completed: string;
 			cancelled: string;
 			no_show: string;
+		};
+		contextMenu: {
+			changeStatus: string;
 		};
 		noRoomsConfigured: string;
 		goToSettings: string;
@@ -579,7 +658,7 @@ export interface Translations {
 			docCategories: string; clinicalTags: string; staffRoles: string;
 			textBlocks: string; complicationTypes: string; entryTypes: string; backup: string; about: string;
 			textHighlightColors: string;
-			rooms: string; appointmentTypes: string; workingHours: string;
+			rooms: string; appointmentTypes: string; workingHours: string; appointmentStatuses: string;
 			patientManagement: string;
 			schedule: string; clinical: string; documents: string;
 			dentalTagsAndSymbols: string; prostheticsAndBridges: string;
@@ -739,6 +818,15 @@ export interface Translations {
 			inactive: string;
 			deactivate: string;
 			activate: string;
+			appointmentStatuses: {
+				title: string;
+				description: string;
+				labelPlaceholder: string;
+				saved: string;
+				customTitle: string;
+				newStatusPlaceholder: string;
+				customHint: string;
+			};
 		};
 	};
 
@@ -1107,5 +1195,56 @@ export interface Translations {
 			hintTabEnter: string;
 			hintRightClick: string;
 		};
+	};
+
+	// ── Cephalometric analysis ──────────────────────────────────────────
+	ceph: {
+		title: string;
+		button: string;
+		selectImage: string;
+		noImages: string;
+		points: string;
+		measurements: string;
+		angular: string;
+		linear: string;
+		standard: string;
+		current: string;
+		diff: string;
+		noRefScale: string;
+		brightness: string;
+		contrast: string;
+		save: string;
+		saved: string;
+		saveError: string;
+		exportPdf: string;
+		exportCeph: string;
+		overlays: string;
+		nasalFloor: string;
+		cranialBase: string;
+		mandible: string;
+		upperIncisor: string;
+		lowerIncisor: string;
+		placed: string;
+		unplaced: string;
+		undo: string;
+		resetPoints: string;
+		backToPatient: string;
+		snapshotTitle: string;
+		clickToPlace: string;
+		zoomIn: string;
+		zoomOut: string;
+		resetView: string;
+		allPlaced: string;
+		refScaleSet: string;
+		statusNormal: string;
+		statusWarning: string;
+		statusAlert: string;
+		imageControls: string;
+		zoom: string;
+		notes: string;
+		notesPlaceholder: string;
+		noMeasurements: string;
+		noXrays: string;
+		selectXray: string;
 	};
 }

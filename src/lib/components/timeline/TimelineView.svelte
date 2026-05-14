@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { listen } from '@tauri-apps/api/event';
 	import type { TimelineEntry, TimelineFormData, TreatmentPlan, TreatmentPlanFormData } from '$lib/types';
 	import {
 		getTimelineEntries,
@@ -7,7 +8,6 @@
 		updateTimelineEntry,
 		deleteTimelineEntry,
 		insertDocument,
-		getTrackedFilePaths,
 		getTreatmentPlans,
 		insertTreatmentPlan,
 		getTreatmentPlanItems,
@@ -16,16 +16,6 @@
 		syncAppointmentFromTimelineEntry,
 	} from '$lib/services/db';
 	import type { ToothChartEntry } from '$lib/types';
-	import {
-		listVaultFiles,
-		getMimeType,
-		formatFileSize,
-		pickFile,
-		saveDocumentFile,
-		inferCategory,
-		generateDestFilename,
-		type VaultFileInfo,
-	} from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
@@ -38,6 +28,7 @@
 	import type { FormPrefill } from './TimelineEntryForm.svelte';
 	import ChartSnapshotCard from './ChartSnapshotCard.svelte';
 	import OrthoSnapshotCard from './OrthoSnapshotCard.svelte';
+	import CephSnapshotCard from './CephSnapshotCard.svelte';
 	import DocTemplatePickerDialog from '$lib/components/documents/DocTemplatePickerDialog.svelte';
 	import TreatmentPlanList from '$lib/components/treatment/TreatmentPlanList.svelte';
 	import DentalChartView from '$lib/components/dental/DentalChartView.svelte';
@@ -45,13 +36,15 @@
 	import ActivePlanBar from '$lib/components/therapy-plan/ActivePlanBar.svelte';
 	import OrthoChartDialog from '$lib/components/ortho/OrthoChartDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
+	import VaultDropDialog from './VaultDropDialog.svelte';
 	import { generateChartReport } from '$lib/services/chart-report';
 	import { vault } from '$lib/stores/vault.svelte';
-	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { i18n } from '$lib/i18n';
 	import { formatDate } from '$lib/utils';
+	import { goto } from '$app/navigation';
+	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 
 	let {
 		patientId,
@@ -159,10 +152,10 @@
 	// ── Scroll anchor ─────────────────────────────────────────────────────
 	let bottomAnchor = $state<HTMLElement | undefined>(undefined);
 
-	// ── Vault auto-scan ───────────────────────────────────────────────────
-	let untrackedFiles = $state<VaultFileInfo[]>([]);
-	let bannerDismissed = $state(false);
-	let isImporting    = $state(false);
+	// ── File drag-and-drop (Tauri native events) ─────────────────────────
+	let isDragOver       = $state(false);
+	let droppedFilePaths = $state<string[]>([]);
+	let dropDialogOpen   = $state(false);
 
 	// ── Plan sheet ────────────────────────────────────────────────────────
 	let planSheetOpen = $state(false);
@@ -285,66 +278,28 @@
 		}
 	}
 
-	// ── Vault auto-scan ───────────────────────────────────────────────────
-
-	function folderToKey(folderName: string): string {
-		const match = docCategories.list.find((c) => vault.categoryFolder(c.key) === folderName);
-		return match?.key ?? 'other';
-	}
-
-	async function scanVaultForUntrackedFiles() {
-		if (!vault.isConfigured || !vault.path || !patientFolder) return;
-		try {
-			const allFiles = await listVaultFiles(vault.path, patientFolder);
-			const tracked  = new Set(await getTrackedFilePaths(patientId));
-			const fresh = allFiles.filter((f) => !tracked.has(f.rel_path));
-			if (JSON.stringify(fresh) !== JSON.stringify(untrackedFiles)) {
-				untrackedFiles = fresh;
-			}
-		} catch {
-			// non-critical
-		}
-	}
-
-	async function importUntrackedFiles() {
-		if (!vault.isConfigured || isImporting) return;
-		isImporting = true;
-		try {
-			const today = new Date().toISOString().slice(0, 10);
-			for (const file of untrackedFiles) {
-				const mime        = getMimeType(file.filename);
-				const categoryKey = folderToKey(file.category_folder);
-				const doc = await insertDocument(patientId, {
-					filename: file.filename, original_name: file.filename,
-					category: categoryKey, mime_type: mime,
-					file_size: file.file_size, abs_path: file.abs_path, rel_path: file.rel_path, notes: '',
-				});
-				await insertTimelineEntry(patientId, {
-					entry_date: today, entry_type: 'document',
-					title: file.filename, description: '',
-					treatment_category: categoryKey, document_id: doc.id,
-					attachments: JSON.stringify([{ path: file.rel_path, name: file.filename, mime, size: file.file_size }]),
-				});
-			}
-			untrackedFiles = [];
-			bannerDismissed = false;
-			await loadEntries(false);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to import files';
-		} finally {
-			isImporting = false;
-		}
-	}
-
 	onMount(() => {
-		loadEntries().then(() => scanVaultForUntrackedFiles());
+		loadEntries();
 
-		const interval = setInterval(async () => {
-			await scanVaultForUntrackedFiles();
-			await loadEntries(false);
-		}, 5000);
+		const interval = setInterval(() => loadEntries(false), 5000);
 
-		return () => clearInterval(interval);
+		// Tauri intercepts OS file drops — dataTransfer.files is always empty in WKWebView.
+		// Use Tauri's native drag events instead.
+		const unlistenPromises = [
+			listen('tauri://drag-enter', () => { isDragOver = true; }),
+			listen('tauri://drag-leave', () => { isDragOver = false; }),
+			listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+				isDragOver = false;
+				if (!event.payload.paths.length) return; // ignore if no files (e.g. internal drag)
+				droppedFilePaths = event.payload.paths;
+				dropDialogOpen = true;
+			}),
+		];
+
+		return () => {
+			clearInterval(interval);
+			unlistenPromises.forEach(p => p.then(fn => fn()));
+		};
 	});
 
 	// ── Audit log dialog ──────────────────────────────────────────────────
@@ -365,7 +320,7 @@
 		const newEntry = await insertTimelineEntry(patientId, data);
 		await loadEntries();
 		if (data.entry_type && data.entry_date) {
-			const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+			const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type, data.doctor_id ? String(data.doctor_id) : null);
 			if (synced) showSyncedToast();
 		}
 	}
@@ -376,20 +331,19 @@
 	}
 
 	async function handleSave(data: TimelineFormData) {
+		const doctorId = data.doctor_id ? String(data.doctor_id) : null;
 		if (editingEntry) {
 			await updateTimelineEntry(editingEntry.id, data);
 			await loadEntries(false);
-			// Sync appointment type if entry has a type and a date
 			if (data.entry_type && data.entry_date) {
-				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(editingEntry.id), data.entry_type);
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(editingEntry.id), data.entry_type, doctorId);
 				if (synced) showSyncedToast();
 			}
 		} else {
 			const newEntry = await insertTimelineEntry(patientId, data);
 			await loadEntries();
-			// Sync appointment type for new entries too
 			if (data.entry_type && data.entry_date) {
-				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type, doctorId);
 				if (synced) showSyncedToast();
 			}
 		}
@@ -435,6 +389,21 @@
 
 		const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 </script>
+
+<!-- ── Drop zone wrapper ──────────────────────────────────────────────── -->
+<div class="relative">
+
+{#if isDragOver}
+	<div class="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary bg-primary/5 backdrop-blur-[1px] pointer-events-none">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 text-primary/60">
+			<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+			<polyline points="17 8 12 3 7 8"/>
+			<line x1="12" y1="3" x2="12" y2="15"/>
+		</svg>
+		<p class="text-sm font-semibold text-primary/80">Drop files to add to vault</p>
+		<p class="text-xs text-primary/50">Choose a folder in the next step</p>
+	</div>
+{/if}
 
 <!-- ── Header (sticky below patient header) ───────────────────────────── -->
 <div class="sticky top-[76px] z-10 bg-background flex flex-col gap-3 pt-3 pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] mb-4">
@@ -483,6 +452,25 @@
 					<line x1="10" y1="15" x2="14" y2="15"/>
 				</svg>
 				{i18n.t.ortho.button}
+			</Button>
+
+			<!-- Ceph analysis — activates when an image or .ceph is selected in the sidebar -->
+			<Button
+				size="sm"
+				variant="outline"
+				disabled={!cephSelection.file}
+				onclick={() => {
+					if (cephSelection.file) goto(`/patients/${patientId}/ceph?filePath=${encodeURIComponent(cephSelection.file.abs_path)}&fileName=${encodeURIComponent(cephSelection.file.filename)}`);
+				}}
+				class="{cephSelection.file ? 'border-cyan-300 text-cyan-600 hover:bg-cyan-50 dark:border-cyan-700 dark:text-cyan-400 dark:hover:bg-cyan-950/30' : 'opacity-40'}"
+				title={cephSelection.file ? `${i18n.t.ceph.title}: ${cephSelection.file.filename}` : i18n.t.ceph.noXrays}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
+					<circle cx="12" cy="10" r="7"/>
+					<path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+					<path d="M9 10h.01M15 10h.01"/>
+				</svg>
+				{i18n.t.ceph.button}
 			</Button>
 
 
@@ -612,42 +600,6 @@
 	</div>
 </div>
 
-<!-- ── Vault auto-scan banner ──────────────────────────────────────────── -->
-{#if untrackedFiles.length > 0 && !bannerDismissed}
-	<div class="rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 mb-4 flex items-start justify-between gap-3">
-		<div class="flex items-start gap-2.5">
-			<span class="text-xl mt-0.5 shrink-0">📂</span>
-			<div>
-				<p class="text-sm font-medium text-amber-900 dark:text-amber-200">
-					{untrackedFiles.length} file{untrackedFiles.length > 1 ? 's' : ''} found in vault not yet in the timeline
-				</p>
-				<ul class="mt-1 space-y-0.5 max-h-28 overflow-y-auto">
-					{#each untrackedFiles as f}
-						<li class="text-xs text-amber-700/80 dark:text-amber-400/80 flex items-center gap-1.5">
-							<span class="opacity-60">{f.category_folder}/</span>{f.filename}
-							<span class="opacity-50">({formatFileSize(f.file_size)})</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		</div>
-		<div class="flex items-center gap-2 shrink-0 mt-0.5">
-			<Button size="sm" variant="outline" onclick={importUntrackedFiles} disabled={isImporting}
-				class="border-amber-400/60 bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50 text-xs h-7 px-3"
-			>
-				{isImporting ? i18n.t.common.loading : i18n.t.documents.add}
-			</Button>
-			<button type="button" onclick={() => (bannerDismissed = true)}
-				class="text-amber-700/50 hover:text-amber-700 dark:text-amber-400/50 dark:hover:text-amber-400 transition-colors"
-				title="Dismiss" aria-label="Dismiss banner"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-					<path d="M18 6L6 18M6 6l12 12"/>
-				</svg>
-			</button>
-		</div>
-	</div>
-{/if}
 
 <!-- ── Error ────────────────────────────────────────────────────────────── -->
 {#if error}
@@ -752,6 +704,8 @@
 								/>
 							{:else if entry.entry_type === 'ortho_snapshot'}
 								<OrthoSnapshotCard {entry} onView={() => { viewingOrthoEntry = entry; showOrthoDialog = true; }} />
+							{:else if entry.entry_type === 'ceph_snapshot'}
+								<CephSnapshotCard {entry} {patientId} />
 							{:else}
 								<TimelineEntryCard
 									{entry}
@@ -894,4 +848,15 @@
 	bind:open={auditOpen}
 	{patientId}
 	entityId={auditEntryId}
+/>
+
+</div><!-- end drop zone wrapper -->
+
+<!-- ── Vault drop dialog ───────────────────────────────────────────────── -->
+<VaultDropDialog
+	bind:open={dropDialogOpen}
+	{patientId}
+	{patientFolder}
+	filePaths={droppedFilePaths}
+	onSaved={() => loadEntries(false)}
 />

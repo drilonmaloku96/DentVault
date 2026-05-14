@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { getPatient } from '$lib/services/db';
-	import type { Patient } from '$lib/types';
+	import { getPatient, getPatientAppointmentStats } from '$lib/services/db';
+	import type { Patient, PatientAppointmentStats } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import { i18n } from '$lib/i18n';
@@ -17,6 +17,7 @@
 	let patient   = $state<Patient | null>(null);
 	let isLoading = $state(true);
 	let notFound  = $state(false);
+	let apptStats = $state<PatientAppointmentStats | null>(null);
 
 	let showAuditDialog  = $state(false);
 
@@ -24,10 +25,22 @@
 
 	async function loadPatient() {
 		isLoading = true;
-		const result = await getPatient(patientId);
+		const [result, stats] = await Promise.all([
+			getPatient(patientId),
+			getPatientAppointmentStats(patientId),
+		]);
 		if (!result) notFound = true;
 		else patient = result;
+		apptStats = stats;
 		isLoading = false;
+	}
+
+	function formatPunctuality(stats: PatientAppointmentStats): string {
+		if (stats.tracked_count === 0 || stats.avg_minutes_offset === null) return i18n.t.patients.appointmentStats.noData;
+		const mins = Math.round(stats.avg_minutes_offset);
+		if (mins > 0) return `${mins} ${i18n.t.patients.appointmentStats.minutesLate}`;
+		if (mins < 0) return `${Math.abs(mins)} ${i18n.t.patients.appointmentStats.minutesEarly}`;
+		return i18n.t.patients.appointmentStats.punctual;
 	}
 
 
@@ -230,6 +243,85 @@
 					{#if patient.smoking_status}<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.smokingStatus}</span><span class={infoValueClass}>{patient.smoking_status}</span></div>{/if}
 					{#if patient.occupation}<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.patients.fields.occupation}</span><span class={infoValueClass}>{patient.occupation}</span></div>{/if}
 				</div>
+			</div>
+		{/if}
+
+		<!-- Appointment Statistics -->
+		{#if apptStats && apptStats.total > 0}
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.appointmentStats.title}</h3>
+
+				<!-- Row 1: Core counts -->
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+					<div class={infoRowClass}>
+						<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.totalAppointments}</span>
+						<span class="text-sm font-semibold text-foreground">{apptStats.total}</span>
+					</div>
+					<div class={infoRowClass}>
+						<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.cancellations}</span>
+						<span class="text-sm font-semibold {apptStats.cancelled_count > 0 ? 'text-destructive' : 'text-foreground'}">{apptStats.cancelled_count}</span>
+					</div>
+					<div class={infoRowClass}>
+						<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.noShows}</span>
+						<span class="text-sm font-semibold {apptStats.no_show_count > 0 ? 'text-orange-500' : 'text-foreground'}">{apptStats.no_show_count}</span>
+					</div>
+					<div class={infoRowClass}>
+						<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.avgPunctuality}</span>
+						{#if apptStats.tracked_count === 0}
+							<span class="text-sm text-muted-foreground italic">{i18n.t.patients.appointmentStats.noData}</span>
+						{:else}
+							{@const mins = apptStats.avg_minutes_offset !== null ? Math.round(apptStats.avg_minutes_offset) : 0}
+							<span class="text-sm font-semibold {mins > 2 ? 'text-orange-500' : mins < -2 ? 'text-blue-500' : 'text-green-600'}">
+								{formatPunctuality(apptStats)}
+							</span>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Row 2: Timing breakdowns (only if treatment times tracked) -->
+				{#if apptStats.avg_wait_minutes !== null || apptStats.avg_actual_duration_min !== null}
+					<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-border/40">
+						{#if apptStats.avg_wait_minutes !== null}
+							<div class={infoRowClass}>
+								<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.avgWaitTime}</span>
+								<span class="text-sm font-semibold {Math.round(apptStats.avg_wait_minutes) > 15 ? 'text-orange-500' : 'text-foreground'}">
+									{Math.round(apptStats.avg_wait_minutes)} {i18n.t.patients.appointmentStats.minutes}
+								</span>
+							</div>
+						{/if}
+						{#if apptStats.avg_actual_duration_min !== null}
+							<div class={infoRowClass}>
+								<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.avgActualDuration}</span>
+								<span class="text-sm font-semibold text-foreground">
+									{Math.round(apptStats.avg_actual_duration_min)} {i18n.t.patients.appointmentStats.minutes}
+								</span>
+							</div>
+						{/if}
+						{#if apptStats.avg_duration_deviation !== null}
+							{@const dev = Math.round(apptStats.avg_duration_deviation)}
+							<div class={infoRowClass}>
+								<span class={infoLabelClass}>{i18n.t.patients.appointmentStats.avgDurationDeviation}</span>
+								<span class="text-sm font-semibold {Math.abs(dev) <= 2 ? 'text-green-600' : dev > 0 ? 'text-orange-500' : 'text-blue-500'}">
+									{#if Math.abs(dev) <= 2}
+										{i18n.t.patients.appointmentStats.punctual}
+									{:else if dev > 0}
+										+{dev} {i18n.t.patients.appointmentStats.overPlanned}
+									{:else}
+										{dev} {i18n.t.patients.appointmentStats.underPlanned}
+									{/if}
+								</span>
+							</div>
+						{/if}
+					</div>
+				{/if}
+
+				{#if apptStats.tracked_count > 0}
+					<p class="text-xs text-muted-foreground/60">
+						{i18n.t.patients.appointmentStats.trackedOf
+							.replace('{tracked}', String(apptStats.tracked_count))
+							.replace('{total}', String(apptStats.total))}
+					</p>
+				{/if}
 			</div>
 		{/if}
 
