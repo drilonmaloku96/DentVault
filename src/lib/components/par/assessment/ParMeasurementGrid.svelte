@@ -75,7 +75,8 @@
 		if (measurements.length === 0) return null;
 		return computeAssessmentStats({
 			assessment: null as unknown as ParAssessment,
-			measurements,
+			// Synthetic ids — computeAssessmentStats only reads measurement values
+			measurements: measurements.map((m, i) => ({ id: i, assessment_id: assessmentId, ...m })),
 			toothData: toothDataArr,
 			boneLevels: [],
 		});

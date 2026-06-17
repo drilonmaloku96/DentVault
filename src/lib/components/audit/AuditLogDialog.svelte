@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import { readAuditLog, verifyIntegrity, type IntegrityResult } from '$lib/services/audit';
 	import type { AuditRecord, AuditAction, AuditEntityType, AuditFilters } from '$lib/types';
@@ -50,7 +51,7 @@
 			const days = parseInt(filterDateRange);
 			const from = new Date();
 			from.setDate(from.getDate() - days);
-			filters.date_from = from.toISOString().slice(0, 10);
+			filters.date_from = toLocalISODate(from);
 		}
 		if (filterSearch.trim()) filters.search = filterSearch.trim();
 

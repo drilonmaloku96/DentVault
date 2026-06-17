@@ -20,6 +20,7 @@
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { textHighlightColors } from '$lib/stores/textHighlightColors.svelte';
+	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 	let { children } = $props();
 
@@ -50,12 +51,13 @@
 		// Load UI scale preference
 		await uiScale.load();
 		await textHighlightColors.load();
+		await appointmentStatuses.load();
 	});
 
 	// Keep html[lang] in sync with the current language so <input type="date">
 	// renders in DD/MM/YYYY (en-GB) or DD.MM.YYYY (de) — not US MM/DD/YYYY.
 	$effect(() => {
-		document.documentElement.lang = i18n.code === 'de' ? 'de' : 'en-GB';
+		document.documentElement.lang = 'en-GB';
 	});
 
 	// Sidebar ref (so other parts of the app can trigger a reload)
@@ -99,10 +101,10 @@
 
 <!-- Normal app shell -->
 {:else}
-	<div class="flex h-screen overflow-hidden bg-background">
+	<div class="flex h-full overflow-hidden bg-background">
 
 		<!-- ── Left Sidebar ────────────────────────────────────────── -->
-		<aside class="flex w-56 flex-col border-r border-sidebar-border bg-sidebar">
+		<aside class="flex h-full w-56 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar">
 
 			<!-- Back button / branding -->
 			<div class="flex h-12 shrink-0 items-center px-2">
@@ -129,12 +131,12 @@
 			</div>
 
 			<!-- Patient Explorer (takes all remaining vertical space) -->
-			<div class="flex-1 overflow-hidden border-t border-sidebar-border">
+			<div class="min-h-0 flex-1 overflow-hidden border-t border-sidebar-border">
 				<PatientSidebar bind:this={sidebarRef} />
 			</div>
 
 			<!-- Bottom nav — vertical stack -->
-			<div class="border-t border-sidebar-border">
+			<div class="shrink-0 border-t border-sidebar-border">
 				<nav class="flex flex-col py-1">
 					{#each primaryNav as item}
 						{@const isActive = page.url.pathname.startsWith(item.href)}

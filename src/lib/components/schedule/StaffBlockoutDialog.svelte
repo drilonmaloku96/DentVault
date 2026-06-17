@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 	import type { StaffBlockout, StaffBlockoutFormData, BlockoutReason } from '$lib/types';
 	import { doctors } from '$lib/stores/doctors.svelte';
@@ -40,8 +41,8 @@
 	function openNewForm() {
 		editingBlockout = null;
 		fDoctorId = '';
-		fStartDate = new Date().toISOString().slice(0, 10);
-		fEndDate = new Date().toISOString().slice(0, 10);
+		fStartDate = toLocalISODate();
+		fEndDate = toLocalISODate();
 		fStartTime = '08:00';
 		fEndTime = '17:00';
 		fIsAllDay = true;

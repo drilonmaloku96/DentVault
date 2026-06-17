@@ -1,28 +1,20 @@
 import { en } from './en';
-import { de } from './de';
-import type { LangCode } from './types';
-import { getSetting, setSetting } from '$lib/services/db';
+import { getSetting } from '$lib/services/db';
 
-export type { LangCode };
+export type LangCode = 'en';
 export type { Translations } from './types';
 
-const LANGS = { en, de } as const;
-
 class I18nStore {
-	code = $state<LangCode>('de');
-	t    = $derived(LANGS[this.code]);
+	code = $state<LangCode>('en');
+	t    = en;
 
 	async init(): Promise<void> {
-		try {
-			const saved = await getSetting('app_locale');
-			if (saved === 'en' || saved === 'de') this.code = saved;
-		} catch { /* keep default */ }
+		// Language is always English; persist 'en' in case legacy 'de' was stored
+		try { await getSetting('app_locale'); } catch { /* ignore */ }
 	}
 
-	async setLang(code: LangCode): Promise<void> {
-		this.code = code;
-		await setSetting('app_locale', code);
-	}
+	/** No-op — kept for call-site compatibility during migration */
+	async setLang(_code: string): Promise<void> {}
 }
 
 export const i18n = new I18nStore();

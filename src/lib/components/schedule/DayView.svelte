@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { Appointment, AppointmentRoom, WorkingHoursEntry, ScheduleBlock, StaffPresenceInfo } from '$lib/types';
+	import { toLocalISODate } from '$lib/utils';
+	import type { Appointment, AppointmentRoom, AppointmentStatus, WorkingHoursEntry, ScheduleBlock, StaffPresenceInfo } from '$lib/types';
 	import AppointmentBlock from './AppointmentBlock.svelte';
 	import ScheduleBlockCell from './ScheduleBlockCell.svelte';
 	import { i18n } from '$lib/i18n';
@@ -20,6 +21,7 @@
 	onAppointmentDoubleClick?: (appointment: Appointment) => void;
 	onAppointmentQuickUpdate?: (id: string, startTime: string, endTime: string, durationMin: number, roomId: string) => void;
 	onBlockQuickUpdate?: (id: string, startTime: string, endTime: string, roomId: string) => void;
+	onAppointmentStatusChange?: (id: string, status: AppointmentStatus) => void;
 	}
 
 	let {
@@ -37,9 +39,10 @@
 		onAppointmentDoubleClick,
 		onAppointmentQuickUpdate,
 		onBlockQuickUpdate,
+		onAppointmentStatusChange,
 	}: Props = $props();
 
-	const SLOT_HEIGHT = 8; // px per 5-min slot
+	const SLOT_HEIGHT = 14; // px per 5-min slot
 	const SLOTS_PER_HOUR = 12;
 	const MINUTES_PER_SLOT = 5;
 	const TOTAL_HOURS = 24;
@@ -61,7 +64,7 @@
 	const visibleSlots = $derived(visibleEnd() - visibleStart());
 
 	// Today's current time line
-	const isToday = $derived(date === new Date().toISOString().slice(0, 10));
+	const isToday = $derived(date === toLocalISODate());
 	let currentTimeSlot = $state(0);
 
 	function updateCurrentTime() {
@@ -282,6 +285,7 @@
 	}
 
 	function onGridPointerDown(e: PointerEvent) {
+		if (e.button === 2) return; // right-click: let contextmenu event fire normally
 		const target = e.target as HTMLElement;
 
 		// ── Appointment interaction ───────────────────────────────────
@@ -973,6 +977,7 @@
 							isSelected={selectedApptId === appt.id}
 							slotHeight={SLOT_HEIGHT}
 							minutesPerSlot={MINUTES_PER_SLOT}
+							onstatuschange={onAppointmentStatusChange}
 						/>
 					</div>
 				{/if}

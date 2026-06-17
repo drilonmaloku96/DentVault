@@ -1,3 +1,4 @@
+import { toLocalISODate } from '$lib/utils';
 import type { ParGrade, UptWindowResult, UptSessionWindow } from '$lib/types';
 
 function addMonths(dateStr: string, months: number): Date {
@@ -7,7 +8,7 @@ function addMonths(dateStr: string, months: number): Date {
 }
 
 function toISO(d: Date): string {
-	return d.toISOString().slice(0, 10);
+	return toLocalISODate(d);
 }
 
 function nextWorkingDay(d: Date, workingDays: number[]): Date {
@@ -69,7 +70,7 @@ export function calculateUptWindows(
 }
 
 export function classifyUptStatus(session: UptSessionWindow): UptSessionWindow['status'] {
-	const today = new Date().toISOString().slice(0, 10);
+	const today = toLocalISODate();
 	if (session.deliveredDate) {
 		if (session.deliveredDate > session.windowEnd) return 'delivered_late';
 		if (session.deliveredDate < session.windowStart) return 'delivered_early';

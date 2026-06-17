@@ -4,7 +4,7 @@
 	import { i18n } from '$lib/i18n';
 	import type { BissType, BissMeasurement, TimelineEntry, IOTNDHCFinding } from '$lib/types';
 	import { getTimelineEntries, deleteTimelineEntry, insertTimelineEntry, getDoctors } from '$lib/services/db';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 	import type { Doctor } from '$lib/types';
 	import { untrack } from 'svelte';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
@@ -71,7 +71,7 @@
 	let doctors          = $state<Doctor[]>([]);
 	let isSaving         = $state(false);
 	let loadError        = $state('');
-	const today          = new Date().toISOString().slice(0, 10);
+	const today          = toLocalISODate();
 	let allSnapshots     = $state<TimelineEntry[]>([]);
 	let selectedSnapshot = $state<TimelineEntry | null>(null); // null = new assessment mode
 
@@ -96,12 +96,12 @@
 		h: { level: 0 as 0|3|4 },          // M/h — hypodontia needing ortho (grade 3=1/quad, 4=2+/quad)
 		a: { mm: '', lipCompetent: true },  // O/a — positive overjet
 		bm: { mm: '', difficulties: false }, // O/b+m — reverse overjet (b=no difficulties, m=with difficulties)
-		c: { mm: '' },                      // C/c — crossbite RCP/ICP discrepancy
+		c: { mm: '', type: '' as '' | 'cusp_cusp' | 'complete' },  // C/c — crossbite RCP/ICP discrepancy
 		d: { mm: '' },                      // D/d — contact point displacement
 		e: { mm: '' },                      // O/e — open bite vertical distance
 		f: { level: 0 as 0|2|3|4 },        // O/f — deep overbite (0=none, 2=≥3.5mm no contact, 3=complete+gingival, 4=complete+trauma)
 		g: false,                           // Sn/g — pre/postnormal to ½ PMB (grade 1)
-		l: false,                           // Sn/l — scissor bite 4–7 (grade 4)
+		l: { present: false, right: false, left: false }, // C/l — buccal non-occlusion / scissors bite 4–7 (grade 4)
 		p: false,                           // Sn/p — LKG cleft lip/palate (grade 5)
 		s: false,                           // Sn/s — submerged primary, adjacent tipping (grade 5)
 		t: false,                           // Sn/t — partially erupted, tipped against adjacent (grade 4)
@@ -124,16 +124,16 @@
 		h:  meas.h.level as number,
 		a:  gradeA(n(meas.a.mm), meas.a.lipCompetent),
 		bm: bmResult.grade,
-		c: gradeC(n(meas.c.mm)),
-		d: gradeD(n(meas.d.mm)),
-		e: gradeE(n(meas.e.mm)),
-		f: meas.f.level as number,
-		g: meas.g ? 1 : 0,
-		l: meas.l ? 4 : 0,
-		p: meas.p ? 5 : 0,
-		s: meas.s ? 5 : 0,
-		t: meas.t ? 4 : 0,
-		x: meas.x ? 5 : 0,
+		c:  gradeC(n(meas.c.mm)),
+		d:  gradeD(n(meas.d.mm)),
+		e:  gradeE(n(meas.e.mm)),
+		f:  meas.f.level as number,
+		g:  meas.g ? 1 : 0,
+		l:  meas.l.present ? 4 : 0,
+		p:  meas.p ? 5 : 0,
+		s:  meas.s ? 5 : 0,
+		t:  meas.t ? 4 : 0,
+		x:  meas.x ? 5 : 0,
 	});
 
 	// Worst (leading) finding
@@ -151,7 +151,7 @@
 			if (bestKey === 'c')  return n(meas.c.mm) || null;
 			if (bestKey === 'd')  return n(meas.d.mm) || null;
 			if (bestKey === 'e')  return n(meas.e.mm) || null;
-			return null;
+			return null; // ni and binary conditions have no mm value
 		})();
 		return { grade: bestGrade as 0|1|2|3|4|5, code: bestCode, mm_value: mmVal };
 	});
@@ -220,9 +220,11 @@
 		meas.i.level = 0; meas.h.level = 0;
 		meas.a.mm = ''; meas.a.lipCompetent = true;
 		meas.bm.mm = ''; meas.bm.difficulties = false;
-		meas.c.mm = ''; meas.d.mm = ''; meas.e.mm = '';
+		meas.c.mm = ''; meas.c.type = '';
+		meas.l.present = false; meas.l.right = false; meas.l.left = false;
+		meas.d.mm = ''; meas.e.mm = '';
 		meas.f.level = 0;
-		meas.g = false; meas.l = false; meas.p = false;
+		meas.g = false; meas.p = false;
 		meas.s = false; meas.t = false; meas.x = false;
 	}
 
@@ -257,11 +259,21 @@
 			// Support both old separate b/m keys and new fused bm key
 			const bmSaved = (m.bm ?? m.b ?? m.m) as any;
 			if (bmSaved) { meas.bm.mm = String(bmSaved.mm ?? ''); meas.bm.difficulties = bmSaved.difficulties ?? false; }
-			if (m.c) meas.c.mm = String((m.c as any).mm ?? '');
+			if (m.c) { meas.c.mm = String((m.c as any).mm ?? ''); meas.c.type = (m.c as any).type ?? ''; }
+			// l: support old boolean true (pre-segment) and new object format
+			if (m.l) {
+				if (typeof m.l === 'object') {
+					meas.l.present = !!(m.l as any).present;
+					meas.l.right   = !!(m.l as any).right;
+					meas.l.left    = !!(m.l as any).left;
+				} else {
+					meas.l.present = true; meas.l.right = false; meas.l.left = false;
+				}
+			}
 			if (m.d) meas.d.mm = String((m.d as any).mm ?? '');
 			if (m.e) meas.e.mm = String((m.e as any).mm ?? '');
 			meas.f.level = (m.f as any)?.level ?? 0;
-			meas.g = !!(m.g); meas.l = !!(m.l); meas.p = !!(m.p);
+			meas.g = !!(m.g); meas.p = !!(m.p);
 			meas.s = !!(m.s); meas.t = !!(m.t); meas.x = !!(m.x);
 		}
 	}
@@ -365,12 +377,12 @@
 			if (meas.h.level) dhcMeasurements.h = { level: meas.h.level };
 			if (meas.a.mm)    dhcMeasurements.a = { mm: n(meas.a.mm), lipCompetent: meas.a.lipCompetent };
 			if (meas.bm.mm)   dhcMeasurements.bm = { mm: n(meas.bm.mm), difficulties: meas.bm.difficulties };
-			if (meas.c.mm)    dhcMeasurements.c = { mm: n(meas.c.mm) };
+			if (meas.c.mm || meas.c.type) dhcMeasurements.c = { mm: n(meas.c.mm) || null, type: meas.c.type || null };
+			if (meas.l.present) dhcMeasurements.l = { present: true, right: meas.l.right, left: meas.l.left };
 			if (meas.d.mm)    dhcMeasurements.d = { mm: n(meas.d.mm) };
 			if (meas.e.mm)    dhcMeasurements.e = { mm: n(meas.e.mm) };
 			if (meas.f.level) dhcMeasurements.f = { level: meas.f.level };
 			if (meas.g) dhcMeasurements.g = true;
-			if (meas.l) dhcMeasurements.l = true;
 			if (meas.p) dhcMeasurements.p = true;
 			if (meas.s) dhcMeasurements.s = true;
 			if (meas.t) dhcMeasurements.t = true;
@@ -711,11 +723,31 @@
 							<span class="text-xs font-medium text-foreground">{i18n.t.ortho.iotnCrossbiteLabel}</span>
 							<span class="text-[10px] text-muted-foreground shrink-0">(7–7)</span>
 						</div>
-						<div class="flex-1 flex flex-col gap-1 min-w-0">
+						<div class="flex-1 flex flex-col gap-1.5 min-w-0">
 							<div class="flex items-center gap-2">
 								<input type="number" step="0.5" min="0" placeholder="0.0" disabled={isReadOnly}
 									bind:value={meas.c.mm} class={mmInput(isReadOnly)} />
 								<span class="text-[11px] text-muted-foreground">{i18n.t.ortho.iotnMmDiscrepancy}</span>
+							</div>
+							<!-- Occlusal relationship type selector -->
+							<div class="flex items-center gap-1.5 flex-wrap">
+								{#each ([
+									{ val: '' as const, label: '—' },
+									{ val: 'cusp_cusp' as const, label: i18n.t.ortho.iotnCrossbiteCuspCusp },
+									{ val: 'complete' as const, label: i18n.t.ortho.iotnCrossbiteComplete },
+								]) as opt}
+									<button disabled={isReadOnly}
+										class="px-2 py-0.5 rounded text-xs font-medium border transition-colors
+											{meas.c.type === opt.val
+												? opt.val === '' ? 'bg-muted text-muted-foreground border-border'
+												: opt.val === 'cusp_cusp' ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300'
+												: 'bg-blue-500 text-white border-blue-600'
+												: 'border-border bg-background hover:bg-muted text-foreground'}
+											{ROD(isReadOnly)}"
+										onclick={() => { if (!isReadOnly) meas.c.type = opt.val; }}>
+										{opt.label}
+									</button>
+								{/each}
 							</div>
 							{#if allGrades.c > 0}
 								<p class="text-[10px] text-muted-foreground/70">
@@ -726,6 +758,54 @@
 						<div class="w-12 flex justify-end shrink-0 pt-0.5">
 							<span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded {gradeBadgeCls(allGrades.c)}">
 								{allGrades.c > 0 ? allGrades.c : '—'}
+							</span>
+						</div>
+					</div>
+
+					<!-- C/l: Buccal non-occlusion / scissors bite -->
+					<div class="px-3 py-2.5 flex items-start gap-3">
+						<div class="flex items-center gap-1.5 w-[248px] shrink-0">
+							<span class="px-1.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">l</span>
+							<span class="text-xs font-medium text-foreground">{i18n.t.ortho.iotnCondL}</span>
+							<span class="text-[10px] text-muted-foreground shrink-0">(4–7)</span>
+						</div>
+						<div class="flex-1 flex flex-col gap-1.5 min-w-0">
+							<div class="flex items-center gap-2">
+								<button disabled={isReadOnly}
+									class="flex items-center justify-center w-5 h-5 rounded border-2 transition-colors shrink-0
+										{meas.l.present ? 'bg-primary border-primary' : 'border-border bg-background hover:border-primary/50'}
+										{ROD(isReadOnly)}"
+									onclick={() => { if (!isReadOnly) { meas.l.present = !meas.l.present; if (!meas.l.present) { meas.l.right = false; meas.l.left = false; } } }}>
+									{#if meas.l.present}
+										<svg class="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5">
+											<polyline points="2 6 5 9 10 3"/>
+										</svg>
+									{/if}
+								</button>
+								<span class="text-[11px] text-muted-foreground">{i18n.t.ortho.dhcSubcategories['4l']}</span>
+							</div>
+							{#if meas.l.present}
+								<div class="flex items-center gap-1.5 ml-7">
+									{#each ([
+										{ key: 'right' as const, label: i18n.t.ortho.iotnBuccalNonOccRight },
+										{ key: 'left'  as const, label: i18n.t.ortho.iotnBuccalNonOccLeft },
+									]) as seg}
+										<button disabled={isReadOnly}
+											class="px-2.5 py-0.5 rounded text-xs font-medium border transition-colors
+												{meas.l[seg.key]
+													? 'bg-blue-500 text-white border-blue-600'
+													: 'border-border bg-background hover:bg-muted text-foreground'}
+												{ROD(isReadOnly)}"
+											onclick={() => { if (!isReadOnly) meas.l[seg.key] = !meas.l[seg.key]; }}>
+											{seg.label}
+										</button>
+									{/each}
+								</div>
+							{/if}
+						</div>
+						<div class="w-12 flex justify-end shrink-0 pt-0.5">
+							<span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded {gradeBadgeCls(allGrades.l)}">
+								{allGrades.l > 0 ? allGrades.l : '—'}
 							</span>
 						</div>
 					</div>
@@ -841,7 +921,6 @@
 					<div class="px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
 						{#each ([
 							{ code: 'g', label: i18n.t.ortho.iotnCondG, teeth: '4–8', grade: 1, field: 'g' as const },
-							{ code: 'l', label: i18n.t.ortho.iotnCondL, teeth: '4–7', grade: 4, field: 'l' as const },
 							{ code: 'p', label: i18n.t.ortho.iotnCondP, teeth: '8–8', grade: 5, field: 'p' as const },
 							{ code: 's', label: i18n.t.ortho.iotnCondS, teeth: 'V–V', grade: 5, field: 's' as const },
 							{ code: 't', label: i18n.t.ortho.iotnCondT, teeth: '8–8', grade: 4, field: 't' as const },

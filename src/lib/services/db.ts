@@ -845,9 +845,58 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 		FOREIGN KEY (case_id)       REFERENCES par_cases(id)       ON DELETE CASCADE,
 		FOREIGN KEY (assessment_id) REFERENCES par_assessments(id)
 	)` },
+	// ── v59: Query-path indexes for per-patient and statistical lookups ──────
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_timeline_patient_date ON timeline_entries(patient_id, entry_date)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_timeline_plan_id ON timeline_entries(plan_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_timeline_document_id ON timeline_entries(document_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_timeline_doctor_id ON timeline_entries(doctor_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_documents_patient ON documents(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_entry_teeth_tooth ON entry_teeth(tooth_number)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_acute_tags_patient ON patient_acute_tags(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_medical_tags_patient ON patient_medical_tags(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_medical_entries_patient ON medical_entries(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_acute_problems_patient ON acute_problems(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_note_entries_patient ON patient_note_entries(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_complications_patient ON complications(patient_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_complications_entry ON complications(timeline_entry_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_endo_canals_record ON endo_canals(record_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_plan_items_plan ON treatment_plan_items(plan_id)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_probing_records_patient ON probing_records(patient_id, exam_date)` },
+	{ version: 59, sql: `CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id)` },
+
+	// ── v60: Delete hardcoded German appointment type defaults so they are
+	//         re-seeded in the user's chosen language on next app load ─────────
+	{ version: 60, sql: `DELETE FROM appointment_types WHERE name IN ('Kontrolle','Beratung','PZR','Füllung','Wurzelbehandlung','Extraktion','Krone','KFO-Kontrolle','Notfall')` },
+
+	// ── v61: Per-tooth watch status column (suspicious / observe) ──────────
+	{ version: 61, sql: `ALTER TABLE dental_chart ADD COLUMN watch_status TEXT DEFAULT NULL` },
+
+	// ── v62: Remove 'watch' dental tag — superseded by watch_status system ──
+	{ version: 62, sql: `UPDATE dental_chart SET condition = 'healthy' WHERE condition = 'watch'` },
+
+	// ── v63: Remove 'suspicious' watch status — merged into 'observe' ──────
+	{ version: 63, sql: `UPDATE dental_chart SET watch_status = 'observe' WHERE watch_status = 'suspicious'` },
+	{ version: 64, sql: `ALTER TABLE appointment_types ADD COLUMN icon TEXT NOT NULL DEFAULT ''` },
+
+	// ── v65: Seed default working hours for any doctor with no hours yet ────
+	{ version: 65, sql: `
+		INSERT OR IGNORE INTO doctor_working_hours (id, doctor_id, day_of_week, start_time, end_time, break_start, break_end, is_active)
+		SELECT d.id || '_' || days.day_of_week, d.id, days.day_of_week, days.start_time, days.end_time, days.break_start, days.break_end, days.is_active
+		FROM doctors d
+		CROSS JOIN (
+			SELECT 0 AS day_of_week, '08:00' AS start_time, '18:00' AS end_time, '12:00' AS break_start, '13:00' AS break_end, 0 AS is_active
+			UNION ALL SELECT 1, '08:00', '18:00', '12:00', '13:00', 1
+			UNION ALL SELECT 2, '08:00', '18:00', '12:00', '13:00', 1
+			UNION ALL SELECT 3, '08:00', '18:00', '12:00', '13:00', 1
+			UNION ALL SELECT 4, '08:00', '18:00', '12:00', '13:00', 1
+			UNION ALL SELECT 5, '08:00', '18:00', '12:00', '13:00', 1
+			UNION ALL SELECT 6, '08:00', '13:00', NULL, NULL, 1
+		) AS days(day_of_week, start_time, end_time, break_start, break_end, is_active)
+		WHERE NOT EXISTS (SELECT 1 FROM doctor_working_hours WHERE doctor_id = d.id)
+	` },
 ];
 
-const LATEST_VERSION = 58;
+const LATEST_VERSION = 65;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -910,7 +959,9 @@ async function runMigrations(conn: Database): Promise<void> {
 	}
 
 	// ── v23 data migration: backfill entry_teeth from existing tooth_numbers ──
-	if (versionsApplied.has(23) || current < 23) {
+	// ── v59 re-runs the backfill: the original sync filtered teeth to 1–32,
+	//    silently dropping FDI numbers 33–48 and primary teeth 51–85. ──
+	if (versionsApplied.has(23) || versionsApplied.has(59) || current < 23) {
 		await migrateEntryTeeth(conn);
 	}
 }
@@ -974,10 +1025,27 @@ async function migrateAbsToRelPaths(conn: Database): Promise<void> {
 
 // ── Entry-teeth sync helper ────────────────────────────────────────────
 
+/**
+ * Valid tooth identifiers for entry_teeth:
+ * - FDI permanent: 11–18, 21–28, 31–38, 41–48 (canonical notation — what the
+ *   timeline entry bar detects from "dNN" references)
+ * - FDI primary:   51–55, 61–65, 71–75, 81–85
+ * - Legacy Universal 1–32 (older entries / keyword-engine suggestions)
+ */
+export function isValidEntryTooth(n: number): boolean {
+	if (!Number.isInteger(n)) return false;
+	if (n >= 1 && n <= 32) return true; // legacy universal
+	const q = Math.floor(n / 10);
+	const p = n % 10;
+	if (q >= 1 && q <= 4) return p >= 1 && p <= 8; // FDI permanent
+	if (q >= 5 && q <= 8) return p >= 1 && p <= 5; // FDI primary
+	return false;
+}
+
 async function syncEntryTeeth(conn: Database, entryId: number, toothNumbers: string): Promise<void> {
 	await conn.execute('DELETE FROM entry_teeth WHERE entry_id = $1', [entryId]);
 	if (!toothNumbers) return;
-	const teeth = toothNumbers.split(',').map(t => parseInt(t.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 32);
+	const teeth = toothNumbers.split(',').map(t => parseInt(t.trim(), 10)).filter(n => !isNaN(n) && isValidEntryTooth(n));
 	for (const tooth of teeth) {
 		await conn.execute('INSERT OR IGNORE INTO entry_teeth (entry_id, tooth_number) VALUES ($1, $2)', [entryId, tooth]);
 	}
@@ -1016,8 +1084,12 @@ export function generatePatientId(): string {
 	return 'PT-' + Date.now().toString(36).toUpperCase();
 }
 
+/** Current local date-time as "YYYY-MM-DD HH:MM:SS" (local clock, not UTC —
+ *  late-evening entries must not roll over to the next day). */
 function nowISO(): string {
-	return new Date().toISOString().slice(0, 19).replace('T', ' ');
+	const d = new Date();
+	const p = (n: number) => String(n).padStart(2, '0');
+	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
 // ── CRUD operations ────────────────────────────────────────────────────
@@ -1178,6 +1250,22 @@ export async function deletePatient(patientId: string): Promise<void> {
 	// Read before deleting (for audit)
 	const before = await getPatient(patientId);
 
+	// Explicitly clean up tables that have no FK to patients (would otherwise
+	// leave orphaned rows behind and pollute statistics).
+	const orphanTables = [
+		'patient_misc_notes',
+		'patient_acute_text',
+		'patient_medical_text',
+		'patient_acute_tags',
+		'patient_medical_tags',
+		'patient_conditions',
+		'kig_findings',
+		'dental_chart_history',
+	];
+	for (const table of orphanTables) {
+		await conn.execute(`DELETE FROM ${table} WHERE patient_id = $1`, [patientId]).catch(() => {});
+	}
+
 	await conn.execute('DELETE FROM patients WHERE patient_id = $1', [patientId]);
 
 	if (before) {
@@ -1267,6 +1355,7 @@ export async function insertTimelineEntry(
 		[patientId],
 	);
 	const newRow = rows[0];
+	if (!newRow) throw new Error('Failed to insert timeline entry');
 	await syncEntryTeeth(conn, newRow.id, data.tooth_numbers ?? '');
 	return newRow;
 }
@@ -1283,7 +1372,8 @@ export async function getTimelineEntries(
 ): Promise<TimelineEntry[]> {
 	const conn = await getDb();
 	const typeClause = options?.type ? `AND entry_type = $2` : '';
-	const limitClause = options?.limit ? `LIMIT ${options.limit}` : '';
+	// SQLite requires LIMIT when OFFSET is used — LIMIT -1 means "no limit"
+	const limitClause = options?.limit ? `LIMIT ${options.limit}` : options?.offset ? 'LIMIT -1' : '';
 	const offsetClause = options?.offset ? `OFFSET ${options.offset}` : '';
 	const params: unknown[] = [patientId];
 	if (options?.type) params.push(options.type);
@@ -1333,7 +1423,7 @@ export async function getPriorProceduresForTooth(
 
 	let sql = `SELECT * FROM timeline_entries
 	 WHERE patient_id = $1
-	   AND entry_type IN ('procedure', 'visit')
+	   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 	   AND (${toothClauses.join(' OR ')})`;
 
 	if (beforeDate) {
@@ -1353,6 +1443,14 @@ export async function getPriorProceduresForTooth(
 	return conn.select<TimelineEntry[]>(sql, params);
 }
 
+/** Column defaults for timeline_entries text columns — used to normalize
+ *  `undefined` form values to '' instead of writing SQL NULL (which would
+ *  break UI code that assumes non-null strings, e.g. description.length). */
+const TIMELINE_TEXT_COLUMNS = new Set([
+	'provider', 'tooth_numbers', 'description', 'treatment_category',
+	'treatment_outcome', 'plan_id', 'chart_data', 'colleague_ids',
+]);
+
 export async function updateTimelineEntry(
 	id: number,
 	data: Partial<TimelineFormData>,
@@ -1369,7 +1467,13 @@ export async function updateTimelineEntry(
 
 	for (const [key, value] of Object.entries(data)) {
 		fields.push(`${key} = $${idx}`);
-		values.push(value);
+		let v = value;
+		if (v === undefined) {
+			if (TIMELINE_TEXT_COLUMNS.has(key)) v = '';
+			else if (key === 'attachments') v = '[]';
+			else v = null;
+		}
+		values.push(v);
 		idx++;
 	}
 
@@ -1384,8 +1488,9 @@ export async function updateTimelineEntry(
 	);
 
 	// Sync entry_teeth junction table if tooth_numbers changed
-	if (data.tooth_numbers !== undefined) {
-		await syncEntryTeeth(conn, id, data.tooth_numbers);
+	// ('in' check so an explicit clear (undefined → '') also clears the junction rows)
+	if ('tooth_numbers' in data) {
+		await syncEntryTeeth(conn, id, data.tooth_numbers ?? '');
 	}
 
 	// Append audit record (non-blocking — don't let audit failure break saves)
@@ -1972,8 +2077,8 @@ export async function upsertToothChartEntry(
 
 	if (!existing) {
 		await conn.execute(
-			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, root_data, shade, updated_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+			`INSERT INTO dental_chart (patient_id, tooth_number, condition, surfaces, notes, last_examined, bridge_group_id, bridge_role, abutment_type, prosthesis_type, root_data, shade, watch_status, updated_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
 			[
 				patientId,
 				toothNumber,
@@ -1987,6 +2092,7 @@ export async function upsertToothChartEntry(
 				data.prosthesis_type ?? null,
 				data.root_data ?? '{}',
 				data.shade ?? null,
+				data.watch_status ?? null,
 				now,
 			],
 		);
@@ -2255,7 +2361,7 @@ export async function getProcedureCountThisMonth(): Promise<number> {
 	const conn = await getDb();
 	const rows = await conn.select<{ count: number }[]>(
 		`SELECT COUNT(*) as count FROM timeline_entries
-		 WHERE entry_type = 'procedure'
+		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 		   AND entry_date >= date('now', 'start of month')
 		   AND entry_date <= date('now')`,
 		[],
@@ -2268,7 +2374,7 @@ export async function getCategoryStats(): Promise<CategoryStat[]> {
 	return conn.select<CategoryStat[]>(
 		`SELECT treatment_category as category, COUNT(*) as count
 		 FROM timeline_entries
-		 WHERE entry_type = 'procedure' AND treatment_category != ''
+		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot') AND treatment_category != ''
 		 GROUP BY treatment_category
 		 ORDER BY count DESC`,
 		[],
@@ -2280,7 +2386,7 @@ export async function getOutcomeStats(): Promise<OutcomeStat[]> {
 	return conn.select<OutcomeStat[]>(
 		`SELECT treatment_category as category, treatment_outcome as outcome, COUNT(*) as count
 		 FROM timeline_entries
-		 WHERE entry_type = 'procedure'
+		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 		   AND treatment_category != ''
 		   AND treatment_outcome != ''
 		 GROUP BY treatment_category, treatment_outcome
@@ -2296,7 +2402,7 @@ export async function getOverallSuccessRate(): Promise<SuccessRateStat> {
 		  SUM(CASE WHEN treatment_outcome = 'successful' THEN 1 ELSE 0 END) as successful,
 		  COUNT(*) as total_with_outcome
 		 FROM timeline_entries
-		 WHERE entry_type = 'procedure'
+		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 		   AND treatment_outcome != ''
 		   AND treatment_outcome != 'unknown'`,
 		[],
@@ -2318,14 +2424,19 @@ export async function getRecentEntries(limit = 10): Promise<RecentEntry[]> {
 	);
 }
 
-export async function getUpcomingAppointments(limit = 10): Promise<Patient[]> {
+export async function getUpcomingAppointments(limit = 10): Promise<import('../types').UpcomingAppointment[]> {
 	const conn = await getDb();
-	return conn.select<Patient[]>(
-		`SELECT * FROM patients
-		 WHERE next_appointment != ''
-		   AND next_appointment >= date('now')
-		   AND status != 'archived'
-		 ORDER BY next_appointment ASC
+	// Reads the real scheduler (appointments table) — the legacy
+	// patients.next_appointment text field is no longer consulted.
+	return conn.select<import('../types').UpcomingAppointment[]>(
+		`SELECT a.patient_id, p.firstname, p.lastname,
+		        a.start_time AS next_appointment
+		 FROM appointments a
+		 JOIN patients p ON a.patient_id = p.patient_id
+		 WHERE a.start_time >= datetime('now', 'localtime')
+		   AND a.status NOT IN ('cancelled', 'no_show')
+		   AND p.status != 'archived'
+		 ORDER BY a.start_time ASC
 		 LIMIT $1`,
 		[limit],
 	);
@@ -2666,7 +2777,7 @@ export async function insertComplication(
 
 export async function resolveComplication(id: number, resolved: boolean): Promise<void> {
 	const conn = await getDb();
-	const today = new Date().toISOString().slice(0, 10);
+	const today = nowISO().slice(0, 10);
 	await conn.execute(
 		'UPDATE complications SET resolved = $1, date_resolved = $2 WHERE id = $3',
 		[resolved ? 1 : 0, resolved ? today : '', id],
@@ -2784,21 +2895,34 @@ export async function upsertProbingMeasurement(
 	},
 ): Promise<void> {
 	const conn = await getDb();
-	const pd = data.pocket_depth !== undefined ? data.pocket_depth : null;
-	const bop = data.bleeding_on_probing !== undefined ? data.bleeding_on_probing : 0;
-	const rec = data.recession !== undefined ? data.recession : null;
-	const plaque = data.plaque !== undefined ? data.plaque : 0;
 
-	await conn.execute(
-		`INSERT INTO probing_measurements (record_id, tooth_number, site, pocket_depth, bleeding_on_probing, recession, plaque)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7)
-		 ON CONFLICT (record_id, tooth_number, site) DO UPDATE SET
-		   pocket_depth = CASE WHEN $4 IS NOT NULL THEN $4 ELSE pocket_depth END,
-		   bleeding_on_probing = $5,
-		   recession = CASE WHEN $6 IS NOT NULL THEN $6 ELSE recession END,
-		   plaque = $7`,
-		[recordId, toothNumber, site, pd, bop, rec, plaque],
+	// Read-merge-write: only fields explicitly provided are changed.
+	// (The previous ON CONFLICT version reset bleeding/plaque to 0 on every
+	// partial update and made it impossible to clear a value back to NULL.)
+	const existing = await conn.select<ProbingMeasurement[]>(
+		'SELECT * FROM probing_measurements WHERE record_id = $1 AND tooth_number = $2 AND site = $3',
+		[recordId, toothNumber, site],
 	);
+	const cur = existing[0];
+	const merged = {
+		pocket_depth: data.pocket_depth !== undefined ? data.pocket_depth : (cur?.pocket_depth ?? null),
+		bleeding_on_probing: data.bleeding_on_probing !== undefined ? data.bleeding_on_probing : (cur?.bleeding_on_probing ?? 0),
+		recession: data.recession !== undefined ? data.recession : (cur?.recession ?? null),
+		plaque: data.plaque !== undefined ? data.plaque : (cur?.plaque ?? 0),
+	};
+
+	if (cur) {
+		await conn.execute(
+			`UPDATE probing_measurements SET pocket_depth = $1, bleeding_on_probing = $2, recession = $3, plaque = $4 WHERE id = $5`,
+			[merged.pocket_depth, merged.bleeding_on_probing, merged.recession, merged.plaque, cur.id],
+		);
+	} else {
+		await conn.execute(
+			`INSERT INTO probing_measurements (record_id, tooth_number, site, pocket_depth, bleeding_on_probing, recession, plaque)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+			[recordId, toothNumber, site, merged.pocket_depth, merged.bleeding_on_probing, merged.recession, merged.plaque],
+		);
+	}
 }
 
 export async function getProbingMeasurements(recordId: number): Promise<ProbingMeasurement[]> {
@@ -2820,23 +2944,34 @@ export async function upsertProbingToothData(
 	},
 ): Promise<void> {
 	const conn = await getDb();
-	await conn.execute(
-		`INSERT INTO probing_tooth_data (record_id, tooth_number, mobility, furcation, furcation_sites, notes)
-		 VALUES ($1, $2, $3, $4, $5, $6)
-		 ON CONFLICT (record_id, tooth_number) DO UPDATE SET
-		   mobility = COALESCE($3, mobility),
-		   furcation = COALESCE($4, furcation),
-		   furcation_sites = CASE WHEN $5 != '' THEN $5 ELSE furcation_sites END,
-		   notes = $6`,
-		[
-			recordId,
-			toothNumber,
-			data.mobility ?? null,
-			data.furcation ?? null,
-			data.furcation_sites ?? '',
-			data.notes ?? '',
-		],
+
+	// Read-merge-write: only fields explicitly provided are changed.
+	// (The previous ON CONFLICT version overwrote notes on every partial update
+	// and made it impossible to clear mobility/furcation back to NULL.)
+	const existing = await conn.select<ProbingToothData[]>(
+		'SELECT * FROM probing_tooth_data WHERE record_id = $1 AND tooth_number = $2',
+		[recordId, toothNumber],
 	);
+	const cur = existing[0];
+	const merged = {
+		mobility: data.mobility !== undefined ? data.mobility : (cur?.mobility ?? null),
+		furcation: data.furcation !== undefined ? data.furcation : (cur?.furcation ?? null),
+		furcation_sites: data.furcation_sites !== undefined ? data.furcation_sites : (cur?.furcation_sites ?? ''),
+		notes: data.notes !== undefined ? data.notes : (cur?.notes ?? ''),
+	};
+
+	if (cur) {
+		await conn.execute(
+			`UPDATE probing_tooth_data SET mobility = $1, furcation = $2, furcation_sites = $3, notes = $4 WHERE id = $5`,
+			[merged.mobility, merged.furcation, merged.furcation_sites, merged.notes, cur.id],
+		);
+	} else {
+		await conn.execute(
+			`INSERT INTO probing_tooth_data (record_id, tooth_number, mobility, furcation, furcation_sites, notes)
+			 VALUES ($1, $2, $3, $4, $5, $6)`,
+			[recordId, toothNumber, merged.mobility, merged.furcation, merged.furcation_sites, merged.notes],
+		);
+	}
 }
 
 export async function getProbingToothData(recordId: number): Promise<ProbingToothData[]> {
@@ -3004,7 +3139,7 @@ export async function getPatientSummary(patientId: string): Promise<import('../t
 export async function getProviderOutcomeStats(filters?: AnalyticsFilters): Promise<{ doctor_name: string; total: number; successful: number; retreated: number; failed: number }[]> {
 	const conn = await getDb();
 	const params: unknown[] = [];
-	const clauses: string[] = ["te.entry_type = 'procedure'", "te.treatment_outcome != ''"];
+	const clauses: string[] = ["te.entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')", "te.treatment_outcome != ''"];
 	let idx = 1;
 
 	if (filters?.dateFrom) {
@@ -3053,7 +3188,7 @@ export async function getActivityStats(from: string, to: string): Promise<{
 			        COUNT(*) as entries_count
 			 FROM timeline_entries
 			 WHERE entry_date BETWEEN $1 AND $2
-			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot')`,
+			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')`,
 			[from, to],
 		),
 		conn.select<{ new_patients: number }[]>(
@@ -3084,7 +3219,7 @@ export async function getDoctorActivityStats(from: string, to: string): Promise<
 		 FROM doctors d
 		 JOIN timeline_entries te ON te.doctor_id = d.id
 		   AND te.entry_date BETWEEN $1 AND $2
-		   AND te.entry_type NOT IN ('document', 'plan', 'chart_snapshot')
+		   AND te.entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 		 GROUP BY d.id, d.name, d.color
 		 ORDER BY entries_count DESC`,
 		[from, to],
@@ -3150,7 +3285,7 @@ export async function getActivityTimeSeries(from: string, to: string): Promise<A
 			        COUNT(*) as entries_count
 			 FROM timeline_entries
 			 WHERE entry_date BETWEEN $1 AND $2
-			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot')
+			   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
 			 GROUP BY date(entry_date)
 			 ORDER BY date`,
 			[from, to],
@@ -3320,8 +3455,8 @@ export async function insertAppointmentType(data: AppointmentTypeFormData): Prom
 	const conn = await getDb();
 	const id = crypto.randomUUID();
 	await conn.execute(
-		'INSERT INTO appointment_types (id, name, short_name, default_duration_min, color, treatment_category, sort_order, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-		[id, data.name, data.short_name, data.default_duration_min, data.color, data.treatment_category, data.sort_order, data.is_active ? 1 : 0],
+		'INSERT INTO appointment_types (id, name, short_name, default_duration_min, color, icon, treatment_category, sort_order, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+		[id, data.name, data.short_name, data.default_duration_min, data.color, data.icon ?? '', data.treatment_category, data.sort_order, data.is_active ? 1 : 0],
 	);
 	const rows = await conn.select<AppointmentType[]>('SELECT * FROM appointment_types WHERE id=$1', [id]);
 	return rows[0];
@@ -3336,6 +3471,7 @@ export async function updateAppointmentType(id: string, data: Partial<Appointmen
 	if (data.short_name !== undefined) { fields.push(`short_name=$${i++}`); values.push(data.short_name); }
 	if (data.default_duration_min !== undefined) { fields.push(`default_duration_min=$${i++}`); values.push(data.default_duration_min); }
 	if (data.color !== undefined) { fields.push(`color=$${i++}`); values.push(data.color); }
+	if (data.icon !== undefined) { fields.push(`icon=$${i++}`); values.push(data.icon); }
 	if (data.treatment_category !== undefined) { fields.push(`treatment_category=$${i++}`); values.push(data.treatment_category); }
 	if (data.sort_order !== undefined) { fields.push(`sort_order=$${i++}`); values.push(data.sort_order); }
 	if (data.is_active !== undefined) { fields.push(`is_active=$${i++}`); values.push(data.is_active ? 1 : 0); }
@@ -3355,7 +3491,7 @@ const APPOINTMENT_JOIN = `
   SELECT a.*,
     p.firstname AS patient_firstname, p.lastname AS patient_lastname,
     d.name AS doctor_name,
-    at.name AS type_name, at.color AS type_color, at.short_name AS type_short_name,
+    at.name AS type_name, at.color AS type_color, at.short_name AS type_short_name, at.icon AS type_icon,
     ar.name AS room_name, ar.color AS room_color
   FROM appointments a
   LEFT JOIN patients p ON a.patient_id = p.patient_id
@@ -3677,8 +3813,10 @@ export async function getPatientVisitCounts(today: string): Promise<{ today: num
 	mon.setDate(d.getDate() + diffToMon);
 	const sun = new Date(mon);
 	sun.setDate(mon.getDate() + 6);
-	const weekStart = mon.toISOString().slice(0, 10);
-	const weekEnd = sun.toISOString().slice(0, 10);
+	const pad = (n: number) => String(n).padStart(2, '0');
+	const localDate = (x: Date) => `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+	const weekStart = localDate(mon);
+	const weekEnd = localDate(sun);
 	const rows = await db.select<{ today: number; week: number }[]>(
 		`SELECT
 		  COUNT(DISTINCT CASE WHEN date(a.start_time) = date($1) THEN a.patient_id END) AS today,
@@ -3732,7 +3870,7 @@ export async function saveEndoRecord(
 	recordId?: number,
 ): Promise<number> {
 	const conn = await getDb();
-	const now = new Date().toISOString();
+	const now = nowISO();
 	let id: number;
 	if (recordId) {
 		await conn.execute(
@@ -3798,7 +3936,7 @@ export async function saveToothNote(
 	noteId?: number,
 ): Promise<number> {
 	const conn = await getDb();
-	const now = new Date().toISOString();
+	const now = nowISO();
 	if (noteId) {
 		await conn.execute(
 			'UPDATE tooth_notes SET text = $1, reminder_date = $2, updated_at = $3 WHERE id = $4',

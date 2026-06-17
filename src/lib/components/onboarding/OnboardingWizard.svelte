@@ -4,7 +4,7 @@
 	import { resetDb, insertDoctor, insertAppointmentRoom } from '$lib/services/db';
 	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder } from '$lib/services/files';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
-	import { i18n, type LangCode } from '$lib/i18n';
+	import { i18n } from '$lib/i18n';
 	import { docCategories, DEFAULT_CATEGORIES } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffRoles } from '$lib/stores/staffRoles.svelte';
@@ -63,6 +63,16 @@
 
 	// ── Step 3 — Clinic (rooms) ──────────────────────────────────────
 	let numChairs = $state(2);
+	let roomNames = $state<string[]>(['', '']); // empty = use default name
+
+	$effect(() => {
+		const cur = roomNames.length;
+		if (numChairs > cur) {
+			for (let i = cur; i < numChairs; i++) roomNames.push('');
+		} else if (numChairs < cur) {
+			roomNames.splice(numChairs);
+		}
+	});
 
 	// ── Step 5 — Done / Finish ───────────────────────────────────────
 	let finishing = $state(false);
@@ -84,8 +94,6 @@
 			);
 			// Create !Documents template folder
 			await ensureDocTemplatesFolder(selectedPath.trim());
-			// Persist the language choice (setLang failed earlier because vault was not ready)
-			await i18n.setLang(i18n.code);
 
 			// Save localized categories to DB — this persists the folder names so
 			// vault.categoryFolder() returns the correct language-specific name thereafter.
@@ -106,8 +114,9 @@
 			const clampedChairs = Math.max(1, Math.min(20, numChairs));
 			const ROOM_COLORS = ['#6366f1','#10b981','#f59e0b','#3b82f6','#ec4899','#8b5cf6','#f97316','#06b6d4'];
 			for (let i = 1; i <= clampedChairs; i++) {
+				const customName = roomNames[i - 1]?.trim();
 				await insertAppointmentRoom({
-					name: `${i18n.t.onboarding.defaultRoomName} ${i}`,
+					name: customName || `${i18n.t.onboarding.defaultRoomName} ${i}`,
 					short_name: String(i),
 					color: ROOM_COLORS[(i - 1) % ROOM_COLORS.length],
 					sort_order: i,
@@ -129,18 +138,6 @@
 			onConfigured();
 		} catch {
 			finishing = false;
-		}
-	}
-
-	// ── Language switcher (step 0 only) ──────────────────────────────
-	// On step 0, the vault may not be configured, so setSetting might fail.
-	// We call setLang and silently ignore DB errors (it still updates i18n.code).
-	async function switchLang(code: LangCode) {
-		try {
-			await i18n.setLang(code);
-		} catch {
-			// DB not available yet; update in-memory state only
-			i18n.code = code;
 		}
 	}
 
@@ -173,17 +170,18 @@
 		},
 	]);
 
-	// ── Progress steps (1-indexed display, 1=vault, 2=team, 3=clinic, 4=defaults) ──
+	// ── Progress steps (1-indexed display, 1=vault, 2=team, 3=clinic, 4=defaults, 5=documents) ──
 	const progressLabels = $derived([
 		i18n.t.onboarding.stepLabels.vault,
 		i18n.t.onboarding.stepLabels.team,
 		i18n.t.onboarding.stepLabels.clinic,
 		i18n.t.onboarding.stepLabels.defaults,
+		i18n.t.onboarding.stepLabels.documents,
 	]);
 </script>
 
 <!-- ── Full-screen wrapper ──────────────────────────────────────────── -->
-<div class="flex min-h-screen items-center justify-center bg-background p-6">
+<div class="fixed inset-0 flex items-center justify-center overflow-auto bg-background p-6">
 
 	{#key step}
 		<div
@@ -222,34 +220,6 @@
 					</p>
 				</div>
 
-				<!-- Language switcher -->
-				<div class="flex gap-2">
-					<button
-						type="button"
-						onclick={() => switchLang('de')}
-						class={[
-							'flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-							i18n.code === 'de'
-								? 'bg-primary text-primary-foreground border-primary'
-								: 'bg-background text-foreground border-input hover:bg-muted',
-						].join(' ')}
-					>
-						<span>🇩🇪</span> Deutsch
-					</button>
-					<button
-						type="button"
-						onclick={() => switchLang('en')}
-						class={[
-							'flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
-							i18n.code === 'en'
-								? 'bg-primary text-primary-foreground border-primary'
-								: 'bg-background text-foreground border-input hover:bg-muted',
-						].join(' ')}
-					>
-						<span>🇬🇧</span> English
-					</button>
-				</div>
-
 				<!-- Display scale picker -->
 				<div class="flex flex-col items-center gap-2">
 					<p class="text-xs text-muted-foreground">{i18n.t.onboarding.scaleLabel}</p>
@@ -284,14 +254,14 @@
 		<!-- ═══════════════════════════════════════════════════════════ -->
 		<!-- STEPS 1–4 — Card wrapper                                   -->
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		{:else if step >= 1 && step <= 4}
+		{:else if step >= 1 && step <= 5}
 			<div class="mx-auto w-full max-w-[540px]">
 
 				<!-- Progress indicator -->
 				<div class="mb-6">
 					<!-- Step label -->
 					<p class="mb-3 text-center text-xs font-medium text-muted-foreground">
-						{i18n.t.onboarding.step} {step} / 4 — {progressLabels[step - 1]}
+						{i18n.t.onboarding.step} {step} / 5 — {progressLabels[step - 1]}
 					</p>
 					<!-- Dots + lines -->
 					<div class="flex items-center justify-center gap-0">
@@ -515,15 +485,21 @@
 										class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-muted text-lg font-bold hover:bg-muted/80 transition-colors disabled:opacity-40"
 										disabled={numChairs >= 20}>+</button>
 								</div>
-								<!-- Preview of room names -->
-								<div class="flex flex-wrap gap-1.5 mt-2">
+								<!-- Room name inputs -->
+								<div class="mt-2 flex flex-col gap-1.5">
 									{#each {length: numChairs} as _, idx}
-										<span class="rounded-full border bg-background px-2.5 py-0.5 text-[11px] text-muted-foreground">
-											{i18n.t.onboarding.defaultRoomName} {idx + 1}
-										</span>
+										<div class="flex items-center gap-2">
+											<span class="w-6 text-right text-xs font-bold text-muted-foreground">{idx + 1}.</span>
+											<input
+												type="text"
+												placeholder="{i18n.t.onboarding.defaultRoomName} {idx + 1}"
+												bind:value={roomNames[idx]}
+												class="flex-1 rounded-lg border bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+											/>
+										</div>
 									{/each}
 								</div>
-								<p class="text-xs text-muted-foreground">{i18n.t.onboarding.clinicChairsHint}</p>
+								<p class="text-xs text-muted-foreground mt-1">{i18n.t.onboarding.clinicChairsHint}</p>
 							</div>
 						</div>
 
@@ -599,6 +575,47 @@
 								onclick={() => goTo(5)}
 								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
 							>
+								{i18n.t.onboarding.continueBtn}
+							</button>
+						</div>
+					<!-- ─────────────────────────────────────────────── -->
+					<!-- STEP 5 — Document Templates                    -->
+					<!-- ─────────────────────────────────────────────── -->
+					{:else if step === 5}
+						<h2 class="text-xl font-bold text-foreground">{i18n.t.onboarding.documentsTitle}</h2>
+						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+							{i18n.t.onboarding.documentsDesc}
+						</p>
+
+						<!-- Folder path preview -->
+						<div class="my-4 rounded-xl border bg-muted/40 p-4 font-mono text-xs text-muted-foreground">
+							<p class="font-semibold text-foreground mb-1">{i18n.t.onboarding.documentsFolderLabel}</p>
+							<p>📦 {selectedPath || '…'}/</p>
+							<p class="ml-4 text-primary font-semibold">📁 !Documents/</p>
+							<p class="ml-8 text-muted-foreground/60">← {i18n.t.onboarding.documentsExamples[0]}</p>
+							<p class="ml-8 text-muted-foreground/60">← {i18n.t.onboarding.documentsExamples[1]}</p>
+							<p class="ml-8 text-muted-foreground/60">← …</p>
+						</div>
+
+						<!-- What to put there -->
+						<div class="rounded-xl border bg-muted/20 p-3.5">
+							<p class="mb-2 text-sm font-semibold text-foreground">{i18n.t.onboarding.documentsWhatLabel}</p>
+							<div class="flex flex-wrap gap-1.5">
+								{#each i18n.t.onboarding.documentsExamples as ex}
+									<span class="rounded-full border bg-background px-2.5 py-0.5 text-[11px] text-muted-foreground">{ex}</span>
+								{/each}
+							</div>
+						</div>
+
+						<p class="mt-3 text-xs text-muted-foreground/70">{i18n.t.onboarding.documentsHint}</p>
+
+						<!-- Nav buttons -->
+						<div class="mt-6 flex items-center justify-between">
+							<button type="button" onclick={() => goTo(4)} class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+								← {i18n.t.onboarding.back}
+							</button>
+							<button type="button" onclick={() => goTo(6)}
+								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
 								{i18n.t.onboarding.continueBtn} →
 							</button>
 						</div>
@@ -608,9 +625,9 @@
 			</div><!-- /max-w wrapper -->
 
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		<!-- STEP 4 — All Done                                          -->
+		<!-- STEP 6 — All Done                                          -->
 		<!-- ═══════════════════════════════════════════════════════════ -->
-		{:else if step === 5}
+		{:else if step === 6}
 			<div class="flex flex-col items-center gap-6 text-center max-w-md mx-auto">
 				<!-- Animated checkmark -->
 				<div class="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10">

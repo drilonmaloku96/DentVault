@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { i18n } from '$lib/i18n';
-	import { toFDI, FDI_TOOTH_NAMES } from '$lib/utils';
+	import { toLocalISODate, toFDI, FDI_TOOTH_NAMES } from '$lib/utils';
 	import { getEndoRecords, saveEndoRecord, deleteEndoRecord } from '$lib/services/db';
 	import { endoInstruments } from '$lib/stores/endoInstruments.svelte';
 	import type { EndoRecord, EndoCanal } from '$lib/types';
@@ -48,7 +48,7 @@
 	let baseCanalsCount = $state(0);
 
 	function todayStr(): string {
-		return new Date().toISOString().slice(0, 10);
+		return toLocalISODate();
 	}
 
 	function makeBaseCanals(): EndoCanal[] {

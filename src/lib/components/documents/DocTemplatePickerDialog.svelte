@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { i18n } from '$lib/i18n';
@@ -74,7 +75,7 @@
 			});
 
 			await insertTimelineEntry(patientId, {
-				entry_date: new Date().toISOString().slice(0, 10),
+				entry_date: toLocalISODate(),
 				entry_type: 'document',
 				title: selected.filename,
 				treatment_category: category,

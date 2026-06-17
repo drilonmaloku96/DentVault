@@ -2,9 +2,10 @@
 	import { untrack } from 'svelte';
 	import type { ToothChartEntry, DentalChartHistoryEntry } from '$lib/types';
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
-	import { postTypes } from '$lib/stores/postTypes.svelte';
 	import { fillingMaterials } from '$lib/stores/fillingMaterials.svelte';
 	import { shadeGuides } from '$lib/stores/shadeGuides.svelte';
+	import { crownFindings, type CrownFindingConfig } from '$lib/stores/crownFindings.svelte';
+	import { canalStatuses } from '$lib/stores/canalStatuses.svelte';
 
 	/** Live check — reads from the loaded store so user-configured wholeTooth is respected. */
 	function isWholeTooth(tagKey: string): boolean {
@@ -14,24 +15,22 @@
 	import { i18n } from '$lib/i18n';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
-	import { toFDI, FDI_TOOTH_NAMES, getCanalsForTooth } from '$lib/utils';
+	import { toLocalISODate, toFDI, FDI_TOOTH_NAMES, getCanalsForTooth } from '$lib/utils';
 	import { getToothHistory } from '$lib/services/db';
 	import { getToothNotes, saveToothNote, deleteToothNote } from '$lib/services/db';
 	import type { ToothNote } from '$lib/types';
-	import EndoDocDialog from './EndoDocDialog.svelte';
+
+	// ── Crown surface findings (store-backed) ─────────────────────────
+	const WHOLE_CROWN_KEY = '_whole';
+
+	function crownSurfFinding(surf: string): CrownFindingConfig | undefined {
+		const tag = getSurfTag(surfaceMap[surf]);
+		return tag.startsWith('cx_') ? crownFindings.getByKey(tag) : undefined;
+	}
 
 	// ── Root canal types ───────────────────────────────────────────────
-	type CanalStatus = 'none' | 'filled' | 'insufficient' | 'dressing';
-	interface CanalData { status: CanalStatus; post: string | null; apex: boolean }
+	interface CanalData { status: string; notes?: string; length?: number | null }
 	type RootDataMap = Record<string, CanalData>;
-
-	const CANAL_STATUS_CYCLE: CanalStatus[] = ['none', 'filled', 'insufficient', 'dressing'];
-	const CANAL_COLORS: Record<CanalStatus, { bg: string; border: string; text: string }> = {
-		none:         { bg: '#f5f3ff', border: '#c4b5fd', text: '#7c3aed' },
-		filled:       { bg: '#dbeafe', border: '#93c5fd', text: '#2563eb' },
-		insufficient: { bg: '#fee2e2', border: '#fca5a5', text: '#dc2626' },
-		dressing:     { bg: '#fef3c7', border: '#fde68a', text: '#d97706' },
-	};
 
 	let {
 		toothNumber,
@@ -39,10 +38,12 @@
 		entry = null,
 		selectedSurface = null,
 		shortcutTagKey = null,
+		watchShortcutTrigger = null,
 		horizontal = false,
 		onSave,
 		onClose,
 		onDissolveBridge = undefined,
+		onEditBridge = undefined,
 		onNotesChanged = undefined,
 	}: {
 		toothNumber: number;
@@ -50,27 +51,29 @@
 		entry?: ToothChartEntry | null;
 		selectedSurface?: string | null;
 		shortcutTagKey?: { key: string; seq: number } | null;
+		watchShortcutTrigger?: { seq: number } | null;
 		horizontal?: boolean;
-		onSave: (toothNumber: number, data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null }) => Promise<void>;
+		onSave: (toothNumber: number, data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null; watch_status: string | null }) => Promise<void>;
 		onClose: () => void;
 		onDissolveBridge?: (bridgeGroupId: string) => void;
+		onEditBridge?: () => void;
 		onNotesChanged?: () => void;
 	} = $props();
 
 	const SURFACE_NAMES: Record<string, string> = {
-		O: 'Occlusal', B: 'Buccal', L: 'Lingual', M: 'Mesial', D: 'Distal',
+		O: 'Occlusal', B: 'Buccal', L: 'Lingual', M: 'Mesial', D: 'Distal', Cv: 'Cervical',
 	};
 
-	// Grid layout — varies by quadrant so M is always toward midline and B faces outward.
-	// Upper teeth (1–16): Lingual/Palatal at top, Buccal at bottom.
-	// Lower teeth (17–32): Buccal at top, Lingual at bottom.
+	// Grid layout — mirrors the chart visual orientation so the picker matches what you see on the SVG.
+	// Upper teeth (1–16): Buccal at top (far from arch), Lingual at bottom (close to arch).
+	// Lower teeth (17–32): Lingual at top (close to arch), Buccal at bottom (far from arch).
 	// Right quadrants (1–8 = Q1, 25–32 = Q4): M on right, D on left.
 	// Left  quadrants (9–16 = Q2, 17–24 = Q3): M on left,  D on right.
 	const surfaceGrid = $derived((): (string | null)[][] => {
 		const isUpper = toothNumber <= 16;
 		const isRight = toothNumber <= 8 || toothNumber >= 25;
-		const top    = isUpper ? 'L' : 'B';
-		const bottom = isUpper ? 'B' : 'L';
+		const top    = isUpper ? 'B' : 'L';
+		const bottom = isUpper ? 'L' : 'B';
 		const left   = isRight ? 'D' : 'M';
 		const right  = isRight ? 'M' : 'D';
 		return [
@@ -89,6 +92,7 @@
 	let rotation          = $state(untrack(() => entry?.rotation ?? ''));
 	let foreignWork       = $state(untrack(() => (entry?.foreign_work ?? 0) === 1));
 	let selectedShade     = $state<string | null>(untrack(() => entry?.shade ?? null));
+	let watchStatus       = $state<string | null>(untrack(() => entry?.watch_status ?? null));
 	let activeShadeGuide  = $state<string>(untrack(() => shadeGuides.list[0]?.key ?? ''));
 	let isSaving          = $state(false);
 	let savedPulse        = $state(false);
@@ -102,7 +106,7 @@
 	let noteDeleteConfirm = $state<number | null>(null);
 	let notesLoading      = $state(false);
 
-	interface SurfaceData { tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean; grade?: number }
+	interface SurfaceData { tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean; grade?: number; watch?: 'observe' }
 	type SurfaceValue = string | SurfaceData;
 	type SurfMap = Record<string, SurfaceValue>;
 
@@ -127,23 +131,17 @@
 	let rootDataMap = $state<RootDataMap>(untrack(() => parseRootMap(entry?.root_data)));
 
 	// Root canal UI state
-	let openCanalDropdown = $state<string | null>(null);
-	let altHoverInfo = $state<{ canal: string; x: number; y: number } | null>(null);
-	let showEndoDialog = $state(false);
+	let activeRootCanals = $state(new Set<string>());
+	let addCanalInput    = $state('');
+	let showCanalInput   = $state(false);
 
-	// Canals for this tooth (derived from tooth number)
+	// Canals for this tooth: anatomical defaults + user-added extras stored in rootDataMap
 	const toothCanals = $derived(getCanalsForTooth(toothNumber));
+	const allCanals   = $derived([
+		...toothCanals,
+		...Object.keys(rootDataMap).filter(k => !toothCanals.includes(k)),
+	]);
 
-	// Whether to show the root canal widget
-	const showRootCanalWidget = $derived(
-		selectedCondition === 'root_canal' ||
-		Object.values(rootDataMap).some(c => c.status !== 'none' || c.apex),
-	);
-
-	// Load postTypes store lazily
-	$effect(() => {
-		if (!postTypes.loaded) postTypes.load();
-	});
 
 	$effect(() => {
 		if (!fillingMaterials.loaded) fillingMaterials.load();
@@ -152,6 +150,28 @@
 	$effect(() => {
 		if (!shadeGuides.loaded) shadeGuides.load();
 	});
+
+	$effect(() => {
+		if (!crownFindings.loaded) crownFindings.load();
+	});
+
+	$effect(() => {
+		if (!canalStatuses.loaded) canalStatuses.load();
+	});
+
+	// Crown derived state — single crown OR bridge abutment (abutments always carry a crown)
+	const isCrowned = $derived(
+		selectedCondition === 'crowned' ||
+		entry?.bridge_role === 'abutment'
+	);
+	const isPontic = $derived(entry?.bridge_role === 'pontic');
+	const wholeCrownFinding   = $derived((() => {
+		const tag = getSurfTag(surfaceMap[WHOLE_CROWN_KEY]);
+		return tag.startsWith('cx_') ? crownFindings.getByKey(tag) : undefined;
+	})());
+	const hasCrownFindings    = $derived(
+		Object.keys(surfaceMap).some(k => getSurfTag(surfaceMap[k]).startsWith('cx_'))
+	);
 
 	// ── Multi-select state ─────────────────────────────────────────────
 	let activeSurfaces = $state(new Set<string>());
@@ -183,10 +203,14 @@
 			rotation          = entry?.rotation ?? '';
 			foreignWork       = (entry?.foreign_work ?? 0) === 1;
 			selectedShade     = entry?.shade ?? null;
+			watchStatus       = entry?.watch_status ?? null;
 			surfaceMap        = parseSurfMap(entry?.surfaces);
 			rootDataMap       = parseRootMap(entry?.root_data);
 			activeSurfaces    = new Set();
-			toothNotesList    = [];
+			activeRootCanals = new Set();
+			addCanalInput    = '';
+			showCanalInput   = false;
+			toothNotesList   = [];
 			showNoteForm      = false;
 			notesDraftText    = '';
 			notesDraftReminder = '';
@@ -245,6 +269,7 @@
 				rotation,
 				foreign_work: foreignWork ? 1 : 0,
 				shade: selectedShade,
+				watch_status: watchStatus,
 			});
 			savedPulse = true;
 			setTimeout(() => (savedPulse = false), 1800);
@@ -264,12 +289,31 @@
 	}
 
 	function onGridPointerDown(e: PointerEvent) {
-		const surf = (e.target as HTMLElement).closest<HTMLElement>('[data-surface]')?.dataset.surface;
+		const surf = (e.target as Element).closest('[data-surface]')?.getAttribute('data-surface');
 		if (!surf) return;
-		dragMode   = activeSurfaces.has(surf) ? 'remove' : 'add';
-		isDragging = true;
-		applySurfaceDragMode(surf);
 		e.preventDefault();
+		isDragging = true;
+		// Switching to surface mode clears any active canal selection
+		if (activeRootCanals.size > 0) activeRootCanals = new Set();
+		if (e.shiftKey) {
+			// Shift: additive toggle
+			if (activeSurfaces.has(surf)) {
+				const s = new Set(activeSurfaces); s.delete(surf); activeSurfaces = s;
+				dragMode = 'remove';
+			} else {
+				activeSurfaces = new Set([...activeSurfaces, surf]);
+				dragMode = 'add';
+			}
+		} else {
+			// Plain click: exclusive selection (deselects previous surface)
+			if (activeSurfaces.size === 1 && activeSurfaces.has(surf)) {
+				activeSurfaces = new Set(); // toggle off if clicking the only selected surface
+				dragMode = 'remove';
+			} else {
+				activeSurfaces = new Set([surf]);
+				dragMode = 'add';
+			}
+		}
 	}
 
 	// ── Unified tag actions ────────────────────────────────────────────
@@ -316,6 +360,137 @@
 		}
 		doSave();
 	}
+
+	// ── Crown finding actions ──────────────────────────────────────────
+	function applyCrownFinding(key: string, wholeCrown: boolean) {
+		if (wholeCrown) {
+			if (getSurfTag(surfaceMap[WHOLE_CROWN_KEY]) === key) {
+				delete surfaceMap[WHOLE_CROWN_KEY];
+			} else {
+				surfaceMap[WHOLE_CROWN_KEY] = key;
+			}
+			activeSurfaces = new Set();
+		} else if (activeSurfaces.size > 0) {
+			for (const s of activeSurfaces) {
+				if (getSurfTag(surfaceMap[s]) === key) {
+					delete surfaceMap[s];
+				} else {
+					surfaceMap[s] = key;
+				}
+			}
+			activeSurfaces = new Set();
+		}
+		doSave();
+	}
+
+	function clearCrownFindings() {
+		for (const k of Object.keys(surfaceMap)) {
+			if (getSurfTag(surfaceMap[k]).startsWith('cx_')) delete surfaceMap[k];
+		}
+		delete surfaceMap[WHOLE_CROWN_KEY];
+		doSave();
+	}
+
+	// SVG donut-sector path — clockface angles (0=top, 90=right, 180=bottom, 270=left)
+	function sectorPath(startClock: number, endClock: number, innerR: number, outerR: number): string {
+		const toRad = (c: number) => (c - 90) * Math.PI / 180;
+		const a1 = toRad(startClock), a2 = toRad(endClock);
+		const f = (n: number) => n.toFixed(2);
+		const cx = (r: number, a: number) => r * Math.cos(a);
+		const cy = (r: number, a: number) => r * Math.sin(a);
+		const span = ((endClock - startClock) + 360) % 360;
+		const lg = span > 180 ? 1 : 0;
+		return [
+			`M ${f(cx(outerR, a1))},${f(cy(outerR, a1))}`,
+			`A ${outerR} ${outerR} 0 ${lg} 1 ${f(cx(outerR, a2))},${f(cy(outerR, a2))}`,
+			`L ${f(cx(innerR, a2))},${f(cy(innerR, a2))}`,
+			`A ${innerR} ${innerR} 0 ${lg} 0 ${f(cx(innerR, a1))},${f(cy(innerR, a1))}`,
+			'Z',
+		].join(' ');
+	}
+
+	// ── Watch status actions ───────────────────────────────────────────
+	function setWatchStatus() {
+		if (activeSurfaces.size > 0) {
+			for (const s of activeSurfaces) {
+				const existing = surfaceMap[s];
+				const cur = existing && typeof existing === 'object' ? existing : { tag: typeof existing === 'string' ? existing : '' };
+				surfaceMap[s] = { ...cur, watch: 'observe' };
+			}
+			activeSurfaces = new Set();
+		} else {
+			watchStatus = 'observe';
+		}
+		doSave();
+	}
+
+	// Keyboard shortcut: 'O' toggles observe on/off
+	$effect(() => {
+		const trigger = watchShortcutTrigger;
+		if (!trigger) return;
+		untrack(() => {
+			if (activeSurfaces.size > 0) {
+				for (const s of activeSurfaces) {
+					const existing = surfaceMap[s];
+					const v = existing && typeof existing === 'object' ? existing : { tag: typeof existing === 'string' ? existing : '' };
+					if ((v as SurfaceData).watch === 'observe') {
+						const { watch: _w, ...rest } = v as SurfaceData;
+						if (!rest.tag && !rest.material && !rest.origin && !rest.insufficient && !rest.grade) {
+							delete surfaceMap[s];
+						} else {
+							surfaceMap[s] = rest;
+						}
+					} else {
+						surfaceMap[s] = { ...v, watch: 'observe' };
+					}
+				}
+				activeSurfaces = new Set();
+			} else {
+				watchStatus = watchStatus === 'observe' ? null : 'observe';
+			}
+			doSave();
+		});
+	});
+
+	function clearWatchStatus() {
+		if (activeSurfaces.size > 0) {
+			for (const s of activeSurfaces) {
+				const existing = surfaceMap[s];
+				if (existing && typeof existing === 'object') {
+					const { watch: _w, ...rest } = existing as SurfaceData;
+					// if nothing left in the surface data, remove the entry
+					if (!rest.tag && !rest.material && !rest.origin && !rest.insufficient && !rest.grade) {
+						delete surfaceMap[s];
+					} else {
+						surfaceMap[s] = rest;
+					}
+				}
+			}
+			activeSurfaces = new Set();
+		} else {
+			watchStatus = null;
+		}
+		doSave();
+	}
+
+	// Watch status for the current context (selected surfaces or whole tooth)
+	const contextWatchStatus = $derived(
+		activeSurfaces.size > 0
+			? (() => {
+				const watches = [...activeSurfaces].map(s => {
+					const v = surfaceMap[s];
+					return (v && typeof v === 'object') ? (v as SurfaceData).watch ?? null : null;
+				});
+				const allSame = watches.every(w => w === watches[0]);
+				return allSame ? (watches[0] ?? null) : null;
+			})()
+			: watchStatus
+	);
+
+	// Whether any surface has watch status (for visual cue)
+	const anySurfaceHasWatch = $derived(
+		Object.values(surfaceMap).some(v => v && typeof v === 'object' && !!(v as SurfaceData).watch)
+	);
 
 	// ── Display helpers ────────────────────────────────────────────────
 	const TOOTH_NAMES = FDI_TOOTH_NAMES;
@@ -371,28 +546,54 @@
 
 	// ── Root canal actions ─────────────────────────────────────────────
 	function getCanalData(canal: string): CanalData {
-		return rootDataMap[canal] ?? { status: 'none', post: null, apex: false };
+		return rootDataMap[canal] ?? { status: 'none' };
 	}
-	function cycleCanalStatus(canal: string) {
-		const current = getCanalData(canal);
-		const idx  = CANAL_STATUS_CYCLE.indexOf(current.status);
-		const next = CANAL_STATUS_CYCLE[(idx + 1) % CANAL_STATUS_CYCLE.length];
-		rootDataMap[canal] = { ...current, status: next };
+
+	function toggleCanalSelection(canal: string, shift = false) {
+		if (activeSurfaces.size > 0) activeSurfaces = new Set();
+		if (shift) {
+			const next = new Set(activeRootCanals);
+			if (next.has(canal)) { next.delete(canal); } else { next.add(canal); }
+			activeRootCanals = next;
+		} else {
+			// Exclusive: re-clicking the sole selected canal deselects; otherwise select only this one
+			activeRootCanals = activeRootCanals.size === 1 && activeRootCanals.has(canal)
+				? new Set()
+				: new Set([canal]);
+		}
+	}
+
+	function applyRootStatus(status: string) {
+		for (const canal of activeRootCanals) {
+			const cur = getCanalData(canal);
+			rootDataMap[canal] = { status, notes: cur.notes, length: cur.length };
+		}
+		// Don't clear selection so the notes/length panel stays visible
 		doSave();
 	}
-	function toggleApex(canal: string) {
-		const current = getCanalData(canal);
-		rootDataMap[canal] = { ...current, apex: !current.apex };
+
+	// Status shared by all currently-selected canals (null if mixed)
+	const contextCanalStatus = $derived(
+		activeRootCanals.size === 0 ? null : (() => {
+			const statuses = [...activeRootCanals].map(c => getCanalData(c).status);
+			return statuses.every(s => s === statuses[0]) ? statuses[0] : null;
+		})()
+	);
+
+	function addExtraCanal() {
+		const name = addCanalInput.trim();
+		if (!name) return;
+		rootDataMap[name] = { status: 'none' };
+		addCanalInput  = '';
+		showCanalInput = false;
 		doSave();
 	}
-	function setCanalPost(canal: string, postKey: string | null) {
-		rootDataMap[canal] = { ...getCanalData(canal), post: postKey };
-		doSave();
-	}
-	function setCanalStatus(canal: string, status: CanalStatus) {
-		const cur = getCanalData(canal);
-		rootDataMap[canal] = { ...cur, status, post: status === 'none' ? null : cur.post };
-		openCanalDropdown = null;
+
+	function removeExtraCanal(key: string) {
+		delete rootDataMap[key];
+		const next = new Set(activeRootCanals);
+		next.delete(key);
+		activeRootCanals = next;
 		doSave();
 	}
 
@@ -569,33 +770,319 @@
 <!-- ── Reusable snippets ─────────────────────────────────────────────── -->
 
 {#snippet surfaceGridWidget()}
-	<div
-		class="grid grid-cols-3 gap-1 select-none"
-		style="width:156px; touch-action:none; cursor:crosshair;"
-		role="group"
-		aria-label="Tooth surfaces"
-		onpointerdown={onGridPointerDown}
-		onpointerup={() => { isDragging = false; }}
-	>
-		{#each surfaceGrid() as row}
-			{#each row as surf}
-				{#if surf}
-					{@const isActive = activeSurfaces.has(surf)}
-					<div
-						data-surface={surf}
-						class={[
-							'flex items-center justify-center rounded border font-bold text-[11px] transition-colors h-[48px]',
-							isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
-						].join(' ')}
-						style="background:{surfFill(surf)};border-color:{isActive ? '#2563eb' : surfStroke(surf)};color:{isActive ? '#1d4ed8' : surfStroke(surf)};"
-						title={SURFACE_NAMES[surf]}
-						onpointerenter={() => { if (isDragging) applySurfaceDragMode(surf); }}
-					>{surf}</div>
-				{:else}
-					<div></div>
+	{@const isUpperTooth = toothNumber <= 16 || (toothNumber >= 51 && toothNumber <= 65)}
+	{@const hasCanals = allCanals.length > 0}
+	<!-- Flex order when canals present:
+	     Upper: Root(order-1) → Cv(order-2) → Crown grid(order-3)
+	     Lower: Crown grid(order-1) → Cv(order-2) → Root(order-3)
+	     No canals: Crown grid(DOM first) → Cv(DOM second, mt-1) — no order needed -->
+	<div class="flex flex-col gap-0" style="width:156px;">
+
+		<!-- Crown 3×3 grid -->
+		<div
+			class={['flex flex-col gap-1 select-none', hasCanals ? (isUpperTooth ? 'order-3' : 'order-1') : ''].join(' ')}
+			style="touch-action:none; cursor:crosshair;"
+			role="group"
+			aria-label="Tooth surfaces"
+			onpointerdown={onGridPointerDown}
+			onpointerup={() => { isDragging = false; }}
+		>
+			<div class="grid grid-cols-3 gap-1">
+				{#each surfaceGrid() as row}
+					{#each row as surf}
+						{#if surf}
+							{@const isActive = activeSurfaces.has(surf)}
+							<div
+								data-surface={surf}
+								class={[
+									'flex items-center justify-center rounded border font-bold text-[11px] transition-colors h-[48px]',
+									isActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
+								].join(' ')}
+								style="background:{surfFill(surf)};border-color:{isActive ? '#2563eb' : surfStroke(surf)};color:{isActive ? '#1d4ed8' : surfStroke(surf)};"
+								title={SURFACE_NAMES[surf]}
+								onpointerenter={() => { if (isDragging) applySurfaceDragMode(surf); }}
+							>{surf}</div>
+						{:else}
+							<div></div>
+						{/if}
+					{/each}
+				{/each}
+			</div>
+		</div>
+
+		<!-- Cervical — order-2 keeps it between root and crown grid when canals present;
+		     falls naturally below the grid (mt-1) when there are no canals -->
+		<div
+			data-surface="Cv"
+			class={[
+				'flex items-center justify-center gap-1.5 rounded border font-medium text-[11px] transition-colors h-[26px] select-none',
+				hasCanals ? 'order-2 my-2' : 'mt-1',
+				activeSurfaces.has('Cv') ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
+			].join(' ')}
+			style="touch-action:none; cursor:crosshair; background:{surfFill('Cv')};border-color:{activeSurfaces.has('Cv') ? '#2563eb' : surfStroke('Cv')};color:{activeSurfaces.has('Cv') ? '#1d4ed8' : surfStroke('Cv')};"
+			title="Cervical"
+			onpointerdown={onGridPointerDown}
+			onpointerup={() => { isDragging = false; }}
+			onpointerenter={() => { if (isDragging) applySurfaceDragMode('Cv'); }}
+		>
+			<span class="font-mono text-[10px] font-bold">Cv</span>
+			<span class="text-[10px] opacity-70">Cervical</span>
+		</div>
+
+		<!-- Root triangles -->
+		{#if hasCanals}
+			{@const n = allCanals.length}
+			{@const gap = 3}
+			{@const triW = (156 - (n - 1) * gap) / n}
+			{@const svgH = 80}
+			{@const baseY  = isUpperTooth ? svgH - 6 : 0}
+			{@const apexY  = isUpperTooth ? 6         : svgH - 6}
+			{@const labelY = isUpperTooth ? svgH - 10 : 15}
+			{@const dotY   = Math.round(svgH / 2)}
+			<div class={isUpperTooth ? 'order-1' : 'order-3'}>
+				<svg
+					width="156"
+					height={svgH}
+					style="display:block;"
+					class="select-none"
+					role="group"
+					aria-label={i18n.t.chart.rootCanal.title}
+				>
+					{#each allCanals as canal, i}
+						{@const cdata = getCanalData(canal)}
+						{@const col = canalStatuses.getColors(cdata.status)}
+						{@const isSel = activeRootCanals.has(canal)}
+						{@const x0 = i * (triW + gap)}
+						{@const x1 = x0 + triW}
+						{@const xc = x0 + triW / 2}
+						{@const canalName = (i18n.t.chart.rootCanal.canalNames as Record<string,string>)[canal] ?? canal}
+						{@const triPath = `M ${x0},${baseY} L ${x1},${baseY} L ${xc},${apexY} Z`}
+						<path
+							d={triPath}
+							fill={isSel ? '#eff6ff' : col.bg}
+							stroke={isSel ? '#2563eb' : col.border}
+							stroke-width={isSel ? 2 : 1.5}
+							stroke-linejoin="round"
+							class="cursor-pointer"
+							role="button"
+							tabindex="0"
+							aria-label="{canalName}: {canalStatuses.getLabel(cdata.status)}"
+							aria-pressed={isSel}
+							onclick={(e) => toggleCanalSelection(canal, e.shiftKey)}
+							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCanalSelection(canal, e.shiftKey); } }}
+						/>
+						{#if isSel}
+							<path d={triPath} fill="#3b82f6" fill-opacity="0.08" stroke="none" pointer-events="none" />
+						{/if}
+						<text
+							x={xc} y={labelY}
+							text-anchor="middle"
+							font-size="9" font-weight="700" font-family="ui-monospace,monospace"
+							fill={isSel ? '#1d4ed8' : col.text}
+							pointer-events="none"
+						>{canalName}</text>
+						{#if cdata.status !== 'none'}
+							<circle cx={xc} cy={dotY} r="3.5" fill={col.border} opacity="0.75" pointer-events="none" />
+						{/if}
+					{/each}
+				</svg>
+			</div>
+		{/if}
+
+	</div>
+{/snippet}
+
+{#snippet crownSurfacePickerWidget()}
+	{@const isUpperTooth = toothNumber <= 16 || (toothNumber >= 51 && toothNumber <= 65)}
+	{@const isRightTooth = toothNumber <= 8 || toothNumber >= 25}
+	{@const topSurf    = isUpperTooth ? 'B' : 'L'}
+	{@const bottomSurf = isUpperTooth ? 'L' : 'B'}
+	{@const leftSurf   = isRightTooth ? 'D' : 'M'}
+	{@const rightSurf  = isRightTooth ? 'M' : 'D'}
+	{@const OR   = 50}
+	{@const IR   = 18}
+	{@const mid  = (OR + IR) / 2}
+	{@const wcf  = wholeCrownFinding}
+	{@const oFind   = crownSurfFinding('O')}
+	{@const oActive = activeSurfaces.has('O')}
+	{@const cvFind   = crownSurfFinding('Cv')}
+	{@const cvActive = activeSurfaces.has('Cv')}
+	{@const sectors = [
+		{ surf: topSurf,    s: 315, e: 45  },
+		{ surf: rightSurf,  s: 45,  e: 135 },
+		{ surf: bottomSurf, s: 135, e: 225 },
+		{ surf: leftSurf,   s: 225, e: 315 },
+	]}
+	{@const lblColor = (surf: string) => activeSurfaces.has(surf) ? '#1d4ed8' : '#92400e'}
+	{@const hasCanals = allCanals.length > 0}
+
+	<!-- Flex order when canals present:
+	     Upper: Root(order-1) → Cv(order-2) → Crown SVG(order-3)
+	     Lower: Crown SVG(order-1) → Cv(order-2) → Root(order-3) -->
+	<div class="flex flex-col gap-0 select-none" style="width:156px;">
+
+		<!-- Crown SVG circle diagram -->
+		<div class={hasCanals ? (isUpperTooth ? 'order-3' : 'order-1') : ''}>
+			<svg
+				width="148"
+				height="148"
+				viewBox="-60 -60 120 120"
+				style="display:block; touch-action:none; cursor:crosshair;"
+				role="group"
+				aria-label={i18n.t.chart.crown.surfacePickerLabel}
+				onpointerdown={onGridPointerDown}
+				onpointerup={() => { isDragging = false; }}
+			>
+				<defs>
+					<pattern id="cx-hatch-{toothNumber}" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+						<line x1="0" y1="0" x2="0" y2="8" stroke="#d97706" stroke-width="0.7" opacity="0.3"/>
+					</pattern>
+					<clipPath id="cx-clip-{toothNumber}"><circle r={OR}/></clipPath>
+				</defs>
+
+				<circle r={OR}
+					fill={wcf ? wcf.color : '#fffbeb'}
+					fill-opacity={wcf ? 0.5 : 1}
+					stroke={wcf ? wcf.strokeColor : '#d97706'}
+					stroke-width={wcf ? 2.5 : 1.5}
+					pointer-events="none"
+				/>
+				<circle r={OR} fill="url(#cx-hatch-{toothNumber})" clip-path="url(#cx-clip-{toothNumber})" pointer-events="none"/>
+
+				{#each sectors as sec}
+					{@const finding  = crownSurfFinding(sec.surf)}
+					{@const isActive = activeSurfaces.has(sec.surf)}
+					{@const pd       = sectorPath(sec.s, sec.e, IR + 3, OR)}
+					<path
+						d={pd}
+						fill={finding ? finding.color : 'transparent'}
+						fill-opacity={finding ? 0.8 : 1}
+						stroke="none"
+						data-surface={sec.surf}
+						onpointerenter={() => { if (isDragging) applySurfaceDragMode(sec.surf); }}
+						class="cursor-pointer"
+						role="button"
+						tabindex="0"
+						aria-label={SURFACE_NAMES[sec.surf] ?? sec.surf}
+						aria-pressed={isActive}
+					/>
+					{#if isActive}
+						<path d={pd} fill="rgba(59,130,246,0.18)" stroke="#2563eb" stroke-width="1.5" pointer-events="none"/>
+					{/if}
+				{/each}
+
+				<line x1={-OR * 0.68} y1={-OR * 0.68} x2={OR * 0.68} y2={OR * 0.68}
+					stroke="#d97706" stroke-width="1.1" opacity="0.4" pointer-events="none"/>
+				<line x1={OR * 0.68} y1={-OR * 0.68} x2={-OR * 0.68} y2={OR * 0.68}
+					stroke="#d97706" stroke-width="1.1" opacity="0.4" pointer-events="none"/>
+
+				<line x1="0" y1={-(IR + 3)} x2="0" y2={-OR}   stroke="#d97706" stroke-width="0.8" opacity="0.5" pointer-events="none"/>
+				<line x1={IR + 3} y1="0"   x2={OR} y2="0"     stroke="#d97706" stroke-width="0.8" opacity="0.5" pointer-events="none"/>
+				<line x1="0" y1={IR + 3}   x2="0" y2={OR}     stroke="#d97706" stroke-width="0.8" opacity="0.5" pointer-events="none"/>
+				<line x1={-(IR + 3)} y1="0" x2={-OR} y2="0"   stroke="#d97706" stroke-width="0.8" opacity="0.5" pointer-events="none"/>
+
+				<circle
+					r={IR}
+					fill={oFind ? oFind.color : 'white'}
+					stroke={oActive ? '#2563eb' : (oFind ? oFind.strokeColor : '#d97706')}
+					stroke-width={oActive ? 2 : 1.2}
+					data-surface="O"
+					onpointerenter={() => { if (isDragging) applySurfaceDragMode('O'); }}
+					class="cursor-pointer"
+					role="button"
+					tabindex="0"
+					aria-label="Occlusal"
+					aria-pressed={oActive}
+				/>
+				{#if oActive}
+					<circle r={IR} fill="rgba(59,130,246,0.18)" stroke="none" pointer-events="none"/>
 				{/if}
-			{/each}
-		{/each}
+
+				<text x="0"    y={-mid} text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill={lblColor(topSurf)}    pointer-events="none">{topSurf}</text>
+				<text x="0"    y={mid}  text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill={lblColor(bottomSurf)} pointer-events="none">{bottomSurf}</text>
+				<text x={-mid} y="0"    text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill={lblColor(leftSurf)}   pointer-events="none">{leftSurf}</text>
+				<text x={mid}  y="0"    text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="700" fill={lblColor(rightSurf)}  pointer-events="none">{rightSurf}</text>
+				<text x="0"    y="0"    text-anchor="middle" dominant-baseline="central" font-size="8" font-weight="700" fill={lblColor('O')}         pointer-events="none">O</text>
+			</svg>
+		</div>
+
+		<!-- Cervical margin: order-2 (between root and crown) when canals present, mt-1 otherwise -->
+		<div
+			data-surface="Cv"
+			class={['flex items-center justify-center gap-1.5 rounded border font-medium text-[11px] transition-colors h-[26px] select-none',
+				hasCanals ? 'order-2 my-2' : 'mt-1',
+				cvActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
+			].join(' ')}
+			style="touch-action:none; cursor:crosshair; background:{cvFind ? cvFind.color : '#f1f5f9'};border-color:{cvActive ? '#2563eb' : (cvFind ? cvFind.strokeColor : '#cbd5e1')};color:{cvActive ? '#1d4ed8' : (cvFind ? cvFind.strokeColor : '#94a3b8')};"
+			title="Cervical margin"
+			onpointerdown={onGridPointerDown}
+			onpointerup={() => { isDragging = false; }}
+			onpointerenter={() => { if (isDragging) applySurfaceDragMode('Cv'); }}
+		>
+			<span class="font-mono text-[10px] font-bold">Cv</span>
+			<span class="text-[10px] opacity-70">Cervical margin</span>
+		</div>
+
+		<!-- Root canal triangles: order-1 (upper, above crown) / order-3 (lower, below crown) -->
+		{#if hasCanals}
+			{@const n = allCanals.length}
+			{@const gap = 3}
+			{@const triW = (156 - (n - 1) * gap) / n}
+			{@const svgH = 80}
+			{@const baseY  = isUpperTooth ? svgH - 6 : 0}
+			{@const apexY  = isUpperTooth ? 6 : svgH - 6}
+			{@const labelY = isUpperTooth ? svgH - 10 : 15}
+			{@const dotY   = Math.round(svgH / 2)}
+			<div class={isUpperTooth ? 'order-1' : 'order-3'}>
+				<svg
+					width="156"
+					height={svgH}
+					style="display:block;"
+					class="select-none"
+					role="group"
+					aria-label={i18n.t.chart.rootCanal.title}
+				>
+					{#each allCanals as canal, ci}
+						{@const cdata = getCanalData(canal)}
+						{@const col = canalStatuses.getColors(cdata.status)}
+						{@const isSel = activeRootCanals.has(canal)}
+						{@const x0 = ci * (triW + gap)}
+						{@const x1 = x0 + triW}
+						{@const xc = x0 + triW / 2}
+						{@const canalName = (i18n.t.chart.rootCanal.canalNames as Record<string,string>)[canal] ?? canal}
+						{@const triPath = `M ${x0},${baseY} L ${x1},${baseY} L ${xc},${apexY} Z`}
+						<path
+							d={triPath}
+							fill={isSel ? '#eff6ff' : col.bg}
+							stroke={isSel ? '#2563eb' : col.border}
+							stroke-width={isSel ? 2 : 1.5}
+							stroke-linejoin="round"
+							class="cursor-pointer"
+							role="button"
+							tabindex="0"
+							aria-label="{canalName}: {canalStatuses.getLabel(cdata.status)}"
+							aria-pressed={isSel}
+							onclick={(e) => toggleCanalSelection(canal, e.shiftKey)}
+							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCanalSelection(canal, e.shiftKey); } }}
+						/>
+						{#if isSel}
+							<path d={triPath} fill="#3b82f6" fill-opacity="0.08" stroke="none" pointer-events="none" />
+						{/if}
+						<text
+							x={xc} y={labelY}
+							text-anchor="middle"
+							font-size="9" font-weight="700" font-family="ui-monospace,monospace"
+							fill={isSel ? '#1d4ed8' : col.text}
+							pointer-events="none"
+						>{canalName}</text>
+						{#if cdata.status !== 'none'}
+							<circle cx={xc} cy={dotY} r="3.5" fill={col.border} opacity="0.75" pointer-events="none" />
+						{/if}
+					{/each}
+				</svg>
+			</div>
+		{/if}
+
 	</div>
 {/snippet}
 
@@ -661,6 +1148,40 @@
 				</button>
 			{/if}
 		</div>
+
+	<!-- Watch status widget -->
+	<div class="flex items-center gap-1.5 pt-1 border-t border-border/40">
+		<span class="text-[10px] font-medium text-muted-foreground shrink-0">{i18n.t.chart.watchStatus.label}:</span>
+		<div class="flex items-center gap-1 flex-wrap">
+			<button
+				type="button"
+				onclick={() => setWatchStatus()}
+				class={[
+					'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all',
+					contextWatchStatus === 'observe'
+						? 'bg-blue-100 border-blue-500 text-blue-700 ring-2 ring-blue-400/40 ring-offset-1 shadow-sm'
+						: 'border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-400',
+				].join(' ')}
+				title="{i18n.t.chart.watchStatus.observe} [O]"
+			>
+				<!-- Eye icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5">
+					<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+				</svg>
+				{i18n.t.chart.watchStatus.observe}
+				<span class="text-[9px] opacity-50 font-mono">O</span>
+			</button>
+			{#if contextWatchStatus !== null || anySurfaceHasWatch}
+				<button
+					type="button"
+					onclick={clearWatchStatus}
+					class="inline-flex items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
+				>
+					{i18n.t.chart.watchStatus.none}
+				</button>
+			{/if}
+		</div>
+	</div>
 
 	<!-- Material panel — visible when filling surfaces exist -->
 	{#if showMaterialPanel}
@@ -743,144 +1264,260 @@
 	</div>
 {/snippet}
 
-{#snippet rootCanalWidget()}
-	{#if showRootCanalWidget}
-		{@const statusLabels: Record<string,string> = {
-			none: i18n.t.chart.rootCanal.statusNone,
-			filled: i18n.t.chart.rootCanal.filled,
-			insufficient: i18n.t.chart.rootCanal.insufficient,
-			dressing: i18n.t.chart.rootCanal.dressing,
-		}}
-		<!-- Transparent overlay to close dropdown on outside click -->
-		{#if openCanalDropdown !== null}
-			<div class="fixed inset-0 z-40" onclick={() => openCanalDropdown = null} role="none"></div>
-		{/if}
-		<!-- Alt/Option hover floating info tooltip -->
-		{#if altHoverInfo !== null}
-			{@const hdata = getCanalData(altHoverInfo.canal)}
-			{@const hName = (i18n.t.chart.rootCanal.canalNames as Record<string,string>)[altHoverInfo.canal] ?? altHoverInfo.canal}
-			{@const hPost = hdata.post ? (postTypes.list.find(p => p.key === hdata.post)?.label ?? hdata.post) : null}
-			<div
-				class="fixed z-[60] pointer-events-none rounded-md border border-border bg-popover px-2.5 py-2 shadow-lg text-[11px] flex flex-col gap-1 min-w-[120px]"
-				style="left:{altHoverInfo.x + 12}px;top:{altHoverInfo.y + 12}px"
-			>
-				<span class="font-semibold text-foreground">{hName}</span>
-				<span class="flex items-center gap-1.5 text-muted-foreground">
-					<span class="w-2.5 h-2.5 rounded-sm border shrink-0" style="background:{CANAL_COLORS[hdata.status].bg};border-color:{CANAL_COLORS[hdata.status].border}"></span>
-					{statusLabels[hdata.status] ?? hdata.status}
-				</span>
-				{#if hPost}
-					<span class="text-muted-foreground">{i18n.t.chart.rootCanal.postLabel}: {hPost}</span>
-				{/if}
-				{#if hdata.apex}
-					<span class="flex items-center gap-1 text-red-600 font-medium">
-						<span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
-						{i18n.t.chart.rootCanal.apexFocus}
-					</span>
-				{/if}
-			</div>
-		{/if}
-		<div class="flex flex-col gap-2 rounded-md border border-purple-200 bg-purple-50/40 px-3 py-2.5 dark:border-purple-900/40 dark:bg-purple-950/20">
-			<div class="flex items-center gap-1.5">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-purple-600 shrink-0"><path d="M12 22V8M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M8 2v4M16 2v4M12 2v4"/></svg>
-				<span class="text-[11px] font-semibold text-purple-700 uppercase tracking-wide dark:text-purple-400">{i18n.t.chart.rootCanal.filled.split(' ')[0] ?? 'Root Canals'}</span>
-				<button
-					type="button"
-					onclick={() => showEndoDialog = true}
-					class="ml-auto flex items-center gap-1.5 rounded-md bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-[11px] font-semibold px-2.5 py-1.5 transition-colors shadow-sm dark:bg-purple-700 dark:hover:bg-purple-600"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-					{i18n.t.chart.endo.openButton}
-				</button>
-			</div>
-			<div class="flex gap-2.5 flex-wrap">
-				{#each toothCanals as canal}
-					{@const cdata     = getCanalData(canal)}
-					{@const colors    = CANAL_COLORS[cdata.status]}
-					{@const canalName = (i18n.t.chart.rootCanal.canalNames as Record<string,string>)[canal] ?? canal}
-					<div
-						class="flex flex-col items-center gap-1"
-						onpointermove={(e) => {
-							if (e.altKey) {
-								altHoverInfo = { canal, x: e.clientX, y: e.clientY };
-							} else if (altHoverInfo?.canal === canal) {
-								altHoverInfo = null;
-							}
-						}}
-						onpointerleave={() => { if (altHoverInfo?.canal === canal) altHoverInfo = null; }}
+{#snippet crownFindingPickerWidget()}
+	<div class="flex flex-col gap-2">
+		<!-- Context: what surface(s) we're tagging -->
+		<div class="flex items-center gap-1.5 min-h-[20px]">
+			<span class="text-[11px] text-muted-foreground">{i18n.t.chart.applyingTo}:</span>
+			{#if activeSurfaces.size > 0}
+				<span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">{targetLabel}</span>
+				<button type="button" onclick={() => { activeSurfaces = new Set(); }} class="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors" title="Deselect surfaces">✕</button>
+			{:else}
+				<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{i18n.t.chart.crown.wholeCrown}</span>
+			{/if}
+		</div>
+
+		<!-- Per-surface findings -->
+		<div class="flex flex-col gap-1">
+			<span class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{i18n.t.chart.crown.perSurface}</span>
+			<div class="flex flex-wrap gap-1.5">
+				{#each crownFindings.list.filter(f => !f.wholeCrown) as f}
+					{@const matched = activeSurfaces.size > 0 && [...activeSurfaces].every(s => getSurfTag(surfaceMap[s]) === f.key)}
+					{@const disabled = activeSurfaces.size === 0}
+					<button
+						type="button"
+						onclick={() => { if (!disabled) applyCrownFinding(f.key, false); }}
+						disabled={disabled}
+						title={disabled ? i18n.t.chart.crown.selectSurfaceHint : undefined}
+						class={['inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all',
+							matched   ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : '',
+							disabled  ? 'opacity-30 cursor-not-allowed' : 'opacity-90 hover:opacity-100',
+						].join(' ')}
+						style="background:{f.color};border-color:{matched ? '#1e293b' : f.strokeColor};color:{f.strokeColor}"
 					>
-						<!-- Canal name -->
-						<span class="text-[10px] font-mono font-medium text-muted-foreground">{canalName}</span>
-						<!-- Status rect — click to open dropdown -->
-						<div class="relative">
-							<button
-								type="button"
-								onclick={(e) => { e.stopPropagation(); openCanalDropdown = openCanalDropdown === canal ? null : canal; }}
-								class="w-7 h-9 rounded border-2 flex flex-col items-center justify-center transition-all hover:opacity-80 relative"
-								style="background:{colors.bg};border-color:{colors.border}"
-								title={statusLabels[cdata.status] ?? cdata.status}
-							>
-								{#if cdata.post}
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-2.5 w-2.5 pointer-events-none" style="color:{colors.text}"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="5" x2="19" y2="5"/></svg>
-								{:else if cdata.status !== 'none'}
-									<span class="text-[8px] font-bold leading-none" style="color:{colors.text}">✓</span>
-								{/if}
-							</button>
-							<!-- Status dropdown -->
-							{#if openCanalDropdown === canal}
-								<div
-									class="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 flex flex-row rounded-md border border-border bg-popover shadow-md overflow-hidden"
-									onclick={(e) => e.stopPropagation()}
-									role="menu"
-								>
-									{#each CANAL_STATUS_CYCLE as status}
-										{@const sc = CANAL_COLORS[status]}
-										<button
-											type="button"
-											role="menuitem"
-											onclick={() => setCanalStatus(canal, status)}
-											class={['flex flex-col items-center gap-1 px-2.5 py-2 text-[10px] hover:bg-accent transition-colors border-r border-border last:border-r-0',
-												cdata.status === status ? 'font-semibold bg-accent/50' : '',
-											].join(' ')}
-											title={statusLabels[status] ?? status}
-										>
-											<span class="w-4 h-4 rounded-sm border" style="background:{sc.bg};border-color:{sc.border}"></span>
-											<span class="whitespace-nowrap">{statusLabels[status] ?? status}</span>
-										</button>
-									{/each}
-								</div>
-							{/if}
-						</div>
-						<!-- Post type selector (only if status is not none) -->
-						{#if cdata.status !== 'none'}
-							<select
-								class="text-[9px] w-7 rounded border border-border bg-background px-0.5 py-0 leading-tight cursor-pointer"
-								value={cdata.post ?? ''}
-								onchange={(e) => setCanalPost(canal, (e.target as HTMLSelectElement).value || null)}
-								title={i18n.t.chart.rootCanal.postLabel}
-							>
-								<option value="">—</option>
-								{#each postTypes.list as pt}
-									<option value={pt.key}>{pt.label}</option>
-								{/each}
-							</select>
-						{/if}
-						<!-- Apex focus dot -->
-						<button
-							type="button"
-							onclick={() => toggleApex(canal)}
-							class={['w-4 h-4 rounded-full border-2 transition-colors flex items-center justify-center',
-								cdata.apex ? 'bg-red-500 border-red-700' : 'bg-background border-muted-foreground/30 hover:border-red-400',
-							].join(' ')}
-							title={i18n.t.chart.rootCanal.apexFocus}
-						>
-							{#if cdata.apex}
-								<span class="text-[8px] text-white font-bold leading-none">!</span>
-							{/if}
-						</button>
-					</div>
+						{#if matched}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>{/if}
+						{crownFindings.getLabel(f.key)}
+					</button>
+				{/each}
+				{#if activeSurfaces.size > 0 && [...activeSurfaces].some(s => getSurfTag(surfaceMap[s]).startsWith('cx_'))}
+					<button type="button" onclick={() => {
+						for (const s of activeSurfaces) { if (getSurfTag(surfaceMap[s]).startsWith('cx_')) delete surfaceMap[s]; }
+						activeSurfaces = new Set(); doSave();
+					}} class="inline-flex items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-0.5 text-[11px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
+						{i18n.t.chart.clearSurfaces}
+					</button>
+				{/if}
+			</div>
+			{#if activeSurfaces.size === 0}
+				<p class="text-[10px] text-amber-700/60 italic">{i18n.t.chart.crown.selectSurfaceHint}</p>
+			{/if}
+		</div>
+
+		<!-- Whole-crown findings (no surface selection needed) -->
+		<div class="flex flex-col gap-1.5 border-t border-amber-200/50 pt-1.5">
+			<span class="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">{i18n.t.chart.crown.wholeCrownSection}</span>
+			<div class="flex flex-wrap gap-1.5">
+				{#each crownFindings.list.filter(f => f.wholeCrown) as f}
+					{@const matched = getSurfTag(surfaceMap[WHOLE_CROWN_KEY]) === f.key}
+					<button
+						type="button"
+						onclick={() => applyCrownFinding(f.key, true)}
+						class={['inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all hover:opacity-100',
+							matched ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm opacity-100' : 'opacity-80',
+						].join(' ')}
+						style="background:{f.color};border-color:{matched ? '#1e293b' : f.strokeColor};color:{f.strokeColor}"
+					>
+						{#if matched}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>{/if}
+						{crownFindings.getLabel(f.key)}
+					</button>
 				{/each}
 			</div>
+		</div>
+
+		<!-- Clear all crown findings -->
+		{#if hasCrownFindings}
+			<button type="button" onclick={clearCrownFindings}
+				class="text-[10px] text-muted-foreground hover:text-destructive transition-colors border border-dashed border-border/40 rounded px-2 py-0.5 w-full text-center hover:border-destructive/40">
+				{i18n.t.chart.crown.clearCrownFindings}
+			</button>
+		{/if}
+
+		<!-- Watch status (same as standard panel) -->
+		<div class="flex items-center gap-1.5 pt-1 border-t border-border/40">
+			<span class="text-[10px] font-medium text-muted-foreground shrink-0">{i18n.t.chart.watchStatus.label}:</span>
+			<div class="flex items-center gap-1 flex-wrap">
+				<button type="button" onclick={() => setWatchStatus()}
+					class={['inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all',
+						contextWatchStatus === 'observe'
+							? 'bg-blue-100 border-blue-500 text-blue-700 ring-2 ring-blue-400/40 ring-offset-1 shadow-sm'
+							: 'border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-400',
+					].join(' ')}
+					title="{i18n.t.chart.watchStatus.observe} [O]"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+					{i18n.t.chart.watchStatus.observe}
+					<span class="text-[9px] opacity-50 font-mono">O</span>
+				</button>
+				{#if contextWatchStatus !== null || anySurfaceHasWatch}
+					<button type="button" onclick={clearWatchStatus}
+						class="inline-flex items-center gap-1 rounded-full border border-dashed border-muted-foreground/40 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
+						{i18n.t.chart.watchStatus.none}
+					</button>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet ponticSurfaceWidget()}
+	<div class="flex flex-col gap-0 select-none" style="width:156px;">
+		<div
+			class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-amber-300/60 bg-amber-50/30 gap-2"
+			style="height:100px; width:156px;"
+		>
+			<svg viewBox="0 0 64 26" class="w-20 text-amber-400/70" fill="none" stroke="currentColor" stroke-width="1.5">
+				<ellipse cx="32" cy="13" rx="29" ry="11"/>
+				<line x1="3" y1="13" x2="61" y2="13" stroke-dasharray="5,3"/>
+			</svg>
+			<span class="text-[10px] text-muted-foreground/60 text-center leading-tight px-3">
+				{i18n.t.chart.ponticChart.noSurface}
+			</span>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet ponticTagPickerWidget()}
+	<div class="flex flex-col gap-2">
+		<div class="rounded-md border border-dashed border-amber-200 bg-amber-50/30 px-2.5 py-2 text-[10px] text-muted-foreground/75 leading-relaxed italic">
+			{i18n.t.chart.ponticChart.conditionNote}
+		</div>
+		<div class="flex flex-wrap gap-1.5">
+			{#each dentalTags.list.filter(t => t.key === 'fractured') as tag}
+				{@const isBroken = selectedCondition === 'fractured'}
+				<button
+					type="button"
+					onclick={() => { selectedCondition = isBroken ? 'bridge' : 'fractured'; doSave(); }}
+					class={[
+						'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all',
+						isBroken ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm opacity-100' : 'opacity-80 hover:opacity-100',
+					].join(' ')}
+					style="background:{tag.color};border-color:{isBroken ? '#1e293b' : tag.strokeColor};color:{tag.strokeColor}"
+				>
+					{#if isBroken}
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
+					{/if}
+					{i18n.t.chart.ponticChart.broken}
+				</button>
+			{/each}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet rootCanalWidget()}
+	{#if activeRootCanals.size > 0}
+		{@const canalNames = i18n.t.chart.rootCanal.canalNames as Record<string,string>}
+		<div class="flex flex-col gap-2">
+
+			<!-- Selected root label + deselect -->
+			<div class="flex items-center gap-1.5">
+				<span class="text-[11px] font-semibold text-foreground">
+					{[...activeRootCanals].map(c => canalNames[c] ?? c).join(' + ')}
+				</span>
+				<button
+					type="button"
+					onclick={() => { activeRootCanals = new Set(); }}
+					class="text-[10px] text-muted-foreground hover:text-foreground transition-colors ml-auto"
+					title={i18n.t.chart.rootCanal.clearSelection}
+				>✕</button>
+			</div>
+
+			<!-- Status tag palette -->
+			<div class="flex flex-wrap gap-1">
+				{#each canalStatuses.list as statusCfg}
+					{@const isMatch = contextCanalStatus === statusCfg.key}
+					<button
+						type="button"
+						onclick={() => applyRootStatus(statusCfg.key)}
+						class={[
+							'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all hover:opacity-90',
+							isMatch ? 'ring-2 ring-offset-1 ring-foreground/20 shadow-sm' : '',
+						].join(' ')}
+						style="background:{statusCfg.bg};border-color:{isMatch ? '#1e293b' : statusCfg.border};color:{statusCfg.text}"
+					>
+						{#if isMatch}
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-2.5 w-2.5 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+						{/if}
+						{statusCfg.label}
+					</button>
+				{/each}
+			</div>
+
+			<!-- Per-canal notes + length — only shown once a status is applied -->
+			{#each [...activeRootCanals] as canal (canal)}
+				{@const cdata = getCanalData(canal)}
+				{#if cdata.status !== 'none'}
+					<div class="flex flex-col gap-1.5 rounded-md border border-border/60 bg-muted/20 px-2.5 py-2">
+						<span class="text-[10px] font-semibold text-muted-foreground">{canalNames[canal] ?? canal}</span>
+						<textarea
+							rows={2}
+							placeholder="Notes…"
+							value={cdata.notes ?? ''}
+							oninput={(e) => { rootDataMap[canal] = { ...getCanalData(canal), notes: (e.target as HTMLTextAreaElement).value }; }}
+							onblur={() => doSave()}
+							class="text-xs border border-border rounded px-2 py-1 bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/40"
+						></textarea>
+						<div class="flex items-center gap-1.5">
+							<label class="text-[10px] text-muted-foreground shrink-0">Length</label>
+							<input
+								type="number"
+								step={0.5}
+								min={0}
+								placeholder="—"
+								value={cdata.length ?? ''}
+								oninput={(e) => { const v = (e.target as HTMLInputElement).valueAsNumber; rootDataMap[canal] = { ...getCanalData(canal), length: isNaN(v) ? null : v }; }}
+								onblur={() => doSave()}
+								class="text-xs border border-border rounded px-2 py-1 bg-background w-20 focus:outline-none focus:ring-1 focus:ring-ring"
+							/>
+							<span class="text-[10px] text-muted-foreground">mm</span>
+							<!-- Remove extra canal (non-anatomical only) -->
+							{#if !toothCanals.includes(canal)}
+								<button
+									type="button"
+									onclick={() => removeExtraCanal(canal)}
+									class="ml-auto text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+									title={i18n.t.actions.delete}
+								>✕</button>
+							{/if}
+						</div>
+					</div>
+				{/if}
+			{/each}
+
+			<!-- Add extra canal -->
+			{#if showCanalInput}
+				<div class="flex items-center gap-1.5">
+					<input
+						type="text"
+						bind:value={addCanalInput}
+						placeholder="Canal name (e.g. MB2)"
+						class="text-xs border border-border rounded px-2 py-1 bg-background flex-1 focus:outline-none focus:ring-1 focus:ring-ring"
+						onkeydown={(e) => { if (e.key === 'Enter') addExtraCanal(); if (e.key === 'Escape') { showCanalInput = false; addCanalInput = ''; } }}
+					/>
+					<button type="button" onclick={addExtraCanal} disabled={!addCanalInput.trim()}
+						class="text-[10px] px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors">Add</button>
+					<button type="button" onclick={() => { showCanalInput = false; addCanalInput = ''; }}
+						class="text-[10px] text-muted-foreground hover:text-foreground transition-colors">✕</button>
+				</div>
+			{:else}
+				<button
+					type="button"
+					onclick={() => showCanalInput = true}
+					class="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground border border-dashed border-border/60 rounded px-2.5 py-1 w-full justify-center transition-colors hover:border-foreground/30"
+				>
+					<svg class="size-2.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+					Add canal
+				</button>
+			{/if}
 		</div>
 	{/if}
 {/snippet}
@@ -900,6 +1537,16 @@
 				<span>{entry.condition === 'implant' || entry.abutment_type === 'implant' ? i18n.t.chart.implantAbutment : i18n.t.chart.abutment}</span>
 			{/if}
 		</div>
+	{/if}
+	{#if entry?.bridge_group_id && onEditBridge}
+		<button
+			type="button"
+			onclick={onEditBridge}
+			class="flex items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-xs text-foreground/80 hover:border-ring/50 hover:bg-muted transition-colors w-full"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+			{i18n.t.chart.editBridge}
+		</button>
 	{/if}
 	{#if entry?.bridge_group_id && onDissolveBridge}
 		<button
@@ -1074,7 +1721,7 @@
 			<div class="text-[11px] text-muted-foreground italic">{i18n.t.chart.noNotes}</div>
 		{:else}
 			{#each toothNotesList as note (note.id)}
-				{@const isOverdue = note.reminder_date !== null && note.reminder_date <= new Date().toISOString().slice(0, 10)}
+				{@const isOverdue = note.reminder_date !== null && note.reminder_date <= toLocalISODate()}
 				<div class="rounded-md border border-border/60 bg-background px-2.5 py-2 flex flex-col gap-1 group">
 					<div class="flex items-start gap-1.5">
 						<span class="text-[11px] text-foreground flex-1 leading-relaxed whitespace-pre-wrap">{note.text}</span>
@@ -1162,19 +1809,33 @@
 		<Separator />
 		<!-- Three-column content row -->
 		<div class="flex items-start gap-5 min-w-0">
-			<!-- Column 1: Surface grid -->
+			<!-- Column 1: Surface grid / Crown picker / Pontic indicator -->
 			<div class="shrink-0 flex flex-col gap-2">
 				<Label class="text-xs">
-					{i18n.t.chart.selectSurfaces}
-					<span class="text-muted-foreground font-normal">(drag)</span>
+					{isCrowned ? i18n.t.chart.crown.surfacePickerLabel : isPontic ? i18n.t.chart.pontic : i18n.t.chart.selectSurfaces}
+					{#if !isPontic}<span class="text-muted-foreground font-normal">(shift to add)</span>{/if}
 				</Label>
-				{@render surfaceGridWidget()}
+				{#if isCrowned}
+					{@render crownSurfacePickerWidget()}
+				{:else if isPontic}
+					{@render ponticSurfaceWidget()}
+				{:else}
+					{@render surfaceGridWidget()}
+				{/if}
 			</div>
 			<!-- Divider -->
 			<div class="w-px bg-border self-stretch shrink-0"></div>
-			<!-- Column 2: Unified tag picker + root canal widget -->
+			<!-- Column 2: Finding/tag picker, then root canal widget -->
 			<div class="flex-1 flex flex-col gap-2 min-w-0">
-				{@render unifiedTagPickerWidget()}
+				{#if activeRootCanals.size === 0}
+					{#if isCrowned}
+						{@render crownFindingPickerWidget()}
+					{:else if isPontic}
+						{@render ponticTagPickerWidget()}
+					{:else}
+						{@render unifiedTagPickerWidget()}
+					{/if}
+				{/if}
 				{@render rootCanalWidget()}
 				{@render prosthesisAndDissolveWidget()}
 			</div>
@@ -1205,16 +1866,30 @@
 
 		<Separator />
 
-		<!-- Surface grid + unified tag picker side by side -->
+		<!-- Surface picker + tag picker side by side -->
 		<div class="flex flex-col gap-2">
 			<Label class="text-xs">
-				{i18n.t.chart.selectSurfaces}
-				<span class="text-muted-foreground font-normal">(drag to select · key to tag)</span>
+				{isCrowned ? i18n.t.chart.crown.surfacePickerLabel : isPontic ? i18n.t.chart.pontic : i18n.t.chart.selectSurfaces}
+				{#if !isPontic}<span class="text-muted-foreground font-normal">(shift to add{isCrowned ? '' : ' · key to tag'})</span>{/if}
 			</Label>
 			<div class="flex items-start gap-4">
-				{@render surfaceGridWidget()}
+				{#if isCrowned}
+					{@render crownSurfacePickerWidget()}
+				{:else if isPontic}
+					{@render ponticSurfaceWidget()}
+				{:else}
+					{@render surfaceGridWidget()}
+				{/if}
 				<div class="flex-1 min-w-0">
-					{@render unifiedTagPickerWidget()}
+					{#if activeRootCanals.size === 0}
+						{#if isCrowned}
+							{@render crownFindingPickerWidget()}
+						{:else if isPontic}
+							{@render ponticTagPickerWidget()}
+						{:else}
+							{@render unifiedTagPickerWidget()}
+						{/if}
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -1240,10 +1915,3 @@
 	</div>
 {/if}
 
-<EndoDocDialog
-	open={showEndoDialog}
-	toothNumber={toothNumber}
-	patientId={patientId ?? ''}
-	toothCanals={toothCanals}
-	onClose={() => showEndoDialog = false}
-/>

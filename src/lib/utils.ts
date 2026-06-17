@@ -29,6 +29,16 @@ export function formatDateTime(value: string | Date | null | undefined): string 
 	return `${formatDate(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+/**
+ * Format a Date as YYYY-MM-DD using the LOCAL clock (not UTC).
+ * Use this instead of `toISOString().slice(0, 10)` — the UTC version rolls
+ * over to the next day during late-evening documentation (UTC+1/+2).
+ */
+export function toLocalISODate(d: Date = new Date()): string {
+	const p = (n: number) => String(n).padStart(2, '0');
+	return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 // Types used by shadcn-svelte components
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
 	ref?: U | null;
@@ -178,7 +188,7 @@ export function getCanalsForTooth(universal: number): string[] {
 	if (universal > 32) return ['single']; // primary teeth: 1 canal simplified
 	// Upper molars: U1=18, U2=17, U3=16, U14=26, U15=27, U16=28 → 3 canals
 	if ([1, 2, 3, 14, 15, 16].includes(universal)) return ['MB', 'DB', 'P'];
-	// Lower molars: U17=38, U18=37, U19=36, U30=46, U31=47, U32=48 → 2 canals
+	// Lower molars: U17=38, U18=37, U19=36, U30=46, U31=47, U32=48 → 2 roots
 	if ([17, 18, 19, 30, 31, 32].includes(universal)) return ['M', 'D'];
 	// Upper premolars: U4=15, U5=14, U12=24, U13=25 → 2 canals
 	if ([4, 5, 12, 13].includes(universal)) return ['B', 'P'];

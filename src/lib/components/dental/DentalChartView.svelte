@@ -20,7 +20,9 @@
 	import { dentalTags } from '$lib/stores/dentalTags.svelte';
 	import { prosthesisTypes } from '$lib/stores/prosthesisTypes.svelte';
 	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
-	import { getNextTooth, getPrevTooth, FDI_CHARTING_ORDER, toFDI, isPrimaryTooth, getTeethForDentition } from '$lib/utils';
+	import { crownFindings } from '$lib/stores/crownFindings.svelte';
+	import { canalStatuses } from '$lib/stores/canalStatuses.svelte';
+	import { toLocalISODate, getNextTooth, getPrevTooth, FDI_CHARTING_ORDER, toFDI, isPrimaryTooth, getTeethForDentition } from '$lib/utils';
 	import type { DentitionType } from '$lib/utils';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
@@ -95,7 +97,7 @@
 					condition: 'missing', notes: '', surfaces: '{}',
 					last_examined: '', updated_at: '', root_data: '{}',
 					bridge_group_id: null, bridge_role: null, abutment_type: null, prosthesis_type: null,
-					migration: '', tipping: '', rotation: '', foreign_work: 0, shade: null,
+					migration: '', tipping: '', rotation: '', foreign_work: 0, shade: null, watch_status: null,
 				});
 			}
 		}
@@ -128,6 +130,9 @@
 	// Shortcut key passed down to ToothDetailPanel; seq increments so repeated same-key presses still fire
 	let shortcutTagKey  = $state<{ key: string; seq: number } | null>(null);
 	let _shortcutSeq    = 0;
+	// Watch status shortcut ('O' = Under Observation) — toggles observe on/off
+	let watchShortcutTrigger = $state<{ seq: number } | null>(null);
+	let _watchShortcutSeq    = 0;
 	// Tracks which index was last used per shortcut key, so repeated presses cycle through tags
 	const _shortcutCycle = new Map<string, number>();
 	let selectedEntry   = $derived(
@@ -200,6 +205,10 @@
 						_shortcutCycle.set(lower, next);
 						shortcutTagKey = { key: matches[next].key, seq: ++_shortcutSeq };
 					}
+				} else if (lower === 'o' && selectedTooth !== null && !isSnapshotReadOnly && !planningMode) {
+					// 'O' = toggle Under Observation on selected tooth / surfaces
+					e.preventDefault();
+					watchShortcutTrigger = { seq: ++_watchShortcutSeq };
 				}
 			}
 		}
@@ -626,7 +635,7 @@
 
 	onMount(async () => {
 		if (snapshotData !== undefined) {
-			await Promise.all([dentalTags.load(), prosthesisTypes.load(), bridgeRoles.load()]);
+			await Promise.all([dentalTags.load(), prosthesisTypes.load(), bridgeRoles.load(), crownFindings.load(), canalStatuses.load()]);
 			chartData = snapshotData;
 			isLoading = false;
 			return;
@@ -637,13 +646,15 @@
 				dentalTags.load(),
 				prosthesisTypes.load(),
 				bridgeRoles.load(),
+				crownFindings.load(),
+				canalStatuses.load(),
 			]);
 			chartData = chart; // clinical data → ghost layer
 			planningChartData = [...(planningData ?? [])];
 			isLoading = false;
 			return;
 		}
-		const today = new Date().toISOString().slice(0, 10);
+		const today = toLocalISODate();
 		const [chart, archSettingRaw, notesSet, remindersSet] = await Promise.all([
 			getChartData(patientId),
 			getSetting(`arch_${patientId}`),
@@ -652,6 +663,8 @@
 			dentalTags.load(),
 			prosthesisTypes.load(),
 			bridgeRoles.load(),
+			crownFindings.load(),
+			canalStatuses.load(),
 		]);
 		chartData = chart;
 		teethWithNotes = notesSet;
@@ -669,7 +682,7 @@
 
 	async function handleToothSave(
 		toothNumber: number,
-		data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null },
+		data: { condition: string; notes: string; last_examined: string; surfaces: string; root_data: string; migration: string; tipping: string; rotation: string; foreign_work: number; shade: string | null; watch_status: string | null },
 	) {
 		if (planningMode) {
 			upsertPlanEntry(toothNumber, data);
@@ -959,11 +972,6 @@
 					// Normal click
 					ctrlSelectedTeeth = [];
 					shiftSelectedTeeth = [];
-					const clickedEntry = (planningMode ? planningChartData : chartData).find(e => e.tooth_number === n);
-					if (clickedEntry?.bridge_group_id && !isSnapshotReadOnly) {
-						await openExistingRestorationEditor(n);
-						return;
-					}
 					if (restorationEditTeeth !== null) {
 						cancelRestorationEdit();
 					}
@@ -1070,12 +1078,14 @@
 					entry={selectedEntry}
 					{selectedSurface}
 					{shortcutTagKey}
+					{watchShortcutTrigger}
 					horizontal
 					onSave={handleToothSave}
 					onClose={() => { shortcutTagKey = null; selectedTooth = null; selectedSurface = null; }}
 					onDissolveBridge={!isSnapshotReadOnly ? handleDissolveGroup : undefined}
+					onEditBridge={!isSnapshotReadOnly && selectedEntry?.bridge_group_id ? () => openExistingRestorationEditor(selectedTooth!) : undefined}
 					onNotesChanged={async () => {
-						const today = new Date().toISOString().slice(0, 10);
+						const today = toLocalISODate();
 						[teethWithNotes, teethWithDueReminders] = await Promise.all([
 							getTeethWithNotes(patientId),
 							getTeethWithDueReminders(patientId, today),

@@ -2,7 +2,7 @@
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { staffLabel } from '$lib/utils/staff';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 	import TextBlockPalette from '$lib/components/ui/TextBlockPalette.svelte';
 	import StaffMentionPalette from '$lib/components/ui/StaffMentionPalette.svelte';
 	import TextColorPicker from '$lib/components/timeline/TextColorPicker.svelte';
@@ -19,7 +19,7 @@
 	} = $props();
 
 	// ── Helpers ───────────────────────────────────────────────────────────
-	function todayISO() { return new Date().toISOString().slice(0, 10); }
+	function todayISO() { return toLocalISODate(); }
 
 	function isoToDisplay(iso: string): string {
 		if (!iso || iso.length !== 10) return iso;
@@ -116,16 +116,14 @@
 	}
 
 	// ── State ─────────────────────────────────────────────────────────────
-	let titleContent         = $state('');
 	let docBoxEl             = $state<HTMLDivElement | null>(null);
-	let titleEl              = $state<HTMLDivElement | null>(null);
 	let description          = $state('');
 	let entryDate            = $state(todayISO());
 	let entryType            = $state<string>('');
 	let selectedIds          = $state<number[]>([]);
-	let showMentionPalette   = $state(false);
-	let mentionQuery         = $state('');
-	let mentionPaletteRef    = $state<ReturnType<typeof StaffMentionPalette> | null>(null);
+	let showMentionPalette = $state(false);
+	let mentionQuery       = $state('');
+	let mentionPaletteRef  = $state<ReturnType<typeof StaffMentionPalette> | null>(null);
 	let inputError           = $state('');
 	let isSaving             = $state(false);
 	let showPalette          = $state(false);
@@ -205,14 +203,13 @@
 
 	// Detected teeth — reactive on the HTML state (spans already stripped from text by stripHtml)
 	const detectedTeeth = $derived.by(() => {
-		const text = stripHtml(titleContent) + ' ' + stripHtml(description);
+		const text = stripHtml(description);
 		const matches = [...text.matchAll(/\bd([1-4][1-8]|[5-8][1-5])\b/gi)];
 		return [...new Set(matches.map(m => parseInt(m[1])))].sort((a, b) => a - b);
 	});
 
 	// ── Reset ──────────────────────────────────────────────────────────────
 	export function reset() {
-		titleContent       = '';
 		description        = '';
 		entryDate          = todayISO();
 		entryType          = '';
@@ -224,7 +221,6 @@
 		paletteQuery       = '';
 		staffDropdownOpen  = false;
 		staffSearchQuery   = '';
-		if (titleEl)  titleEl.innerHTML  = '';
 		if (editorEl) editorEl.innerHTML = '';
 	}
 
@@ -240,9 +236,8 @@
 	}
 
 	async function handleSubmit() {
-		const titleText = titleEl?.innerText?.trim() ?? '';
-		const bodyText  = editorEl?.innerText?.trim() ?? '';
-		if (!titleText && !bodyText) {
+		const bodyText = editorEl?.innerText?.trim() ?? '';
+		if (!bodyText) {
 			inputError = i18n.t.timeline.bar.errorEmpty;
 			return;
 		}
@@ -257,7 +252,7 @@
 			await onSave({
 				entry_date:    entryDate,
 				entry_type:    entryType as TimelineEntryType,
-				title:         titleText || autoTitle(bodyText, entryDate),
+				title:         autoTitle(bodyText, entryDate),
 				description:   cleanDesc || undefined,
 				tooth_numbers: detectedTeeth.length > 0 ? detectedTeeth.join(', ') : undefined,
 				doctor_id:     selectedIds[0] ?? null,
@@ -312,13 +307,6 @@
 		return { word: textBefore.slice(start), start, end };
 	}
 
-	// ── Title input ─────────────────────────────────────────────────────────
-	function handleTitleInput() {
-		titleContent = titleEl?.innerHTML ?? '';
-		applyToothHighlighting(titleEl);
-		titleContent = titleEl?.innerHTML ?? '';
-	}
-
 	// ── Body input + palettes ───────────────────────────────────────────────
 	function handleDescriptionInput() {
 		description = editorEl?.innerHTML ?? '';
@@ -358,22 +346,6 @@
 		showPalette = false; paletteQuery = '';
 	}
 
-	// ── Title keydown ───────────────────────────────────────────────────────
-	function handleTitleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSubmit(); return; }
-		if (e.key === 'Enter') {
-			e.preventDefault();
-			editorEl?.focus();
-			if (editorEl && !editorEl.innerText.trim()) {
-				const range = document.createRange();
-				range.setStart(editorEl, 0);
-				range.collapse(true);
-				window.getSelection()?.removeAllRanges();
-				window.getSelection()?.addRange(range);
-			}
-		}
-	}
-
 	// ── Line break insertion ─────────────────────────────────────────────────
 	// WebKit won't reliably render the cursor on a new line when it is
 	// positioned between two <br> elements or after a lone <br> with no
@@ -399,35 +371,10 @@
 		if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }
 		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSubmit(); return; }
 		if (e.key === 'Enter') { e.preventDefault(); insertBodyLineBreak(); return; }
-		// Backspace at empty body → return focus to title
-		if (e.key === 'Backspace' && !(editorEl?.innerText?.trim())) {
-			e.preventDefault();
-			titleEl?.focus();
-			const range = document.createRange();
-			if (titleEl && titleEl.childNodes.length > 0) {
-				const last = titleEl.childNodes[titleEl.childNodes.length - 1];
-				range.setStartAfter(last);
-				range.collapse(true);
-			} else if (titleEl) {
-				range.setStart(titleEl, 0);
-			}
-			window.getSelection()?.removeAllRanges();
-			window.getSelection()?.addRange(range);
-		}
 	}
 </script>
 
 <style>
-	.title-editor:empty::before {
-		content: attr(data-placeholder);
-		color: hsl(var(--muted-foreground) / 0.4);
-		pointer-events: none;
-		position: absolute;
-		top: 0; left: 0;
-	}
-	.title-editor { position: relative; }
-	.title-editor :global(b), .title-editor :global(strong) { font-weight: 700; }
-
 	.body-editor:empty::before {
 		content: attr(data-placeholder);
 		color: hsl(var(--muted-foreground) / 0.45);
@@ -588,22 +535,6 @@
 	<!-- ── Unified documentation box ─────────────────────────────────── -->
 	<div bind:this={docBoxEl} class="relative rounded-xl border border-border bg-muted/30 px-4 pt-2.5 pb-2.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 focus-within:bg-background transition-all">
 
-		<!-- Title editor (first block — bold + larger) -->
-		<!-- svelte-ignore a11y_interactive_supports_focus -->
-		<div
-			bind:this={titleEl}
-			contenteditable="true"
-			role="textbox"
-			aria-label={i18n.t.timeline.bar.titleAriaLabel}
-			data-placeholder={i18n.t.timeline.bar.titlePlaceholder}
-			oninput={handleTitleInput}
-			onkeydown={handleTitleKeydown}
-			class="title-editor w-full text-[15px] font-semibold text-foreground outline-none leading-snug"
-		></div>
-
-		<!-- Subtle separator -->
-		<div class="h-px bg-border/40 my-2 -mx-4"></div>
-
 		<!-- Body editor -->
 		<!-- svelte-ignore a11y_interactive_supports_focus -->
 		<div
@@ -662,6 +593,7 @@
 				/>
 			</div>
 		{/if}
+
 	</div>
 
 	{#if inputError}

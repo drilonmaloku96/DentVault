@@ -186,14 +186,41 @@ const OUTCOME_RULES: OutcomeRule[] = [
 ];
 
 // ── Tooth number extraction ────────────────────────────────────────────
+// All suggestions are emitted in FDI notation (11–48 permanent, 51–85 primary) —
+// the same notation the timeline entry bar stores in tooth_numbers.
 
-// Universal numbering: #1–32 or just digits in dental context
 const TOOTH_PATTERNS: RegExp[] = [
 	/#(\d{1,2})\b/g,
-	/\btooth\s+(\d{1,2})\b/gi,
-	/\bteeth\s+([\d,\s]+)/gi,
+	/\b(?:tooth|zahn)\s+(\d{1,2})\b/gi,
+	/\b(?:teeth|zähne)\s+([\d,\s]+)/gi,
 	/\bFDI\s+(\d{2})\b/gi,
+	/\bd(\d{2})\b/gi, // "d36" shorthand used in the entry bar
 ];
+
+/** Valid FDI number: quadrants 1–4 positions 1–8, quadrants 5–8 positions 1–5. */
+function isValidFDI(n: number): boolean {
+	const q = Math.floor(n / 10);
+	const p = n % 10;
+	if (q >= 1 && q <= 4) return p >= 1 && p <= 8;
+	if (q >= 5 && q <= 8) return p >= 1 && p <= 5;
+	return false;
+}
+
+// Universal 1–32 → FDI (used for unambiguous universal references like "#5")
+const UNIVERSAL_TO_FDI: Record<number, number> = {
+	 1:18,  2:17,  3:16,  4:15,  5:14,  6:13,  7:12,  8:11,
+	 9:21, 10:22, 11:23, 12:24, 13:25, 14:26, 15:27, 16:28,
+	17:38, 18:37, 19:36, 20:35, 21:34, 22:33, 23:32, 24:31,
+	25:41, 26:42, 27:43, 28:44, 29:45, 30:46, 31:47, 32:48,
+};
+
+/** Normalize a raw extracted number to FDI. Valid FDI numbers are kept as-is;
+ *  1–10 (which cannot be FDI) are treated as Universal and converted. */
+function normalizeToFDI(n: number): number | null {
+	if (isValidFDI(n)) return n;
+	if (n >= 1 && n <= 10) return UNIVERSAL_TO_FDI[n] ?? null;
+	return null;
+}
 
 // Palmer notation → universal number mapping (simplified)
 const PALMER_MAP: Record<string, string> = {
@@ -214,17 +241,22 @@ function extractToothNumbers(text: string): string[] {
 			const digits = match[1].split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
 			for (const d of digits) {
 				const n = parseInt(d);
-				if (!isNaN(n) && n >= 1 && n <= 32) numbers.add(String(n));
+				if (isNaN(n)) continue;
+				const fdi = normalizeToFDI(n);
+				if (fdi !== null) numbers.add(String(fdi));
 			}
 		}
 	}
 
-	// Palmer notation
+	// Palmer notation → Universal → FDI
 	let palmerMatch;
 	const palmerRe = new RegExp(PALMER_PATTERN.source, PALMER_PATTERN.flags);
 	while ((palmerMatch = palmerRe.exec(text)) !== null) {
 		const universal = PALMER_MAP[palmerMatch[1].toUpperCase()];
-		if (universal) numbers.add(universal);
+		if (universal) {
+			const fdi = UNIVERSAL_TO_FDI[parseInt(universal)];
+			if (fdi) numbers.add(String(fdi));
+		}
 	}
 
 	return Array.from(numbers).sort((a, b) => parseInt(a) - parseInt(b));

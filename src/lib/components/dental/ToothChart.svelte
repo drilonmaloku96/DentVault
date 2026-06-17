@@ -6,6 +6,7 @@
 	import { toFDI, UPPER_PRIMARY, LOWER_PRIMARY, isPrimaryTooth, getCanalsForTooth } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 	import { fillingMaterials } from '$lib/stores/fillingMaterials.svelte';
+	import { canalStatuses } from '$lib/stores/canalStatuses.svelte';
 
 	let {
 		chartData,
@@ -39,7 +40,7 @@
 
 	// ── Legend groups (derived so they react to i18n changes) ──────────
 	const LEGEND_GROUPS = $derived([
-		{ label: i18n.t.chart.tagGroups.general,          keys: ['healthy', 'watch', 'impacted', 'fractured'] },
+		{ label: i18n.t.chart.tagGroups.general,          keys: ['healthy', 'impacted', 'fractured'] },
 		{ label: i18n.t.chart.tagGroups.restorative,      keys: ['decayed', 'filled'] },
 		{ label: i18n.t.chart.tagGroups.endodontic,       keys: ['root_canal'] },
 		{ label: i18n.t.chart.tagGroups.fixedProsthetics, keys: ['crowned', 'implant', 'bridge'] },
@@ -133,7 +134,7 @@
 	}
 
 	// ── Surface data — supports legacy string and extended object format ──
-	interface SurfaceData { tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean; grade?: number }
+	interface SurfaceData { tag: string; material?: string; origin?: 'own' | 'foreign'; insufficient?: boolean; grade?: number; watch?: 'observe' | string }
 	type SurfaceValue = string | SurfaceData;
 
 	function parseSurfaces(json: string): Partial<Record<string, SurfaceValue>> {
@@ -185,6 +186,18 @@
 		if (!v || typeof v === 'string' || v.tag !== 'mih') return null;
 		return v.grade ?? 1;
 	}
+	/** Returns the whole-tooth watch_status for the given tooth number. */
+	function getWatchStatus(toothNum: number): string | null {
+		return getEntry(toothNum)?.watch_status ?? null;
+	}
+
+	/** Returns the surface-level watch status for a surface key. Any truthy value → 'observe'. */
+	function getSurfWatch(s: Partial<Record<string, SurfaceValue>>, key: string): 'observe' | null {
+		const v = s[key];
+		if (!v || typeof v === 'string') return null;
+		return (v as SurfaceData).watch ? 'observe' : null;
+	}
+
 	/** Returns the approximate center {cx,cy} for a given surface key within the tooth geometry.
 	 *  For upper teeth: B→pTop, L→pBot. For lower teeth: L→pTop, B→pBot. */
 	function getSurfCenter(g: ToothGeom, surfKey: string, leftSurf: string, rightSurf: string, isUpper: boolean): { cx: number; cy: number } {
@@ -208,15 +221,14 @@
 
 	// ── Root canal per-canal colors ─────────────────────────────────────
 	type RootDataMap = Record<string, { status?: string; post?: string | null; apex?: boolean }>;
-	const CANAL_FILL:   Record<string, string> = { none: '#f5f3ff', filled: '#dbeafe', insufficient: '#fee2e2', dressing: '#fef3c7' };
-	const CANAL_STROKE: Record<string, string> = { none: '#7c3aed', filled: '#3b82f6', insufficient: '#ef4444', dressing: '#d97706' };
+
 
 	function parseRootData(json: string | undefined): RootDataMap {
 		if (!json) return {};
 		try { return JSON.parse(json) as RootDataMap; } catch { return {}; }
 	}
-	function canalFill(status: string | undefined): string   { return CANAL_FILL[status ?? 'none']   ?? CANAL_FILL.none; }
-	function canalStroke(status: string | undefined): string { return CANAL_STROKE[status ?? 'none'] ?? CANAL_STROKE.none; }
+	function canalFill(status: string | undefined): string   { return canalStatuses.getColors(status ?? 'none').bg; }
+	function canalStroke(status: string | undefined): string { return canalStatuses.getColors(status ?? 'none').border; }
 
 	// ── Divided-square crown geometry ───────────────────────────────────
 	interface ToothGeom {
@@ -449,6 +461,13 @@
 			<filter id="tooth-selected" x="-30%" y="-30%" width="160%" height="160%">
 				<feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#2563eb" flood-opacity="0.35"/>
 			</filter>
+			<!-- Eye symbol for Under Observation — centered at (0,0), ~12×8 px natural size -->
+			<symbol id="eye-observe" viewBox="-6 -4 12 8" overflow="visible">
+				<path d="M -5.5,0 Q 0,-3.5 5.5,0 Q 0,3.5 -5.5,0 Z"
+					fill="#dbeafe" fill-opacity="0.9" stroke="#2563eb" stroke-width="1.2" pointer-events="none"/>
+				<circle cx="0" cy="0" r="2" fill="#2563eb" pointer-events="none"/>
+				<circle cx="0" cy="0" r="0.8" fill="white" fill-opacity="0.8" pointer-events="none"/>
+			</symbol>
 
 			<!-- Per-tag SVG fill patterns (only rendered for non-solid patterns) -->
 			{#each dentalTags.list as tag}
@@ -644,6 +663,7 @@
 			{@const isImplantAbutment = entry?.bridge_role === 'abutment' && entry?.abutment_type === 'implant'}
 			{@const isBridgeMember    = cond === 'bridge'}
 			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !(cond === 'prosthesis' && entry?.prosthesis_type === 'replaced')}
+			{@const hasRootData       = Object.values(rootDM).some(d => d.status && d.status !== 'none')}
 			{@const sc        = sel ? '#2563eb' : (isBridgeMember ? (isPontic ? bridgeRoles.getConfig('pontic').color : bridgeRoles.getConfig('abutment').color) : dentalTags.getStroke(cond))}
 			{@const divOp     = sel ? '0.9' : '0.55'}
 			{@const leftSurf  = slot < 8 ? 'D' : 'M'}
@@ -683,14 +703,15 @@
 						{@const canalName   = tCanals[ri] ?? 'single'}
 						{@const canalStatus = rootDM[canalName]?.status ?? 'none'}
 						{@const canalApex   = rootDM[canalName]?.apex === true}
+						{@const hasFinding  = canalStatus !== 'none'}
 						<polygon
 							points={root.points}
-							fill={cond === 'root_canal' ? canalFill(canalStatus) : '#f1f5f9'}
+							fill={hasFinding ? canalFill(canalStatus) : '#f1f5f9'}
 							stroke={sc}
 							stroke-width="0.9"
 							class="cursor-pointer"
 						/>
-						{#if cond === 'root_canal'}
+						{#if hasFinding}
 							<line
 								x1={root.centerX} y1={g.oy - 2}
 								x2={root.centerX} y2={root.apexY + 3}
@@ -741,6 +762,23 @@
 							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
 						{/if}
 					{/each}
+					<!-- Per-surface watch status eyes (upper) -->
+					{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+						{#if getSurfWatch(surfs, sk)}
+							{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, true)}
+							<use href="#eye-observe" x={mc.cx - 4.5} y={mc.cy - 3} width="9" height="6" opacity="0.95"/>
+						{/if}
+					{/each}
+					<!-- Cervical zone — always visible at CEJ (above crown for upper teeth) -->
+					{@const cvTagUpper = getSurfTag(surfs['Cv'])}
+					<rect x={g.ox} y={g.oy - 6} width={g.ow} height={6}
+						fill={cvTagUpper ? getSurfFill(surfs, 'Cv', crownFallback) : '#e2e8f0'}
+						stroke="#94a3b8" stroke-width="0.4"
+						opacity={cvTagUpper ? 0.9 : 0.5} pointer-events="none"/>
+					{#if cvTagUpper && isSurfInsufficient(surfs, 'Cv')}
+						<rect x={g.ox} y={g.oy - 6} width={g.ow} height={6}
+							fill="url(#surf-insufficient)" stroke="none" pointer-events="none"/>
+					{/if}
 
 				<!-- Surface tag Kürzel -->
 				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
@@ -795,7 +833,12 @@
 					<line x1={g.ox + g.ow*0.25} y1={g.oy + g.oh*0.5} x2={g.ox + g.ow*0.75} y2={g.oy + g.oh*0.5}
 						stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
 				{/if}
-				<!-- Implant post line -->
+				<!-- Watch status overlay ring (before charting ring to stay below it) -->
+				{#if getWatchStatus(tooth) && !isAbsent}
+					<rect x={g.ox - 1} y={g.oy - 1} width={g.ow + 2} height={g.oh + 2}
+						fill="#dbeafe" fill-opacity="0.4" stroke="#2563eb" stroke-width="2" stroke-dasharray="4,2" rx="2"
+						pointer-events="none"/>
+				{/if}
 					<!-- Charting mode highlight ring -->
 				{#if charting}
 					<rect x={g.ox - 4} y={g.oy - 4} width={g.ow + 8} height={g.oh + 8}
@@ -832,6 +875,10 @@
 				<!-- Note indicator dot -->
 				{#if teethWithNotes?.has(tooth)}
 					<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+				{/if}
+				<!-- Watch status eye badge — below crown for upper teeth -->
+				{#if getWatchStatus(tooth) && !isAbsent}
+					<use href="#eye-observe" x={g.ox + g.ow / 2 - 6.5} y={g.oy + g.oh + 2} width="13" height="8" opacity="0.95"/>
 				{/if}
 				<!-- Position indicators -->
 				{#if (entry?.foreign_work ?? 0) === 1}
@@ -1074,6 +1121,7 @@
 			{@const isProsthesisReplaced = entry?.condition === 'prosthesis' && entry?.prosthesis_type === 'replaced'}
 			{@const isImplantAbutment = entry?.bridge_role === 'abutment' && entry?.abutment_type === 'implant'}
 			{@const showRoot          = !NO_ROOT.has(cond) && !isPontic && !(cond === 'prosthesis' && entry?.prosthesis_type === 'replaced')}
+			{@const hasRootData       = Object.values(rootDM).some(d => d.status && d.status !== 'none')}
 			{@const isBridgeMember = cond === 'bridge'}
 			{@const sc        = sel ? '#2563eb' : (isBridgeMember ? (isPontic ? bridgeRoles.getConfig('pontic').color : bridgeRoles.getConfig('abutment').color) : dentalTags.getStroke(cond))}
 			{@const divOp     = sel ? '0.9' : '0.55'}
@@ -1108,14 +1156,15 @@
 						{@const canalName   = tCanals[ri] ?? 'single'}
 						{@const canalStatus = rootDM[canalName]?.status ?? 'none'}
 						{@const canalApex   = rootDM[canalName]?.apex === true}
+						{@const hasFinding  = canalStatus !== 'none'}
 						<polygon
 							points={root.points}
-							fill={cond === 'root_canal' ? canalFill(canalStatus) : '#f1f5f9'}
+							fill={hasFinding ? canalFill(canalStatus) : '#f1f5f9'}
 							stroke={sc}
 							stroke-width="0.9"
 							class="cursor-pointer"
 						/>
-						{#if cond === 'root_canal'}
+						{#if hasFinding}
 							<line
 								x1={root.centerX} y1={LOWER_TOP + CROWN_H[t] + 2}
 								x2={root.centerX} y2={root.apexY - 3}
@@ -1165,6 +1214,23 @@
 							<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill="#7e22ce" pointer-events="none" opacity="0.9">{mg}</text>
 						{/if}
 					{/each}
+					<!-- Per-surface watch status eyes (lower) -->
+					{#each ['B','L',leftSurf,rightSurf,'O'] as sk (sk)}
+						{#if getSurfWatch(surfs, sk)}
+							{@const mc = getSurfCenter(g, sk, leftSurf, rightSurf, false)}
+							<use href="#eye-observe" x={mc.cx - 4.5} y={mc.cy - 3} width="9" height="6" opacity="0.95"/>
+						{/if}
+					{/each}
+					<!-- Cervical zone — always visible at CEJ (below crown for lower teeth) -->
+					{@const cvTagLower = getSurfTag(surfs['Cv'])}
+					<rect x={g.ox} y={g.oy + g.oh} width={g.ow} height={6}
+						fill={cvTagLower ? getSurfFill(surfs, 'Cv', crownFallback) : '#e2e8f0'}
+						stroke="#94a3b8" stroke-width="0.4"
+						opacity={cvTagLower ? 0.9 : 0.5} pointer-events="none"/>
+					{#if cvTagLower && isSurfInsufficient(surfs, 'Cv')}
+						<rect x={g.ox} y={g.oy + g.oh} width={g.ow} height={6}
+							fill="url(#surf-insufficient)" stroke="none" pointer-events="none"/>
+					{/if}
 
 				<!-- Surface tag Kürzel -->
 				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
@@ -1216,6 +1282,12 @@
 					<line x1={g.ox + g.ow*0.25} y1={g.oy + g.oh*0.5} x2={g.ox + g.ow*0.75} y2={g.oy + g.oh*0.5}
 						stroke="#b0bec5" stroke-width="1.5" stroke-linecap="round" pointer-events="none"/>
 				{/if}
+				<!-- Watch status overlay ring — lower permanent -->
+				{#if getWatchStatus(tooth) && !isAbsent}
+					<rect x={g.ox - 1} y={g.oy - 1} width={g.ow + 2} height={g.oh + 2}
+						fill="#dbeafe" fill-opacity="0.4" stroke="#2563eb" stroke-width="2" stroke-dasharray="4,2" rx="2"
+						pointer-events="none"/>
+				{/if}
 					<!-- Charting mode highlight ring -->
 				{#if charting}
 					<rect x={g.ox - 4} y={g.oy - 4} width={g.ow + 8} height={g.oh + 8}
@@ -1252,6 +1324,10 @@
 				<!-- Note indicator dot -->
 				{#if teethWithNotes?.has(tooth)}
 					<circle cx={g.ox + 3} cy={g.oy + 3} r="3" fill={teethWithDueReminders?.has(tooth) ? '#ef4444' : '#f59e0b'} stroke="white" stroke-width="0.8" pointer-events="none"/>
+				{/if}
+				<!-- Watch status eye badge — above crown for lower teeth -->
+				{#if getWatchStatus(tooth) && !isAbsent}
+					<use href="#eye-observe" x={g.ox + g.ow / 2 - 6.5} y={g.oy - 9} width="13" height="8" opacity="0.95"/>
 				{/if}
 				<!-- Position indicators -->
 				{#if (entry?.foreign_work ?? 0) === 1}

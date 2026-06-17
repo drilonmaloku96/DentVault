@@ -10,7 +10,7 @@
 		upsertProbingToothData,
 		getProbingToothData,
 	} from '$lib/services/db';
-	import { FDI_CHARTING_ORDER } from '$lib/utils';
+	import { toLocalISODate, FDI_CHARTING_ORDER } from '$lib/utils';
 	import type { ProbingRecord, ProbingToothData } from '$lib/types';
 	import PerioSVGChart from './PerioSVGChart.svelte';
 	import PerioDataEntryPanel from './PerioDataEntryPanel.svelte';
@@ -29,7 +29,7 @@
 	} = $props();
 
 	// ── Record management ─────────────────────────────────────────────────
-	let examDate = $state(new Date().toISOString().slice(0, 10));
+	let examDate = $state(toLocalISODate());
 	let examinerId = $state<number | null>(null);
 	let notes = $state('');
 	let currentRecord = $state<ProbingRecord | null>(null);
@@ -61,7 +61,7 @@
 	$effect(() => {
 		if (open && patientId) {
 			// Reset state for new session
-			examDate = new Date().toISOString().slice(0, 10);
+			examDate = toLocalISODate();
 			examinerId = null;
 			notes = '';
 			currentRecord = null;

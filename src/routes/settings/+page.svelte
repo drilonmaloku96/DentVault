@@ -8,14 +8,15 @@
 	import { vault } from '$lib/stores/vault.svelte';
 	import { docCategories, DEFAULT_CATEGORIES, type DocCategory } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { resetDb, getAllSettings, bulkSetSettings, getAllPatientsIncludingArchived, deletePatient, getSetting, setSetting } from '$lib/services/db';
+	import { resetDb, getAllSettings, bulkSetSettings, getAllPatientsIncludingArchived, deletePatient, getSetting, setSetting, upsertDoctorWorkingHours } from '$lib/services/db';
+	import { resetAuditCache } from '$lib/services/audit';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
 	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder, getTemplateCategories, listVaultFiles, listDocTemplates, openDocumentFile, deletePatientFolder, TEMPLATE_FOLDER, type VaultFileInfo, type DocTemplateInfo } from '$lib/services/files';
 	import { exportPatient } from '$lib/services/patient-export';
 	import { downloadJson } from '$lib/services/export';
 	import { invoke } from '@tauri-apps/api/core';
 	import { staffLabel, roleLabel, roleBadge } from '$lib/utils/staff';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 	import { staffRoles, DEFAULT_ROLES, type StaffRole } from '$lib/stores/staffRoles.svelte';
 	import { dentalTags, DEFAULT_DENTAL_TAGS, RENDER_CRITICAL_TAGS } from '$lib/stores/dentalTags.svelte';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
@@ -30,12 +31,15 @@
 	import { complicationTypes, DEFAULT_COMPLICATION_TYPES, type ComplicationType } from '$lib/stores/complicationTypes.svelte';
 	import { textHighlightColors, DEFAULT_HIGHLIGHT_COLORS, MAX_HIGHLIGHT_COLORS, type TextHighlightColor } from '$lib/stores/textHighlightColors.svelte';
 import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } from '$lib/stores/planProcedures.svelte';
+	import { crownFindings, DEFAULT_CROWN_FINDINGS, BUILTIN_CROWN_FINDING_KEYS, type CrownFindingConfig } from '$lib/stores/crownFindings.svelte';
+	import { canalStatuses, DEFAULT_CANAL_STATUSES, BUILTIN_CANAL_STATUS_KEYS, type CanalStatusConfig } from '$lib/stores/canalStatuses.svelte';
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
+	import { appointmentStatuses, type AppointmentStatusConfig } from '$lib/stores/appointmentStatuses.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
 	import StaffWorkingHoursGrid from '$lib/components/schedule/StaffWorkingHoursGrid.svelte';
 	import type { DentalTag, PatternType, AppointmentRoom, AppointmentType, WorkingHoursEntry, Patient } from '$lib/types';
-	import { i18n, type LangCode } from '$lib/i18n';
+	import { i18n } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 
@@ -52,31 +56,6 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		});
 	}
 
-	// ── Language ───────────────────────────────────────────────────────────
-	let showShortcutResetDialog = $state(false);
-	let pendingLangCode = $state<LangCode | null>(null);
-
-	async function handleLangChange(code: LangCode) {
-		if (code === i18n.code) return;
-		await i18n.setLang(code);
-		// Check if any shortcut differs from the new language's defaults
-		const anyDiffers = dentalTags.list.some(tag => {
-			const def = i18n.t.chart.tags[tag.key as keyof typeof i18n.t.chart.tags];
-			if (!def) return false;
-			return (tag.shortcut ?? '').toLowerCase() !== def.defaultShortcut.toLowerCase();
-		});
-		if (anyDiffers) {
-			pendingLangCode = code;
-			showShortcutResetDialog = true;
-		}
-	}
-
-	async function confirmShortcutReset() {
-		await dentalTags.resetShortcutsToLanguageDefaults();
-		showShortcutResetDialog = false;
-		pendingLangCode = null;
-	}
-
 	// ── Vault ─────────────────────────────────────────────────────────────
 	let isChangingVault = $state(false);
 	let vaultChangeMsg = $state('');
@@ -89,6 +68,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			if (!path) return;
 			await vault.configure(path);
 			resetDb();
+			resetAuditCache();
 			// Ensure !TEMPLATE exists in the new vault (no-op if already present)
 			await ensureTemplateStructure(
 				path,
@@ -255,6 +235,19 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	let newStaffColor    = $state('#6366f1');
 	let addStaffError    = $state('');
 	let staffSaving      = $state(false);
+	let newStaffHours    = $state<import('$lib/types').DoctorWorkingHoursFormData[]>([]);
+
+	function openAddStaff() {
+		newStaffHours = workingHours.hours.map(h => ({
+			day_of_week: h.day_of_week,
+			start_time: h.start_time,
+			end_time: h.end_time,
+			break_start: h.break_start ?? '',
+			break_end: h.break_end ?? '',
+			is_active: h.is_active,
+		}));
+		showAddStaff = true;
+	}
 
 	// Working hours editor state
 	let editWorkingHoursDocId = $state<number | null>(null);
@@ -292,8 +285,9 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		if (!name) { addStaffError = 'Name is required.'; return; }
 		staffSaving = true;
 		try {
-			await doctors.add({ name, role: newStaffRole, specialty: newStaffSpec.trim(), color: newStaffColor });
-			newStaffName = ''; newStaffRole = 'doctor'; newStaffSpec = ''; newStaffColor = '#6366f1';
+			const newDoc = await doctors.add({ name, role: newStaffRole, specialty: newStaffSpec.trim(), color: newStaffColor });
+			await upsertDoctorWorkingHours(String(newDoc.id), newStaffHours);
+			newStaffName = ''; newStaffRole = 'doctor'; newStaffSpec = ''; newStaffColor = '#6366f1'; newStaffHours = [];
 			showAddStaff = false;
 		} catch (e) {
 			addStaffError = String(e);
@@ -464,6 +458,74 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			setTimeout(() => (tagsSaved = false), 2500);
 		} finally {
 			isTagsSaving = false;
+		}
+	}
+
+	// ── Crown Findings ─────────────────────────────────────────────────────────────────
+	let draftCrownFindings = $state<CrownFindingConfig[]>([]);
+	let isCfSaving         = $state(false);
+	let cfSaved            = $state(false);
+
+	$effect(() => {
+		if (!crownFindings.loaded) { crownFindings.load(); return; }
+		draftCrownFindings = untrack(() => [...crownFindings.list]);
+	});
+
+	function updateCf(i: number, field: keyof CrownFindingConfig, value: string | boolean) {
+		draftCrownFindings = draftCrownFindings.map((f, idx) => idx === i ? { ...f, [field]: value } : f);
+	}
+
+	function addCrownFinding() {
+		const key = `cx_custom_${Date.now()}`;
+		draftCrownFindings = [...draftCrownFindings, { key, label: 'New Finding', color: '#e0f2fe', strokeColor: '#0284c7' }];
+	}
+
+	function removeCrownFinding(i: number) {
+		draftCrownFindings = draftCrownFindings.filter((_, idx) => idx !== i);
+	}
+
+	async function handleSaveCrownFindings() {
+		isCfSaving = true;
+		try {
+			await crownFindings.save(draftCrownFindings);
+			cfSaved = true;
+			setTimeout(() => (cfSaved = false), 2500);
+		} finally {
+			isCfSaving = false;
+		}
+	}
+
+	// ── Canal Statuses ─────────────────────────────────────────────────────────────────
+	let draftCanalStatuses = $state<CanalStatusConfig[]>([]);
+	let isCsSaving         = $state(false);
+	let csSaved            = $state(false);
+
+	$effect(() => {
+		if (!canalStatuses.loaded) { canalStatuses.load(); return; }
+		draftCanalStatuses = untrack(() => [...canalStatuses.list]);
+	});
+
+	function updateCs(i: number, field: keyof CanalStatusConfig, value: string) {
+		draftCanalStatuses = draftCanalStatuses.map((s, idx) => idx === i ? { ...s, [field]: value } : s);
+	}
+
+	function addCanalStatus() {
+		const key = `cs_custom_${Date.now()}`;
+		draftCanalStatuses = [...draftCanalStatuses, { key, label: 'New Status', bg: '#f0fdf4', border: '#86efac', text: '#166534' }];
+	}
+
+	function removeCanalStatus(i: number) {
+		draftCanalStatuses = draftCanalStatuses.filter((_, idx) => idx !== i);
+	}
+
+	async function handleSaveCanalStatuses() {
+		isCsSaving = true;
+		try {
+			await canalStatuses.save(draftCanalStatuses);
+			csSaved = true;
+			setTimeout(() => (csSaved = false), 2500);
+		} finally {
+			isCsSaving = false;
 		}
 	}
 
@@ -921,12 +983,14 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	let newApptTypeShort = $state('');
 	let newApptTypeDuration = $state(30);
 	let newApptTypeColor = $state('#6366f1');
+	let newApptTypeIcon  = $state('');
 	let newApptTypeCategory = $state('other');
 	let editingApptTypeId = $state<string | null>(null);
 	let editApptTypeName  = $state('');
 	let editApptTypeShort = $state('');
 	let editApptTypeDuration = $state(30);
 	let editApptTypeColor = $state('#6366f1');
+	let editApptTypeIcon  = $state('');
 	let editApptTypeCategory = $state('other');
 
 	async function handleAddApptType() {
@@ -934,15 +998,15 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		if (!name) return;
 		apptTypesSaving = true;
 		try {
-			await appointmentTypes.add({ name, short_name: newApptTypeShort.trim(), default_duration_min: newApptTypeDuration, color: newApptTypeColor, treatment_category: newApptTypeCategory, sort_order: appointmentTypes.list.length, is_active: true });
-			newApptTypeName = ''; newApptTypeShort = ''; newApptTypeDuration = 30; newApptTypeColor = '#6366f1'; newApptTypeCategory = 'other'; showAddApptType = false;
+			await appointmentTypes.add({ name, short_name: newApptTypeShort.trim(), default_duration_min: newApptTypeDuration, color: newApptTypeColor, icon: newApptTypeIcon.trim(), treatment_category: newApptTypeCategory, sort_order: appointmentTypes.list.length, is_active: true });
+			newApptTypeName = ''; newApptTypeShort = ''; newApptTypeDuration = 30; newApptTypeColor = '#6366f1'; newApptTypeIcon = ''; newApptTypeCategory = 'other'; showAddApptType = false;
 			apptTypesSaved = true; setTimeout(() => (apptTypesSaved = false), 2000);
 		} finally { apptTypesSaving = false; }
 	}
 
 	function startEditApptType(t: AppointmentType) {
 		editingApptTypeId = t.id; editApptTypeName = t.name; editApptTypeShort = t.short_name;
-		editApptTypeDuration = t.default_duration_min; editApptTypeColor = t.color; editApptTypeCategory = t.treatment_category;
+		editApptTypeDuration = t.default_duration_min; editApptTypeColor = t.color; editApptTypeIcon = t.icon ?? ''; editApptTypeCategory = t.treatment_category;
 	}
 
 	async function saveEditApptType(id: string) {
@@ -950,13 +1014,42 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		if (!name) return;
 		apptTypesSaving = true;
 		try {
-			await appointmentTypes.update(id, { name, short_name: editApptTypeShort.trim(), default_duration_min: editApptTypeDuration, color: editApptTypeColor, treatment_category: editApptTypeCategory });
+			await appointmentTypes.update(id, { name, short_name: editApptTypeShort.trim(), default_duration_min: editApptTypeDuration, color: editApptTypeColor, icon: editApptTypeIcon.trim(), treatment_category: editApptTypeCategory });
 			editingApptTypeId = null;
 		} finally { apptTypesSaving = false; }
 	}
 
 	async function handleDeleteApptType(id: string) {
 		await appointmentTypes.remove(id);
+	}
+
+	// ── Appointment Statuses ────────────────────────────────────────────────────
+	let editingStatusKey = $state<string | null>(null);
+	let editStatusLabel  = $state('');
+	let editStatusKuerzel = $state('');
+	let editStatusColor  = $state('#64748b');
+	let showAddStatus    = $state(false);
+	let newStatusLabel   = $state('');
+	let newStatusKuerzel = $state('');
+	let newStatusColor   = $state('#64748b');
+
+	function startEditStatus(s: AppointmentStatusConfig) {
+		editingStatusKey = s.key;
+		editStatusLabel  = s.label;
+		editStatusKuerzel = s.kuerzel;
+		editStatusColor  = s.color;
+	}
+
+	async function saveEditStatus(key: string) {
+		await appointmentStatuses.update(key, { label: editStatusLabel.trim(), kuerzel: editStatusKuerzel.trim(), color: editStatusColor });
+		editingStatusKey = null;
+	}
+
+	async function handleAddStatus() {
+		const label = newStatusLabel.trim();
+		if (!label) return;
+		await appointmentStatuses.add({ label, kuerzel: newStatusKuerzel.trim(), color: newStatusColor });
+		newStatusLabel = ''; newStatusKuerzel = ''; newStatusColor = '#64748b'; showAddStatus = false;
 	}
 
 	// ── Working Hours ───────────────────────────────────────────────────────────
@@ -1029,7 +1122,6 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				bridgeCfgs,
 				prosthesisCfgs,
 				fillingMaterials.list.map(m => ({ key: m.key, label: m.label, color: m.color })),
-				i18n.code,
 				(pct, text) => { exportProgress = pct; exportProgressText = text; },
 			);
 		} catch (e) {
@@ -1110,7 +1202,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				app: 'DentVault',
 				settings,
 			};
-			const dateStr = new Date().toISOString().slice(0, 10);
+			const dateStr = toLocalISODate();
 			downloadJson(payload, `dentvault-settings-${dateStr}.json`);
 		} catch (e) {
 			console.error('Settings export failed:', e);
@@ -1164,7 +1256,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		isBackingUpDb = true;
 		dbBackupMsg = '';
 		try {
-			const dateStr = new Date().toISOString().slice(0, 10);
+			const dateStr = toLocalISODate();
 			const destPath = `${dir}/dentvault-backup-${dateStr}.db`;
 			await invoke('backup_database', { vaultPath: vault.path, destPath });
 			dbBackupMsg = `${i18n.t.settings.backup.backupSuccess} ${destPath}`;
@@ -1249,37 +1341,37 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		<p class="px-3 pt-3 pb-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">{label}</p>
 	{/snippet}
 
-	<!-- ── Left Sidebar Navigation ── -->
-	<nav class="w-52 shrink-0 overflow-y-auto border-r border-border/60 bg-muted/10 py-4 px-2 flex flex-col gap-0.5">
+	<!-- ── Right Content Panel ── -->
+	<div class="flex-1 overflow-y-auto" bind:this={contentEl} use:scrollIndicator={{ zIndex: 45 }}>
+		<div class="flex flex-col gap-8 max-w-2xl px-8 py-7">
 
-		<div class="px-3 pb-3 mb-1 border-b border-border/50">
-			<p class="text-sm font-semibold text-foreground">{i18n.t.settings.title}</p>
+		<!-- Back button + patient link (shown on sub-pages) -->
+		{#if activeSection !== 'home'}
+		<div class="flex items-center gap-3 -mb-2">
+			<button
+				type="button"
+				onclick={() => navigateTo('home')}
+				class="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+					<path d="M19 12H5M12 19l-7-7 7-7"/>
+				</svg>
+				{i18n.t.settings.title}
+			</button>
 			{#if activePatient.id}
+				<span class="text-border/60">·</span>
 				<a
 					href="/patients/{activePatient.id}"
-					class="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+					class="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0 text-muted-foreground">
-						<path d="M19 12H5M12 19l-7-7 7-7"/>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
+						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
 					</svg>
 					<span class="truncate">{activePatient.displayName}</span>
 				</a>
 			{/if}
 		</div>
-
-		{@render navBtn('home', i18n.t.settings.sections.overview)}
-		{@render navBtn('general', i18n.t.settings.sections.general)}
-		{@render navBtn('team', i18n.t.staff.title)}
-		{@render navBtn('schedule', i18n.t.settings.sections.schedule)}
-		{@render navBtn('clinical', i18n.t.settings.sections.clinical)}
-		{@render navBtn('documents', i18n.t.settings.sections.documents)}
-		{@render navBtn('patients', i18n.t.nav.patients)}
-
-	</nav>
-
-	<!-- ── Right Content Panel ── -->
-	<div class="flex-1 overflow-y-auto" bind:this={contentEl} use:scrollIndicator={{ zIndex: 45 }}>
-		<div class="flex flex-col gap-8 max-w-2xl px-8 py-7">
+		{/if}
 
 	{#if activeSection === 'home'}
 	{@const nav = navigateTo}
@@ -1364,6 +1456,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{ label: i18n.t.settings.sections.textBlocks },
 						{ label: i18n.t.settings.sections.textHighlightColors },
 						{ label: i18n.t.settings.sections.dentalTagsAndSymbols },
+						{ label: i18n.t.settings.sections.crownFindings },
+						{ label: i18n.t.settings.sections.canalStatuses },
 						{ label: i18n.t.settings.sections.prostheticsAndBridges },
 					] as item}
 						<button type="button" onclick={() => nav('clinical')} class="flex items-center gap-2 px-2 py-1 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left">
@@ -1417,49 +1511,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	{/if}
 
 	{#if activeSection === 'general'}
-	<section class="flex flex-col gap-4">
-		<div>
-			<h2 class="text-base font-semibold">{i18n.t.settings.languageLabel}</h2>
-		</div>
-		<Separator />
-		<div class="flex gap-2">
-			{#each (['de', 'en'] as LangCode[]) as code}
-				<button
-					type="button"
-					onclick={() => handleLangChange(code)}
-					class={[
-						'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors',
-						i18n.code === code
-							? 'border-primary bg-primary/10 text-primary'
-							: 'border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground',
-					].join(' ')}
-				>
-					{code === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
-				</button>
-			{/each}
-		</div>
-	</section>
-
-	<!-- Shortcut reset confirmation dialog -->
-	{#if showShortcutResetDialog}
-		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div class="w-full max-w-sm rounded-xl border bg-background p-6 shadow-xl">
-				<h3 class="text-base font-semibold">{i18n.t.chart.resetShortcuts}</h3>
-				<p class="mt-2 text-sm text-muted-foreground">{i18n.t.chart.resetShortcutsConfirm}</p>
-				<div class="mt-5 flex justify-end gap-3">
-					<Button variant="outline" size="sm" onclick={() => { showShortcutResetDialog = false; pendingLangCode = null; }}>
-						{i18n.t.actions.cancel}
-					</Button>
-					<Button size="sm" onclick={confirmShortcutReset}>
-						{i18n.t.chart.resetShortcuts}
-					</Button>
-				</div>
-			</div>
-		</div>
-	{/if}
-
-
-	<div class="pt-6 pb-2"><Separator /></div>
+	<div class="pt-2 pb-2"></div>
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.appearance}</h2>
@@ -1865,8 +1917,47 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							</div>
 						</div>
 					</div>
+
+					<!-- Working hours for new staff member -->
+					<div class="border-t border-border/50 pt-3">
+						<p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{i18n.t.staff.workingHours}</p>
+						<div class="overflow-x-auto">
+							<table class="w-full text-xs border-collapse">
+								<thead>
+									<tr class="text-[10px] text-muted-foreground uppercase tracking-wide">
+										<th class="text-left py-1 pr-3 font-medium w-20">Day</th>
+										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colActive}</th>
+										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colStart}</th>
+										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colBreakStart}</th>
+										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colBreakEnd}</th>
+										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colEnd}</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each [1,2,3,4,5,6,0] as dow}
+										{@const h = newStaffHours[dow]}
+										{#if h}
+											<tr class="border-t border-border/50 {h.is_active ? '' : 'opacity-50'}">
+												<td class="py-1.5 pr-3">
+													<span class="font-medium {h.is_active ? 'text-foreground' : 'text-muted-foreground'}">{i18n.t.defaults.workingDays[dow]}</span>
+												</td>
+												<td class="py-1.5 px-1 text-center">
+													<input type="checkbox" checked={h.is_active} onchange={(e) => { h.is_active = (e.currentTarget as HTMLInputElement).checked; }} class="h-3.5 w-3.5 accent-primary cursor-pointer" />
+												</td>
+												<td class="py-1.5 px-1"><input type="time" bind:value={h.start_time} disabled={!h.is_active} class="rounded border border-input bg-background px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-40 w-[72px]" /></td>
+												<td class="py-1.5 px-1"><input type="time" bind:value={h.break_start} disabled={!h.is_active} class="rounded border border-input bg-background px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-40 w-[72px]" /></td>
+												<td class="py-1.5 px-1"><input type="time" bind:value={h.break_end} disabled={!h.is_active} class="rounded border border-input bg-background px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-40 w-[72px]" /></td>
+												<td class="py-1.5 px-1"><input type="time" bind:value={h.end_time} disabled={!h.is_active} class="rounded border border-input bg-background px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-40 w-[72px]" /></td>
+											</tr>
+										{/if}
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+
 					<div class="flex gap-2 justify-end">
-						<button type="button" onclick={() => { showAddStaff = false; addStaffError = ''; }} class="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors">{i18n.t.actions.cancel}</button>
+						<button type="button" onclick={() => { showAddStaff = false; addStaffError = ''; newStaffHours = []; }} class="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors">{i18n.t.actions.cancel}</button>
 						<button type="button" onclick={handleAddStaff} disabled={staffSaving || !newStaffName.trim()} class="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity">{staffSaving ? i18n.t.common.loading : i18n.t.staff.add}</button>
 					</div>
 				</div>
@@ -1874,7 +1965,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 
 			<!-- Add Staff Member button -->
 		{#if !showAddStaff}
-			<button type="button" onclick={() => (showAddStaff = true)} class="self-start flex items-center gap-2 rounded-md border border-dashed px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors">
+			<button type="button" onclick={openAddStaff} class="self-start flex items-center gap-2 rounded-md border border-dashed px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors">
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 				{i18n.t.staff.add}
 			</button>
@@ -2965,6 +3056,180 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 
 
 	<div class="pt-6 pb-2"><Separator /></div>
+	<!-- ── Crown Findings ─────────────────────────────────────────────────────── -->
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.crownFindingSettings.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.crownFindingSettings.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<!-- Column headers -->
+			<div class="grid grid-cols-[1fr_2rem_2rem_5rem_3rem] items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-1">
+				<span>{i18n.t.common.name}</span>
+				<span>Fill</span>
+				<span>Border</span>
+				<span>{i18n.t.settings.crownFindingSettings.scope}</span>
+				<span></span>
+			</div>
+			<Separator />
+			<div class="flex flex-col gap-2">
+				{#each draftCrownFindings as f, i}
+					{@const isBuiltin = BUILTIN_CROWN_FINDING_KEYS.has(f.key)}
+					<div class="rounded-md border bg-background">
+						<div class="grid grid-cols-[1fr_2rem_2rem_5rem_3rem] items-center gap-2 px-3 py-2">
+							<!-- Swatch + label -->
+							<div class="flex items-center gap-2 min-w-0">
+								<div class="h-6 w-2.5 rounded-full shrink-0" style="background:{f.color};outline:2px solid {f.strokeColor};outline-offset:1px"></div>
+								<input
+									type="text"
+									value={f.label}
+									oninput={(e) => updateCf(i, 'label', (e.target as HTMLInputElement).value)}
+									class="border-input bg-transparent h-7 min-w-0 flex-1 rounded border px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
+								/>
+							</div>
+							<!-- Fill color -->
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{f.color}" title="Fill color">
+								<input type="color" value={f.color} oninput={(e) => updateCf(i, 'color', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
+							</label>
+							<!-- Border color -->
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{f.strokeColor};border-color:{f.strokeColor}" title="Border color">
+								<input type="color" value={f.strokeColor} oninput={(e) => updateCf(i, 'strokeColor', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
+							</label>
+							<!-- Scope toggle (wholeCrown) -->
+							<button
+								type="button"
+								onclick={() => updateCf(i, 'wholeCrown', !f.wholeCrown)}
+								class={['rounded border px-2 h-7 text-[10px] font-medium transition-colors',
+									f.wholeCrown
+										? 'bg-amber-100 border-amber-300 text-amber-700'
+										: 'bg-blue-50 border-blue-200 text-blue-700',
+								].join(' ')}
+								title={f.wholeCrown ? i18n.t.settings.crownFindingSettings.wholeCrown : i18n.t.settings.crownFindingSettings.perSurface}
+							>
+								{f.wholeCrown ? i18n.t.settings.crownFindingSettings.wholeCrown : i18n.t.settings.crownFindingSettings.perSurface}
+							</button>
+							<!-- Delete -->
+							<button
+								type="button"
+								onclick={() => removeCrownFinding(i)}
+								disabled={isBuiltin}
+								class={['flex items-center justify-center h-7 w-7 rounded border transition-colors ml-auto',
+									isBuiltin
+										? 'border-border text-muted-foreground/30 cursor-not-allowed'
+										: 'border-border text-muted-foreground hover:border-destructive hover:text-destructive',
+								].join(' ')}
+								title={isBuiltin ? i18n.t.settings.crownFindingSettings.noDelete : i18n.t.actions.delete}
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+							</button>
+						</div>
+					</div>
+				{/each}
+			</div>
+			<!-- Add button -->
+			<button type="button" onclick={addCrownFinding}
+				class="flex items-center gap-1.5 rounded border border-dashed border-muted-foreground/40 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors self-start">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.actions.add}
+			</button>
+			<!-- Save -->
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSaveCrownFindings} disabled={isCfSaving}>
+					{isCfSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if cfSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<!-- ── Root Canal Statuses ────────────────────────────────────────────────── -->
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.canalStatusSettings.title}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.canalStatusSettings.description}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-3">
+			<!-- Column headers -->
+			<div class="grid grid-cols-[1fr_2rem_2rem_2rem_3rem] items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-1">
+				<span>{i18n.t.common.name}</span>
+				<span>{i18n.t.settings.canalStatusSettings.bgColor}</span>
+				<span>{i18n.t.settings.canalStatusSettings.borderColor}</span>
+				<span>{i18n.t.settings.canalStatusSettings.textColor}</span>
+				<span></span>
+			</div>
+			<Separator />
+			<div class="flex flex-col gap-2">
+				{#each draftCanalStatuses as s, i}
+					{@const isBuiltin = BUILTIN_CANAL_STATUS_KEYS.has(s.key)}
+					<div class="rounded-md border bg-background">
+						<div class="grid grid-cols-[1fr_2rem_2rem_2rem_3rem] items-center gap-2 px-3 py-2">
+							<!-- Swatch + label -->
+							<div class="flex items-center gap-2 min-w-0">
+								<div class="h-6 w-2.5 rounded-full shrink-0" style="background:{s.bg};outline:2px solid {s.border};outline-offset:1px"></div>
+								<input
+									type="text"
+									value={s.label}
+									oninput={(e) => updateCs(i, 'label', (e.target as HTMLInputElement).value)}
+									class="border-input bg-transparent h-7 min-w-0 flex-1 rounded border px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
+								/>
+							</div>
+							<!-- Fill color -->
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{s.bg}" title="{i18n.t.settings.canalStatusSettings.bgColor}">
+								<input type="color" value={s.bg} oninput={(e) => updateCs(i, 'bg', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
+							</label>
+							<!-- Border color -->
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{s.border};border-color:{s.border}" title="{i18n.t.settings.canalStatusSettings.borderColor}">
+								<input type="color" value={s.border} oninput={(e) => updateCs(i, 'border', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
+							</label>
+							<!-- Text color -->
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer flex items-center justify-center" title="{i18n.t.settings.canalStatusSettings.textColor}">
+								<span class="text-xs font-bold pointer-events-none select-none" style="color:{s.text}">A</span>
+								<input type="color" value={s.text} oninput={(e) => updateCs(i, 'text', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
+							</label>
+							<!-- Delete -->
+							<button
+								type="button"
+								onclick={() => removeCanalStatus(i)}
+								disabled={isBuiltin}
+								class={['flex items-center justify-center h-7 w-7 rounded border transition-colors ml-auto',
+									isBuiltin
+										? 'border-border text-muted-foreground/30 cursor-not-allowed'
+										: 'border-border text-muted-foreground hover:border-destructive hover:text-destructive',
+								].join(' ')}
+								title={isBuiltin ? i18n.t.settings.canalStatusSettings.noDelete : i18n.t.actions.delete}
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+							</button>
+						</div>
+					</div>
+				{/each}
+			</div>
+			<!-- Add button -->
+			<button type="button" onclick={addCanalStatus}
+				class="flex items-center gap-1.5 rounded border border-dashed border-muted-foreground/40 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors self-start">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+				{i18n.t.actions.add}
+			</button>
+			<!-- Save -->
+			<div class="flex items-center gap-3 pt-1">
+				<Button size="sm" onclick={handleSaveCanalStatuses} disabled={isCsSaving}>
+					{isCsSaving ? i18n.t.common.loading : i18n.t.actions.save}
+				</Button>
+				{#if csSaved}
+					<span class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">✓ {i18n.t.settings.saved}</span>
+				{/if}
+			</div>
+		</div>
+	</section>
+
+
+	<div class="pt-6 pb-2"><Separator /></div>
 	<section id="section-prosthesis-appearance" class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.prosthesisTypeSettings.title}</h2>
@@ -3670,6 +3935,10 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							<label class="text-xs text-muted-foreground">{i18n.t.settings.schedule.colorLabel}</label>
 							<input type="color" bind:value={newApptTypeColor} class="h-8 w-12 rounded border border-border cursor-pointer" />
 						</div>
+						<div class="flex items-center gap-2">
+							<label class="text-xs text-muted-foreground shrink-0">{i18n.t.settings.schedule.iconLabel}</label>
+							<input type="text" placeholder={i18n.t.settings.schedule.iconPlaceholder} bind:value={newApptTypeIcon} class={inputClass + ' w-20 text-center text-base'} maxlength="4" />
+						</div>
 					</div>
 					<div class="flex gap-2">
 						<Button size="sm" onclick={handleAddApptType} disabled={!newApptTypeName.trim() || apptTypesSaving}>{i18n.t.actions.add}</Button>
@@ -3688,10 +3957,14 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								<input type="text" bind:value={editApptTypeShort} placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} class={inputClass + ' w-16'} />
 								<input type="number" min="5" step="5" bind:value={editApptTypeDuration} class={inputClass + ' w-16'} />
 								<input type="color" bind:value={editApptTypeColor} class="h-8 w-10 rounded border border-border cursor-pointer" />
+								<input type="text" bind:value={editApptTypeIcon} placeholder={i18n.t.settings.schedule.iconPlaceholder} class={inputClass + ' w-14 text-center text-base'} maxlength="4" title={i18n.t.settings.schedule.iconLabel} />
 								<Button size="sm" onclick={() => saveEditApptType(t.id)} disabled={apptTypesSaving}>{i18n.t.actions.save}</Button>
 								<Button size="sm" variant="outline" onclick={() => (editingApptTypeId = null)}>{i18n.t.actions.cancel}</Button>
 							</div>
 						{:else}
+							{#if t.icon}
+								<span class="text-base leading-none shrink-0">{t.icon}</span>
+							{/if}
 							<span class="flex-1 text-sm font-medium">{t.name}</span>
 							<span class="text-xs text-muted-foreground">{t.default_duration_min} min</span>
 							{#if t.short_name}
@@ -3699,6 +3972,72 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							{/if}
 							<button class="text-xs text-muted-foreground hover:text-foreground" onclick={() => startEditApptType(t)}>{i18n.t.actions.edit}</button>
 							<button class="text-xs text-destructive hover:text-destructive/80" onclick={() => handleDeleteApptType(t.id)}>{i18n.t.actions.delete}</button>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.schedule.apptStatusesTitle}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.apptStatusesDesc}</p>
+		</div>
+		<Separator />
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.apptStatusesTitle}</span>
+				<Button size="sm" variant="outline" onclick={() => (showAddStatus = !showAddStatus)}>{i18n.t.actions.add}</Button>
+			</div>
+			{#if showAddStatus}
+				<div class="flex flex-col gap-2 border border-border rounded p-3 bg-muted/30">
+					<div class="grid grid-cols-2 gap-2">
+						<input type="text" placeholder={i18n.t.common.name} bind:value={newStatusLabel} class={inputClass + ' col-span-2'} />
+						<div class="flex items-center gap-2">
+							<label class="text-xs text-muted-foreground shrink-0">{i18n.t.settings.schedule.kuerzelLabel}</label>
+							<input type="text" placeholder={i18n.t.settings.schedule.kuerzelPlaceholder} bind:value={newStatusKuerzel} class={inputClass + ' w-20 text-center font-bold'} maxlength="6" />
+						</div>
+						<div class="flex items-center gap-2">
+							<label class="text-xs text-muted-foreground shrink-0">{i18n.t.settings.schedule.colorLabel}</label>
+							<input type="color" bind:value={newStatusColor} class="h-8 w-12 rounded border border-border cursor-pointer" />
+						</div>
+					</div>
+					<div class="flex gap-2">
+						<Button size="sm" onclick={handleAddStatus} disabled={!newStatusLabel.trim()}>{i18n.t.actions.add}</Button>
+						<Button size="sm" variant="outline" onclick={() => (showAddStatus = false)}>{i18n.t.actions.cancel}</Button>
+					</div>
+				</div>
+			{/if}
+			<div class="flex flex-col divide-y divide-border">
+				{#each appointmentStatuses.list as s}
+					<div class="flex items-center gap-3 py-2.5">
+						{#if editingStatusKey === s.key}
+							<div class="flex flex-1 items-center gap-2 flex-wrap">
+								<input type="text" bind:value={editStatusLabel} class={inputClass + ' flex-1 min-w-[100px]'} />
+								<div class="flex items-center gap-1.5">
+									<span class="text-xs text-muted-foreground shrink-0">{i18n.t.settings.schedule.kuerzelLabel}</span>
+									<input type="text" bind:value={editStatusKuerzel} placeholder={i18n.t.settings.schedule.kuerzelPlaceholder} class={inputClass + ' w-16 text-center font-bold'} maxlength="6" />
+								</div>
+								<input type="color" bind:value={editStatusColor} class="h-8 w-10 rounded border border-border cursor-pointer" />
+								<Button size="sm" onclick={() => saveEditStatus(s.key)}>{i18n.t.actions.save}</Button>
+								<Button size="sm" variant="outline" onclick={() => (editingStatusKey = null)}>{i18n.t.actions.cancel}</Button>
+							</div>
+						{:else}
+							<span
+								class="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-bold leading-none shrink-0"
+								style="background-color: {s.color}28; color: {s.color}; border: 1px solid {s.color}70; min-width: 1.75rem;"
+							>{s.kuerzel || '—'}</span>
+							<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {s.color}"></span>
+							<span class="flex-1 text-sm font-medium">{s.label}</span>
+							{#if s.isBuiltIn}
+								<span class="text-[10px] text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">{i18n.t.settings.schedule.builtInStatus}</span>
+							{/if}
+							<button class="text-xs text-muted-foreground hover:text-foreground" onclick={() => startEditStatus(s)}>{i18n.t.actions.edit}</button>
+							{#if !s.isBuiltIn}
+								<button class="text-xs text-destructive hover:text-destructive/80" onclick={() => appointmentStatuses.remove(s.key)}>{i18n.t.actions.delete}</button>
+							{/if}
 						{/if}
 					</div>
 				{/each}

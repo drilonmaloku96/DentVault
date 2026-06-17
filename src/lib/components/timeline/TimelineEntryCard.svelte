@@ -18,6 +18,7 @@
 		onDelete,
 		onHistory,
 		onDateChange,
+		hideDateDisplay = false,
 	}: {
 		entry: TimelineEntry;
 		onEdit: (entry: TimelineEntry) => void;
@@ -25,6 +26,8 @@
 		onHistory?: (entry: TimelineEntry) => void;
 		/** If provided, a date-edit control is shown. Caller must persist + reload. */
 		onDateChange?: (entry: TimelineEntry, newDate: string) => void;
+		/** When true, the per-card date text is hidden (date shown in group header instead). */
+		hideDateDisplay?: boolean;
 	} = $props();
 
 	let menuOpen = $state(false);
@@ -267,7 +270,7 @@
 							class="text-[11px] border rounded px-1 py-px bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring/50"
 						/>
 						<button type="button" onclick={cancelDateEdit} class="hover:text-foreground transition-colors">{i18n.t.actions.cancel}</button>
-					{:else}
+					{:else if !hideDateDisplay}
 						<button
 							type="button"
 							onclick={onDateChange ? startDateEdit : undefined}
@@ -315,7 +318,20 @@
 					</button>
 					{#if menuOpen}
 						<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
-						<div class="absolute right-0 top-full mt-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
+						<div class="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-md border border-border bg-popover shadow-md py-1">
+							{#if onDateChange && hideDateDisplay}
+								<button
+									type="button"
+									onclick={() => { menuOpen = false; editingDate = true; }}
+									class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-foreground hover:bg-muted transition-colors"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-muted-foreground">
+										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+									</svg>
+									{i18n.t.timeline.changeDate}
+								</button>
+								<div class="my-1 h-px bg-border/60 mx-1"></div>
+							{/if}
 							<button
 								type="button"
 								onclick={() => { menuOpen = false; onDelete(entry); }}
@@ -386,7 +402,7 @@
 					</span>
 				{/if}
 
-				<!-- Date -->
+				<!-- Date (hidden when group header shows it; editing input always visible) -->
 				{#if editingDate}
 					<!-- svelte-ignore a11y_autofocus -->
 					<input
@@ -401,7 +417,7 @@
 					<button type="button" onclick={cancelDateEdit} class="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
 						{i18n.t.actions.cancel}
 					</button>
-				{:else}
+				{:else if !hideDateDisplay}
 					<button
 						type="button"
 						onclick={onDateChange ? startDateEdit : undefined}
@@ -429,7 +445,20 @@
 					</button>
 					{#if menuOpen}
 						<div class="fixed inset-0 z-40" role="none" onclick={() => (menuOpen = false)}></div>
-						<div class="absolute right-0 top-full mt-1 z-50 min-w-[130px] rounded-md border border-border bg-popover shadow-md py-1">
+						<div class="absolute right-0 top-full mt-1 z-50 min-w-[140px] rounded-md border border-border bg-popover shadow-md py-1">
+							{#if onDateChange && hideDateDisplay}
+								<button
+									type="button"
+									onclick={() => { menuOpen = false; editingDate = true; }}
+									class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-foreground hover:bg-muted transition-colors"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-muted-foreground">
+										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+									</svg>
+									{i18n.t.timeline.changeDate}
+								</button>
+								<div class="my-1 h-px bg-border/60 mx-1"></div>
+							{/if}
 							<button
 								type="button"
 								onclick={() => { menuOpen = false; onDelete(entry); }}

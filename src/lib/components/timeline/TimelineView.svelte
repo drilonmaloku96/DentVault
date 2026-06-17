@@ -51,14 +51,16 @@
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { i18n } from '$lib/i18n';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 
 	let {
 		patientId,
 		patientFolder = '',
+		headerHeight = 64,
 	}: {
 		patientId: string;
 		patientFolder?: string;
+		headerHeight?: number;
 	} = $props();
 
 	let entries       = $state<TimelineEntry[]>([]);
@@ -68,7 +70,7 @@
 	let error         = $state('');
 
 	// ── Filters ──────────────────────────────────────────────────────────
-	let activeFilters  = $state<Set<string>>(new Set());
+	let typeFilters    = $state<Set<string>>(new Set());
 	let activeDoctorId = $state<number | null>(null);
 
 	// Dropdown state
@@ -77,58 +79,54 @@
 	// Text / date search
 	let searchQuery = $state('');
 
-	// Category-based filter: three high-level groups
-	const CATEGORY_FILTERS = $derived([
-		{
-			key: 'documentation',
-			label: i18n.t.timeline.filterCategories.documentation,
-			// All clinical/appointment types
-			types: new Set(entryTypes.list.map(t => t.key)),
-		},
-		{
-			key: 'files',
-			label: i18n.t.timeline.filterCategories.files,
-			types: new Set(['document']),
-		},
-		{
-			key: 'charts',
-			label: i18n.t.timeline.filterCategories.charts,
-			types: new Set(['chart_snapshot', 'ortho_snapshot']),
-		},
-	]);
+	const SYSTEM_TYPES = new Set(['document', 'chart_snapshot', 'ortho_snapshot', 'plan']);
 
-	function toggleFilter(key: string) {
-		const next = new Set(activeFilters);
-		if (next.has(key)) next.delete(key); else next.add(key);
-		activeFilters = next;
+	function typeLabel(key: string): string {
+		if (key === '')                return 'Unclassified';
+		if (key === 'document')       return 'Documents';
+		if (key === 'chart_snapshot') return 'Chart Snapshots';
+		if (key === 'ortho_snapshot') return 'Ortho Records';
+		if (key === 'plan')           return 'Treatment Plans';
+		return entryTypes.labelFor(key);
+	}
+
+	// Derive distinct types from this patient's actual entries, with counts
+	const availableTypes = $derived.by(() => {
+		const counts = new Map<string, number>();
+		for (const e of entries) {
+			const k = e.entry_type ?? '';
+			counts.set(k, (counts.get(k) ?? 0) + 1);
+		}
+		const clinical: Array<{ key: string; label: string; count: number }> = [];
+		const system:   Array<{ key: string; label: string; count: number }> = [];
+		for (const [key, count] of counts) {
+			const item = { key, label: typeLabel(key), count };
+			if (SYSTEM_TYPES.has(key)) system.push(item); else clinical.push(item);
+		}
+		clinical.sort((a, b) => b.count - a.count);
+		return [...clinical, ...system];
+	});
+
+	function toggleFilter(typeKey: string) {
+		const next = new Set(typeFilters);
+		if (next.has(typeKey)) next.delete(typeKey); else next.add(typeKey);
+		typeFilters = next;
 	}
 
 	function clearAllFilters() {
-		activeFilters  = new Set();
+		typeFilters    = new Set();
 		activeDoctorId = null;
 	}
 
-	const activeFilterCount = $derived(activeFilters.size + (activeDoctorId !== null ? 1 : 0));
+	const activeFilterCount = $derived(typeFilters.size + (activeDoctorId !== null ? 1 : 0));
 
-	const activeTypeLabels = $derived(
-		[...activeFilters].map(k => CATEGORY_FILTERS.find(c => c.key === k)?.label ?? k)
-	);
+	const activeTypeLabels = $derived([...typeFilters].map(k => typeLabel(k)));
 	const activeDoctorName = $derived(
 		activeDoctorId !== null ? (doctors.list.find(d => d.id === activeDoctorId)?.name ?? '') : ''
 	);
 
-	// Build the allowed entry_type set from active category filters
-	const allowedTypes = $derived((() => {
-		if (activeFilters.size === 0) return null;
-		const set = new Set<string>();
-		for (const cat of CATEGORY_FILTERS) {
-			if (activeFilters.has(cat.key)) cat.types.forEach(t => set.add(t));
-		}
-		return set;
-	})());
-
 	const filteredEntries = $derived((() => {
-		let list = allowedTypes === null ? entries : entries.filter(e => allowedTypes.has(e.entry_type));
+		let list = typeFilters.size === 0 ? entries : entries.filter(e => typeFilters.has(e.entry_type ?? ''));
 		// Apply doctor filter
 		if (activeDoctorId !== null) {
 			list = list.filter(e => e.doctor_id === activeDoctorId);
@@ -204,7 +202,7 @@
 			chartWasModified = false;
 			(async () => {
 				const data = await getChartData(patientId);
-				const today = new Date().toISOString().slice(0, 10);
+				const today = toLocalISODate();
 				const report = generateChartReport(data);
 
 				// Same-day dedup: delete any existing chart_snapshot for today
@@ -310,7 +308,7 @@
 		if (!vault.isConfigured || isImporting) return;
 		isImporting = true;
 		try {
-			const today = new Date().toISOString().slice(0, 10);
+			const today = toLocalISODate();
 			for (const file of untrackedFiles) {
 				const mime        = getMimeType(file.filename);
 				const categoryKey = folderToKey(file.category_folder);
@@ -436,86 +434,38 @@
 		const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 </script>
 
-<!-- ── Header (sticky below patient header) ───────────────────────────── -->
-<div class="sticky top-[76px] z-10 bg-background flex flex-col gap-3 pt-3 pb-3 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] mb-4">
-	<!-- Title row + action buttons -->
-	<div class="flex items-center justify-between gap-2 flex-wrap">
-		<div class="flex items-center gap-3">
-			<h2 class="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-				{i18n.t.timeline.title}
-				{#if !isLoading}
-					<span class="ml-1 normal-case font-normal">({filteredEntries.length})</span>
-				{/if}
-			</h2>
-			{#if syncedToast}
-				<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
-					{i18n.t.timeline.entry.typeSynced}
-				</span>
-			{/if}
-		</div>
+<!-- ── Header (fixed below patient header, top tracks header height) ─────── -->
+<div class="fixed left-56 right-0 z-10 bg-background flex items-center gap-2 pt-2 pb-2 px-6 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]" style="top: {headerHeight}px">
 
-		<div class="flex items-center gap-1.5 flex-wrap">
-			<!-- Open Chart editor -->
-			<Button size="sm" variant="outline" onclick={() => (chartSheetOpen = true)}>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<path d="M12 2c-1.5 0-3 .5-4 1.5C6.5 5 6 7 6 9c0 3 1 6 2 9 .5 1.5 1 2 2 2h4c1 0 1.5-.5 2-2 1-3 2-6 2-9 0-2-.5-4-2-5.5C15 2.5 13.5 2 12 2z"/>
-				</svg>
-				{i18n.t.chart.title}
-			</Button>
+	<!-- Filter bar (left side, compact) -->
+	<div class="flex items-center gap-1.5 min-w-0 flex-1">
 
-			<!-- Open Therapy Plan -->
-			<Button size="sm" variant="outline" onclick={() => (therapyPlanOpen = true)}
-				class="{activePlans.length > 0 ? 'border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30' : ''}"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-				</svg>
-				{i18n.t.plans.title}
-			</Button>
-
-			<!-- Open KIG / Ortho assessment -->
-			<Button size="sm" variant="outline" onclick={() => { viewingOrthoEntry = null; showOrthoDialog = true; }}>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-					<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
-					<polyline points="9 2 9 9 16 9"/>
-					<line x1="12" y1="13" x2="12" y2="17"/>
-					<line x1="10" y1="15" x2="14" y2="15"/>
-				</svg>
-				{i18n.t.ortho.button}
-			</Button>
-
-
-</div>
-	</div>
-
-	<!-- Filter bar -->
-	<div class="flex items-center gap-2">
-
-		<!-- "Filter by" label + dropdown trigger -->
-		<div class="relative">
+		<!-- Filter dropdown trigger -->
+		<div class="relative shrink-0">
 			<button
 				type="button"
 				onclick={() => { filterDropdownOpen = !filterDropdownOpen; }}
-				class="inline-flex items-center gap-1.5 h-8 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted/50 transition-colors max-w-[340px]"
+				class="inline-flex items-center gap-1 h-7 rounded-md border border-input bg-background px-2 text-xs font-medium hover:bg-muted/50 transition-colors"
 			>
 				<!-- Filter icon -->
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-muted-foreground">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0 text-muted-foreground">
 					<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
 				</svg>
 				{#if activeFilterCount === 0}
-					<span class="text-muted-foreground">{i18n.t.timeline.filter}</span>
+					<span class="text-muted-foreground text-[11px]">{i18n.t.timeline.filter}</span>
 				{:else}
-					<div class="flex items-center gap-1 flex-wrap">
-						{#each activeTypeLabels as lbl}
-							<span class="rounded bg-primary/10 text-primary px-1.5 py-px text-[10px] font-semibold">{lbl}</span>
-						{/each}
+					<div class="flex items-center gap-1 overflow-hidden">
+						{#if activeTypeLabels.length === 1}
+							<span class="rounded bg-primary/10 text-primary px-1 py-px text-[10px] font-semibold truncate max-w-[120px]">{activeTypeLabels[0]}</span>
+						{:else if activeTypeLabels.length > 1}
+							<span class="rounded bg-primary/10 text-primary px-1 py-px text-[10px] font-semibold shrink-0">{activeTypeLabels.length} types</span>
+						{/if}
 						{#if activeDoctorName}
-							<span class="rounded bg-muted text-foreground px-1.5 py-px text-[10px] font-semibold">{activeDoctorName}</span>
+							<span class="rounded bg-muted text-foreground px-1 py-px text-[10px] font-semibold truncate max-w-[80px]">{activeDoctorName}</span>
 						{/if}
 					</div>
 				{/if}
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0 text-muted-foreground ml-0.5">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0 text-muted-foreground">
 					<polyline points="6 9 12 15 18 9"/>
 				</svg>
 			</button>
@@ -527,24 +477,29 @@
 				<!-- Dropdown panel -->
 				<div class="absolute top-full left-0 mt-1 z-50 w-52 rounded-lg border border-border bg-background shadow-lg overflow-hidden">
 					<div class="py-1">
-						<!-- Category group -->
-						<div class="px-2 pt-1 pb-0.5">
-							<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.timeline.filter}</span>
-						</div>
-						{#each CATEGORY_FILTERS as cat}
-							<button
-								type="button"
-								onclick={() => toggleFilter(cat.key)}
-								class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
-							>
-								<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${activeFilters.has(cat.key) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
-									{#if activeFilters.has(cat.key)}
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
-									{/if}
-								</span>
-								<span class="truncate">{cat.label}</span>
-							</button>
-						{/each}
+						<!-- Per-patient entry type list -->
+						{#if availableTypes.length > 0}
+							<div class="px-2 pt-1 pb-0.5">
+								<span class="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wide px-1">{i18n.t.timeline.filter}</span>
+							</div>
+							<div class="max-h-60 overflow-y-auto">
+								{#each availableTypes as item}
+									<button
+										type="button"
+										onclick={() => toggleFilter(item.key)}
+										class="flex w-full items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/60 transition-colors"
+									>
+										<span class={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border ${typeFilters.has(item.key) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+											{#if typeFilters.has(item.key)}
+												<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="20 6 9 17 4 12"/></svg>
+											{/if}
+										</span>
+										<span class="flex-1 truncate">{item.label}</span>
+										<span class="text-[10px] text-muted-foreground/50 tabular-nums shrink-0">{item.count}</span>
+									</button>
+								{/each}
+							</div>
+						{/if}
 
 						<!-- Doctors group -->
 						{#if doctors.list.length > 0}
@@ -585,22 +540,22 @@
 			{/if}
 		</div>
 
-		<!-- Text / date search -->
-		<div class="relative flex-1 min-w-0">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground">
+		<!-- Text / date search (compact) -->
+		<div class="relative flex-1 min-w-[80px] max-w-[160px]">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground">
 				<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
 			</svg>
 			<input
 				type="text"
 				bind:value={searchQuery}
 				placeholder={i18n.t.timeline.searchPlaceholder}
-				class="h-8 w-full rounded-md border border-input bg-background pl-8 pr-3 text-xs outline-none focus:border-ring placeholder:text-muted-foreground/50 transition-[border-color]"
+				class="h-7 w-full rounded-md border border-input bg-background pl-6 pr-6 text-[11px] outline-none focus:border-ring placeholder:text-muted-foreground/50 transition-[border-color]"
 			/>
 			{#if searchQuery}
 				<button
 					type="button"
 					onclick={() => (searchQuery = '')}
-					class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+					class="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3">
 						<path d="M18 6L6 18M6 6l12 12"/>
@@ -609,8 +564,49 @@
 			{/if}
 		</div>
 
+	</div><!-- /filter bar + search -->
+
+	<!-- Synced toast -->
+	{#if syncedToast}
+		<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 shrink-0">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
+			{i18n.t.timeline.entry.typeSynced}
+		</span>
+	{/if}
+
+	<!-- Action buttons -->
+	<div class="flex items-center gap-1 shrink-0">
+		<!-- Open Chart editor -->
+		<Button size="sm" variant="outline" onclick={() => (chartSheetOpen = true)} title={i18n.t.chart.title}>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
+				<path d="M12 2c-1.5 0-3 .5-4 1.5C6.5 5 6 7 6 9c0 3 1 6 2 9 .5 1.5 1 2 2 2h4c1 0 1.5-.5 2-2 1-3 2-6 2-9 0-2-.5-4-2-5.5C15 2.5 13.5 2 12 2z"/>
+			</svg>
+			<span class="hidden xl:inline">{i18n.t.chart.title}</span>
+		</Button>
+		<!-- Open Therapy Plan -->
+		<Button size="sm" variant="outline" onclick={() => (therapyPlanOpen = true)} title={i18n.t.plans.title}
+			class="{activePlans.length > 0 ? 'border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30' : ''}"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
+				<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+			</svg>
+			<span class="hidden xl:inline">{i18n.t.plans.title}</span>
+		</Button>
+		<!-- Open KIG / Ortho assessment -->
+		<Button size="sm" variant="outline" onclick={() => { viewingOrthoEntry = null; showOrthoDialog = true; }} title={i18n.t.ortho.button}>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
+				<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
+				<polyline points="9 2 9 9 16 9"/>
+				<line x1="12" y1="13" x2="12" y2="17"/>
+				<line x1="10" y1="15" x2="14" y2="15"/>
+			</svg>
+			<span class="hidden xl:inline">{i18n.t.ortho.button}</span>
+		</Button>
 	</div>
+
 </div>
+<!-- Spacer: compensates for the fixed toolbar height (pt-2 + h-7 + pb-2 = 44px) -->
+<div class="h-[44px] mb-4"></div>
 
 <!-- ── Vault auto-scan banner ──────────────────────────────────────────── -->
 {#if untrackedFiles.length > 0 && !bannerDismissed}
@@ -671,7 +667,7 @@
 			<line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
 			<line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
 		</svg>
-		{#if activeFilters.size > 0}
+		{#if typeFilters.size > 0}
 			<h3 class="text-sm font-medium text-muted-foreground">{i18n.t.common.noData}</h3>
 			<p class="mt-1 text-xs text-muted-foreground/70">Try a different filter or add a new entry.</p>
 		{:else}
@@ -702,11 +698,11 @@
 				<div class="mb-2 rounded-lg {gi % 2 === 1 ? 'bg-muted/[0.15]' : ''}">
 					<!-- Date header row — runs through the gutter to put a marker on the spine -->
 					<div class="relative -ml-8 flex items-center gap-2 pt-1.5 pb-1">
-						<!-- 11 px hollow circle centered exactly at left-[5.5px] of the outer container -->
-						<div class="h-[11px] w-[11px] shrink-0 rounded-full border-2 border-border/60 bg-background z-10"></div>
-						<span class="text-[11px] font-semibold text-foreground/55 tracking-wide">{formatDate(group.date)}</span>
+						<!-- Orange dot on the spine -->
+						<div class="h-[11px] w-[11px] shrink-0 rounded-full bg-orange-400 dark:bg-orange-500 z-10 ring-2 ring-background"></div>
+						<span class="text-sm font-bold text-orange-500 dark:text-orange-400">{formatDate(group.date)}</span>
 						{#if group.entries.length > 1}
-							<span class="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-px text-[10px] font-bold text-primary leading-4">
+							<span class="inline-flex items-center rounded-full bg-orange-100 dark:bg-orange-900/30 px-1.5 py-px text-[10px] font-bold text-orange-600 dark:text-orange-400 leading-4">
 								{group.entries.length}
 							</span>
 						{/if}
@@ -748,7 +744,7 @@
 							{:else if entry.entry_type === 'chart_snapshot'}
 								<ChartSnapshotCard
 									{entry}
-									onView={() => (viewingSnapshot = entry)}
+									onView={() => { viewingSnapshot = entry; viewingSnapshotEdit = entry.entry_date === toLocalISODate(); }}
 								/>
 							{:else if entry.entry_type === 'ortho_snapshot'}
 								<OrthoSnapshotCard {entry} onView={() => { viewingOrthoEntry = entry; showOrthoDialog = true; }} />
@@ -759,6 +755,7 @@
 									onDelete={openDeleteDialog}
 									onHistory={openEntryHistory}
 									onDateChange={handleDateChange}
+									hideDateDisplay={true}
 								/>
 							{/if}
 						</div>
@@ -860,18 +857,19 @@
 <Dialog open={viewingSnapshot !== null} onOpenChange={(o) => { if (!o) { viewingSnapshot = null; viewingSnapshotEdit = false; } }}>
 	<DialogContent class="max-w-[1100px] sm:max-w-[1100px] h-[92vh] flex flex-col overflow-hidden p-0">
 		{#if viewingSnapshot !== null}
+			{@const isToday = viewingSnapshot.entry_date === toLocalISODate()}
 			<DialogHeader class="px-6 pt-5 pb-3 shrink-0 border-b border-border">
 				<div class="flex items-center justify-between gap-3">
 					<DialogTitle class="text-sm font-semibold">
 						{i18n.t.timeline.snapshot.title} — {formatDate(viewingSnapshot.entry_date)}
 					</DialogTitle>
-					{#if !viewingSnapshotEdit}
-						<Button size="sm" variant="outline" onclick={() => (viewingSnapshotEdit = true)}>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5">
-								<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+					{#if !isToday}
+						<span class="text-[11px] text-muted-foreground/60 flex items-center gap-1">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
 							</svg>
-							{i18n.t.actions.edit}
-						</Button>
+							{i18n.t.chart.snapshotReport.readOnly}
+						</span>
 					{/if}
 				</div>
 			</DialogHeader>

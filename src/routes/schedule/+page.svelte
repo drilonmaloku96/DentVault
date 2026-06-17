@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { page } from '$app/state';
 	import { i18n } from '$lib/i18n';
 	import { rooms } from '$lib/stores/rooms.svelte';
@@ -7,6 +8,7 @@
 		getAppointmentsForDate,
 		insertAppointment,
 		updateAppointment,
+		updateAppointmentStatus,
 		deleteAppointment,
 		getPatient,
 		getScheduleBlocksForDate,
@@ -20,7 +22,7 @@
 		deleteStaffBlockout,
 		getStaffPresenceForDay,
 	} from '$lib/services/db';
-	import type { Appointment, AppointmentFormData, ScheduleBlock, ScheduleBlockFormData, StaffBlockout, StaffBlockoutFormData, StaffPresenceInfo } from '$lib/types';
+	import type { Appointment, AppointmentFormData, AppointmentStatus, ScheduleBlock, ScheduleBlockFormData, StaffBlockout, StaffBlockoutFormData, StaffPresenceInfo } from '$lib/types';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { navState } from '$lib/stores/navState.svelte';
 	import DayView from '$lib/components/schedule/DayView.svelte';
@@ -33,7 +35,7 @@
 
 	// Date from URL param → navState (last visited date) → today
 	const urlDate = page.url.searchParams.get('date');
-	let currentDate = $state(urlDate ?? (navState.scheduleDate || new Date().toISOString().slice(0, 10)));
+	let currentDate = $state(urlDate ?? (navState.scheduleDate || toLocalISODate()));
 	let appointments = $state<Appointment[]>([]);
 	let scheduleBlocks = $state<ScheduleBlock[]>([]);
 	let staffBlockouts = $state<StaffBlockout[]>([]);
@@ -72,11 +74,11 @@
 		}
 	});
 
-	const todayStr = new Date().toISOString().slice(0, 10);
+	const todayStr = toLocalISODate();
 
 	const formattedDate = $derived(() => {
 		const d = new Date(currentDate + 'T12:00:00');
-		const locale = i18n.code === 'de' ? 'de-DE' : 'en-GB';
+		const locale = 'en-GB';
 		return d.toLocaleDateString(locale, {
 			weekday: 'long',
 			day: 'numeric',
@@ -127,13 +129,13 @@
 	function prevDay() {
 		const d = new Date(currentDate + 'T12:00:00');
 		d.setDate(d.getDate() - 1);
-		currentDate = d.toISOString().slice(0, 10);
+		currentDate = toLocalISODate(d);
 	}
 
 	function nextDay() {
 		const d = new Date(currentDate + 'T12:00:00');
 		d.setDate(d.getDate() + 1);
-		currentDate = d.toISOString().slice(0, 10);
+		currentDate = toLocalISODate(d);
 	}
 
 	function goToday() {
@@ -301,6 +303,13 @@
 		await loadDay();
 	}
 
+	async function handleAppointmentStatusChange(id: string, status: AppointmentStatus) {
+		await updateAppointmentStatus(id, status);
+		// Optimistic local update — avoids full reload flicker
+		const idx = appointments.findIndex(a => a.id === id);
+		if (idx !== -1) appointments[idx].status = status;
+	}
+
 	async function handleBlockoutDelete(id: string) {
 		await deleteStaffBlockout(id);
 		const [dayBlockouts, all] = await Promise.all([
@@ -321,7 +330,7 @@
 	}
 
 	function printScheduleDay() {
-		const locale = i18n.code === 'de' ? 'de-DE' : 'en-GB';
+		const locale = 'en-GB';
 		const dateLabel = new Date(currentDate + 'T12:00:00').toLocaleDateString(locale, {
 			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 		});
@@ -370,7 +379,7 @@
 		].map(h => `<th>${h}</th>`).join('');
 
 		const html = `<!DOCTYPE html>
-<html lang="${i18n.code}">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8"/>
 <title>DentVault – ${dateLabel}</title>
@@ -521,6 +530,7 @@
 					onSlotClick={handleSlotClick}
 					onAppointmentDoubleClick={handleAppointmentClick}
 				onAppointmentQuickUpdate={handleAppointmentQuickUpdate}
+					onAppointmentStatusChange={handleAppointmentStatusChange}
 					onDragCreate={handleDragCreate}
 					onBlockClick={handleBlockClick}
 					onBlockQuickUpdate={handleBlockQuickUpdate}

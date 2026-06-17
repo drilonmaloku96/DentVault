@@ -9,6 +9,12 @@ const GENESIS_SEED = 'DENTVAULT_AUDIT_GENESIS';
 // In-memory cache of the last written checksum to avoid repeated file reads
 let _lastChecksum: string | null = null;
 
+/** Call after the vault path changes so the checksum chain re-anchors on the
+ *  new vault's audit log instead of continuing from the old one. */
+export function resetAuditCache(): void {
+	_lastChecksum = null;
+}
+
 async function sha256(input: string): Promise<string> {
 	const encoded = new TextEncoder().encode(input);
 	const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import type { PatientDocument } from '$lib/types';
 	import { getDocuments, insertDocument, deleteDocument, insertTimelineEntry, deleteTimelineEntriesByDocumentId } from '$lib/services/db';
@@ -119,7 +120,7 @@
 			});
 
 			// Auto-add a timeline entry so the file appears chronologically
-			const today = new Date().toISOString().slice(0, 10);
+			const today = toLocalISODate();
 			await insertTimelineEntry(patientId, {
 				entry_date: today,
 				entry_type: 'document',

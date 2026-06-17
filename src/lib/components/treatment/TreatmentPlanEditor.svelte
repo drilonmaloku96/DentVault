@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { onMount, untrack } from 'svelte';
 	import type {
 		TreatmentPlan,
@@ -113,7 +114,7 @@
 	}
 
 	async function handleStatusChange(id: number, status: TreatmentPlanItemStatus) {
-		const now = new Date().toISOString().slice(0, 10);
+		const now = toLocalISODate();
 		await updateTreatmentPlanItem(id, {
 			status,
 			completed_date: status === 'completed' ? now : '',

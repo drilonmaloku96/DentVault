@@ -23,25 +23,27 @@ export const RENDER_CRITICAL_TAGS = new Set([
 ]);
 
 // Default tags — no `label` field (labels come from i18n.t.chart.tags[key].label at render time)
+// Shortcuts use English mnemonics: H=Healthy, C=Caries, F=Filling, K=Crown, R=Root canal,
+// I=Implant, B=Bridge, M=Missing, E=Extracted, P=imPacted, X=fraXture, D=erupting(D),
+// V=primary, N=iNlay, J=inlay planned, Q=radiographic, Z=MIH (avoids H conflict with Healthy)
 export const DEFAULT_DENTAL_TAGS: DentalTag[] = [
-	{ key: 'healthy',    color: '#f8fafc', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'G' },
-	{ key: 'watch',      color: '#fef9c3', strokeColor: '#ca8a04', pattern: 'solid',      shortcut: 'U' },
-	{ key: 'decayed',    color: '#fca5a5', strokeColor: '#ef4444', pattern: 'solid',      shortcut: 'K' },
+	{ key: 'healthy',    color: '#f8fafc', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'H' },
+	{ key: 'decayed',    color: '#fca5a5', strokeColor: '#ef4444', pattern: 'solid',      shortcut: 'C' },
 	{ key: 'filled',     color: '#bfdbfe', strokeColor: '#3b82f6', pattern: 'solid',      shortcut: 'F' },
-	{ key: 'crowned',    color: '#fde68a', strokeColor: '#d97706', pattern: 'solid',      shortcut: 'O' },
-	{ key: 'root_canal', color: '#e9d5ff', strokeColor: '#9333ea', pattern: 'solid',      shortcut: 'W' },
+	{ key: 'crowned',    color: '#fde68a', strokeColor: '#d97706', pattern: 'solid',      shortcut: 'K' },
+	{ key: 'root_canal', color: '#e9d5ff', strokeColor: '#9333ea', pattern: 'solid',      shortcut: 'R' },
 	{ key: 'implant',    color: '#6b7280', strokeColor: '#374151', pattern: 'solid',      shortcut: 'I', wholeTooth: true },
 	{ key: 'bridge',     color: '#fed7aa', strokeColor: '#f97316', pattern: 'solid',      shortcut: 'B', wholeTooth: true },
-	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'X', wholeTooth: true },
+	{ key: 'missing',    color: '#f1f5f9', strokeColor: '#cbd5e1', pattern: 'solid',      shortcut: 'M', wholeTooth: true },
 	{ key: 'extracted',  color: '#e2e8f0', strokeColor: '#94a3b8', pattern: 'solid',      shortcut: 'E', wholeTooth: true },
 	{ key: 'impacted',   color: '#d6d3d1', strokeColor: '#78716c', pattern: 'solid',      shortcut: 'P', wholeTooth: true },
-	{ key: 'fractured',          color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid', shortcut: 'R' },
+	{ key: 'fractured',          color: '#fce7f3', strokeColor: '#ec4899', pattern: 'solid', shortcut: 'X' },
 	{ key: 'erupting',           color: '#d1fae5', strokeColor: '#059669', pattern: 'solid', shortcut: 'D', wholeTooth: true },
 	{ key: 'persistent_primary', color: '#fef3c7', strokeColor: '#d97706', pattern: 'solid', shortcut: 'V', wholeTooth: true },
 	{ key: 'inlay',                color: '#ddd6fe', strokeColor: '#7c3aed', pattern: 'solid', shortcut: 'N' },
 	{ key: 'inlay_planned',        color: '#ede9fe', strokeColor: '#8b5cf6', pattern: 'solid', shortcut: 'J' },
 	{ key: 'decayed_radiographic', color: '#fef3c7', strokeColor: '#f59e0b', pattern: 'solid', shortcut: 'Q' },
-	{ key: 'mih',                  color: '#f3e8ff', strokeColor: '#9333ea', pattern: 'solid', shortcut: 'H' },
+	{ key: 'mih',                  color: '#f3e8ff', strokeColor: '#9333ea', pattern: 'solid', shortcut: 'Z' },
 ];
 
 /** Keys whose tags always apply to the whole tooth, never to individual surfaces. */
@@ -65,8 +67,9 @@ function createDentalTagsStore() {
 					if (Array.isArray(parsed) && parsed.length > 0) {
 						// Strip legacy `label` field silently (backwards compat); preserve wholeTooth
 						// Remove 'prosthesis' — set exclusively via prosthesis function, not as a direct tag
+						// Remove 'watch' — superseded by per-tooth/per-surface watch_status system
 						const cleaned = parsed
-							.filter(t => t.key !== 'prosthesis')
+							.filter(t => t.key !== 'prosthesis' && t.key !== 'watch')
 							.map(({ key, color, strokeColor, pattern, shortcut, wholeTooth }) =>
 								({ key, color, strokeColor, pattern, shortcut, wholeTooth } as DentalTag)
 							);

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import type {
 		OrthoClassification,
@@ -83,7 +84,7 @@
 	}
 
 	async function handleResolveCondition(id: number) {
-		const today = new Date().toISOString().slice(0, 10);
+		const today = toLocalISODate();
 		await resolvePatientCondition(id, today);
 		patientConditions = await getPatientConditions(patientId);
 	}

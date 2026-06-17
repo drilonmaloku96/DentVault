@@ -1,8 +1,8 @@
-export type LangCode = 'en' | 'de';
+export type LangCode = 'en';
 
 export interface Translations {
 	meta: {
-		code: 'en' | 'de';
+		code: 'en';
 		name: string;
 	};
 
@@ -61,6 +61,7 @@ export interface Translations {
 		medicalHistory: string; acuteProblems: string; conditions: string;
 		acuteProblemPlaceholder: string;
 		medicalHistoryPlaceholder: string;
+		addCondition: string; createCondition: string;
 		editPatient: string; deletePatient: string;
 		deleteConfirm: string; deleteWarning: string;
 		formSections: {
@@ -72,7 +73,7 @@ export interface Translations {
 	// ── Timeline ──────────────────────────────────────────────────────
 	timeline: {
 		title: string; addEntry: string; noEntries: string;
-		filter: string; filterAll: string; loading: string;
+		filter: string; filterAll: string; loading: string; changeDate: string;
 		filterCategories: { files: string; documentation: string; charts: string };
 		entry: {
 			category: string; outcome: string; toothNumbers: string;
@@ -187,9 +188,9 @@ export interface Translations {
 		chartingProgress: string;
 		takeSnapshot: string; editTags: string;
 		bridgeTitle: string; prosthesisTitle: string;
-		dissolve: string;
+		dissolve: string; editBridge: string;
 		abutment: string; pontic: string; implantAbutment: string;
-		surfaces: { B: string; O: string; L: string; M: string; D: string };
+		surfaces: { B: string; O: string; L: string; M: string; D: string; Cv: string };
 		conditionHistory: string; noHistory: string;
 		lastExamined: string; toothNotes: string;
 		addNote: string;
@@ -205,14 +206,21 @@ export interface Translations {
 		wholeToothOnly: string;
 		applyingTo: string; wholeTooth: string; resetToHealthy: string;
 		rootCanal: {
+			title: string;
 			statusNone: string;
 			filled: string;
 			insufficient: string;
 			dressing: string;
+			openApex: string;
+			calcified: string;
+			resorption: string;
 			apexFocus: string;
 			postLabel: string;
 			noPost: string;
-			canalNames: { MB: string; DB: string; P: string; M: string; D: string; B: string; single: string };
+			selectCanals: string;
+			canalStatus: string;
+			clearSelection: string;
+			canalNames: { MB: string; DB: string; P: string; M: string; D: string; B: string; ML: string; single: string };
 		};
 		endo: {
 			title: string;
@@ -285,7 +293,6 @@ export interface Translations {
 		};
 		tags: {
 			healthy:            { label: string; defaultShortcut: string };
-			watch:              { label: string; defaultShortcut: string };
 			decayed:            { label: string; defaultShortcut: string };
 			filled:             { label: string; defaultShortcut: string };
 			crowned:            { label: string; defaultShortcut: string };
@@ -333,6 +340,11 @@ export interface Translations {
 			clear: string;
 		};
 		snapshotReport: { allHealthy: string; showMore: string; showLess: string; readOnly: string; reportTitle: string };
+		watchStatus: {
+			label: string;
+			observe: string;
+			none: string;
+		};
 		resetShortcuts: string; resetShortcutsConfirm: string;
 		prevTooth: string;
 		prevToothHint: string;
@@ -364,6 +376,31 @@ export interface Translations {
 			toothRole: string;
 			implantRole: string;
 			ponticRole: string;
+		};
+		crown: {
+			surfacePickerLabel: string;
+			perSurface: string;
+			wholeCrown: string;
+			wholeCrownSection: string;
+			clearCrownFindings: string;
+			selectSurfaceHint: string;
+			findings: {
+				cx_secondary_caries: string;
+				cx_margin_open: string;
+				cx_margin_overhang: string;
+				cx_fracture: string;
+				cx_wear: string;
+				cx_margin_exposed: string;
+				cx_hyperocclusion: string;
+				cx_perforation: string;
+				cx_loose: string;
+				cx_aesthetic: string;
+			};
+		};
+		ponticChart: {
+			noSurface: string;
+			conditionNote: string;
+			broken: string;
 		};
 		editTagsDialog: {
 			title: string; tagName: string; color: string;
@@ -418,6 +455,7 @@ export interface Translations {
 		customRange: { from: string; to: string; apply: string };
 		categoryChart: string; outcomeTable: string; recentActivity: string;
 		drillDown: string; noData: string;
+		upcoming: string;
 		heatmapDayAbbrevs: string[];
 		typeColumn: string;
 		basedOnPatients: string;
@@ -507,6 +545,8 @@ export interface Translations {
 		status: string;
 		statuses: {
 			scheduled: string;
+			waiting: string;
+			in_chair: string;
 			completed: string;
 			cancelled: string;
 			no_show: string;
@@ -583,6 +623,7 @@ export interface Translations {
 			patientManagement: string;
 			schedule: string; clinical: string; documents: string;
 			dentalTagsAndSymbols: string; prostheticsAndBridges: string;
+			crownFindings: string; canalStatuses: string;
 			staffAndHours: string; roles: string;
 			documentTemplates: string; patientExport: string;
 		};
@@ -720,6 +761,22 @@ export interface Translations {
 			saved: string;
 			connectorBar: string;
 		};
+		crownFindingSettings: {
+			title: string;
+			description: string;
+			scope: string;
+			perSurface: string;
+			wholeCrown: string;
+			noDelete: string;
+		};
+		canalStatusSettings: {
+			title: string;
+			description: string;
+			bgColor: string;
+			borderColor: string;
+			textColor: string;
+			noDelete: string;
+		};
 		chart: {
 			dmftForAdults: string;
 			dmftTitle: string;
@@ -735,10 +792,17 @@ export interface Translations {
 			abbrPlaceholder: string;
 			abbrShortPlaceholder: string;
 			durationPlaceholder: string;
+			iconLabel: string;
+			iconPlaceholder: string;
 			active: string;
 			inactive: string;
 			deactivate: string;
 			activate: string;
+			apptStatusesTitle: string;
+			apptStatusesDesc: string;
+			kuerzelLabel: string;
+			kuerzelPlaceholder: string;
+			builtInStatus: string;
 		};
 	};
 
@@ -868,6 +932,10 @@ export interface Translations {
 		iotnEvalGreatestNegative: string;
 		iotnCrossbiteLabel: string;
 		iotnMmDiscrepancy: string;
+		iotnCrossbiteCuspCusp: string;
+		iotnCrossbiteComplete: string;
+		iotnBuccalNonOccRight: string;
+		iotnBuccalNonOccLeft: string;
 		iotnContactDisplacement: string;
 		iotnMmContactToContact: string;
 		iotnNotScoredD: string;
@@ -968,7 +1036,13 @@ export interface Translations {
 		back: string;
 		continueBtn: string;
 		skip: string;
-		stepLabels: { vault: string; team: string; clinic: string; defaults: string; };
+		stepLabels: { vault: string; team: string; clinic: string; defaults: string; documents: string; };
+		documentsTitle: string;
+		documentsDesc: string;
+		documentsWhatLabel: string;
+		documentsExamples: string[];
+		documentsHint: string;
+		documentsFolderLabel: string;
 	};
 
 	// ── Patient Export ────────────────────────────────────────────────
@@ -984,6 +1058,7 @@ export interface Translations {
 			demographics: string;
 			medical: string;
 			notes: string;
+			ortho: string;
 			chart: string;
 			timeline: string;
 			perio: string;
@@ -1035,6 +1110,7 @@ export interface Translations {
 		complicationTypes: Array<{ key: string; label: string }>;
 		fillingMaterials: Array<{ key: string; label: string; color: string }>;
 		endoInstruments: Array<{ key: string; label: string }>;
+		appointmentTypes: Array<{ name: string; short_name: string; default_duration_min: number; color: string; treatment_category: string }>;
 		workingDays: string[];
 		dayAbbrevs: string[];
 	};

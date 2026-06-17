@@ -25,6 +25,7 @@
 	let sectionDemographics = $state(true);
 	let sectionMedical = $state(true);
 	let sectionNotes = $state(true);
+	let sectionOrtho = $state(true);
 	let sectionChart = $state(true);
 	let sectionTimeline = $state(true);
 	let sectionPerio = $state(true);
@@ -86,6 +87,7 @@
 						demographics: sectionDemographics,
 						medical: sectionMedical,
 						notes: sectionNotes,
+						ortho: sectionOrtho,
 						chart: sectionChart,
 						timeline: sectionTimeline,
 						perio: sectionPerio,
@@ -97,7 +99,6 @@
 				bridgeCfgs,
 				prosthesisCfgs,
 				fillingMaterials.list.map(m => ({ key: m.key, label: m.label, color: m.color })),
-				i18n.code,
 				(pct, text) => {
 					progress = pct;
 					progressText = text;
@@ -176,6 +177,10 @@
 					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
 						<input type="checkbox" bind:checked={sectionNotes} disabled={isExporting} class="rounded"/>
 						{i18n.t.export.sections.notes}
+					</label>
+					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+						<input type="checkbox" bind:checked={sectionOrtho} disabled={isExporting} class="rounded"/>
+						{i18n.t.export.sections.ortho}
 					</label>
 					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
 						<input type="checkbox" bind:checked={sectionChart} disabled={isExporting} class="rounded"/>

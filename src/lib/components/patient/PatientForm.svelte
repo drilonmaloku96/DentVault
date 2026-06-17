@@ -23,7 +23,29 @@
 	// ── Form state ────────────────────────────────────────────────────
 	let firstname = $state(untrack(() => initialData?.firstname ?? ''));
 	let lastname  = $state(untrack(() => initialData?.lastname  ?? ''));
+	// DOB stored as YYYY-MM-DD; edited as three separate fields
 	let dob       = $state(untrack(() => initialData?.dob       ?? ''));
+	const _dobParts = untrack(() => {
+		const m = (initialData?.dob ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+		return m ? { d: m[3], mo: m[2], y: m[1] } : { d: '', mo: '', y: '' };
+	});
+	let dobDay   = $state(_dobParts.d);
+	let dobMonth = $state(_dobParts.mo);
+	let dobYear  = $state(_dobParts.y);
+
+	function syncDob() {
+		const d = dobDay.padStart(2, '0');
+		const m = dobMonth.padStart(2, '0');
+		const y = dobYear;
+		if (d.length === 2 && m.length === 2 && y.length === 4 &&
+			parseInt(d) >= 1 && parseInt(d) <= 31 &&
+			parseInt(m) >= 1 && parseInt(m) <= 12 &&
+			parseInt(y) >= 1900) {
+			dob = `${y}-${m}-${d}`;
+		} else {
+			dob = '';
+		}
+	}
 	let gender    = $state(untrack(() => initialData?.gender    ?? ''));
 	let marital_status = $state(untrack(() => initialData?.marital_status ?? ''));
 	let blood_group    = $state(untrack(() => initialData?.blood_group    ?? ''));
@@ -135,8 +157,39 @@
 			</div>
 			<div class="grid grid-cols-2 gap-4">
 				<div class="flex flex-col gap-1.5">
-					<Label for="dob">{i18n.t.patients.fields.dob}</Label>
-					<Input id="dob" type="date" bind:value={dob} />
+					<Label for="dob-day">{i18n.t.patients.fields.dob}</Label>
+					<div class="flex items-center gap-1">
+						<input
+							id="dob-day"
+							type="text"
+							inputmode="numeric"
+							maxlength="2"
+							placeholder="DD"
+							bind:value={dobDay}
+							oninput={syncDob}
+							class="w-12 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+						/>
+						<span class="text-muted-foreground text-sm">.</span>
+						<input
+							type="text"
+							inputmode="numeric"
+							maxlength="2"
+							placeholder="MM"
+							bind:value={dobMonth}
+							oninput={syncDob}
+							class="w-12 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+						/>
+						<span class="text-muted-foreground text-sm">.</span>
+						<input
+							type="text"
+							inputmode="numeric"
+							maxlength="4"
+							placeholder="YYYY"
+							bind:value={dobYear}
+							oninput={syncDob}
+							class="w-16 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+						/>
+					</div>
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="gender">{i18n.t.patients.fields.gender}</Label>

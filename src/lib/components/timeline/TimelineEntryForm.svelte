@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { untrack } from 'svelte';
 	import type {
 		TimelineEntry,
@@ -56,7 +57,7 @@
 	const isEdit = $derived(!!entry);
 	const dialogTitle = $derived(isEdit ? i18n.t.actions.edit : i18n.t.timeline.addEntry);
 
-	const todayISO = new Date().toISOString().slice(0, 10);
+	const todayISO = toLocalISODate();
 
 	// Form state — untrack to suppress "captures initial value" warning
 	let entryDate = $state(untrack(() => entry?.entry_date ?? todayISO));

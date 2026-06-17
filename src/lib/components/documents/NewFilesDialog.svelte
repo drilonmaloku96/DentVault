@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { insertDocument, insertTimelineEntry } from '$lib/services/db';
 	import { getMimeType, inferCategory, type VaultFileInfo } from '$lib/services/files';
 	import { docCategories } from '$lib/stores/categories.svelte';
@@ -46,7 +47,7 @@
 		const f = pendingFiles[currentIndex];
 		if (!f) return;
 		const mime = getMimeType(f.filename);
-		entryDate = f.modified_at || new Date().toISOString().slice(0, 10);
+		entryDate = f.modified_at || toLocalISODate();
 		category  = inferCategory(f.filename, mime);
 		staffId   = null;
 		notes     = '';

@@ -19,7 +19,7 @@
 	} from '$lib/services/db';
 	import { Separator } from '$lib/components/ui/separator';
 	import { i18n } from '$lib/i18n';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { navState } from '$lib/stores/navState.svelte';
 	import StaffAnalytics from '$lib/components/dashboard/StaffAnalytics.svelte';
@@ -29,7 +29,7 @@
 		OutcomeStat,
 		SuccessRateStat,
 		RecentEntry,
-		Patient,
+		UpcomingAppointment,
 	} from '$lib/types';
 
 	// ── Tab state ─────────────────────────────────────────────────────────
@@ -46,12 +46,12 @@
 	function periodDates(p: Period): { from: string; to: string } {
 		if (p === 'custom') return { from: customFrom, to: customTo };
 		const today = new Date();
-		const to = today.toISOString().slice(0, 10);
+		const to = toLocalISODate(today);
 		const d = new Date(today);
 		if (p === 'week')  d.setDate(d.getDate() - 6);
 		else if (p === 'month') d.setDate(d.getDate() - 29);
 		else d.setFullYear(d.getFullYear() - 1);
-		return { from: d.toISOString().slice(0, 10), to };
+		return { from: toLocalISODate(d), to };
 	}
 
 	function applyCustomRange() {
@@ -69,7 +69,7 @@
 	let outcomeStats = $state<OutcomeStat[]>([]);
 	let successRate = $state<SuccessRateStat>({ successful: 0, total_with_outcome: 0 });
 	let recentEntries = $state<RecentEntry[]>([]);
-	let upcomingAppointments = $state<Patient[]>([]);
+	let upcomingAppointments = $state<UpcomingAppointment[]>([]);
 	let providerStats = $state<{ doctor_name: string; total: number; successful: number }[]>([]);
 
 	// Period-dependent stats
@@ -149,7 +149,7 @@
 			getAppointmentHeatmap(from, to),
 			getActivityTimeSeries(from, to),
 			getPatientDemographics(),
-			getPatientVisitCounts(new Date().toISOString().slice(0, 10)),
+			getPatientVisitCounts(toLocalISODate()),
 		]);
 		patientCounts = counts;
 		categoryStats = cats;
@@ -981,7 +981,7 @@
 				<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
 					<div>
 						<h2 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-							{i18n.t.dashboard.drillDown}
+							{i18n.t.dashboard.upcoming}
 						</h2>
 					</div>
 					<Separator />

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TimelineEntry, OrthoAssessment, BissType, IOTNDHCFinding } from '$lib/types';
-	import { formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 
 	let {
@@ -16,7 +16,7 @@
 		catch { return null; }
 	});
 
-	const today = new Date().toISOString().slice(0, 10);
+	const today = toLocalISODate();
 	const isEditable = $derived(entry.entry_date === today);
 
 	// Detect IOTN vs legacy KIG format

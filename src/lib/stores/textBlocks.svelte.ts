@@ -6,34 +6,34 @@ export type { TextBlock };
 
 export const DEFAULT_TEXT_BLOCKS: TextBlock[] = [
 	{
-		key: 'fuellung',
-		label: 'Composite-Füllung',
-		body: 'Composite-Füllung Klasse __ Zahn __.\nAnästhesie: Infiltration __.\nExkavation, Ätzung, Bonding, Schichtung Composite.\nOkklusionskontrolle und Politur.\nPatient beschwerdefrei entlassen.',
+		key: 'filling',
+		label: 'Composite Filling',
+		body: 'Composite filling class __ tooth __.\nAnaesthesia: infiltration __.\nExcavation, etching, bonding, composite layering.\nOcclusion check and polish.\nPatient discharged without complaints.',
 	},
 	{
 		key: 'endo',
-		label: 'Wurzelbehandlung',
-		body: 'Endodontische Behandlung Zahn __.\nAnästhesie: __.\nTrepanation, maschinelle Aufbereitung bis ISO __.\nSpülung NaOCl 3%, Trocknung, Ca(OH)₂ Einlage.\nProvisiorischer Verschluss.',
+		label: 'Root Canal Treatment',
+		body: 'Endodontic treatment tooth __.\nAnaesthesia: __.\nAccess cavity, mechanical preparation to ISO __.\nIrrigation NaOCl 3%, drying, Ca(OH)₂ dressing.\nTemporary restoration.',
 	},
 	{
-		key: 'extraktion',
-		label: 'Extraktion',
-		body: 'Extraktion Zahn __ in Lokalanästhesie.\nAnästhesie: __.\nAtraumatische Luxation und Extraktion.\nWunde inspiziert, Kompression.\nVerhaltenshinweise gegeben.',
+		key: 'extraction',
+		label: 'Extraction',
+		body: 'Extraction tooth __ under local anaesthesia.\nAnaesthesia: __.\nAtraumatic luxation and extraction.\nSocket inspected, compression.\nPost-op instructions given.',
 	},
 	{
-		key: 'pzr',
-		label: 'Prophylaxe / PZR',
-		body: 'Professionelle Zahnreinigung.\nSupragingivale Zahnsteinentfernung mit Ultraschall.\nPolitur, Fluoridierung.\nMundhygieneinstruktion durchgeführt.',
+		key: 'prophylaxis',
+		label: 'Prophylaxis / Scale & Polish',
+		body: 'Professional teeth cleaning.\nSupragingival scaling with ultrasonic scaler.\nPolishing, fluoride application.\nOral hygiene instruction provided.',
 	},
 	{
-		key: 'krone',
-		label: 'Kronenpräparation',
-		body: 'Kronenpräparation Zahn __.\nAnästhesie: __.\nPräparation mit Hohlkehlstufe.\nAbformung: __ (Polyether / digital).\nProvisiorium angefertigt und eingesetzt.\nOkklusionskontrolle durchgeführt.',
+		key: 'crown',
+		label: 'Crown Preparation',
+		body: 'Crown preparation tooth __.\nAnaesthesia: __.\nPreparation with chamfer margin.\nImpression: __ (polyether / digital).\nTemporary crown fabricated and cemented.\nOcclusion verified.',
 	},
 	{
 		key: 'recall',
-		label: 'Recall / Kontrolluntersuchung',
-		body: 'Reguläre Kontrolluntersuchung.\nZähne und Zahnfleisch klinisch unauffällig.\nKein Behandlungsbedarf akut.\nNächster Recall: __.',
+		label: 'Recall / Check-up',
+		body: 'Routine examination.\nTeeth and gingiva clinically unremarkable.\nNo acute treatment need.\nNext recall: __.',
 	},
 ];
 
@@ -57,7 +57,7 @@ function createTextBlocksStore() {
 					}
 				}
 			} catch { /* fall back to defaults */ }
-			_list = DEFAULT_TEXT_BLOCKS;
+			_list = (i18n.t.defaults.textBlocks as TextBlock[]) ?? DEFAULT_TEXT_BLOCKS;
 			_loaded = true;
 		},
 

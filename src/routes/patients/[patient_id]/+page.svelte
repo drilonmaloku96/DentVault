@@ -50,6 +50,19 @@
 	// Export dialog
 	let showExportDialog = $state(false);
 
+	// Patient header height — tracked so the timeline toolbar can sit directly below it
+	let patientHeaderEl     = $state<HTMLElement | null>(null);
+	let patientHeaderHeight = $state(64);
+
+	$effect(() => {
+		const el = patientHeaderEl;
+		if (!el) return;
+		patientHeaderHeight = el.offsetHeight;
+		const obs = new ResizeObserver(() => { patientHeaderHeight = el.offsetHeight; });
+		obs.observe(el);
+		return () => obs.disconnect();
+	});
+
 	// Appointments dropdown
 	let appointments     = $state<Appointment[]>([]);
 	let apptDropdownOpen = $state(false);
@@ -162,7 +175,7 @@
 	<div class="flex flex-col gap-0">
 
 		<!-- ── Sticky patient header ───────────────────────────────── -->
-		<div class="sticky top-0 z-20 bg-background pb-2 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] -mx-6 px-6 -mt-6 pt-6">
+		<div bind:this={patientHeaderEl} class="sticky top-0 z-20 bg-background pb-2 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)] -mx-6 px-6 -mt-6 pt-3">
 
 			<!-- Single compact row: breadcrumb + patient identity + actions -->
 			<div class="flex items-center gap-3 min-w-0">
@@ -322,11 +335,11 @@
 									<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
 								</svg>
 							{/if}
-							<span>{i18n.t.patients.acuteProblems}</span>
+							<span class="hidden xl:inline">{i18n.t.patients.acuteProblems}</span>
 						</button>
 						{#if showAcute}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showAcute = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
 								<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
 							</div>
 						{/if}
@@ -351,11 +364,11 @@
 								<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
 								<line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/>
 							</svg>
-							<span>{i18n.t.patients.medicalHistory}</span>
+							<span class="hidden xl:inline">{i18n.t.patients.medicalHistory}</span>
 						</button>
 						{#if showMedical}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showMedical = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
 								<MedicalHistoryBox patientId={patient.patient_id} />
 							</div>
 						{/if}
@@ -378,11 +391,11 @@
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0">
 								<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
 							</svg>
-							<span>{i18n.t.common.notes}</span>
+							<span class="hidden xl:inline">{i18n.t.common.notes}</span>
 						</button>
 						{#if showNotes}
 							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showNotes = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[420px] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-auto">
+							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
 								<PatientNotesBox patientId={patient.patient_id} />
 							</div>
 						{/if}
@@ -422,6 +435,7 @@
 		<TimelineView
 			patientId={patient.patient_id}
 			patientFolder={vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id)}
+			headerHeight={patientHeaderHeight}
 		/>
 
 	</div>

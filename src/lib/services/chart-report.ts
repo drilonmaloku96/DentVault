@@ -86,8 +86,11 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		const entry = byTooth.get(u);
 		if (!entry) continue;
 
+		const rootSummary = parseRootSummary(entry.root_data);
 		const isNotable = (entry.condition && entry.condition !== 'healthy')
 			|| hasSurfaceTags(entry.surfaces)
+			|| rootSummary.length > 0
+			|| entry.watch_status === 'observe'
 			|| (entry.notes && entry.notes.trim());
 
 		if (!isNotable) continue;
@@ -102,6 +105,12 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		if (surfaceInfo.length > 0) {
 			parts.push(surfaceInfo.map(([s, tag]) => `${s}(${dentalTags.getLabel(tag)})`).join(', '));
 		}
+		if (rootSummary.length > 0) {
+			parts.push(`Endo: ${rootSummary.join(', ')}`);
+		}
+		if (entry.watch_status === 'observe') {
+			parts.push(i18n.t.chart.watchStatus.observe);
+		}
 		if (entry.notes?.trim()) {
 			parts.push(entry.notes.trim());
 		}
@@ -115,8 +124,11 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		const entry = byTooth.get(fdi);
 		if (!entry) continue;
 
+		const rootSummaryP = parseRootSummary(entry.root_data);
 		const isNotable = (entry.condition && entry.condition !== 'healthy')
 			|| hasSurfaceTags(entry.surfaces)
+			|| rootSummaryP.length > 0
+			|| entry.watch_status === 'observe'
 			|| (entry.notes && entry.notes.trim());
 
 		if (!isNotable) continue;
@@ -128,6 +140,12 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		const surfaceInfo = parseSurfaceTags(entry.surfaces);
 		if (surfaceInfo.length > 0) {
 			parts.push(surfaceInfo.map(([s, tag]) => `${s}(${dentalTags.getLabel(tag)})`).join(', '));
+		}
+		if (rootSummaryP.length > 0) {
+			parts.push(`Endo: ${rootSummaryP.join(', ')}`);
+		}
+		if (entry.watch_status === 'observe') {
+			parts.push(i18n.t.chart.watchStatus.observe);
 		}
 		if (entry.notes?.trim()) {
 			parts.push(entry.notes.trim());
@@ -157,11 +175,48 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 	return allLines.join('\n');
 }
 
+function surfaceTag(v: string | { tag: string } | unknown): string {
+	if (v && typeof v === 'object' && 'tag' in v) return (v as { tag: string }).tag;
+	return (v as string) ?? '';
+}
+
+function canalStatusLabel(status: string): string {
+	const rc = i18n.t.chart.rootCanal;
+	if (status === 'filled')       return rc.filled;
+	if (status === 'insufficient') return rc.insufficient;
+	if (status === 'dressing')     return rc.dressing;
+	if (status === 'open_apex')    return rc.openApex;
+	if (status === 'calcified')    return rc.calcified;
+	if (status === 'resorption')   return rc.resorption;
+	return status;
+}
+
+function parseRootSummary(rootDataJson: string | undefined): string[] {
+	if (!rootDataJson) return [];
+	try {
+		const obj = JSON.parse(rootDataJson) as Record<string, { status?: string; length?: number | null; notes?: string }>;
+		const names = i18n.t.chart.rootCanal.canalNames as Record<string, string>;
+		return Object.entries(obj)
+			.filter(([, d]) => d.status && d.status !== 'none')
+			.map(([canal, d]) => {
+				const parts: string[] = [canalStatusLabel(d.status!)];
+				if (d.length != null) parts.push(`${d.length} mm`);
+				if (d.notes?.trim()) parts.push(d.notes.trim());
+				return `${names[canal] ?? canal}: ${parts.join(', ')}`;
+			});
+	} catch {
+		return [];
+	}
+}
+
 function hasSurfaceTags(surfacesJson: string): boolean {
 	if (!surfacesJson) return false;
 	try {
-		const obj = JSON.parse(surfacesJson) as Record<string, string>;
-		return Object.values(obj).some(v => v && v !== '' && v !== 'healthy');
+		const obj = JSON.parse(surfacesJson) as Record<string, unknown>;
+		return Object.values(obj).some(v => {
+			const tag = surfaceTag(v);
+			return tag && tag !== '' && tag !== 'healthy';
+		});
 	} catch {
 		return false;
 	}
@@ -170,10 +225,10 @@ function hasSurfaceTags(surfacesJson: string): boolean {
 function parseSurfaceTags(surfacesJson: string): [string, string][] {
 	if (!surfacesJson) return [];
 	try {
-		const obj = JSON.parse(surfacesJson) as Record<string, string>;
+		const obj = JSON.parse(surfacesJson) as Record<string, unknown>;
 		return Object.entries(obj)
-			.filter(([, v]) => v && v !== '' && v !== 'healthy')
-			.map(([s, v]) => [s, v]);
+			.map(([s, v]) => [s, surfaceTag(v)] as [string, string])
+			.filter(([, tag]) => tag && tag !== '' && tag !== 'healthy');
 	} catch {
 		return [];
 	}

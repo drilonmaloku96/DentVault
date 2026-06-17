@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { createParAssessment } from '$lib/services/db';
@@ -24,7 +25,7 @@
 	const isUptStep = (t: ParStepType) => t === 'UPTd' || t === 'UPTg' || t === 'UPTc';
 
 	let selectedType = $state<ParStepType | null>(null);
-	let examDate     = $state(new Date().toISOString().slice(0, 10));
+	let examDate     = $state(toLocalISODate());
 	let doctorId     = $state<number | null>(parCase.doctor_id);
 	let saving       = $state(false);
 	let error        = $state('');
@@ -34,7 +35,7 @@
 		if (open) {
 			const nonKtb = validSteps.filter(s => s !== 'KTB');
 			selectedType = nonKtb[0] ?? (validSteps[0] ?? null);
-			examDate     = new Date().toISOString().slice(0, 10);
+			examDate     = toLocalISODate();
 			doctorId     = parCase.doctor_id;
 			error        = '';
 		}

@@ -381,7 +381,7 @@ export interface DentalTag {
 export interface TextBlock {
 	/** URL-friendly slug; also the trigger after '/' (e.g. "filling") */
 	key: string;
-	/** Display name shown in the palette (e.g. "Composite Füllung") */
+	/** Display name shown in the palette (e.g. "Composite Filling") */
 	label: string;
 	/** Template text inserted into the description. Use __ for placeholders. */
 	body: string;
@@ -405,6 +405,7 @@ export interface ToothChartEntry {
 	rotation: string;
 	foreign_work: number; // 0 | 1
 	shade: string | null;
+	watch_status: string | null;
 	updated_at: string;
 }
 
@@ -423,6 +424,7 @@ export interface ToothChartFormData {
 	rotation?: string;
 	foreign_work?: number;
 	shade?: string | null;
+	watch_status?: string | null;
 }
 
 // ── Clinical Exams ──────────────────────────────────────────────────────
@@ -611,6 +613,15 @@ export interface RecentEntry {
 	lastname: string;
 }
 
+/** Dashboard "Upcoming appointments" row — sourced from the appointments table. */
+export interface UpcomingAppointment {
+	patient_id: string;
+	firstname: string;
+	lastname: string;
+	/** Appointment start_time (ISO local datetime). */
+	next_appointment: string;
+}
+
 // ── Complications ────────────────────────────────────────────────────────
 
 export interface Complication {
@@ -716,7 +727,9 @@ export interface ReportEntry {
 
 // ── Appointment Scheduling ────────────────────────────────────────────
 
-export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+// Known built-in values: 'scheduled' | 'waiting' | 'in_chair' | 'completed' | 'cancelled' | 'no_show'
+// User-defined custom statuses are also valid — the type is open.
+export type AppointmentStatus = string;
 
 export interface AppointmentRoom {
 	id: string;
@@ -742,6 +755,7 @@ export interface AppointmentType {
 	short_name: string;
 	default_duration_min: number;
 	color: string;
+	icon: string;
 	treatment_category: string;
 	sort_order: number;
 	is_active: number;
@@ -753,6 +767,7 @@ export interface AppointmentTypeFormData {
 	short_name: string;
 	default_duration_min: number;
 	color: string;
+	icon?: string;
 	treatment_category: string;
 	sort_order: number;
 	is_active: boolean;
@@ -780,6 +795,7 @@ export interface Appointment {
 	type_name: string | null;
 	type_color: string | null;
 	type_short_name: string | null;
+	type_icon: string | null;
 	room_name: string | null;
 	room_color: string | null;
 }

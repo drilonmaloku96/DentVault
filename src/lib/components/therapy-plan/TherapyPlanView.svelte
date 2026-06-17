@@ -24,7 +24,7 @@
 	import { bridgeRoles } from '$lib/stores/bridgeRoles.svelte';
 	import { i18n } from '$lib/i18n';
 	import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } from '$lib/stores/planProcedures.svelte';
-	import { toFDI } from '$lib/utils';
+	import { toLocalISODate, toFDI } from '$lib/utils';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 
 	let {
@@ -559,7 +559,7 @@
 	async function toggleItemDone(item: TreatmentPlanItem) {
 		if (!activePlan) return;
 		const newStatus = item.status === 'completed' ? 'pending' : 'completed';
-		const completedDate = newStatus === 'completed' ? new Date().toISOString().slice(0, 10) : '';
+		const completedDate = newStatus === 'completed' ? toLocalISODate() : '';
 		await updateTreatmentPlanItem(item.id, { status: newStatus, completed_date: completedDate });
 		items = await getTreatmentPlanItems(activePlan.plan_id);
 		const updated = await getTreatmentPlans(patientId);

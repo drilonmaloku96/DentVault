@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { getFilteredEntries, getFilteredSummary } from '$lib/services/db';
@@ -103,23 +104,23 @@
 
 	function exportCSV() {
 		const csv = entriesToCSV(entries);
-		const date = new Date().toISOString().slice(0, 10);
+		const date = toLocalISODate();
 		downloadCSV(csv, `dentvault_report_${date}.csv`);
 	}
 
 	function exportJSON() {
-		const date = new Date().toISOString().slice(0, 10);
+		const date = toLocalISODate();
 		downloadJson({ exportedAt: date, filters: buildFilters(), entries, summary }, `dentvault_report_${date}.json`);
 	}
 
 	function applyQuickFilter(preset: 'week' | 'month' | 'year') {
 		const today = new Date();
-		dateTo = today.toISOString().slice(0, 10);
+		dateTo = toLocalISODate(today);
 		const d = new Date(today);
 		if (preset === 'week')       d.setDate(d.getDate() - 6);
 		else if (preset === 'month') d.setDate(d.getDate() - 29);
 		else                         d.setFullYear(d.getFullYear() - 1);
-		dateFrom = d.toISOString().slice(0, 10);
+		dateFrom = toLocalISODate(d);
 		runQuery();
 	}
 </script>

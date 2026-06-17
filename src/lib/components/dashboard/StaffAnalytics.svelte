@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { getAbsenceStatsByYear, getAppointmentStatsByDoctor } from '$lib/services/db';
@@ -10,7 +11,7 @@
 	let selectedYear = $state(currentYear);
 	let selectedDoctorId = $state(''); // '' = all
 	let dateFrom = $state(`${currentYear}-01-01`);
-	let dateTo = $state(new Date().toISOString().slice(0, 10));
+	let dateTo = $state(toLocalISODate());
 
 	// ── Working Hours Dialog ──────────────────────────────────────────
 	let workingHoursDialogOpen = $state(false);

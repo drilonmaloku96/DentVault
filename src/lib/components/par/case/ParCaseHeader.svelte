@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { Button } from '$lib/components/ui/button';
 	import { updateParCase, deleteParCase } from '$lib/services/db';
 	import { doctors } from '$lib/stores/doctors.svelte';
@@ -18,7 +19,7 @@
 
 	let showEndDialog    = $state(false);
 	let showDeleteDialog = $state(false);
-	let endDate          = $state(new Date().toISOString().slice(0, 10));
+	let endDate          = $state(toLocalISODate());
 	let saving           = $state(false);
 
 	const doctor = $derived(
@@ -112,7 +113,7 @@
 		<Button
 			variant="outline"
 			size="sm"
-			onclick={() => { endDate = new Date().toISOString().slice(0, 10); showEndDialog = true; }}
+			onclick={() => { endDate = toLocalISODate(); showEndDialog = true; }}
 			class="text-xs h-7"
 		>
 			{i18n.t.par.setTreatmentEnd}

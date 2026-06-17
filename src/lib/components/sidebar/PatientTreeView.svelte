@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { vault } from '$lib/stores/vault.svelte';
@@ -304,7 +305,7 @@
 			});
 
 			await insertTimelineEntry(patient.patient_id, {
-				entry_date: new Date().toISOString().slice(0, 10),
+				entry_date: toLocalISODate(),
 				entry_type: 'document',
 				title: tpl.filename,
 				treatment_category: categoryKey,

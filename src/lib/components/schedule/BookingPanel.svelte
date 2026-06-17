@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { toLocalISODate } from '$lib/utils';
 	import { i18n } from '$lib/i18n';
-	import type { Appointment, AppointmentFormData, AppointmentStatus, Patient, ScheduleBlockFormData } from '$lib/types';
+	import type { Appointment, AppointmentFormData, Patient, ScheduleBlockFormData } from '$lib/types';
+	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
 	import type { DragSelection } from './DragCreatePopover.svelte';
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
@@ -28,7 +30,7 @@
 		prefillTime = '',
 		prefillEndTime = '',
 		prefillPatientId = '',
-		date = new Date().toISOString().slice(0, 10),
+		date = toLocalISODate(),
 		extraRoomNames = [],
 		blockSelections = [],
 		onSave,
@@ -110,7 +112,7 @@
 
 	let title  = $state(appointment?.title ?? '');
 	let notes  = $state(appointment?.notes ?? '');
-	let status = $state<AppointmentStatus>(appointment?.status ?? 'scheduled');
+	let status = $state<string>(appointment?.status ?? 'scheduled');
 
 	// Computed duration label (kept in sync whenever start or end changes)
 	const computedDuration = $derived(() => {
@@ -226,12 +228,9 @@
 
 	let confirmDelete = $state(false);
 
-	const STATUS_OPTIONS: { value: AppointmentStatus; label: () => string; color: string }[] = [
-		{ value: 'scheduled',  label: () => i18n.t.schedule.statuses.scheduled,  color: 'bg-primary text-primary-foreground' },
-		{ value: 'completed',  label: () => i18n.t.schedule.statuses.completed,  color: 'bg-green-600 text-white' },
-		{ value: 'cancelled',  label: () => i18n.t.schedule.statuses.cancelled,  color: 'bg-destructive text-destructive-foreground' },
-		{ value: 'no_show',    label: () => i18n.t.schedule.statuses.no_show,    color: 'bg-orange-500 text-white' },
-	];
+	const statusOptions = $derived(
+		appointmentStatuses.list.map((s) => ({ value: s.key, label: s.label, color: s.color }))
+	);
 
 	const ic = 'border border-border rounded px-2 py-1.5 text-sm bg-background w-full outline-none focus:border-ring focus:ring-1 focus:ring-ring/50';
 </script>
@@ -457,15 +456,20 @@
 			<div class="flex flex-col gap-1.5">
 				<label class="text-xs font-medium text-muted-foreground">{i18n.t.schedule.status}</label>
 				<div class="flex gap-1.5 flex-wrap">
-					{#each STATUS_OPTIONS as opt}
+					{#each statusOptions as opt}
 						<button
 							type="button"
-							class="px-2.5 py-1 rounded text-xs font-medium border transition-colors {status === opt.value
-								? opt.color + ' border-transparent'
-								: 'bg-background border-border text-muted-foreground hover:bg-muted'}"
+							class="px-2.5 py-1 rounded text-xs font-medium border transition-colors"
+							style={status === opt.value
+								? `background-color: ${opt.color}; color: white; border-color: transparent;`
+								: ''}
+							class:bg-background={status !== opt.value}
+							class:border-border={status !== opt.value}
+							class:text-muted-foreground={status !== opt.value}
+							class:hover:bg-muted={status !== opt.value}
 							onclick={() => (status = opt.value)}
 						>
-							{opt.label()}
+							{opt.label}
 						</button>
 					{/each}
 				</div>
