@@ -216,7 +216,7 @@
 		superior: '↑', inferior: '↓', clockwise: '↻', counterclockwise: '↺',
 	};
 
-	// Whole-tooth conditions that have dedicated visuals — skip Kürzel for these
+	// Whole-tooth conditions that have dedicated visuals — skip abbreviations for these
 	const KUERZEL_SKIP_COND = new Set(['healthy', 'missing', 'extracted', 'bridge', 'prosthesis']);
 
 	// ── Root canal per-canal colors ─────────────────────────────────────
@@ -780,7 +780,7 @@
 							fill="url(#surf-insufficient)" stroke="none" pointer-events="none"/>
 					{/if}
 
-				<!-- Surface tag Kürzel -->
+				<!-- Surface tag abbreviations -->
 				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
 					{@const stag  = getSurfTag(surfs[sk])}
 					{@const short = getSurfShortcut(surfs, sk)}
@@ -789,7 +789,7 @@
 						<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(stag)} pointer-events="none" opacity="0.85">{short}</text>
 					{/if}
 				{/each}
-				<!-- Whole-tooth condition Kürzel (occlusal center, when O has no surface override) -->
+				<!-- Whole-tooth condition abbreviation (occlusal center, when O has no surface override) -->
 				{@const condKuerzel = !KUERZEL_SKIP_COND.has(cond) ? (dentalTags.getByKey(cond)?.shortcut?.toUpperCase() ?? '') : ''}
 				{#if condKuerzel && !getSurfShortcut(surfs, 'O')}
 					<text x={g.ix + g.iw / 2} y={g.iy + g.ih / 2} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(cond)} pointer-events="none" opacity="0.85">{condKuerzel}</text>
@@ -1232,7 +1232,7 @@
 							fill="url(#surf-insufficient)" stroke="none" pointer-events="none"/>
 					{/if}
 
-				<!-- Surface tag Kürzel -->
+				<!-- Surface tag abbreviations -->
 				{#each (['B','L',leftSurf,rightSurf,'O']) as sk (sk)}
 					{@const stag  = getSurfTag(surfs[sk])}
 					{@const short = getSurfShortcut(surfs, sk)}
@@ -1241,7 +1241,7 @@
 						<text x={mc.cx} y={mc.cy} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(stag)} pointer-events="none" opacity="0.85">{short}</text>
 					{/if}
 				{/each}
-				<!-- Whole-tooth condition Kürzel (occlusal center, when O has no surface override) -->
+				<!-- Whole-tooth condition abbreviation (occlusal center, when O has no surface override) -->
 				{@const condKuerzel = !KUERZEL_SKIP_COND.has(cond) ? (dentalTags.getByKey(cond)?.shortcut?.toUpperCase() ?? '') : ''}
 				{#if condKuerzel && !getSurfShortcut(surfs, 'O')}
 					<text x={g.ix + g.iw / 2} y={g.iy + g.ih / 2} text-anchor="middle" dominant-baseline="central" font-size="5" font-weight="700" fill={dentalTags.getStroke(cond)} pointer-events="none" opacity="0.85">{condKuerzel}</text>

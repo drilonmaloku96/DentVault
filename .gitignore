@@ -21,3 +21,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Embedded Cephalyzer build (synced via npm run sync-ceph) — keep the bundle, skip the sourcemap
+static/cephalyzer/**/*.map

@@ -16,6 +16,7 @@ export interface Patient {
 	risk_flags: string; // JSON array stored as text
 	status: PatientStatus;
 	next_appointment: string;
+	upcoming_appointment: string | null;
 	notes: string;
 	referral_source: string;
 	smoking_status: string;
@@ -47,6 +48,8 @@ export interface PatientFormData {
 	smoking_status?: string;
 	occupation?: string;
 	allergies?: string;
+	medications?: string;
+	risk_flags?: string;
 	address?: string;
 	city?: string;
 	postal_code?: string;
@@ -236,17 +239,6 @@ export interface OrthoAssessment {
 	findings?: OrthoKigEntry[];
 }
 
-/** @deprecated use OrthoAssessment instead */
-export interface KigFinding {
-	id: number;
-	patient_id: string;
-	kig_group: KigGroupCode;
-	kig_level: number;
-	measured_value: number | null;
-	notes: string;
-	created_at: string;
-}
-
 // ── Patient Clinical Classification ───────────────────────────────────
 
 export type PerioStatus =
@@ -427,32 +419,6 @@ export interface ToothChartFormData {
 	watch_status?: string | null;
 }
 
-// ── Clinical Exams ──────────────────────────────────────────────────────
-
-export type ExamType = 'full' | 'limited' | 'emergency' | 'recall';
-
-export interface ClinicalExam {
-	id: number;
-	patient_id: string;
-	exam_date: string;
-	exam_type: ExamType;
-	examiner: string;
-	chief_complaint: string;
-	findings: string;
-	probing_data: string; // JSON
-	notes: string;
-	created_at: string;
-}
-
-export interface ClinicalExamFormData {
-	exam_date: string;
-	exam_type?: ExamType;
-	examiner?: string;
-	chief_complaint?: string;
-	findings?: string;
-	notes?: string;
-}
-
 // ── Documents & Attachments ──────────────────────────────────────────────
 
 /** Document category key — matches `documents.category` in the DB.
@@ -485,37 +451,6 @@ export interface PatientDocumentFormData {
 	/** Path relative to vault root — used for portable storage */
 	rel_path?: string;
 	notes?: string;
-}
-
-// ── Patient Notes ────────────────────────────────────────────────────────
-
-export interface PatientNoteEntry {
-	id: number;
-	patient_id: string;
-	content: string;
-	created_at: string;
-}
-
-// ── Medical Entries ──────────────────────────────────────────────────────
-
-export type MedicalEntryType = 'allergy' | 'medication' | 'risk_flag' | 'note';
-
-export interface MedicalEntry {
-	id: number;
-	patient_id: string;
-	content: string;
-	entry_type: MedicalEntryType;
-	created_at: string;
-}
-
-// ── Acute Problems ────────────────────────────────────────────────────────
-
-export interface AcuteProblem {
-	id: number;
-	patient_id: string;
-	content: string;
-	resolved: number; // 0 = active, 1 = resolved
-	created_at: string;
 }
 
 // ── Doctors ──────────────────────────────────────────────────────────────
@@ -702,29 +637,6 @@ export interface AnalyticsFilters {
 	doctorId?: number | null;
 }
 
-export interface ReportFilters {
-	dateFrom?: string;
-	dateTo?: string;
-	categories?: string[];
-	outcomes?: string[];
-	doctorId?: number | null;
-	toothNumbers?: number[];
-}
-
-export interface ReportEntry {
-	id: number;
-	patient_id: string;
-	patient_name: string;
-	entry_date: string;
-	entry_type: string;
-	title: string;
-	treatment_category: string;
-	treatment_outcome: string;
-	tooth_numbers: string;
-	description: string;
-	doctor_name: string;
-}
-
 // ── Appointment Scheduling ────────────────────────────────────────────
 
 // Known built-in values: 'scheduled' | 'waiting' | 'in_chair' | 'completed' | 'cancelled' | 'no_show'
@@ -786,6 +698,9 @@ export interface Appointment {
 	notes: string | null;
 	status: AppointmentStatus;
 	timeline_entry_id: string | null;
+	arrival_time: string | null;
+	treatment_start_time: string | null;
+	treatment_end_time: string | null;
 	created_at: string;
 	updated_at: string;
 	// Joined display fields
@@ -811,6 +726,54 @@ export interface AppointmentFormData {
 	title: string;
 	notes: string;
 	status: AppointmentStatus;
+}
+
+export interface DoctorTreatmentStat {
+	type_id: string | null;
+	type_name: string | null;
+	type_color: string | null;
+	appointment_count: number;
+	avg_planned_duration: number;
+	avg_actual_duration: number | null;
+	avg_deviation: number | null;
+}
+
+export interface DoctorPerformanceKPI {
+	doctor_id: string;
+	doctor_name: string;
+	doctor_color: string;
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+	working_days: number;
+	avg_planned_duration: number | null;
+	avg_actual_duration: number | null;
+	avg_deviation: number | null;
+}
+
+export interface DoctorMonthlyTrend {
+	month: string; // 'YYYY-MM'
+	total: number;
+	completed: number;
+	cancelled: number;
+	no_show: number;
+}
+
+export interface DoctorDowStat {
+	dow: number; // 0=Sun, 6=Sat
+	count: number;
+}
+
+export interface PatientAppointmentStats {
+	total: number;
+	cancelled_count: number;
+	no_show_count: number;
+	tracked_count: number;
+	avg_minutes_offset: number | null;
+	avg_wait_minutes: number | null;
+	avg_actual_duration_min: number | null;
+	avg_duration_deviation: number | null;
 }
 
 export interface WorkingHoursEntry {
@@ -941,29 +904,6 @@ export interface StaffBlockoutFormData {
 	reason: BlockoutReason;
 	notes: string;
 	color: string;
-}
-
-// ── Patient sidebar summary ────────────────────────────────────────────
-
-export interface PatientSummaryEntry {
-	id: number;
-	entry_date: string;
-	title: string;
-	entry_type: string;
-	treatment_category: string;
-}
-
-export interface PatientSummary {
-	timelineCount: number;
-	recentEntries: PatientSummaryEntry[];
-	planCount: number;
-	activePlanCount: number;
-	documentCount: number;
-	perioExamCount: number;
-	lastPerioDate: string | null;
-	activeConditionCount: number;
-	acuteTags: string[];
-	medicalTags: string[];
 }
 
 // ── Endo Documentation ────────────────────────────────────────────────

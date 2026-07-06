@@ -14,7 +14,7 @@
 		updatePlanChartData,
 		getChartData,
 	} from '$lib/services/db';
-	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
+	import FullScreenView from '$lib/components/ui/FullScreenView.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import TherapyPlanChart from './TherapyPlanChart.svelte';
 	import ToothChart from '$lib/components/dental/ToothChart.svelte';
@@ -106,6 +106,7 @@
 	let isLoading   = $state(true);
 
 	let mode           = $state<'list' | 'plan'>('list');  // list = plan selector, plan = planning view
+	let findingsOpen   = $state(false);
 	let showCreateForm = $state(false);
 	let newPlanTitle   = $state('');
 	let isCreating     = $state(false);
@@ -637,8 +638,7 @@
 	}
 </script>
 
-<Dialog bind:open>
-	<DialogContent class="{mode === 'list' ? 'max-w-2xl sm:max-w-2xl' : 'max-w-[1400px] sm:max-w-[1400px]'} max-h-[95vh] overflow-hidden p-0 focus:outline-none outline-none gap-0" showCloseButton={false}>
+<FullScreenView bind:open title={i18n.t.plans.title} scroll={false}>
 
 		<!-- ── Amber header banner ── -->
 		<div class="flex items-center gap-3 px-5 py-3 border-b border-blue-300/60 dark:border-blue-700/40 bg-blue-50 dark:bg-blue-950/30 shrink-0">
@@ -715,14 +715,6 @@
 					{allPlans.length === 0 ? i18n.t.plans.countZero : allPlans.length === 1 ? i18n.t.plans.countSingular : i18n.t.plans.countPlural.replace('{n}', String(allPlans.length))}
 				</span>
 			{/if}
-
-			<button
-				onclick={() => (open = false)}
-				class="shrink-0 ml-1 rounded-sm p-1 text-blue-600/70 hover:text-blue-900 dark:text-blue-400/70 dark:hover:text-blue-200 hover:bg-blue-200/40 transition-colors"
-				aria-label={i18n.t.actions.close}
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-4 w-4"><path d="M18 6L6 18M6 6l12 12"/></svg>
-			</button>
 		</div>
 
 		<!-- ── Main content area ── -->
@@ -735,7 +727,7 @@
 			<!-- ════════════════════════════════════════════════════════
 			     LIST VIEW — plan selector
 			════════════════════════════════════════════════════════ -->
-			<div use:scrollIndicator={{ zIndex: 55 }} class="overflow-y-auto p-5 flex flex-col gap-3" style="max-height: calc(95vh - 52px);">
+			<div use:scrollIndicator={{ zIndex: 55 }} class="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col gap-3 w-full max-w-2xl mx-auto">
 
 				<!-- Active plans -->
 				{#if activePlans.length > 0}
@@ -880,26 +872,39 @@
 			<!-- ════════════════════════════════════════════════════════
 			     PLAN VIEW — two-panel layout
 			════════════════════════════════════════════════════════ -->
-			<div class="flex overflow-hidden" style="height: calc(95vh - 52px);">
+			<div class="flex flex-1 min-h-0 overflow-hidden">
 
 				<!-- ── Left panel: befund (above) + planning chart + legend + detail ── -->
-				<div use:scrollIndicator={{ zIndex: 55 }} class="flex-1 flex flex-col overflow-y-auto border-r border-border/60 min-w-0 p-4 gap-3">
+				<div use:scrollIndicator={{ zIndex: 55 }} class="flex-1 flex flex-col overflow-y-auto border-r border-border/60 min-w-0 px-8 py-4 gap-3">
 
-					<!-- ── Clinical befund — full color, read-only reference ── -->
+					<!-- ── Clinical befund — collapsible, collapsed by default ── -->
 					<div class="shrink-0">
-						<div class="flex items-center gap-2 mb-1">
-							<span class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">{i18n.t.plans.currentFindings}</span>
+						<button
+							type="button"
+							onclick={() => (findingsOpen = !findingsOpen)}
+							class="flex items-center gap-2 w-full mb-1 group"
+						>
+							<span class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 group-hover:text-muted-foreground/80 transition-colors">{i18n.t.plans.currentFindings}</span>
 							<div class="flex-1 h-px bg-border/25"></div>
-						</div>
-						<div class="pointer-events-none select-none rounded-md border border-border/25 overflow-hidden">
-							<ToothChart
-								chartData={ghostData}
-								selectedTooth={null}
-								selectedSurface={null}
-								showLegend={false}
-								onToothClick={() => {}}
-							/>
-						</div>
+							<svg
+								xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								class="h-3 w-3 text-muted-foreground/40 shrink-0 transition-transform duration-200 {findingsOpen ? 'rotate-180' : ''}"
+							>
+								<polyline points="6 9 12 15 18 9"/>
+							</svg>
+						</button>
+						{#if findingsOpen}
+							<div class="pointer-events-none select-none rounded-md border border-border/25 overflow-hidden">
+								<ToothChart
+									chartData={ghostData}
+									selectedTooth={null}
+									selectedSurface={null}
+									showLegend={false}
+									onToothClick={() => {}}
+								/>
+							</div>
+						{/if}
 					</div>
 
 					<!-- ── Therapy planning chart ── -->
@@ -1269,5 +1274,4 @@
 				</div>
 			</div>
 		{/if}
-	</DialogContent>
-</Dialog>
+</FullScreenView>

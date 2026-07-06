@@ -186,13 +186,14 @@ const OUTCOME_RULES: OutcomeRule[] = [
 ];
 
 // ── Tooth number extraction ────────────────────────────────────────────
-// All suggestions are emitted in FDI notation (11–48 permanent, 51–85 primary) —
-// the same notation the timeline entry bar stores in tooth_numbers.
+// All suggestions are emitted in FDI (quadrant/tooth) notation — 11–48 permanent,
+// 51–85 primary — the same notation the timeline entry bar stores in tooth_numbers.
+// e.g. 14 = quadrant 1, tooth 4.
 
 const TOOTH_PATTERNS: RegExp[] = [
-	/#(\d{1,2})\b/g,
-	/\b(?:tooth|zahn)\s+(\d{1,2})\b/gi,
-	/\b(?:teeth|zähne)\s+([\d,\s]+)/gi,
+	/#(\d{2})\b/g,
+	/\btooth\s+(\d{2})\b/gi,
+	/\bteeth\s+([\d,\s]+)/gi,
 	/\bFDI\s+(\d{2})\b/gi,
 	/\bd(\d{2})\b/gi, // "d36" shorthand used in the entry bar
 ];
@@ -206,29 +207,8 @@ function isValidFDI(n: number): boolean {
 	return false;
 }
 
-// Universal 1–32 → FDI (used for unambiguous universal references like "#5")
-const UNIVERSAL_TO_FDI: Record<number, number> = {
-	 1:18,  2:17,  3:16,  4:15,  5:14,  6:13,  7:12,  8:11,
-	 9:21, 10:22, 11:23, 12:24, 13:25, 14:26, 15:27, 16:28,
-	17:38, 18:37, 19:36, 20:35, 21:34, 22:33, 23:32, 24:31,
-	25:41, 26:42, 27:43, 28:44, 29:45, 30:46, 31:47, 32:48,
-};
-
-/** Normalize a raw extracted number to FDI. Valid FDI numbers are kept as-is;
- *  1–10 (which cannot be FDI) are treated as Universal and converted. */
-function normalizeToFDI(n: number): number | null {
-	if (isValidFDI(n)) return n;
-	if (n >= 1 && n <= 10) return UNIVERSAL_TO_FDI[n] ?? null;
-	return null;
-}
-
-// Palmer notation → universal number mapping (simplified)
-const PALMER_MAP: Record<string, string> = {
-	UR1: '8', UR2: '7', UR3: '6', UR4: '5', UR5: '4', UR6: '3', UR7: '2', UR8: '1',
-	UL1: '9', UL2: '10', UL3: '11', UL4: '12', UL5: '13', UL6: '14', UL7: '15', UL8: '16',
-	LR1: '25', LR2: '26', LR3: '27', LR4: '28', LR5: '29', LR6: '30', LR7: '31', LR8: '32',
-	LL1: '24', LL2: '23', LL3: '22', LL4: '21', LL5: '20', LL6: '19', LL7: '18', LL8: '17',
-};
+// Palmer notation → FDI: quadrant letter pair → FDI quadrant digit, position kept
+const PALMER_QUADRANTS: Record<string, number> = { UR: 1, UL: 2, LL: 3, LR: 4 };
 const PALMER_PATTERN = /\b(U[RL][1-8]|L[RL][1-8])\b/gi;
 
 function extractToothNumbers(text: string): string[] {
@@ -241,22 +221,19 @@ function extractToothNumbers(text: string): string[] {
 			const digits = match[1].split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
 			for (const d of digits) {
 				const n = parseInt(d);
-				if (isNaN(n)) continue;
-				const fdi = normalizeToFDI(n);
-				if (fdi !== null) numbers.add(String(fdi));
+				if (!isNaN(n) && isValidFDI(n)) numbers.add(String(n));
 			}
 		}
 	}
 
-	// Palmer notation → Universal → FDI
+	// Palmer notation → FDI
 	let palmerMatch;
 	const palmerRe = new RegExp(PALMER_PATTERN.source, PALMER_PATTERN.flags);
 	while ((palmerMatch = palmerRe.exec(text)) !== null) {
-		const universal = PALMER_MAP[palmerMatch[1].toUpperCase()];
-		if (universal) {
-			const fdi = UNIVERSAL_TO_FDI[parseInt(universal)];
-			if (fdi) numbers.add(String(fdi));
-		}
+		const token = palmerMatch[1].toUpperCase();
+		const quadrant = PALMER_QUADRANTS[token.slice(0, 2)];
+		const position = parseInt(token.slice(2));
+		if (quadrant) numbers.add(String(quadrant * 10 + position));
 	}
 
 	return Array.from(numbers).sort((a, b) => parseInt(a) - parseInt(b));

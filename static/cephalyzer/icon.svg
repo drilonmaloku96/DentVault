@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#2563eb"/>
+  <circle cx="256" cy="200" r="80" stroke="white" stroke-width="8" fill="none"/>
+  <path d="M176 280 L256 360 L336 280" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="216" y="380" width="80" height="60" stroke="white" stroke-width="8" fill="none"/>
+  <text x="256" y="480" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">CA</text>
+</svg>

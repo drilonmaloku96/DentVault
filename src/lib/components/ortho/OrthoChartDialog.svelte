@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
+	import FullScreenView from '$lib/components/ui/FullScreenView.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { i18n } from '$lib/i18n';
 	import type { BissType, BissMeasurement, TimelineEntry, IOTNDHCFinding } from '$lib/types';
@@ -156,21 +156,32 @@
 		return { grade: bestGrade as 0|1|2|3|4|5, code: bestCode, mm_value: mmVal };
 	});
 
-	const dhcFinding = $derived<IOTNDHCFinding | null>(
+	// Grade 1 = "no/extremely minor malocclusion" — a healthy exam is still a
+	// recordable finding (empty subcategory per the IOTNDHCFinding contract), so
+	// the baseline "assessed, no treatment need" reaches the statistics.
+	const dhcFinding = $derived<IOTNDHCFinding>(
 		dhcResult.grade > 0
 			? { grade: dhcResult.grade as 1|2|3|4|5, subcategory: dhcResult.code, mm_value: dhcResult.mm_value }
-			: null
+			: { grade: 1, subcategory: '', mm_value: null }
 	);
 
 	const iotnScoreLabel = $derived(() => {
 		const parts: string[] = [];
-		if (dhcFinding) {
-			const mm = dhcFinding.mm_value != null ? ` ${dhcFinding.mm_value}mm` : '';
-			parts.push(`DHC ${dhcFinding.subcategory.toUpperCase()}/${dhcFinding.grade}${mm}`);
-		}
+		const mm = dhcFinding.mm_value != null ? ` ${dhcFinding.mm_value}mm` : '';
+		parts.push(dhcFinding.subcategory
+			? `DHC ${dhcFinding.subcategory.toUpperCase()}/${dhcFinding.grade}${mm}`
+			: `DHC ${dhcFinding.grade}`);
 		if (acGrade > 0) parts.push(`AC ${acGrade}`);
 		return parts.join(' · ');
 	});
+
+	// Treatment-need classification — SAME thresholds as renderOrtho() in
+	// patient-export.ts: DHC ≥4 or AC ≥8 = indicated; DHC 3 or AC 5–7 = borderline.
+	const treatmentNeed = $derived<'indicated' | 'borderline' | 'none'>(
+		dhcResult.grade >= 4 || acGrade >= 8 ? 'indicated'
+		: dhcResult.grade === 3 || acGrade >= 5 ? 'borderline'
+		: 'none'
+	);
 
 	const dialogTitle = $derived(
 		selectedSnapshot
@@ -287,7 +298,7 @@
 			const parts: string[] = [];
 			if (dhc) {
 				const mm = dhc.mm_value != null ? ` ${dhc.mm_value}mm` : '';
-				parts.push(`DHC ${dhc.subcategory.toUpperCase()}/${dhc.grade}${mm}`);
+				parts.push(dhc.subcategory ? `DHC ${dhc.subcategory.toUpperCase()}/${dhc.grade}${mm}` : `DHC ${dhc.grade}`);
 			}
 			if (ac) parts.push(`AC ${ac}`);
 			return parts.length ? `${date} — ${parts.join(' · ')}` : date;
@@ -295,6 +306,7 @@
 	}
 
 	function selectSnapshot(entry: TimelineEntry | null) {
+		confirmDeleteSnap = false;
 		if (entry === null) {
 			selectedSnapshot = null;
 			resetForm();
@@ -303,6 +315,7 @@
 			if (last) {
 				populateFromPayload(JSON.parse(last.chart_data!) as Record<string, unknown>, today);
 				examDate = today;
+				notes = ''; // notes are per-exam — don't inherit the previous exam's text
 			}
 		} else {
 			selectedSnapshot = entry;
@@ -331,6 +344,7 @@
 				if (last) {
 					populateFromPayload(JSON.parse(last.chart_data!) as Record<string, unknown>, today);
 					examDate = today; // Always today for new entries
+					notes = ''; // notes are per-exam — don't inherit the previous exam's text
 				}
 			}
 		} catch (e) { loadError = String(e); }
@@ -403,8 +417,8 @@
 				await deleteTimelineEntry(old.id);
 			await insertTimelineEntry(patientId, {
 				entry_date: examDate, entry_type: 'ortho_snapshot',
-				title: 'IOTN Assessment',
-				description: iotnScoreLabel() || 'IOTN Assessment',
+				title: i18n.t.ortho.assessmentTitle,
+				description: iotnScoreLabel() || i18n.t.ortho.assessmentTitle,
 				chart_data: JSON.stringify(payload),
 				doctor_id: selectedDoctorId ?? undefined, is_locked: 1,
 			});
@@ -413,26 +427,35 @@
 		finally { isSaving = false; }
 	}
 
-	const canSave = $derived(dhcResult.grade > 0 || acGrade > 0);
+	// A healthy exam (implicit DHC grade 1) is always saveable — blocking it would
+	// keep "assessed, no treatment need" baselines out of the dataset.
+	const canSave = true;
+
+	// ── Delete a historical assessment (they're locked timeline entries, so the
+	//    timeline card offers no delete — this is the only place to remove one) ──
+	let confirmDeleteSnap = $state(false);
+
+	async function handleDeleteSnapshot() {
+		if (!selectedSnapshot) return;
+		try {
+			await deleteTimelineEntry(selectedSnapshot.id);
+			confirmDeleteSnap = false;
+			onSaved?.();
+			await loadData(); // reloads snapshot list and falls back to new-assessment mode
+		} catch (e) { loadError = String(e); }
+	}
 
 	const selectCls = 'w-full h-8 px-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60';
 	const inputCls  = 'w-full h-8 px-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60';
 </script>
 
-<Dialog bind:open>
-	<DialogContent class="max-w-[900px] sm:max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden">
-		<DialogHeader class="shrink-0">
-			<DialogTitle class="flex items-center gap-2">
-				<svg class="w-5 h-5 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M9 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/>
-					<polyline points="9 2 9 9 16 9"/><line x1="12" y1="13" x2="12" y2="17"/><line x1="10" y1="15" x2="14" y2="15"/>
-				</svg>
-				{dialogTitle}
-				{#if isReadOnly}
-					<span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">{i18n.t.ortho.readOnly}</span>
-				{/if}
-			</DialogTitle>
-		</DialogHeader>
+<FullScreenView bind:open title={dialogTitle} scroll={false}>
+	{#snippet actions()}
+		{#if isReadOnly}
+			<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">{i18n.t.ortho.readOnly}</span>
+		{/if}
+	{/snippet}
+	<div class="flex-1 min-h-0 flex flex-col w-full max-w-[1000px] mx-auto px-6 pt-3 pb-4">
 
 		{#if loadError}
 			<p class="text-destructive text-sm px-1 shrink-0">{loadError}</p>
@@ -543,14 +566,14 @@
 					<span class="text-xs font-semibold text-foreground">{i18n.t.ortho.dhcTitle}</span>
 					{#if dhcResult.grade > 0}
 						<div class="flex items-center gap-1.5">
-							<span class="text-[11px] text-muted-foreground">Leading:</span>
+							<span class="text-[11px] text-muted-foreground">{i18n.t.ortho.leadingLabel}:</span>
 							<span class="font-mono text-xs font-bold px-2 py-0.5 rounded {gradeBadgeCls(dhcResult.grade)}">
 								{dhcResult.code.toUpperCase()} · Grade {dhcResult.grade}
 								{#if dhcResult.mm_value != null} · {dhcResult.mm_value} mm{/if}
 							</span>
 						</div>
 					{:else}
-						<span class="text-[11px] text-muted-foreground/50">No finding recorded yet</span>
+						<span class="text-[11px] text-muted-foreground/50">{i18n.t.ortho.noFindingYet}</span>
 					{/if}
 				</div>
 
@@ -985,17 +1008,17 @@
 			</div>
 
 			<!-- ── IOTN Score summary ──────────────────────────────────── -->
-			{#if iotnScoreLabel()}
-				<div class="flex items-center gap-2 px-1">
-					<span class="text-xs font-medium text-muted-foreground">{i18n.t.ortho.iotnScore}:</span>
-					<span class="font-mono text-sm font-bold text-foreground">{iotnScoreLabel()}</span>
-					{#if dhcResult.grade >= 4}
-						<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">Treatment indicated</span>
-					{:else if dhcResult.grade === 3 || acGrade >= 5}
-						<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">Borderline</span>
-					{/if}
-				</div>
-			{/if}
+			<div class="flex items-center gap-2 px-1">
+				<span class="text-xs font-medium text-muted-foreground">{i18n.t.ortho.iotnScore}:</span>
+				<span class="font-mono text-sm font-bold text-foreground">{iotnScoreLabel()}</span>
+				{#if treatmentNeed === 'indicated'}
+					<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">{i18n.t.ortho.treatmentIndicated}</span>
+				{:else if treatmentNeed === 'borderline'}
+					<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">{i18n.t.ortho.borderlineNeed}</span>
+				{:else}
+					<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{i18n.t.ortho.noTreatmentNeed}</span>
+				{/if}
+			</div>
 
 			<!-- Bad Habits -->
 			<div class="border border-border rounded-lg p-3">
@@ -1070,11 +1093,23 @@
 			<Button variant="outline" onclick={() => (open = false)}>
 				{isReadOnly ? i18n.t.actions.close : i18n.t.actions.cancel}
 			</Button>
-			{#if !isReadOnly}
+			{#if isReadOnly}
+				{#if confirmDeleteSnap}
+					<div class="flex items-center gap-2">
+						<span class="text-xs text-muted-foreground">{i18n.t.ortho.deleteConfirm}</span>
+						<Button variant="destructive" size="sm" onclick={handleDeleteSnapshot}>{i18n.t.actions.delete}</Button>
+						<Button variant="outline" size="sm" onclick={() => (confirmDeleteSnap = false)}>{i18n.t.actions.cancel}</Button>
+					</div>
+				{:else}
+					<Button variant="outline" size="sm" class="text-destructive hover:bg-destructive/10" onclick={() => (confirmDeleteSnap = true)}>
+						{i18n.t.ortho.deleteAssessment}
+					</Button>
+				{/if}
+			{:else}
 				<Button onclick={handleSave} disabled={isSaving || !canSave}>
 					{isSaving ? '…' : i18n.t.ortho.saveAssessment}
 				</Button>
 			{/if}
 		</div>
-	</DialogContent>
-</Dialog>
+	</div>
+</FullScreenView>

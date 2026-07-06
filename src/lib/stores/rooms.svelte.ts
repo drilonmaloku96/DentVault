@@ -14,8 +14,8 @@ function createRoomsStore() {
 		list = await getAppointmentRooms();
 		// Auto-seed defaults if empty
 		if (list.length === 0) {
-			await insertAppointmentRoom({ name: 'Stuhl 1', short_name: 'S1', color: '#6366f1', sort_order: 0, is_active: true });
-			await insertAppointmentRoom({ name: 'Stuhl 2', short_name: 'S2', color: '#10b981', sort_order: 1, is_active: true });
+			await insertAppointmentRoom({ name: 'Chair 1', short_name: 'C1', color: '#6366f1', sort_order: 0, is_active: true });
+			await insertAppointmentRoom({ name: 'Chair 2', short_name: 'C2', color: '#10b981', sort_order: 1, is_active: true });
 			list = await getAppointmentRooms();
 		}
 	}

@@ -31,6 +31,8 @@
 	let sectionPerio = $state(true);
 	let sectionPlans = $state(true);
 	let sectionDocuments = $state(true);
+	let sectionPar = $state(true);
+	let sectionAppointments = $state(true);
 
 	// ── Export state ──────────────────────────────────────────────────────
 	let isExporting = $state(false);
@@ -93,6 +95,8 @@
 						perio: sectionPerio,
 						plans: sectionPlans,
 						documents: sectionDocuments,
+					par: sectionPar,
+						appointments: sectionAppointments,
 					},
 				},
 				tags,
@@ -201,6 +205,14 @@
 					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
 						<input type="checkbox" bind:checked={sectionDocuments} disabled={isExporting} class="rounded"/>
 						{i18n.t.export.sections.documents}
+					</label>
+					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+						<input type="checkbox" bind:checked={sectionPar} disabled={isExporting} class="rounded"/>
+						{i18n.t.export.sections.par}
+					</label>
+					<label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+						<input type="checkbox" bind:checked={sectionAppointments} disabled={isExporting} class="rounded"/>
+						{i18n.t.export.sections.appointments}
 					</label>
 				</div>
 			</div>

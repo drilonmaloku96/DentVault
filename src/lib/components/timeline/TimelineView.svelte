@@ -1,37 +1,31 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 	import type { TimelineEntry, TimelineFormData, TreatmentPlan, TreatmentPlanFormData } from '$lib/types';
 	import {
 		getTimelineEntries,
 		insertTimelineEntry,
 		updateTimelineEntry,
 		deleteTimelineEntry,
-		insertDocument,
-		getTrackedFilePaths,
 		getTreatmentPlans,
 		insertTreatmentPlan,
 		getTreatmentPlanItems,
 		getChartData,
 		updateSnapshotChartData,
 		syncAppointmentFromTimelineEntry,
+		recordChartHistory,
+		deleteChartHistoryForSnapshot,
 	} from '$lib/services/db';
 	import type { ToothChartEntry } from '$lib/types';
-	import {
-		listVaultFiles,
-		getMimeType,
-		formatFileSize,
-		pickFile,
-		saveDocumentFile,
-		inferCategory,
-		generateDestFilename,
-		type VaultFileInfo,
-	} from '$lib/services/files';
+	import { listen } from '@tauri-apps/api/event';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '$lib/components/ui/dialog';
 	import { Sheet, SheetContent, SheetHeader, SheetTitle } from '$lib/components/ui/sheet';
+	import FullScreenView from '$lib/components/ui/FullScreenView.svelte';
 	import TimelineEntryCard from './TimelineEntryCard.svelte';
 	import TimelineEntryForm from './TimelineEntryForm.svelte';
 	import TimelineEntryBar from './TimelineEntryBar.svelte';
@@ -39,6 +33,7 @@
 	import ChartSnapshotCard from './ChartSnapshotCard.svelte';
 	import OrthoSnapshotCard from './OrthoSnapshotCard.svelte';
 	import DocTemplatePickerDialog from '$lib/components/documents/DocTemplatePickerDialog.svelte';
+	import VaultDropDialog from './VaultDropDialog.svelte';
 	import TreatmentPlanList from '$lib/components/treatment/TreatmentPlanList.svelte';
 	import DentalChartView from '$lib/components/dental/DentalChartView.svelte';
 	import TherapyPlanView from '$lib/components/therapy-plan/TherapyPlanView.svelte';
@@ -46,8 +41,6 @@
 	import OrthoChartDialog from '$lib/components/ortho/OrthoChartDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import { generateChartReport } from '$lib/services/chart-report';
-	import { vault } from '$lib/stores/vault.svelte';
-	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import { i18n } from '$lib/i18n';
@@ -65,6 +58,9 @@
 
 	let entries       = $state<TimelineEntry[]>([]);
 	let plansMap      = $state<Map<string, TreatmentPlan>>(new Map());
+	// Ceph Analysis toolbar button activates when the sidebar file-tree selection
+	// is a Cephalyzer-compatible file belonging to this patient
+	const cephEnabled = $derived(cephSelection.isAnalyzable && cephSelection.file?.patientId === patientId);
 	let isLoading     = $state(true);
 	let hasEverLoaded = $state(false);
 	let error         = $state('');
@@ -79,15 +75,24 @@
 	// Text / date search
 	let searchQuery = $state('');
 
-	const SYSTEM_TYPES = new Set(['document', 'chart_snapshot', 'ortho_snapshot', 'plan']);
+	const SYSTEM_TYPES = new Set(['document', 'chart_snapshot', 'ortho_snapshot', 'plan', 'par_step']);
 
 	function typeLabel(key: string): string {
-		if (key === '')                return 'Unclassified';
-		if (key === 'document')       return 'Documents';
-		if (key === 'chart_snapshot') return 'Chart Snapshots';
-		if (key === 'ortho_snapshot') return 'Ortho Records';
-		if (key === 'plan')           return 'Treatment Plans';
+		if (key === '')                return i18n.t.timeline.typeLabels.unclassified;
+		if (key === 'document')       return i18n.t.timeline.typeLabels.documents;
+		if (key === 'chart_snapshot') return i18n.t.timeline.typeLabels.chartSnapshots;
+		if (key === 'ortho_snapshot') return i18n.t.timeline.typeLabels.orthoRecords;
+		if (key === 'plan')           return i18n.t.timeline.typeLabels.plans;
+		if (key === 'par_step')       return i18n.t.timeline.typeLabels.parSteps;
 		return entryTypes.labelFor(key);
+	}
+
+	function parseParMeta(desc: string): { bop: number; max_pocket: number; risk: string } | null {
+		try {
+			const obj = JSON.parse(desc);
+			if (typeof obj?.bop === 'number') return obj as { bop: number; max_pocket: number; risk: string };
+		} catch { /* */ }
+		return null;
 	}
 
 	// Derive distinct types from this patient's actual entries, with counts
@@ -157,10 +162,10 @@
 	// ── Scroll anchor ─────────────────────────────────────────────────────
 	let bottomAnchor = $state<HTMLElement | undefined>(undefined);
 
-	// ── Vault auto-scan ───────────────────────────────────────────────────
-	let untrackedFiles = $state<VaultFileInfo[]>([]);
-	let bannerDismissed = $state(false);
-	let isImporting    = $state(false);
+	// ── OS drag-and-drop (Tauri native events) ────────────────────────────
+	let isDragOver       = $state(false);
+	let droppedFilePaths = $state<string[]>([]);
+	let dropDialogOpen   = $state(false);
 
 	// ── Plan sheet ────────────────────────────────────────────────────────
 	let planSheetOpen = $state(false);
@@ -206,14 +211,17 @@
 				const report = generateChartReport(data);
 
 				// Same-day dedup: delete any existing chart_snapshot for today
+				// (including its per-tooth history rows, which would otherwise
+				// linger with snapshot_entry_id = NULL and duplicate the day)
 				const existing = entries.filter(
 					e => e.entry_type === 'chart_snapshot' && e.entry_date === today
 				);
 				for (const old of existing) {
+					await deleteChartHistoryForSnapshot(old.id);
 					await deleteTimelineEntry(old.id);
 				}
 
-				await insertTimelineEntry(patientId, {
+				const snapshotEntry = await insertTimelineEntry(patientId, {
 					entry_date: today,
 					entry_type: 'chart_snapshot',
 					title: i18n.t.timeline.snapshot.title,
@@ -221,6 +229,9 @@
 					chart_data: JSON.stringify(data),
 					is_locked: 1,
 				});
+				// Record per-tooth history — feeds the tooth history panel and
+				// per-tooth progression statistics
+				await recordChartHistory(patientId, snapshotEntry.id);
 				await loadEntries(false);
 			})();
 		}
@@ -283,66 +294,28 @@
 		}
 	}
 
-	// ── Vault auto-scan ───────────────────────────────────────────────────
-
-	function folderToKey(folderName: string): string {
-		const match = docCategories.list.find((c) => vault.categoryFolder(c.key) === folderName);
-		return match?.key ?? 'other';
-	}
-
-	async function scanVaultForUntrackedFiles() {
-		if (!vault.isConfigured || !vault.path || !patientFolder) return;
-		try {
-			const allFiles = await listVaultFiles(vault.path, patientFolder);
-			const tracked  = new Set(await getTrackedFilePaths(patientId));
-			const fresh = allFiles.filter((f) => !tracked.has(f.rel_path));
-			if (JSON.stringify(fresh) !== JSON.stringify(untrackedFiles)) {
-				untrackedFiles = fresh;
-			}
-		} catch {
-			// non-critical
-		}
-	}
-
-	async function importUntrackedFiles() {
-		if (!vault.isConfigured || isImporting) return;
-		isImporting = true;
-		try {
-			const today = toLocalISODate();
-			for (const file of untrackedFiles) {
-				const mime        = getMimeType(file.filename);
-				const categoryKey = folderToKey(file.category_folder);
-				const doc = await insertDocument(patientId, {
-					filename: file.filename, original_name: file.filename,
-					category: categoryKey, mime_type: mime,
-					file_size: file.file_size, abs_path: file.abs_path, rel_path: file.rel_path, notes: '',
-				});
-				await insertTimelineEntry(patientId, {
-					entry_date: today, entry_type: 'document',
-					title: file.filename, description: '',
-					treatment_category: categoryKey, document_id: doc.id,
-					attachments: JSON.stringify([{ path: file.rel_path, name: file.filename, mime, size: file.file_size }]),
-				});
-			}
-			untrackedFiles = [];
-			bannerDismissed = false;
-			await loadEntries(false);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to import files';
-		} finally {
-			isImporting = false;
-		}
-	}
-
 	onMount(() => {
-		loadEntries().then(() => scanVaultForUntrackedFiles());
+		loadEntries();
 
-		const interval = setInterval(async () => {
-			await scanVaultForUntrackedFiles();
-			await loadEntries(false);
-		}, 5000);
+		const interval = setInterval(() => loadEntries(false), 5000);
 
-		return () => clearInterval(interval);
+		// Tauri intercepts OS file drops — dataTransfer.files is always empty in WKWebView.
+		// Use Tauri's native drag events instead.
+		const unlistenPromises = [
+			listen('tauri://drag-enter', () => { isDragOver = true; }),
+			listen('tauri://drag-leave', () => { isDragOver = false; }),
+			listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+				isDragOver = false;
+				if (!event.payload.paths.length) return; // ignore if no files (e.g. internal drag)
+				droppedFilePaths = event.payload.paths;
+				dropDialogOpen = true;
+			}),
+		];
+
+		return () => {
+			clearInterval(interval);
+			unlistenPromises.forEach(p => p.then(fn => fn()));
+		};
 	});
 
 	// ── Audit log dialog ──────────────────────────────────────────────────
@@ -363,7 +336,7 @@
 		const newEntry = await insertTimelineEntry(patientId, data);
 		await loadEntries();
 		if (data.entry_type && data.entry_date) {
-			const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+			const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type, data.doctor_id != null ? String(data.doctor_id) : null);
 			if (synced) showSyncedToast();
 		}
 	}
@@ -379,7 +352,7 @@
 			await loadEntries(false);
 			// Sync appointment type if entry has a type and a date
 			if (data.entry_type && data.entry_date) {
-				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(editingEntry.id), data.entry_type);
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(editingEntry.id), data.entry_type, data.doctor_id != null ? String(data.doctor_id) : null);
 				if (synced) showSyncedToast();
 			}
 		} else {
@@ -387,7 +360,7 @@
 			await loadEntries();
 			// Sync appointment type for new entries too
 			if (data.entry_type && data.entry_date) {
-				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type);
+				const synced = await syncAppointmentFromTimelineEntry(String(patientId), data.entry_date, String(newEntry.id), data.entry_type, data.doctor_id != null ? String(data.doctor_id) : null);
 				if (synced) showSyncedToast();
 			}
 		}
@@ -433,6 +406,21 @@
 
 		const inputClass = 'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 </script>
+
+<!-- ── Drop zone wrapper ──────────────────────────────────────────────── -->
+<div class="relative">
+
+{#if isDragOver}
+	<div class="fixed inset-y-0 left-56 right-0 z-50 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-primary bg-primary/5 backdrop-blur-[1px] pointer-events-none">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 text-primary/60">
+			<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+			<polyline points="17 8 12 3 7 8"/>
+			<line x1="12" y1="3" x2="12" y2="15"/>
+		</svg>
+		<p class="text-sm font-semibold text-primary/80">{i18n.t.timeline.vaultDrop.dropOverlayTitle}</p>
+		<p class="text-xs text-primary/50">{i18n.t.timeline.vaultDrop.dropOverlaySubtitle}</p>
+	</div>
+{/if}
 
 <!-- ── Header (fixed below patient header, top tracks header height) ─────── -->
 <div class="fixed left-56 right-0 z-10 bg-background flex items-center gap-2 pt-2 pb-2 px-6 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]" style="top: {headerHeight}px">
@@ -602,48 +590,32 @@
 			</svg>
 			<span class="hidden xl:inline">{i18n.t.ortho.button}</span>
 		</Button>
+		<!-- Open Cephalyzer — needs an image (or saved .ceph) selected in the sidebar file tree -->
+		<Button
+			size="sm"
+			variant="outline"
+			disabled={!cephEnabled}
+			onclick={() => {
+				const sel = cephSelection.file;
+				if (sel) goto(`/patients/${patientId}/ceph?file=${encodeURIComponent(sel.relPath)}`);
+			}}
+			title={cephEnabled ? i18n.t.ceph.analyze : i18n.t.ceph.selectHint}
+			class={cephEnabled ? 'border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30' : ''}
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
+				<circle cx="12" cy="5" r="2"/>
+				<path d="m3 21 8.02-14.26"/>
+				<path d="m12.99 6.74 1.93 3.44"/>
+				<path d="M19 12c-3.87 4-7.74 8.61-16 4.61"/>
+				<path d="m21 21-2.16-3.84"/>
+			</svg>
+			<span class="hidden xl:inline">{i18n.t.ceph.button}</span>
+		</Button>
 	</div>
 
 </div>
 <!-- Spacer: compensates for the fixed toolbar height (pt-2 + h-7 + pb-2 = 44px) -->
 <div class="h-[44px] mb-4"></div>
-
-<!-- ── Vault auto-scan banner ──────────────────────────────────────────── -->
-{#if untrackedFiles.length > 0 && !bannerDismissed}
-	<div class="rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 mb-4 flex items-start justify-between gap-3">
-		<div class="flex items-start gap-2.5">
-			<span class="text-xl mt-0.5 shrink-0">📂</span>
-			<div>
-				<p class="text-sm font-medium text-amber-900 dark:text-amber-200">
-					{untrackedFiles.length} file{untrackedFiles.length > 1 ? 's' : ''} found in vault not yet in the timeline
-				</p>
-				<ul class="mt-1 space-y-0.5 max-h-28 overflow-y-auto">
-					{#each untrackedFiles as f}
-						<li class="text-xs text-amber-700/80 dark:text-amber-400/80 flex items-center gap-1.5">
-							<span class="opacity-60">{f.category_folder}/</span>{f.filename}
-							<span class="opacity-50">({formatFileSize(f.file_size)})</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		</div>
-		<div class="flex items-center gap-2 shrink-0 mt-0.5">
-			<Button size="sm" variant="outline" onclick={importUntrackedFiles} disabled={isImporting}
-				class="border-amber-400/60 bg-amber-50 hover:bg-amber-100 text-amber-900 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/50 text-xs h-7 px-3"
-			>
-				{isImporting ? i18n.t.common.loading : i18n.t.documents.add}
-			</Button>
-			<button type="button" onclick={() => (bannerDismissed = true)}
-				class="text-amber-700/50 hover:text-amber-700 dark:text-amber-400/50 dark:hover:text-amber-400 transition-colors"
-				title="Dismiss" aria-label="Dismiss banner"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-					<path d="M18 6L6 18M6 6l12 12"/>
-				</svg>
-			</button>
-		</div>
-	</div>
-{/if}
 
 <!-- ── Error ────────────────────────────────────────────────────────────── -->
 {#if error}
@@ -748,6 +720,31 @@
 								/>
 							{:else if entry.entry_type === 'ortho_snapshot'}
 								<OrthoSnapshotCard {entry} onView={() => { viewingOrthoEntry = entry; showOrthoDialog = true; }} />
+							{:else if entry.entry_type === 'par_step'}
+								{@const parMeta = parseParMeta(entry.description ?? '')}
+								<!-- Spine dot -->
+								<div class="absolute left-0 mt-[15px] h-[9px] w-[9px] rounded-full bg-teal-400/70 ring-2 ring-background z-10"></div>
+								<div class="ml-8 py-1 mb-1">
+									<div class="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-muted-foreground">
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-teal-500/80 shrink-0">
+											<path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+										</svg>
+										<span class="font-medium">{entry.title}</span>
+										{#if parMeta}
+											<span class="text-muted-foreground/40">·</span>
+											<span>BOP {parMeta.bop.toFixed(0)}%</span>
+											<span class="text-muted-foreground/40">·</span>
+											<span>Max {parMeta.max_pocket}mm</span>
+											{#if parMeta.risk === 'stable'}
+												<span class="rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 text-[9px] font-medium">Stable</span>
+											{:else if parMeta.risk === 'high_risk'}
+												<span class="rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 text-[9px] font-medium">High risk</span>
+											{:else}
+												<span class="rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 text-[9px] font-medium">Maintenance</span>
+											{/if}
+										{/if}
+									</div>
+								</div>
 							{:else}
 								<TimelineEntryCard
 									{entry}
@@ -781,6 +778,17 @@
 <!-- Spacer so the last timeline entry is never hidden under the fixed bar -->
 <div class="h-56"></div>
 <div bind:this={bottomAnchor}></div>
+
+</div><!-- end drop zone wrapper -->
+
+<!-- ── Vault drop dialog ───────────────────────────────────────────────── -->
+<VaultDropDialog
+	bind:open={dropDialogOpen}
+	{patientId}
+	{patientFolder}
+	filePaths={droppedFilePaths}
+	onSaved={() => loadEntries(false)}
+/>
 
 <!-- ── Fixed chatbox entry bar ────────────────────────────────────────── -->
 <TimelineEntryBar
@@ -833,14 +841,10 @@
 	</SheetContent>
 </Sheet>
 
-<!-- ── Chart editor dialog ──────────────────────────────────────────────── -->
-<Dialog bind:open={chartSheetOpen}>
-	<DialogContent class="max-w-[1300px] sm:max-w-[1300px] max-h-[90vh] overflow-y-auto p-6 focus:outline-none outline-none">
-		{#if chartSheetOpen}
-			<DentalChartView {patientId} onToothSaved={() => { chartWasModified = true; }} />
-		{/if}
-	</DialogContent>
-</Dialog>
+<!-- ── Chart editor — full-screen surface with back button ─────────────── -->
+<FullScreenView bind:open={chartSheetOpen} title={i18n.t.chart.title} maxWidth="max-w-[1300px]">
+	<DentalChartView {patientId} onToothSaved={() => { chartWasModified = true; }} />
+</FullScreenView>
 
 <!-- ── KIG / Ortho assessment dialog ──────────────────────────────────── -->
 <OrthoChartDialog bind:open={showOrthoDialog} {patientId} existingEntry={viewingOrthoEntry} onSaved={() => { loadEntries(false); viewingOrthoEntry = null; }} />
@@ -853,38 +857,33 @@
 	onAdded={() => loadEntries(false)}
 />
 
-<!-- ── Chart snapshot viewer / editor ──────────────────────────────────── -->
-<Dialog open={viewingSnapshot !== null} onOpenChange={(o) => { if (!o) { viewingSnapshot = null; viewingSnapshotEdit = false; } }}>
-	<DialogContent class="max-w-[1100px] sm:max-w-[1100px] h-[92vh] flex flex-col overflow-hidden p-0">
-		{#if viewingSnapshot !== null}
-			{@const isToday = viewingSnapshot.entry_date === toLocalISODate()}
-			<DialogHeader class="px-6 pt-5 pb-3 shrink-0 border-b border-border">
-				<div class="flex items-center justify-between gap-3">
-					<DialogTitle class="text-sm font-semibold">
-						{i18n.t.timeline.snapshot.title} — {formatDate(viewingSnapshot.entry_date)}
-					</DialogTitle>
-					{#if !isToday}
-						<span class="text-[11px] text-muted-foreground/60 flex items-center gap-1">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
-								<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-							</svg>
-							{i18n.t.chart.snapshotReport.readOnly}
-						</span>
-					{/if}
-				</div>
-			</DialogHeader>
-			<div class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-				<DentalChartView
-					{patientId}
-					snapshotData={snapshotChartData()}
-					snapshotDescription={viewingSnapshot?.description ?? ''}
-					snapshotEditMode={viewingSnapshotEdit}
-					onSnapshotSave={handleSnapshotSave}
-				/>
-			</div>
+<!-- ── Chart snapshot viewer / editor — full-screen surface ────────────── -->
+<FullScreenView
+	open={viewingSnapshot !== null}
+	onClose={() => { viewingSnapshot = null; viewingSnapshotEdit = false; }}
+	title={viewingSnapshot ? `${i18n.t.timeline.snapshot.title} — ${formatDate(viewingSnapshot.entry_date)}` : ''}
+	maxWidth="max-w-[1100px]"
+>
+	{#snippet actions()}
+		{#if viewingSnapshot && viewingSnapshot.entry_date !== toLocalISODate()}
+			<span class="text-[11px] text-muted-foreground/60 flex items-center gap-1">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+					<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+				</svg>
+				{i18n.t.chart.snapshotReport.readOnly}
+			</span>
 		{/if}
-	</DialogContent>
-</Dialog>
+	{/snippet}
+	{#if viewingSnapshot !== null}
+		<DentalChartView
+			{patientId}
+			snapshotData={snapshotChartData()}
+			snapshotDescription={viewingSnapshot?.description ?? ''}
+			snapshotEditMode={viewingSnapshotEdit}
+			onSnapshotSave={handleSnapshotSave}
+		/>
+	{/if}
+</FullScreenView>
 
 
 <!-- ── Audit log dialog (entry-level history) ──────────────────────────── -->

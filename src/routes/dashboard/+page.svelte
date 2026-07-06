@@ -19,9 +19,10 @@
 	} from '$lib/services/db';
 	import { Separator } from '$lib/components/ui/separator';
 	import { i18n } from '$lib/i18n';
-	import { toLocalISODate, formatDate } from '$lib/utils';
+	import { toLocalISODate, formatDate, formatDateTime } from '$lib/utils';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { navState } from '$lib/stores/navState.svelte';
+	import { entryTypes } from '$lib/stores/entryTypes.svelte';
 	import StaffAnalytics from '$lib/components/dashboard/StaffAnalytics.svelte';
 	import type {
 		PatientStatusCounts,
@@ -70,7 +71,7 @@
 	let successRate = $state<SuccessRateStat>({ successful: 0, total_with_outcome: 0 });
 	let recentEntries = $state<RecentEntry[]>([]);
 	let upcomingAppointments = $state<UpcomingAppointment[]>([]);
-	let providerStats = $state<{ doctor_name: string; total: number; successful: number }[]>([]);
+	let providerStats = $state<{ doctor_name: string; total: number; successful: number; final_total: number }[]>([]);
 
 	// Period-dependent stats
 	let activityStats = $state({ patients_served: 0, entries_count: 0, new_patients: 0 });
@@ -235,11 +236,6 @@
 		failed_other: 'text-red-500 dark:text-red-400',
 		ongoing: 'text-blue-600 dark:text-blue-400',
 		unknown: 'text-muted-foreground',
-	};
-
-	const ENTRY_TYPE_ICONS: Record<string, string> = {
-		visit: '🏥', procedure: '🦷', note: '📝',
-		lab: '🔬', imaging: '📷', referral: '📋', document: '📄',
 	};
 
 	function catLabel(key: string): string { return CATEGORY_LABELS[key] ?? key; }
@@ -1004,7 +1000,7 @@
 										</span>
 									</div>
 									<span class="text-xs text-muted-foreground shrink-0">
-										{formatDate(patient.next_appointment)}
+										{formatDateTime(patient.next_appointment)}
 									</span>
 								</a>
 							{/each}
@@ -1031,7 +1027,7 @@
 									class="flex items-start gap-3 rounded-md p-2 hover:bg-muted/50 transition-colors group"
 								>
 									<span class="text-base leading-none mt-0.5 shrink-0">
-										{ENTRY_TYPE_ICONS[entry.entry_type] ?? '📋'}
+										{entry.entry_type === 'document' ? '📄' : entryTypes.iconFor(entry.entry_type)}
 									</span>
 									<div class="flex flex-col gap-0.5 min-w-0 flex-1">
 										<div class="flex items-center gap-1.5 flex-wrap">
@@ -1066,7 +1062,7 @@
 			<div class="rounded-lg border bg-card overflow-hidden">
 				<div class="px-5 py-4 border-b">
 					<h2 class="text-sm font-semibold">{i18n.t.dashboard.providerOutcomes}</h2>
-					<p class="text-xs text-muted-foreground mt-0.5">{i18n.t.dashboard.stats.successRate} · alle Einträge</p>
+					<p class="text-xs text-muted-foreground mt-0.5">{i18n.t.dashboard.stats.successRate} · {i18n.t.dashboard.allEntries}</p>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-xs">
@@ -1080,7 +1076,7 @@
 						</thead>
 						<tbody class="divide-y divide-border/40">
 							{#each providerStats as prov}
-								{@const rate = prov.total > 0 ? Math.round(100 * prov.successful / prov.total) : null}
+								{@const rate = prov.final_total > 0 ? Math.round(100 * prov.successful / prov.final_total) : null}
 								<tr class="hover:bg-muted/20 transition-colors">
 									<td class="px-4 py-2.5 font-medium">{prov.doctor_name}</td>
 									<td class="px-4 py-2.5 text-center tabular-nums">{prov.total}</td>

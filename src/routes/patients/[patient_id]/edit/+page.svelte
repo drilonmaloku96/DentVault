@@ -2,11 +2,13 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getPatient, updatePatient } from '$lib/services/db';
+	import { getPatient, updatePatient, updateDocumentPathsForPatient } from '$lib/services/db';
 	import type { Patient, PatientFormData } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
 	import PatientForm from '$lib/components/patient/PatientForm.svelte';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
+	import { vault } from '$lib/stores/vault.svelte';
+	import { renamePatientFolder } from '$lib/services/files';
 	import { i18n } from '$lib/i18n';
 
 	const patientId = $derived(page.params.patient_id ?? '');
@@ -27,7 +29,23 @@
 
 	async function handleUpdate(data: PatientFormData) {
 		if (!patient) return;
+		const oldFolder = vault.isConfigured
+			? vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id)
+			: '';
 		await updatePatient(patient.patient_id, data as unknown as Record<string, unknown>);
+
+		if (vault.isConfigured && vault.path) {
+			const newFolder = vault.patientFolder(data.lastname, data.firstname, patient.patient_id);
+			if (newFolder !== oldFolder) {
+				try {
+					await renamePatientFolder(vault.path, oldFolder, newFolder);
+					await updateDocumentPathsForPatient(patient.patient_id, oldFolder, newFolder);
+				} catch (err) {
+					console.warn('Failed to rename patient vault folder:', err);
+				}
+			}
+		}
+
 		// Signal the sidebar to refresh (name or other visible fields may have changed)
 		patientBus.invalidate();
 		goto('/patients/' + patient.patient_id);
@@ -80,9 +98,26 @@
 				email: patient.email,
 				insurance_provider: patient.insurance_provider,
 				insurance_id: patient.insurance_id,
+				referral_source: patient.referral_source,
+				smoking_status: patient.smoking_status,
+				occupation: patient.occupation,
+				allergies: patient.allergies,
+				medications: patient.medications,
+				risk_flags: patient.risk_flags,
+				address: patient.address,
+				city: patient.city,
+				postal_code: patient.postal_code,
+				country: patient.country,
+				emergency_contact_name: patient.emergency_contact_name,
+				emergency_contact_phone: patient.emergency_contact_phone,
+				emergency_contact_relation: patient.emergency_contact_relation,
+				blood_group: patient.blood_group,
+				primary_physician: patient.primary_physician,
+				marital_status: patient.marital_status,
 			}}
 			onSubmit={handleUpdate}
 			submitLabel={i18n.t.actions.save}
+			cancelHref="/patients/{patient.patient_id}"
 		/>
 	</div>
 {/if}

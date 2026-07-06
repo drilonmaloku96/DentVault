@@ -22,6 +22,7 @@
 	onAppointmentQuickUpdate?: (id: string, startTime: string, endTime: string, durationMin: number, roomId: string) => void;
 	onBlockQuickUpdate?: (id: string, startTime: string, endTime: string, roomId: string) => void;
 	onAppointmentStatusChange?: (id: string, status: AppointmentStatus) => void;
+	onAppointmentDelete?: (appointment: Appointment) => void;
 	}
 
 	let {
@@ -40,6 +41,7 @@
 		onAppointmentQuickUpdate,
 		onBlockQuickUpdate,
 		onAppointmentStatusChange,
+		onAppointmentDelete,
 	}: Props = $props();
 
 	const SLOT_HEIGHT = 14; // px per 5-min slot
@@ -99,6 +101,53 @@
 		return activeRooms.findIndex((r) => r.id === roomId) + 2 + staffColCount; // +2 for time col, +N for staff strips
 	}
 
+	// Lane assignment for same-room overlapping appointments, so they render
+	// side by side instead of the later one fully covering the earlier one.
+	// Cancelled/no-show appointments are included so a replacement booking
+	// lands next to the old one rather than underneath it.
+	interface LaneInfo { lane: number; laneCount: number }
+	const apptLanes = $derived.by(() => {
+		const laneMap = new Map<string, LaneInfo>();
+		const byRoom = new Map<string, Appointment[]>();
+		for (const a of appointments) {
+			if (!byRoom.has(a.room_id)) byRoom.set(a.room_id, []);
+			byRoom.get(a.room_id)!.push(a);
+		}
+		for (const roomAppts of byRoom.values()) {
+			const sorted = [...roomAppts].sort(
+				(a, b) => getSlotFromTime(a.start_time) - getSlotFromTime(b.start_time),
+			);
+			let clusterItems: Array<{ appt: Appointment; lane: number }> = [];
+			let laneEndSlots: number[] = [];
+			let clusterMaxEnd = -Infinity;
+
+			const flushCluster = () => {
+				const laneCount = laneEndSlots.length || 1;
+				for (const item of clusterItems) laneMap.set(item.appt.id, { lane: item.lane, laneCount });
+				clusterItems = [];
+				laneEndSlots = [];
+				clusterMaxEnd = -Infinity;
+			};
+
+			for (const appt of sorted) {
+				const s = getSlotFromTime(appt.start_time);
+				const e = getSlotFromTime(appt.end_time);
+				if (clusterItems.length > 0 && s >= clusterMaxEnd) flushCluster();
+				let lane = laneEndSlots.findIndex((endSlot) => endSlot <= s);
+				if (lane === -1) {
+					lane = laneEndSlots.length;
+					laneEndSlots.push(e);
+				} else {
+					laneEndSlots[lane] = e;
+				}
+				clusterMaxEnd = Math.max(clusterMaxEnd, e);
+				clusterItems.push({ appt, lane });
+			}
+			flushCluster();
+		}
+		return laneMap;
+	});
+
 	// Break band
 	const breakStartSlot = $derived(() => {
 		if (!workingHoursForDay?.break_start) return null;
@@ -124,6 +173,7 @@
 		// Guard: don't open new-appointment dialog if an appointment covers this slot
 		if (appointments.some(a =>
 			a.room_id === roomId &&
+			a.status !== 'cancelled' &&
 			getSlotFromTime(a.start_time) <= slot &&
 			getSlotFromTime(a.end_time) > slot
 		)) return;
@@ -292,6 +342,13 @@
 		// First try direct DOM detection (click landed on the wrapper or handle).
 		const handleEl = target.closest('[data-appt-handle]') as HTMLElement | null;
 		const apptWrapperEl = target.closest('[data-appt-id]') as HTMLElement | null;
+		const domApptId = handleEl?.closest('[data-appt-id]')?.getAttribute('data-appt-id')
+			?? apptWrapperEl?.getAttribute('data-appt-id')
+			?? null;
+		const domAppt = domApptId ? appointments.find(a => a.id === domApptId) ?? null : null;
+		// Cancelled appointments are click-through so their slot stays bookable —
+		// they remain reachable via right-click (status change / edit / delete).
+		const isCancelledDomHit = domAppt?.status === 'cancelled';
 
 		// Also check via slot cell: pointer-events:none on AppointmentBlock's inner
 		// content div routes events to the slot cell behind — so if the target is a
@@ -302,20 +359,17 @@
 		const apptAtSlot = (!isNaN(slotNum) && slotRoom && !handleEl && !apptWrapperEl)
 			? appointments.find(a =>
 				a.room_id === slotRoom &&
+				a.status !== 'cancelled' &&
 				getSlotFromTime(a.start_time) <= slotNum &&
 				getSlotFromTime(a.end_time) > slotNum
 			) ?? null
 			: null;
 
-		if (handleEl || apptWrapperEl || apptAtSlot) {
-			const wrapperId = handleEl?.closest('[data-appt-id]')?.getAttribute('data-appt-id')
-				?? apptWrapperEl?.getAttribute('data-appt-id')
-				?? apptAtSlot?.id
-				?? null;
-			if (!wrapperId) return;
+		const targetAppt = (!isCancelledDomHit ? domAppt : null) ?? apptAtSlot;
+		if (targetAppt) {
 			const handle = handleEl?.getAttribute('data-appt-handle') as 'top' | 'bottom' | null;
 			const op: ApptDragOp = handle === 'top' ? 'resize-top' : handle === 'bottom' ? 'resize-bottom' : 'move';
-			apptPendingId = wrapperId;
+			apptPendingId = targetAppt.id;
 			apptPendingOp = op;
 			apptPendingDownX = e.clientX;
 			apptPendingDownY = e.clientY;
@@ -345,7 +399,13 @@
 		}
 
 		// ── Slot drag (empty area) ────────────────────────────────────
-		const cell = target.closest('[data-slot]') as HTMLElement | null;
+		let cell = target.closest('[data-slot]') as HTMLElement | null;
+		if (!cell && isCancelledDomHit) {
+			// Click landed on a cancelled appointment's block, which is a sibling
+			// grid item — find the slot cell beneath it under the pointer.
+			const els = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
+			cell = els.find(el => el.dataset?.slot) ?? null;
+		}
 		if (!cell) return;
 		const slot = parseInt(cell.dataset.slot ?? '');
 		const roomId = cell.dataset.room ?? '';
@@ -592,6 +652,7 @@
 		const apptAtClickSlot = !moved && dragRoomId !== null && dragStartSlot !== null
 			? appointments.find(a =>
 				a.room_id === dragRoomId &&
+				a.status !== 'cancelled' &&
 				getSlotFromTime(a.start_time) <= dragStartSlot! &&
 				getSlotFromTime(a.end_time) > dragStartSlot!
 			) ?? null
@@ -936,13 +997,15 @@
 				{@const startSlot = getSlotFromTime(block.start_time)}
 				{@const endSlot = getSlotFromTime(block.end_time)}
 				{@const col = getColumnIndex(block.room_id)}
-				{#if col >= 2 && startSlot >= visibleStart() && startSlot < visibleEnd()}
+				{#if col >= 2 && endSlot > visibleStart() && startSlot < visibleEnd()}
+					{@const clampedStart = Math.max(startSlot, visibleStart())}
+					{@const clampedEnd = Math.min(endSlot, visibleEnd())}
 					<div
 						class="z-9 p-0.5"
 						data-block-id={block.id}
 						style="
 							grid-column: {col};
-							grid-row: {getRowStart(startSlot)} / span {getRowSpan(startSlot, endSlot)};
+							grid-row: {getRowStart(clampedStart)} / span {getRowSpan(clampedStart, clampedEnd)};
 							{blockDragActive && blockDragSource?.id === block.id ? 'opacity: 0.25; pointer-events: none;' : ''}
 						"
 						ondblclick={() => { onBlockClick?.(block); }}
@@ -962,13 +1025,18 @@
 				{@const startSlot = getSlotFromTime(appt.start_time)}
 				{@const endSlot = getSlotFromTime(appt.end_time)}
 				{@const col = getColumnIndex(appt.room_id)}
-				{#if col >= 2 && startSlot >= visibleStart() && startSlot < visibleEnd()}
+				{#if col >= 2 && endSlot > visibleStart() && startSlot < visibleEnd()}
+					{@const clampedStart = Math.max(startSlot, visibleStart())}
+					{@const clampedEnd = Math.min(endSlot, visibleEnd())}
+					{@const lane = apptLanes.get(appt.id)}
+					{@const laneCount = lane?.laneCount ?? 1}
 					<div
 						class="z-10 p-0.5"
 						data-appt-id={appt.id}
 						style="
 							grid-column: {col};
-							grid-row: {getRowStart(startSlot)} / span {getRowSpan(startSlot, endSlot)};
+							grid-row: {getRowStart(clampedStart)} / span {getRowSpan(clampedStart, clampedEnd)};
+							{laneCount > 1 ? `width: calc(100%/${laneCount}); margin-left: calc(100%*${lane?.lane ?? 0}/${laneCount});` : ''}
 							{apptDragActive && apptDragSource?.id === appt.id ? 'opacity: 0.25; pointer-events: none;' : ''}
 						"
 					>
@@ -978,6 +1046,8 @@
 							slotHeight={SLOT_HEIGHT}
 							minutesPerSlot={MINUTES_PER_SLOT}
 							onstatuschange={onAppointmentStatusChange}
+							onedit={() => onAppointmentDoubleClick?.(appt)}
+							ondelete={() => onAppointmentDelete?.(appt)}
 						/>
 					</div>
 				{/if}

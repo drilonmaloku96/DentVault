@@ -32,10 +32,13 @@
 		if (dhcFinding) {
 			const sub = dhcFinding.subcategory || '';
 			const mm  = dhcFinding.mm_value != null ? ` ${dhcFinding.mm_value}mm` : '';
+			// Empty subcategory: grade-1 baseline ("assessed, no treatment need")
 			// New format: subcategory is the condition code (e.g. 'a'), so show "A/4"
 			// Legacy format: subcategory was like '4a', so show as-is
 			const isNewFormat = sub.length <= 2 && sub === sub.toLowerCase();
-			parts.push(isNewFormat ? `DHC ${sub.toUpperCase()}/${dhcFinding.grade}${mm}` : `DHC ${sub}${mm}`);
+			parts.push(!sub ? `DHC ${dhcFinding.grade}`
+				: isNewFormat ? `DHC ${sub.toUpperCase()}/${dhcFinding.grade}${mm}`
+				: `DHC ${sub}${mm}`);
 		}
 		if (acGrade > 0) parts.push(`AC ${acGrade}`);
 		return parts.join(' · ');
@@ -176,7 +179,7 @@
 		{#if isIOTN && dhcFinding}
 			{@const dhcSub   = dhcFinding.subcategory || ''}
 			{@const dhcIsNew = dhcSub.length <= 2 && dhcSub === dhcSub.toLowerCase()}
-			{@const dhcLabel = dhcIsNew ? `${dhcSub.toUpperCase()}/${dhcFinding.grade}` : (dhcSub || String(dhcFinding.grade))}
+			{@const dhcLabel = !dhcSub ? String(dhcFinding.grade) : dhcIsNew ? `${dhcSub.toUpperCase()}/${dhcFinding.grade}` : dhcSub}
 			<div class="flex flex-wrap gap-1 mt-1 ml-5.5">
 				<span class="px-1.5 py-0 rounded text-[10px] font-mono
 					{(dhcFinding.grade >= 4) ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' :

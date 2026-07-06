@@ -604,7 +604,8 @@
 				for (const v of Object.values(surfs)) {
 					const tag = getSurfTagKey(v);
 					if (tag === 'decayed' || tag === 'decayed_radiographic') hasDecayed = true;
-					if (tag === 'filled' || tag === 'inlay' || tag === 'inlay_planned') hasFilled = true;
+					// inlay_planned is excluded — a planned restoration is not yet an F
+					if (tag === 'filled' || tag === 'inlay') hasFilled = true;
 				}
 			} catch { /* skip */ }
 			if (hasDecayed) D++;

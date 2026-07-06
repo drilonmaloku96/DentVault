@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { getPatient, getDocuments, getAppointmentsForPatient, getAcuteText } from '$lib/services/db';
+	import { getPatient, getAppointmentsForPatient, getAcuteText } from '$lib/services/db';
 	import type { Appointment } from '$lib/types';
 	import { patientBus } from '$lib/stores/patientBus.svelte';
 	import type { Patient } from '$lib/types';
-	import { listVaultFiles, type VaultFileInfo } from '$lib/services/files';
 	import { Button } from '$lib/components/ui/button';
 	import TimelineView from '$lib/components/timeline/TimelineView.svelte';
-	import ParCaseView from '$lib/components/par/ParCaseView.svelte';
 	import PatientNotesBox from '$lib/components/patient/PatientNotesBox.svelte';
 	import MedicalHistoryBox from '$lib/components/patient/MedicalHistoryBox.svelte';
 	import AcuteProblemsBox from '$lib/components/patient/AcuteProblemsBox.svelte';
-	import NewFilesDialog from '$lib/components/documents/NewFilesDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
 	import PatientExportDialog from '$lib/components/export/PatientExportDialog.svelte';
+	import FullScreenView from '$lib/components/ui/FullScreenView.svelte';
+	import FloatingPanel from '$lib/components/ui/FloatingPanel.svelte';
 
 	import { untrack } from 'svelte';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { i18n } from '$lib/i18n';
 	import { formatDate, formatDateTime } from '$lib/utils';
@@ -33,16 +33,11 @@
 	let showNotes   = $state(false);
 	let showMedical = $state(false);
 
+	// Staggered initial positions for floating panels
+	const panelBaseX = typeof window !== 'undefined' ? Math.max(20, Math.floor(window.innerWidth / 2) - 210) : 400;
+
 	// Acute content preview
 	let acuteContent = $state('');
-
-	// New-file detection
-	let pendingFiles       = $state<VaultFileInfo[]>([]);
-	let showNewFilesDialog = $state(false);
-
-
-	// PAR panel
-	let showPar = $state(false);
 
 	// Audit log dialog
 	let showAuditDialog = $state(false);
@@ -79,14 +74,15 @@
 		return () => document.removeEventListener('click', handleDocClick);
 	});
 
-	const now = new Date().toISOString();
+	const nowMs = Date.now();
+	const TERMINAL_STATUSES = new Set(['cancelled', 'no_show']);
 	const futureAppointments = $derived(
-		appointments.filter(a => a.status === 'scheduled' && a.start_time >= now)
+		appointments.filter(a => new Date(a.start_time).getTime() >= nowMs && !TERMINAL_STATUSES.has(a.status))
 			.sort((a, b) => a.start_time.localeCompare(b.start_time))
 	);
 	const nextAppointment  = $derived(futureAppointments[0] ?? null);
 	const pastAppointments = $derived(
-		appointments.filter(a => a.start_time < now || a.status !== 'scheduled')
+		appointments.filter(a => new Date(a.start_time).getTime() < nowMs || TERMINAL_STATUSES.has(a.status))
 			.sort((a, b) => b.start_time.localeCompare(a.start_time))
 	);
 
@@ -118,26 +114,9 @@
 				appointments = appts;
 				acuteContent = acute;
 				if (acute.trim()) showAcute = true;
-				if (id !== currentId) setTimeout(() => checkNewVaultFiles(), 300);
 			}
 		} finally {
 			if (patientId === id) isLoading = false;
-		}
-	}
-
-	async function checkNewVaultFiles() {
-		if (!vault.path || !patient) return;
-		try {
-			const folder = vault.patientFolder(patient.lastname, patient.firstname, patient.patient_id);
-			const [onDisk, inDb] = await Promise.all([
-				listVaultFiles(vault.path, folder),
-				getDocuments(patient.patient_id),
-			]);
-			const registered = new Set(inDb.map(d => d.rel_path || d.abs_path));
-			pendingFiles = onDisk.filter(f => !registered.has(f.rel_path));
-			if (pendingFiles.length > 0) showNewFilesDialog = true;
-		} catch {
-			// Vault not configured or folder doesn't exist yet — silently ignore
 		}
 	}
 
@@ -254,7 +233,7 @@
 															<span class="block font-medium truncate">{formatApptDateTime(appt.start_time)}</span>
 															{#if appt.type_name}<span class="text-muted-foreground">{appt.type_name}</span>{/if}
 														</div>
-														<span class="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0 font-medium">scheduled</span>
+														<span class="text-[10px] shrink-0 font-medium" style="color: {appointmentStatuses.map[appt.status]?.color ?? '#64748b'}">{appointmentStatuses.map[appt.status]?.label ?? appt.status}</span>
 													</button>
 												{/each}
 											{/if}
@@ -276,7 +255,7 @@
 															<span class="block font-medium truncate">{formatApptDateTime(appt.start_time)}</span>
 															{#if appt.type_name}<span class="text-muted-foreground">{appt.type_name}</span>{/if}
 														</div>
-														<span class="text-[10px] text-muted-foreground shrink-0 capitalize">{appt.status.replace('_', ' ')}</span>
+														<span class="text-[10px] shrink-0 font-medium" style="color: {appointmentStatuses.map[appt.status]?.color ?? '#64748b'}">{appointmentStatuses.map[appt.status]?.label ?? appt.status}</span>
 													</button>
 												{/each}
 											{/if}
@@ -337,12 +316,6 @@
 							{/if}
 							<span class="hidden xl:inline">{i18n.t.patients.acuteProblems}</span>
 						</button>
-						{#if showAcute}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showAcute = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
-								<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
-							</div>
-						{/if}
 					</div>
 
 					<!-- Medical history -->
@@ -366,12 +339,6 @@
 							</svg>
 							<span class="hidden xl:inline">{i18n.t.patients.medicalHistory}</span>
 						</button>
-						{#if showMedical}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showMedical = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
-								<MedicalHistoryBox patientId={patient.patient_id} />
-							</div>
-						{/if}
 					</div>
 
 					<!-- Notes -->
@@ -393,12 +360,6 @@
 							</svg>
 							<span class="hidden xl:inline">{i18n.t.common.notes}</span>
 						</button>
-						{#if showNotes}
-							<div class="fixed inset-0 z-30 bg-black/30" role="none" onclick={() => (showNotes = false)}></div>
-							<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-[min(480px,92vw)] max-h-[80vh] rounded-lg border border-border bg-background shadow-xl overflow-y-auto overflow-x-hidden">
-								<PatientNotesBox patientId={patient.patient_id} />
-							</div>
-						{/if}
 					</div>
 
 
@@ -438,17 +399,41 @@
 			headerHeight={patientHeaderHeight}
 		/>
 
-	</div>
-{/if}
+	<!-- Floating panels -->
+	{#if showAcute}
+		<FloatingPanel
+			title={i18n.t.patients.acuteProblems}
+			onclose={() => (showAcute = false)}
+			initialX={panelBaseX}
+			initialY={90}
+		>
+			<AcuteProblemsBox patientId={patient.patient_id} onContentChange={(v) => (acuteContent = v)} />
+		</FloatingPanel>
+	{/if}
 
-<!-- New vault files detected dialog -->
-{#if showNewFilesDialog && patient}
-	<NewFilesDialog
-		bind:open={showNewFilesDialog}
-		{pendingFiles}
-		patientId={patient.patient_id}
-		onDone={() => { showNewFilesDialog = false; pendingFiles = []; }}
-	/>
+	{#if showMedical}
+		<FloatingPanel
+			title={i18n.t.patients.medicalHistory}
+			onclose={() => (showMedical = false)}
+			initialX={panelBaseX + 40}
+			initialY={130}
+		>
+			<MedicalHistoryBox patientId={patient.patient_id} />
+		</FloatingPanel>
+	{/if}
+
+	{#if showNotes}
+		<FloatingPanel
+			title={i18n.t.common.notes}
+			onclose={() => (showNotes = false)}
+			initialX={panelBaseX + 80}
+			initialY={170}
+		>
+			<PatientNotesBox patientId={patient.patient_id} />
+		</FloatingPanel>
+	{/if}
+
+	</div>
 {/if}
 
 {#if patient}

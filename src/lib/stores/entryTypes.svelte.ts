@@ -4,9 +4,6 @@
  * Thin derived view over appointmentTypes.
  * Timeline entry type options and appointment type options are the same list —
  * managed in one place (Settings › Entry & Appointment Types).
- *
- * Legacy built-in keys (visit, procedure, note, lab, imaging, referral) are
- * kept as fallback labels for old entries already stored in the DB.
  */
 
 import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
@@ -17,16 +14,6 @@ export interface EntryTypeConfig {
 	icon: string;
 	color?: string;
 }
-
-/** Fallback labels for legacy entry_type values stored before the merge */
-const LEGACY_LABELS: Record<string, { label: string; icon: string }> = {
-	visit:     { label: 'Visit',     icon: '🏥' },
-	procedure: { label: 'Procedure', icon: '🔧' },
-	note:      { label: 'Note',      icon: '📝' },
-	lab:       { label: 'Lab',       icon: '🧪' },
-	imaging:   { label: 'Imaging',   icon: '📷' },
-	referral:  { label: 'Referral',  icon: '📋' },
-};
 
 export const entryTypes = {
 	/** All active appointment types as entry type options */
@@ -43,21 +30,17 @@ export const entryTypes = {
 		return appointmentTypes.list.length > 0;
 	},
 
-	/** Label for a given entry_type value (handles legacy keys + appointment type names) */
+	/** Label for a given entry_type value (appointment type names; raw key as fallback) */
 	labelFor(key: string): string {
-		const appt = appointmentTypes.active.find(t => t.name === key);
-		if (appt) return appt.name;
-		return LEGACY_LABELS[key]?.label ?? key;
+		return appointmentTypes.active.find(t => t.name === key)?.name ?? key;
 	},
 
 	/** Icon/short text for a given entry_type value */
 	iconFor(key: string): string {
-		const appt = appointmentTypes.active.find(t => t.name === key);
-		if (appt) return appt.short_name;
-		return LEGACY_LABELS[key]?.icon ?? '📌';
+		return appointmentTypes.active.find(t => t.name === key)?.short_name ?? '📌';
 	},
 
-	/** Color hex for a given entry_type value (undefined for legacy keys) */
+	/** Color hex for a given entry_type value (undefined for unknown keys) */
 	colorFor(key: string): string | undefined {
 		return appointmentTypes.active.find(t => t.name === key)?.color;
 	},
@@ -65,6 +48,3 @@ export const entryTypes = {
 	/** No-op — appointmentTypes.load() handles loading */
 	async load(): Promise<void> {},
 };
-
-// Keep for Settings page: built-in keys that existed before the merge
-export const BUILTIN_ENTRY_TYPE_KEYS = new Set(Object.keys(LEGACY_LABELS));

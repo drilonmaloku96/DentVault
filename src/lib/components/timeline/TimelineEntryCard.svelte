@@ -11,6 +11,10 @@
 	import { vault } from '$lib/stores/vault.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
+	import { complicationTypes } from '$lib/stores/complicationTypes.svelte';
+	import { getComplications, insertComplication, resolveComplication, deleteComplication } from '$lib/services/db';
+	import type { Complication } from '$lib/types';
+	import { toLocalISODate } from '$lib/utils';
 
 	let {
 		entry,
@@ -216,7 +220,73 @@
 		await openDocumentFile(resolvedDocPath);
 	}
 
+	// ── Complications ─────────────────────────────────────────────────────
+	let complications = $state<Complication[]>([]);
+	let showComplications = $state(false);
+	let showAddComplication = $state(false);
+	let confirmDeleteComplicationId = $state<number | null>(null);
 
+	let newComplicationType = $state('');
+	let newComplicationSeverity = $state('mild');
+	let newComplicationDescription = $state('');
+	let newComplicationDate = $state(toLocalISODate());
+
+	async function loadComplications() {
+		complications = await getComplications(entry.id);
+	}
+
+	$effect(() => {
+		entry.id; // reactive dependency — reload when the entry changes
+		loadComplications();
+	});
+
+	const unresolvedComplicationCount = $derived(complications.filter(c => !c.resolved).length);
+
+	function complicationTypeLabel(key: string): string {
+		const item = complicationTypes.list.find(t => t.key === key);
+		return item ? complicationTypes.displayLabel(item) : key;
+	}
+
+	function resetAddComplicationForm() {
+		newComplicationType = '';
+		newComplicationSeverity = 'mild';
+		newComplicationDescription = '';
+		newComplicationDate = toLocalISODate();
+		showAddComplication = false;
+	}
+
+	async function handleAddComplication() {
+		if (!newComplicationType) return;
+		await insertComplication(entry.id, entry.patient_id, {
+			complication_type: newComplicationType,
+			description: newComplicationDescription.trim(),
+			severity: newComplicationSeverity,
+			date_reported: newComplicationDate,
+		});
+		resetAddComplicationForm();
+		await loadComplications();
+	}
+
+	async function handleResolveComplication(c: Complication) {
+		await resolveComplication(c.id, !c.resolved);
+		await loadComplications();
+	}
+
+	async function handleDeleteComplication(id: number) {
+		if (confirmDeleteComplicationId !== id) {
+			confirmDeleteComplicationId = id;
+			return;
+		}
+		confirmDeleteComplicationId = null;
+		await deleteComplication(id);
+		await loadComplications();
+	}
+
+	const complicationSeverityDotClass: Record<string, string> = {
+		mild: 'bg-amber-400',
+		moderate: 'bg-orange-500',
+		severe: 'bg-red-600',
+	};
 </script>
 
 <div class="relative flex gap-4">
@@ -402,6 +472,18 @@
 					</span>
 				{/if}
 
+				<!-- Complications badge — clinically important, don't bury -->
+				{#if complications.length > 0}
+					<button
+						type="button"
+						onclick={() => (showComplications = !showComplications)}
+						class={`rounded border px-1.5 py-0.5 text-[10px] font-medium shrink-0 transition-colors ${unresolvedComplicationCount > 0 ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' : 'bg-muted text-muted-foreground border-border'}`}
+						title={i18n.t.complications.title}
+					>
+						⚠ {complications.length}
+					</button>
+				{/if}
+
 				<!-- Date (hidden when group header shows it; editing input always visible) -->
 				{#if editingDate}
 					<!-- svelte-ignore a11y_autofocus -->
@@ -553,7 +635,106 @@
 						{i18n.t.audit.title}
 					</button>
 				{/if}
+				{#if complications.length === 0}
+					<button
+						type="button"
+						onclick={() => (showComplications = !showComplications)}
+						class="text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+					>
+						{i18n.t.complications.title}
+					</button>
+				{/if}
 			</div>
+
+			<!-- Complications panel -->
+			{#if showComplications}
+				<div class="ml-[22px] mt-2 rounded-md border border-border/60 bg-muted/20 p-2.5 flex flex-col gap-2">
+					{#if complications.length === 0}
+						<p class="text-[11px] text-muted-foreground/50 italic">{i18n.t.complications.noComplications}</p>
+					{:else}
+						<div class="flex flex-col gap-1.5">
+							{#each complications as c (c.id)}
+								<div class="flex items-start gap-2 text-[11px]">
+									<span class={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${complicationSeverityDotClass[c.severity] ?? 'bg-zinc-400'}`}></span>
+									<div class="flex-1 min-w-0">
+										<div class="flex items-center gap-1.5 flex-wrap">
+											<span class="font-medium">{complicationTypeLabel(c.complication_type)}</span>
+											<span class="text-muted-foreground/60">· {formatDate(c.date_reported)}</span>
+											{#if c.resolved}
+												<span class="rounded bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 px-1 py-px text-[9px] font-medium">{i18n.t.complications.resolved}</span>
+											{/if}
+										</div>
+										{#if c.description}
+											<p class="text-muted-foreground/70 mt-0.5">{c.description}</p>
+										{/if}
+									</div>
+									<div class="flex items-center gap-2 shrink-0">
+										<button
+											type="button"
+											onclick={() => handleResolveComplication(c)}
+											class="text-primary/60 hover:text-primary transition-colors"
+										>
+											{c.resolved ? i18n.t.actions.reset : i18n.t.complications.resolve}
+										</button>
+										<button
+											type="button"
+											onclick={() => handleDeleteComplication(c.id)}
+											class="text-destructive/60 hover:text-destructive transition-colors"
+										>
+											{confirmDeleteComplicationId === c.id ? i18n.t.complications.confirmDelete : i18n.t.complications.delete}
+										</button>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+
+					{#if showAddComplication}
+						<div class="flex flex-col gap-1.5 pt-1.5 border-t border-border/50">
+							<div class="flex gap-1.5">
+								<select bind:value={newComplicationType} class="flex-1 text-[11px] border rounded px-1.5 py-1 bg-background">
+									<option value="">{i18n.t.complications.fields.type}</option>
+									{#each complicationTypes.list as t}
+										<option value={t.key}>{complicationTypes.displayLabel(t)}</option>
+									{/each}
+								</select>
+								<select bind:value={newComplicationSeverity} class="text-[11px] border rounded px-1.5 py-1 bg-background">
+									<option value="mild">{i18n.t.complications.severity.mild}</option>
+									<option value="moderate">{i18n.t.complications.severity.moderate}</option>
+									<option value="severe">{i18n.t.complications.severity.severe}</option>
+								</select>
+								<input
+									type="date"
+									bind:value={newComplicationDate}
+									class="text-[11px] border rounded px-1.5 py-1 bg-background"
+								/>
+							</div>
+							<textarea
+								bind:value={newComplicationDescription}
+								placeholder={i18n.t.complications.fields.description}
+								rows="2"
+								class="text-[11px] border rounded px-1.5 py-1 bg-background resize-none"
+							></textarea>
+							<div class="flex items-center gap-2">
+								<Button type="button" size="sm" disabled={!newComplicationType} onclick={handleAddComplication} class="h-6 text-[11px] px-2">
+									{i18n.t.complications.add}
+								</Button>
+								<button type="button" onclick={resetAddComplicationForm} class="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+									{i18n.t.actions.cancel}
+								</button>
+							</div>
+						</div>
+					{:else}
+						<button
+							type="button"
+							onclick={() => (showAddComplication = true)}
+							class="self-start text-[10px] text-primary/60 hover:text-primary transition-colors pt-1 border-t border-border/50 w-full text-left"
+						>
+							+ {i18n.t.complications.add}
+						</button>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

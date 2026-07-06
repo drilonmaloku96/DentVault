@@ -6,6 +6,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { reconcileVaultIntegrity, type IntegrityResult } from '$lib/services/vault-integrity';
 	import { docCategories, DEFAULT_CATEGORIES, type DocCategory } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { resetDb, getAllSettings, bulkSetSettings, getAllPatientsIncludingArchived, deletePatient, getSetting, setSetting, upsertDoctorWorkingHours } from '$lib/services/db';
@@ -1077,6 +1078,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	let dbBackupError         = $state(false);
 	let vaultBackupMsg        = $state('');
 	let vaultBackupError      = $state(false);
+	let isCheckingIntegrity   = $state(false);
+	let integrityResult       = $state<IntegrityResult | null>(null);
 	// ── Patient Export (Settings) ──────────────────────────────────────────
 	let exportSearchQuery     = $state('');
 	let exportSearchResults   = $state<Patient[]>([]);
@@ -1283,6 +1286,17 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			vaultBackupError = true;
 		} finally {
 			isBackingUpVault = false;
+		}
+	}
+
+	async function handleCheckVaultIntegrity() {
+		if (!vault.path) return;
+		isCheckingIntegrity = true;
+		integrityResult = null;
+		try {
+			integrityResult = await reconcileVaultIntegrity(vault.path);
+		} finally {
+			isCheckingIntegrity = false;
 		}
 	}
 </script>
@@ -1739,6 +1753,45 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				{/if}
 			</div>
 
+			<!-- Vault Integrity Check -->
+			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
+				<div class="flex items-start gap-3">
+					<div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-teal-50 dark:bg-teal-950/40">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-teal-600 dark:text-teal-400">
+							<path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.5 0 2.9.37 4.14 1.02"/><path d="M21 5l-9 9"/>
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="text-sm font-medium">{i18n.t.settings.vaultIntegrity.title}</p>
+						<p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{i18n.t.settings.vaultIntegrity.description}</p>
+					</div>
+				</div>
+				<Button size="sm" variant="outline" onclick={handleCheckVaultIntegrity} disabled={isCheckingIntegrity || !vault.path}>
+					{isCheckingIntegrity ? i18n.t.settings.vaultIntegrity.running : i18n.t.settings.vaultIntegrity.run}
+				</Button>
+				{#if integrityResult}
+					{#if integrityResult.missing === 0}
+						<p class="text-xs text-emerald-600 dark:text-emerald-400">
+							{i18n.t.settings.vaultIntegrity.allGood.replace('{n}', String(integrityResult.total))}
+						</p>
+					{:else}
+						<div class="flex flex-col gap-1.5">
+							<p class="text-xs text-destructive">
+								{i18n.t.settings.vaultIntegrity.missingHeader
+									.replace('{n}', String(integrityResult.missing))
+									.replace('{total}', String(integrityResult.total))}
+							</p>
+							<ul class="text-xs text-muted-foreground flex flex-col gap-0.5 max-h-40 overflow-y-auto">
+								{#each integrityResult.missingFiles as f}
+									<li class="break-all">{f.patient_id} — {f.rel_path}</li>
+								{/each}
+							</ul>
+							<p class="text-xs text-amber-600 dark:text-amber-400">{i18n.t.settings.vaultIntegrity.missingWarning}</p>
+						</div>
+					{/if}
+				{/if}
+			</div>
+
 		</div>
 	</section>
 
@@ -1895,7 +1948,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					<div class="grid grid-cols-2 gap-3">
 						<div class="flex flex-col gap-1">
 							<label for="staff-new-name" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.name} *</label>
-							<input id="staff-new-name" type="text" bind:value={newStaffName} class="{inputClass} w-full" placeholder="e.g. Anna Müller" />
+							<input id="staff-new-name" type="text" bind:value={newStaffName} class="{inputClass} w-full" placeholder="e.g. Anna Smith" />
 						</div>
 						<div class="flex flex-col gap-1">
 							<label for="staff-new-role" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.role} *</label>

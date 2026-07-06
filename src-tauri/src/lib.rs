@@ -205,6 +205,16 @@ fn delete_patient_folder(vault_path: String, patient_folder: String) -> Result<(
     Ok(())
 }
 
+/// Rename a patient folder in the vault. No-op if source missing; error if target exists.
+#[tauri::command]
+fn rename_patient_folder(vault_path: String, old_folder: String, new_folder: String) -> Result<(), String> {
+    let old = PathBuf::from(&vault_path).join(&old_folder);
+    let new = PathBuf::from(&vault_path).join(&new_folder);
+    if !old.exists() || old == new { return Ok(()); }
+    if new.exists() { return Err(format!("Target folder already exists: {}", new_folder)); }
+    std::fs::rename(&old, &new).map_err(|e| e.to_string())
+}
+
 // ── !TEMPLATE folder commands ──────────────────────────────────────────
 
 /// Create `<vault>/!TEMPLATE/` (and one subfolder per category) plus
@@ -371,6 +381,152 @@ fn write_text_file(dest_path: String, content: String) -> Result<(), String> {
         std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
     std::fs::write(&path, content.as_bytes()).map_err(|e| e.to_string())
+}
+
+/// Read a UTF-8 text file (used to load saved .ceph analyses into the embedded Cephalyzer).
+#[tauri::command]
+fn read_text_file(path: String) -> Result<String, String> {
+    std::fs::read_to_string(&path).map_err(|e| e.to_string())
+}
+
+/// Read a binary file as base64 (used to hand X-ray images to the embedded Cephalyzer
+/// as data: URLs — the asset protocol is not fetch()-able from inside the iframe).
+#[tauri::command]
+fn read_base64_file(path: String) -> Result<String, String> {
+    use base64::Engine;
+    let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+    Ok(base64::engine::general_purpose::STANDARD.encode(bytes))
+}
+
+/// Write base64-encoded binary data to a file, creating parent directories as needed
+/// (used for PDF reports coming out of the embedded Cephalyzer).
+#[tauri::command]
+fn write_base64_file(dest_path: String, base64_data: String) -> Result<(), String> {
+    use base64::Engine;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(base64_data.as_bytes())
+        .map_err(|e| format!("Invalid base64 data: {e}"))?;
+    let path = PathBuf::from(&dest_path);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, bytes).map_err(|e| e.to_string())
+}
+
+/// Copy a file from src_path to dest_path, creating parent directories as needed.
+/// Returns the number of bytes written (the file size).
+#[tauri::command]
+fn copy_file_to_vault(src_path: String, dest_path: String) -> Result<u64, String> {
+    let dest = std::path::Path::new(&dest_path);
+    if let Some(parent) = dest.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::copy(&src_path, &dest_path).map_err(|e| e.to_string())
+}
+
+// ── Patient folder tree ────────────────────────────────────────────────────
+
+#[derive(serde::Serialize, Clone)]
+struct FolderNode {
+    name: String,
+    rel_path: String,
+    children: Vec<FolderNode>,
+}
+
+fn scan_folders(dir: &std::path::Path, rel_prefix: &str) -> Vec<FolderNode> {
+    let mut nodes = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else { return nodes };
+    let mut dirs: Vec<_> = entries
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+    dirs.sort_by_key(|e| e.file_name().to_string_lossy().to_lowercase());
+    for entry in dirs {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') { continue; }
+        let rel_path = if rel_prefix.is_empty() {
+            name.clone()
+        } else {
+            format!("{}/{}", rel_prefix, name)
+        };
+        let children = scan_folders(&entry.path(), &rel_path);
+        nodes.push(FolderNode { name, rel_path, children });
+    }
+    nodes
+}
+
+/// Return the folder tree for a patient (category folders + any subfolders they contain).
+#[tauri::command]
+fn list_patient_folders(vault_path: String, patient_folder: String) -> Result<Vec<FolderNode>, String> {
+    let patient_dir = PathBuf::from(&vault_path).join(&patient_folder);
+    if !patient_dir.exists() {
+        return Ok(Vec::new());
+    }
+    Ok(scan_folders(&patient_dir, ""))
+}
+
+/// Create a new subfolder inside a patient's vault folder.
+/// `parent_rel` is the slash-separated path relative to the patient folder ("" = root).
+/// Returns the rel_path of the newly created folder.
+#[tauri::command]
+fn create_patient_subfolder(
+    vault_path: String,
+    patient_folder: String,
+    parent_rel: String,
+    folder_name: String,
+) -> Result<String, String> {
+    let safe_name: String = folder_name
+        .trim()
+        .chars()
+        .map(|c| if "/\\:*?\"<>|".contains(c) { '_' } else { c })
+        .collect();
+    if safe_name.is_empty() {
+        return Err("Folder name cannot be empty".to_string());
+    }
+    let patient_dir = PathBuf::from(&vault_path).join(&patient_folder);
+    let target = if parent_rel.is_empty() {
+        patient_dir.join(&safe_name)
+    } else {
+        patient_dir.join(&parent_rel).join(&safe_name)
+    };
+    std::fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+    let rel = if parent_rel.is_empty() {
+        safe_name
+    } else {
+        format!("{}/{}", parent_rel, safe_name)
+    };
+    Ok(rel)
+}
+
+/// Move a folder within a patient's vault to a new parent.
+/// `src_rel` is the current rel_path; `dest_parent_rel` is the new parent ("" = patient root).
+#[tauri::command]
+fn move_patient_folder(
+    vault_path: String,
+    patient_folder: String,
+    src_rel: String,
+    dest_parent_rel: String,
+) -> Result<(), String> {
+    let patient_dir = PathBuf::from(&vault_path).join(&patient_folder);
+    let src = patient_dir.join(&src_rel);
+    let src_name = src
+        .file_name()
+        .ok_or_else(|| "Invalid source path".to_string())?
+        .to_string_lossy()
+        .to_string();
+    let dest = if dest_parent_rel.is_empty() {
+        patient_dir.join(&src_name)
+    } else {
+        patient_dir.join(&dest_parent_rel).join(&src_name)
+    };
+    // Prevent moving into own descendant
+    if dest.starts_with(&src) {
+        return Err("Cannot move a folder into its own subfolder".to_string());
+    }
+    if dest.exists() {
+        return Err(format!("A folder named '{}' already exists at that location", src_name));
+    }
+    std::fs::rename(&src, &dest).map_err(|e| e.to_string())
 }
 
 /// Copy a patient's vault category subfolders into dest_dir.
@@ -604,7 +760,15 @@ pub fn run() {
             get_template_categories,
             copy_template_to_patient,
             delete_patient_folder,
+            rename_patient_folder,
             write_text_file,
+            read_text_file,
+            read_base64_file,
+            write_base64_file,
+            copy_file_to_vault,
+            list_patient_folders,
+            create_patient_subfolder,
+            move_patient_folder,
             copy_patient_folder_to,
             ensure_doc_templates_folder,
             list_doc_templates,

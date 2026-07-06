@@ -10,9 +10,11 @@
 		isSelected?: boolean;
 		ondblclick?: () => void;
 		onstatuschange?: (id: string, status: string) => void;
+		onedit?: () => void;
+		ondelete?: () => void;
 	}
 
-	let { appointment, slotHeight = 8, minutesPerSlot = 5, isSelected = false, ondblclick, onstatuschange }: Props = $props();
+	let { appointment, slotHeight = 8, minutesPerSlot = 5, isSelected = false, ondblclick, onstatuschange, onedit, ondelete }: Props = $props();
 
 	const isCompact = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) < 40);
 	const showNotes = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) >= 56);
@@ -32,16 +34,12 @@
 	const isTerminal = $derived(
 		appointment.status === 'completed' || appointment.status === 'cancelled',
 	);
-	const isScheduled = $derived(appointment.status === 'scheduled');
-
-	const statusBorderColor = $derived(() => {
-		if (isScheduled) return typeColor;
-		return statusCfg?.color ?? '#64748b';
-	});
+	// Box border + background always encode the STATUS (one signal, one meaning).
+	// The appointment TYPE is shown separately as a colored pill inside the box.
+	const statusBorderColor = $derived(() => statusCfg?.color ?? '#64748b');
 
 	const statusBgColor = $derived(() => {
-		if (isScheduled) return hexToRgba(typeColor, 0.12);
-		if (isTerminal)  return hexToRgba(statusCfg?.color ?? '#64748b', 0.06);
+		if (isTerminal) return hexToRgba(statusCfg?.color ?? '#64748b', 0.06);
 		return hexToRgba(statusCfg?.color ?? '#64748b', 0.13);
 	});
 
@@ -49,6 +47,22 @@
 		if (appointment.status === 'completed') return 'filter: grayscale(0.85); opacity: 0.65;';
 		if (appointment.status === 'cancelled') return 'filter: grayscale(1); opacity: 0.32;';
 		return '';
+	});
+
+	// Inline status indicator shown in the block content (colors from the statuses store).
+	// System statuses get dedicated marks; custom statuses get a solid dot so every
+	// non-scheduled status has a visible element without branching on user-defined keys.
+	const statusColor = $derived(statusCfg?.color ?? '#64748b');
+	const statusIndicator = $derived(() => {
+		switch (appointment.status) {
+			case 'scheduled': return null;
+			case 'waiting':
+			case 'in_chair':  return 'ping';   // patient present — radiating pulse
+			case 'completed': return 'check';
+			case 'no_show':   return 'cross';
+			case 'cancelled': return null;     // grayscale + line-through already signal it
+			default:          return 'dot';    // custom status
+		}
 	});
 
 	const patientName = $derived(
@@ -112,6 +126,12 @@
 	let contextMenuVisible = $state(false);
 	let cmX = $state(0);
 	let cmY = $state(0);
+	let confirmDeleteItem = $state(false);
+
+	function closeContextMenu() {
+		contextMenuVisible = false;
+		confirmDeleteItem = false;
+	}
 
 	function onContextMenu(e: MouseEvent) {
 		if (!onstatuschange) return;
@@ -119,8 +139,9 @@
 		e.stopPropagation();
 		if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
 		tooltipVisible = false;
+		confirmDeleteItem = false;
 		const z = getZoom();
-		const menuH = appointmentStatuses.list.length * 36 + 48;
+		const menuH = appointmentStatuses.list.length * 36 + 48 + 84;
 		const menuW = 200;
 		const viewW = window.innerWidth / z;
 		const viewH = window.innerHeight / z;
@@ -132,8 +153,22 @@
 	}
 
 	function setStatus(key: string) {
-		contextMenuVisible = false;
+		closeContextMenu();
 		onstatuschange?.(appointment.id, key);
+	}
+
+	function handleEditClick() {
+		closeContextMenu();
+		onedit?.();
+	}
+
+	function handleDeleteClick() {
+		if (!confirmDeleteItem) {
+			confirmDeleteItem = true;
+			return;
+		}
+		closeContextMenu();
+		ondelete?.();
 	}
 </script>
 
@@ -148,13 +183,15 @@
 	role="button"
 	tabindex="0"
 >
-	<!-- Top resize handle -->
-	<div
-		class="absolute top-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
-		data-appt-handle="top"
-	>
-		<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mt-0.5"></div>
-	</div>
+	<!-- Top resize handle (hidden for cancelled — the block is click-through) -->
+	{#if appointment.status !== 'cancelled'}
+		<div
+			class="absolute top-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
+			data-appt-handle="top"
+		>
+			<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mt-0.5"></div>
+		</div>
+	{/if}
 
 	<!-- Main content — receives the grayscale filter for terminal statuses -->
 	<div
@@ -162,7 +199,7 @@
 		style="
 			border-left: 3px solid {statusBorderColor()};
 			background-color: {statusBgColor()};
-			cursor: grab;
+			cursor: {appointment.status === 'cancelled' ? 'pointer' : 'grab'};
 			{statusFilter()}
 		"
 	>
@@ -174,19 +211,25 @@
 					<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {typeColor}"></span>
 				{/if}
 				<span class="font-medium truncate {appointment.status === 'cancelled' ? 'line-through text-muted-foreground' : ''}">{patientName}</span>
+				{@render statusMark()}
 			</div>
 		{:else}
 			<div class="flex flex-col gap-0.5 text-xs leading-tight pt-0.5 pr-5">
 				<span class="font-semibold truncate {appointment.status === 'cancelled' ? 'line-through text-muted-foreground' : ''}">{patientName}</span>
-				<div class="flex items-center gap-1">
-					{#if appointment.type_icon}
-						<span class="text-[11px] leading-none shrink-0">{appointment.type_icon}</span>
-					{:else}
-						<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {typeColor}; opacity: 0.75;"></span>
-					{/if}
+				<div class="flex items-center gap-1 min-w-0">
 					{#if appointment.type_name}
-						<span class="truncate text-muted-foreground">{appointment.type_short_name ?? appointment.type_name}</span>
+						<!-- Type pill — carries the appointment-type color, independent of box/status color -->
+						<span
+							class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium leading-none truncate shrink min-w-0"
+							style="background-color: {hexToRgba(typeColor, 0.18)}; color: {typeColor}; border: 1px solid {hexToRgba(typeColor, 0.35)};"
+						>
+							{#if appointment.type_icon}
+								<span class="text-[10px] leading-none shrink-0">{appointment.type_icon}</span>
+							{/if}
+							<span class="truncate">{appointment.type_short_name ?? appointment.type_name}</span>
+						</span>
 					{/if}
+					{@render statusMark()}
 				</div>
 				<span class="text-muted-foreground">{timeRange()}</span>
 				{#if showNotes && appointment.notes}
@@ -208,7 +251,7 @@
 					min-width: 1.25rem;
 				"
 			>
-				{#if statusCfg.key === 'in_chair'}
+				{#if statusCfg.key === 'in_chair' || statusCfg.key === 'waiting'}
 					<span class="w-1.5 h-1.5 rounded-full mr-0.5 animate-pulse shrink-0" style="background-color: {statusCfg.color}"></span>
 				{/if}
 				{statusCfg.kuerzel}
@@ -216,13 +259,15 @@
 		</div>
 	{/if}
 
-	<!-- Bottom resize handle -->
-	<div
-		class="absolute bottom-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
-		data-appt-handle="bottom"
-	>
-		<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mb-0.5"></div>
-	</div>
+	<!-- Bottom resize handle (hidden for cancelled — the block is click-through) -->
+	{#if appointment.status !== 'cancelled'}
+		<div
+			class="absolute bottom-0 inset-x-0 h-2 z-10 cursor-ns-resize flex items-center justify-center group/rh pointer-events-auto"
+			data-appt-handle="bottom"
+		>
+			<div class="w-8 h-0.5 rounded-full bg-transparent group-hover/rh:bg-white/70 transition-colors pointer-events-none mb-0.5"></div>
+		</div>
+	{/if}
 
 	<!-- Selected ring -->
 	{#if isSelected}
@@ -239,7 +284,7 @@
 		use:portal
 		class="fixed inset-0 z-[9998]"
 		role="none"
-		onmousedown={() => (contextMenuVisible = false)}
+		onmousedown={closeContextMenu}
 	></div>
 	<div
 		use:portal
@@ -277,6 +322,30 @@
 				</button>
 			{/each}
 		</div>
+		{#if onedit || ondelete}
+			<div class="border-t border-border/60 py-1">
+				{#if onedit}
+					<button
+						type="button"
+						role="menuitem"
+						class="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted/70"
+						onclick={handleEditClick}
+					>
+						{i18n.t.schedule.editAppointment}
+					</button>
+				{/if}
+				{#if ondelete}
+					<button
+						type="button"
+						role="menuitem"
+						class="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-destructive/10 {confirmDeleteItem ? 'text-destructive font-semibold' : 'text-destructive'}"
+						onclick={handleDeleteClick}
+					>
+						{confirmDeleteItem ? i18n.t.schedule.confirmDelete : i18n.t.schedule.deleteAppointment}
+					</button>
+				{/if}
+			</div>
+		{/if}
 	</div>
 {/if}
 
@@ -353,3 +422,19 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Inline status indicator rendered inside the block content -->
+{#snippet statusMark()}
+	{#if statusIndicator() === 'ping'}
+		<span class="relative flex h-2 w-2 shrink-0">
+			<span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background-color: {statusColor}"></span>
+			<span class="relative inline-flex rounded-full h-2 w-2" style="background-color: {statusColor}"></span>
+		</span>
+	{:else if statusIndicator() === 'check'}
+		<span class="font-bold shrink-0" style="color: {statusColor}">✓</span>
+	{:else if statusIndicator() === 'cross'}
+		<span class="font-bold shrink-0" style="color: {statusColor}">✗</span>
+	{:else if statusIndicator() === 'dot'}
+		<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {statusColor}"></span>
+	{/if}
+{/snippet}

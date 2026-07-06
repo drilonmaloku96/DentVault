@@ -322,13 +322,6 @@
 		{ value: 'unknown',          label: i18n.t.outcomes.unknown,          icon: '❓' },
 	]);
 
-	// Show category/outcome for clinically meaningful entry types
-	const showClinicalFields = $derived(
-		entryType === 'procedure' ||
-		entryType === 'visit' ||
-		entryType === 'referral',
-	);
-
 	const selectClass =
 		'border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50';
 </script>
@@ -486,9 +479,9 @@
 				/>
 			</div>
 
-			<!-- Related entry picker (shown for procedure/visit when tooth numbers set) -->
-			{#if entryType === 'procedure' || entryType === 'visit'}
-				<div class="flex flex-col gap-1.5">
+			<!-- Related entry picker — links retreatments/failures to the prior treatment.
+			     Not gated on entry type: types are user-configurable appointment names now. -->
+			<div class="flex flex-col gap-1.5">
 					<Label>{i18n.t.timeline.tagSuggestion.relatedEntry}</Label>
 					{#if relatedEntryId}
 						<div class="flex items-center gap-2">
@@ -541,12 +534,11 @@
 							{/if}
 						</div>
 					{/if}
-				</div>
-			{/if}
+			</div>
 
-			<!-- Clinical classification fields (visible for procedure/visit/referral) -->
-			{#if showClinicalFields}
-				<div class="grid grid-cols-2 gap-3 rounded-md border border-dashed p-3">
+			<!-- Clinical classification fields — always shown so outcomes can be
+			     tagged regardless of the user-configurable entry type -->
+			<div class="grid grid-cols-2 gap-3 rounded-md border border-dashed p-3">
 					<p class="col-span-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
 						{i18n.t.timeline.entry.category}
 					</p>
@@ -569,7 +561,6 @@
 						</select>
 					</div>
 				</div>
-			{/if}
 
 			<DialogFooter>
 				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={isSaving}>

@@ -51,25 +51,17 @@
 		isLoading = false;
 		onContentChange?.(content);
 		await tick();
-		autoResize();
 	});
 
 	onDestroy(() => {
 		if (saveTimer) { clearTimeout(saveTimer); upsertAcuteText(patientId, content); }
 	});
 
-	function autoResize() {
-		if (!textareaEl) return;
-		textareaEl.style.height = 'auto';
-		textareaEl.style.height = textareaEl.scrollHeight + 'px';
-	}
-
 	function handleInput() {
 		saveStatus = 'idle';
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(save, 600);
 		onContentChange?.(content);
-		autoResize();
 		checkHashTrigger();
 	}
 
@@ -152,7 +144,7 @@
 	}
 </script>
 
-<div class="rounded-lg border border-red-200 dark:border-red-800 overflow-hidden">
+<div class="rounded-lg border border-red-200 dark:border-red-800 overflow-hidden h-full flex flex-col">
 
 	<!-- Title + save status -->
 	<div class="flex items-center justify-between px-4 pt-3 pb-1">
@@ -168,7 +160,7 @@
 
 	<!-- Auto-growing textarea -->
 	{#if isLoading}
-		<div class="h-20 animate-pulse bg-red-50/50 mx-4 mb-3 rounded"></div>
+		<div class="flex-1 min-h-[72px] animate-pulse bg-red-50/50 mx-4 mb-3 rounded"></div>
 	{:else}
 		<textarea
 			bind:this={textareaEl}
@@ -176,8 +168,7 @@
 			oninput={handleInput}
 			onkeydown={handleTextareaKeydown}
 			placeholder={i18n.t.patients.acuteProblemPlaceholder + '\n# to tag conditions'}
-			rows={3}
-			class="w-full max-w-full resize-none overflow-x-hidden px-4 py-2 text-sm bg-transparent outline-none
+			class="w-full max-w-full flex-1 min-h-[72px] resize-none overflow-x-hidden px-4 py-2 text-sm bg-transparent outline-none
 			       placeholder:text-red-300/50 leading-relaxed text-foreground focus:outline-none"
 		></textarea>
 	{/if}

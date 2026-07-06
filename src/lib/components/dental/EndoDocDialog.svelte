@@ -312,7 +312,7 @@
 
 						{#if isReadOnly}
 							<span class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-4">
-								{i18n.t.chart.snapshotReport?.readOnly ?? 'Schreibgeschützt'}
+								{i18n.t.chart.snapshotReport?.readOnly ?? 'Read-only'}
 							</span>
 						{/if}
 					</div>

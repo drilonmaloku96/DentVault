@@ -27,19 +27,6 @@ export async function pickDirectory(): Promise<string | null> {
 // ── Path resolution helpers ────────────────────────────────────────────
 
 /**
- * Convert an absolute file path to a vault-relative path by stripping the vault prefix.
- * Returns the relative portion, e.g. "Smith_John_PT001/xrays/scan.pdf".
- */
-export function toRelPath(absPath: string, vaultPath: string): string {
-	const norm = absPath.replace(/\\/g, '/');
-	const vaultNorm = vaultPath.replace(/\\/g, '/').replace(/\/$/, '');
-	if (norm.startsWith(vaultNorm + '/')) {
-		return norm.slice(vaultNorm.length + 1);
-	}
-	return norm; // fallback: return as-is
-}
-
-/**
  * Resolve a relative path to an absolute path using the current vault location.
  * If the input is already absolute (starts with / or drive letter), returns it as-is
  * for backward compatibility with legacy data.
@@ -107,11 +94,6 @@ export async function listVaultFiles(
 	patientFolder: string,
 ): Promise<VaultFileInfo[]> {
 	return invoke<VaultFileInfo[]>('list_vault_files', { vaultPath, patientFolder });
-}
-
-/** Create the patient folder + subfolders inside the vault. */
-export async function initPatientFolder(vaultPath: string, patientFolder: string): Promise<void> {
-	await invoke<void>('init_patient_folder', { vaultPath, patientFolder });
 }
 
 // ── !TEMPLATE folder ───────────────────────────────────────────────────
@@ -202,9 +184,59 @@ export async function deletePatientFolder(vaultPath: string, patientFolder: stri
 	await invoke<void>('delete_patient_folder', { vaultPath, patientFolder });
 }
 
+/** Rename a patient's folder in the vault. No-op if source missing; throws if target exists. */
+export async function renamePatientFolder(
+	vaultPath: string,
+	oldFolder: string,
+	newFolder: string,
+): Promise<void> {
+	await invoke<void>('rename_patient_folder', { vaultPath, oldFolder, newFolder });
+}
+
 /** Write a UTF-8 string to a file, creating parent directories as needed. */
 export async function writeTextFile(destPath: string, content: string): Promise<void> {
 	await invoke<void>('write_text_file', { destPath, content });
+}
+
+/**
+ * Copy a file from srcPath to destPath on disk, creating parent directories as needed.
+ * Returns the file size in bytes.
+ */
+export async function copyFileToVault(srcPath: string, destPath: string): Promise<number> {
+	return invoke<number>('copy_file_to_vault', { srcPath, destPath });
+}
+
+// ── Patient folder tree ────────────────────────────────────────────────────
+
+export interface FolderNode {
+	name: string;
+	rel_path: string;
+	children: FolderNode[];
+}
+
+/** Return the folder tree for a patient (category folders + subfolders). */
+export async function listPatientFolders(vaultPath: string, patientFolder: string): Promise<FolderNode[]> {
+	return invoke<FolderNode[]>('list_patient_folders', { vaultPath, patientFolder });
+}
+
+/** Create a new subfolder inside a patient's vault. Returns the new folder's rel_path. */
+export async function createPatientSubfolder(
+	vaultPath: string,
+	patientFolder: string,
+	parentRel: string,
+	folderName: string,
+): Promise<string> {
+	return invoke<string>('create_patient_subfolder', { vaultPath, patientFolder, parentRel, folderName });
+}
+
+/** Move a patient vault folder to a new parent folder. */
+export async function movePatientFolder(
+	vaultPath: string,
+	patientFolder: string,
+	srcRel: string,
+	destParentRel: string,
+): Promise<void> {
+	await invoke<void>('move_patient_folder', { vaultPath, patientFolder, srcRel, destParentRel });
 }
 
 /**
@@ -252,6 +284,8 @@ export function getMimeType(filename: string): string {
 		txt: 'text/plain',
 		csv: 'text/csv',
 		dcm: 'application/dicom',
+		tif: 'image/tiff',
+		tiff: 'image/tiff',
 	};
 	return map[ext] ?? 'application/octet-stream';
 }

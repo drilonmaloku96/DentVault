@@ -2,7 +2,7 @@
 	import { toLocalISODate } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import type { PatientDocument } from '$lib/types';
-	import { getDocuments, insertDocument, deleteDocument, insertTimelineEntry, deleteTimelineEntriesByDocumentId } from '$lib/services/db';
+	import { getDocuments, insertDocument, updateDocument, deleteDocument, insertTimelineEntry, deleteTimelineEntriesByDocumentId, updateTimelineEntryTitleByDocumentId } from '$lib/services/db';
 	import {
 		pickFile,
 		saveDocumentFile,
@@ -56,6 +56,38 @@
 	// Delete confirmation
 	let docToDelete = $state<PatientDocument | null>(null);
 	let isDeleting = $state(false);
+
+	// Edit metadata dialog
+	let docToEdit = $state<PatientDocument | null>(null);
+	let editName = $state('');
+	let editCategory = $state('');
+	let editNotes = $state('');
+	let isSavingEdit = $state(false);
+
+	function openEditDialog(doc: PatientDocument) {
+		docToEdit = doc;
+		editName = doc.original_name;
+		editCategory = doc.category;
+		editNotes = doc.notes;
+	}
+
+	async function handleEditSave() {
+		if (!docToEdit) return;
+		isSavingEdit = true;
+		try {
+			await updateDocument(docToEdit.id, {
+				original_name: editName.trim() || docToEdit.original_name,
+				category: editCategory,
+				notes: editNotes.trim(),
+			});
+			// Keep the mirrored timeline "document" entry's title in sync
+			await updateTimelineEntryTitleByDocumentId(docToEdit.id, editName.trim() || docToEdit.original_name);
+			docs = await getDocuments(patientId);
+			docToEdit = null;
+		} finally {
+			isSavingEdit = false;
+		}
+	}
 
 	// Build filter pill list reactively from the categories store
 	const filterPills = $derived([
@@ -256,7 +288,7 @@
 		{:else}
 			<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
 				{#each filteredDocs as doc (doc.id)}
-					<DocumentCard {doc} onDelete={(d) => (docToDelete = d)} />
+					<DocumentCard {doc} onEdit={openEditDialog} onDelete={(d) => (docToDelete = d)} />
 				{/each}
 			</div>
 		{/if}
@@ -336,6 +368,44 @@
 			<Button variant="outline" onclick={() => (docToDelete = null)} disabled={isDeleting}>{i18n.t.actions.cancel}</Button>
 			<Button variant="destructive" onclick={handleDeleteConfirm} disabled={isDeleting}>
 				{isDeleting ? i18n.t.common.loading : i18n.t.actions.delete}
+			</Button>
+		</DialogFooter>
+	</DialogContent>
+</Dialog>
+
+<!-- ── Edit Metadata ── -->
+<Dialog open={docToEdit !== null} onOpenChange={(o) => { if (!o) docToEdit = null; }}>
+	<DialogContent class="max-w-md">
+		<DialogHeader>
+			<DialogTitle>{i18n.t.documents.editTitle}</DialogTitle>
+			<DialogDescription>{i18n.t.documents.editHint}</DialogDescription>
+		</DialogHeader>
+
+		<div class="flex flex-col gap-4 py-2">
+			<div class="flex flex-col gap-1.5">
+				<Label class="text-xs">{i18n.t.documents.displayName}</Label>
+				<input type="text" class={inputClass} bind:value={editName} />
+			</div>
+
+			<div class="flex flex-col gap-1.5">
+				<Label class="text-xs">{i18n.t.documents.category}</Label>
+				<select class={inputClass} bind:value={editCategory}>
+					{#each docCategories.list as cat}
+						<option value={cat.key}>{cat.icon} {cat.label}</option>
+					{/each}
+				</select>
+			</div>
+
+			<div class="flex flex-col gap-1.5">
+				<Label class="text-xs">Notes <span class="text-muted-foreground">(optional)</span></Label>
+				<input type="text" class={inputClass} bind:value={editNotes} />
+			</div>
+		</div>
+
+		<DialogFooter>
+			<Button variant="outline" onclick={() => (docToEdit = null)} disabled={isSavingEdit}>{i18n.t.actions.cancel}</Button>
+			<Button onclick={handleEditSave} disabled={isSavingEdit || !editName.trim()}>
+				{isSavingEdit ? i18n.t.common.loading : i18n.t.actions.save}
 			</Button>
 		</DialogFooter>
 	</DialogContent>

@@ -12,6 +12,7 @@
 	import type { Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
 	import { activePatient } from '$lib/stores/activePatient.svelte';
+	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 	import { insertDocument, insertTimelineEntry } from '$lib/services/db';
 	import { docCategories } from '$lib/stores/categories.svelte';
 
@@ -175,6 +176,7 @@
 	// ── Mount ───────────────────────────────────────────────────────────
 
 	onMount(async () => {
+		cephSelection.clear(); // stale selection from a previous patient
 		if (!vault.path || !patientFolder) { isLoading = false; return; }
 		try {
 			const [result, tpl] = await Promise.all([
@@ -339,6 +341,14 @@
 	}
 
 	function openFile(f: VaultFileInfo) { openDocumentFile(f.abs_path); }
+
+	function selectFile(f: VaultFileInfo) {
+		cephSelection.toggle({
+			relPath: f.rel_path,
+			filename: f.filename,
+			patientId: patient.patient_id,
+		});
+	}
 
 	function openPatientFolder() {
 		if (!vault.path || !patientFolder) return;
@@ -630,17 +640,24 @@
 		{#if isOpen}
 			<div class="ml-[{depth > 0 ? (depth * 14) + 19 : 19}px] border-l-2 border-sidebar-border/50 pl-[10px] flex flex-col gap-0.5 pb-1">
 				{#each node.files as file (file.abs_path)}
+					{@const isSelected = cephSelection.isSelected(file.rel_path)}
 					<button
 						type="button"
+						onclick={() => selectFile(file)}
 						ondblclick={() => openFile(file)}
 						title="{file.filename}\n{formatFileSize(file.file_size)}"
-						class="flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left hover:bg-sidebar-accent/60 transition-colors group"
+						class={[
+							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group',
+							isSelected
+								? 'bg-sidebar-primary/15 ring-1 ring-sidebar-primary/40'
+								: 'hover:bg-sidebar-accent/60',
+						].join(' ')}
 					>
-						<svg class="h-3 w-3 shrink-0 text-muted-foreground/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+						<svg class="h-3 w-3 shrink-0 {isSelected ? 'text-sidebar-primary' : 'text-muted-foreground/70'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
 							<polyline points="14 2 14 8 20 8"/>
 						</svg>
-						<span class="flex-1 truncate text-[11px] text-sidebar-foreground font-mono">
+						<span class="flex-1 truncate text-[11px] font-mono {isSelected ? 'text-sidebar-primary font-semibold' : 'text-sidebar-foreground'}">
 							{file.filename}
 						</span>
 						<span class="shrink-0 text-[9px] text-muted-foreground/60 tabular-nums">

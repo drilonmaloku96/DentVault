@@ -18,6 +18,7 @@
 		date?: string;
 		extraRoomNames?: string[]; // additional rooms that will be booked on save
 		blockSelections?: DragSelection[]; // drag selections for block-time tab
+		dayAppointments?: Appointment[]; // all appointments on `date`, for conflict detection
 		onSave?: (data: AppointmentFormData & { patient_id: string }) => void;
 		onBlockSave?: (data: ScheduleBlockFormData[]) => void;
 		onDelete?: () => void;
@@ -33,6 +34,7 @@
 		date = toLocalISODate(),
 		extraRoomNames = [],
 		blockSelections = [],
+		dayAppointments = [],
 		onSave,
 		onBlockSave,
 		onDelete,
@@ -127,6 +129,11 @@
 	let showPatientDropdown = $state(false);
 	let highlightedIndex    = $state(-1);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+	let patientSearchEl = $state<HTMLInputElement | null>(null);
+
+	$effect(() => {
+		if (!appointment && !prefillPatientId) patientSearchEl?.focus();
+	});
 
 	$effect(() => {
 		if (prefillPatientId && !appointment && !patientDisplay) {
@@ -183,6 +190,8 @@
 			e.preventDefault();
 			selectPatient(patientResults[highlightedIndex]);
 		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			e.stopPropagation();
 			showPatientDropdown = false;
 			highlightedIndex = -1;
 		}
@@ -209,6 +218,23 @@
 
 	// ── Validity & save ──────────────────────────────────────────────────
 	const isValid = $derived(patientId && roomId && startTime && endTime && startTime < endTime);
+
+	// Booking conflict warning (non-blocking) — only meaningful while apptDate
+	// matches the day whose appointments were passed in; if the user retargets
+	// the form to another day we have no data to check against, so skip it.
+	const CONFLICT_TERMINAL_STATUSES = new Set(['cancelled', 'no_show']);
+	const conflictAppointment = $derived.by(() => {
+		if (apptDate !== date) return null;
+		if (!roomId || !startTime || !endTime) return null;
+		return dayAppointments.find((a) => {
+			if (a.id === appointment?.id) return false;
+			if (a.room_id !== roomId) return false;
+			if (CONFLICT_TERMINAL_STATUSES.has(a.status)) return false;
+			const aStart = a.start_time.slice(11, 16);
+			const aEnd = a.end_time.slice(11, 16);
+			return aStart < endTime && startTime < aEnd;
+		}) ?? null;
+	});
 
 	function handleSave() {
 		if (!isValid) return;
@@ -357,6 +383,7 @@
 				class={ic}
 				placeholder={i18n.t.schedule.searchPatients}
 				bind:value={patientSearchQuery}
+				bind:this={patientSearchEl}
 				oninput={onPatientInput}
 				onkeydown={onPatientKeydown}
 				onfocus={() => { if (patientResults.length > 0) showPatientDropdown = true; }}
@@ -476,10 +503,19 @@
 			</div>
 		{/if}
 
+		<!-- Booking conflict warning -->
+		{#if conflictAppointment}
+			{@const conflictName = `${conflictAppointment.patient_lastname ?? ''}, ${conflictAppointment.patient_firstname ?? ''}`}
+			{@const conflictTime = `${conflictAppointment.start_time.slice(11, 16)}–${conflictAppointment.end_time.slice(11, 16)}`}
+			<div class="rounded bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400">
+				⚠️ {i18n.t.schedule.conflictWarning.replace('{name}', conflictName).replace('{time}', conflictTime)}
+			</div>
+		{/if}
+
 		<!-- Multi-chair indicator -->
 		{#if extraRoomNames.length > 0}
 			<div class="rounded bg-primary/10 border border-primary/20 px-3 py-1.5 text-xs text-primary">
-				📋 {i18n.t.schedule.optional !== '' ? 'Also books:' : 'Also books:'} {extraRoomNames.join(', ')}
+				📋 {i18n.t.schedule.alsoBooks} {extraRoomNames.join(', ')}
 			</div>
 		{/if}
 

@@ -77,6 +77,12 @@
 			badge: null as number | null,
 		},
 		{
+			label: i18n.t.nav.patients,
+			href: '/patients',
+			icon: 'M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12.5 7a4 4 0 11-8 0 4 4 0 018 0zM20 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
+			badge: null as number | null,
+		},
+		{
 			label: i18n.t.nav.schedule,
 			href: '/schedule',
 			icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
@@ -85,7 +91,7 @@
 		{
 			label: i18n.t.nav.reports,
 			href: '/reports',
-			icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+			icon: 'M3 3v18h18M18 17V9M13 17V5M8 17v-3',
 			badge: null as number | null,
 		},
 	]);

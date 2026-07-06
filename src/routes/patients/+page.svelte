@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import PatientCard from '$lib/components/patient/PatientCard.svelte';
@@ -12,41 +12,49 @@
 	let isLoading = $state(true);
 	let searchQuery = $state('');
 	let error = $state('');
+	let searchInputEl = $state<HTMLInputElement | null>(null);
 
-	async function loadPatients() {
+	// Guards against out-of-order resolution when typing fast.
+	let requestToken = 0;
+
+	async function runSearch(query: string) {
+		const token = ++requestToken;
 		try {
 			isLoading = true;
 			error = '';
-			patients = await getAllPatients();
+			const results = query.trim() ? await searchPatients(query, false) : await getAllPatients();
+			if (token !== requestToken) return;
+			patients = results;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load patients';
+			if (token !== requestToken) return;
+			error = err instanceof Error ? err.message : 'Search failed';
 		} finally {
-			isLoading = false;
+			if (token === requestToken) isLoading = false;
 		}
 	}
 
-	const doSearch = debounce(async (query: string) => {
-		if (!query.trim()) {
-			await loadPatients();
-			return;
-		}
-		try {
-			isLoading = true;
-			patients = await searchPatients(query, false);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Search failed';
-		} finally {
-			isLoading = false;
-		}
-	}, 300);
+	const debouncedSearch = debounce(runSearch, 300);
 
 	$effect(() => {
-		doSearch(searchQuery);
+		const query = searchQuery;
+		// Skip the debounce for the empty query so first paint (and clearing
+		// the search box) isn't held up by a 300ms delay.
+		if (!query.trim()) {
+			runSearch(query);
+		} else {
+			debouncedSearch(query);
+		}
 	});
 
-	onMount(() => {
-		loadPatients();
+	$effect(() => {
+		searchInputEl?.focus();
 	});
+
+	function onSearchKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && patients.length === 1) {
+			goto('/patients/' + patients[0].patient_id);
+		}
+	}
 </script>
 
 <div class="flex flex-col gap-6">
@@ -98,6 +106,8 @@
 			placeholder={i18n.t.patients.search}
 			class="pl-10"
 			bind:value={searchQuery}
+			bind:ref={searchInputEl}
+			onkeydown={onSearchKeydown}
 		/>
 	</div>
 

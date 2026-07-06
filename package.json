@@ -10,7 +10,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"tauri": "tauri"
+		"tauri": "tauri",
+		"sync-ceph": "cd ../Cephalyzer/vite-project && npx vite build --mode electron && rm -rf ../../DentVault/static/cephalyzer && cp -r dist ../../DentVault/static/cephalyzer"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.11.0",

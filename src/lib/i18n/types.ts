@@ -1,11 +1,6 @@
 export type LangCode = 'en';
 
 export interface Translations {
-	meta: {
-		code: 'en';
-		name: string;
-	};
-
 	// ── Global actions ────────────────────────────────────────────────
 	actions: {
 		save: string; cancel: string; delete: string; edit: string;
@@ -23,6 +18,7 @@ export interface Translations {
 		date: string; notes: string; name: string; all: string; none: string;
 		unknown: string; yes: string; no: string; today: string;
 		legacy: string; examiner: string; doctor: string; tooth: string;
+		invalidDate: string; invalidEmail: string;
 	};
 
 	// ── Navigation ────────────────────────────────────────────────────
@@ -48,7 +44,7 @@ export interface Translations {
 			phone: string; email: string; address: string;
 			city: string; postalCode: string; country: string;
 			referralSource: string; smokingStatus: string; occupation: string;
-			allergies: string; bloodGroup: string;
+			allergies: string; bloodGroup: string; medications: string; riskFlags: string;
 			recall: string;
 			emergencyContactName: string; emergencyContactPhone: string; emergencyContactRelation: string;
 			primaryPhysician: string; maritalStatus: string;
@@ -68,6 +64,24 @@ export interface Translations {
 			personal: string; contact: string; address: string;
 			emergencyContact: string; insurance: string; clinical: string; demographics: string;
 		};
+		appointmentStats: {
+			title: string;
+			totalAppointments: string;
+			cancellations: string;
+			noShows: string;
+			avgPunctuality: string;
+			minutesLate: string;
+			minutesEarly: string;
+			punctual: string;
+			noData: string;
+			trackedOf: string;
+			avgWaitTime: string;
+			avgActualDuration: string;
+			avgDurationDeviation: string;
+			overPlanned: string;
+			underPlanned: string;
+			minutes: string;
+		};
 	};
 
 	// ── Timeline ──────────────────────────────────────────────────────
@@ -75,6 +89,10 @@ export interface Translations {
 		title: string; addEntry: string; noEntries: string;
 		filter: string; filterAll: string; loading: string; changeDate: string;
 		filterCategories: { files: string; documentation: string; charts: string };
+		typeLabels: {
+			unclassified: string; documents: string; chartSnapshots: string;
+			orthoRecords: string; plans: string; parSteps: string;
+		};
 		entry: {
 			category: string; outcome: string; toothNumbers: string;
 			doctor: string; colleagues: string; relatedEntry: string;
@@ -89,6 +107,22 @@ export interface Translations {
 			relatedEntry: string; pickEntry: string;
 		};
 		searchPlaceholder: string;
+		vaultDrop: {
+			dropOverlayTitle: string;
+			dropOverlaySubtitle: string;
+			title: string;
+			noFolders: string;
+			newFolder: string;
+			newSubfolder: string;
+			folderNamePlaceholder: string;
+			dropHereRoot: string;
+			saveHere: string;
+			saving: string;
+			loadFailed: string;
+			createFailed: string;
+			moveFailed: string;
+			saveFailed: string;
+		};
 		bar: {
 			typeSelect: string;
 			staffButton: string;
@@ -439,6 +473,8 @@ export interface Translations {
 		title: string; add: string; noDocuments: string;
 		category: string; openFile: string; deleteFile: string;
 		deleteConfirm: string; uploadTitle: string;
+		editFile: string; editTitle: string; displayName: string;
+		editHint: string;
 	};
 
 	// ── Dashboard ─────────────────────────────────────────────────────
@@ -460,6 +496,7 @@ export interface Translations {
 		typeColumn: string;
 		basedOnPatients: string;
 		providerOutcomes: string;
+		allEntries: string;
 		doctorActivity: string;
 		appointments: {
 			title: string;
@@ -517,12 +554,54 @@ export interface Translations {
 
 	// ── Reports ───────────────────────────────────────────────────────
 	reports: {
-		title: string; filters: string; exportCsv: string; exportJson: string; noResults: string;
-		quickFilterLabel: string;
-		quickThisWeek: string; quickThisMonth: string; quickThisYear: string;
 		columns: {
 			date: string; patient: string; category: string; outcome: string;
 			teeth: string; doctor: string; notes: string;
+		};
+		performance: {
+			title: string;
+			subtitle: string;
+			selectDoctor: string;
+			allDoctors: string;
+			noData: string;
+			loading: string;
+			quickThisMonth: string;
+			quickLast3Months: string;
+			quickThisYear: string;
+			kpi: {
+				total: string;
+				avgPerDay: string;
+				completionRate: string;
+				avgDeviation: string;
+				cancelled: string;
+				noShow: string;
+				avgPlanned: string;
+				avgActual: string;
+				workingDays: string;
+			};
+			monthlyTrend: string;
+			dowDistribution: string;
+			treatmentTypes: string;
+			comparisonTable: string;
+			colTotal: string;
+			colAvgPerDay: string;
+			colCompletion: string;
+			colCancelled: string;
+			colNoShow: string;
+			colAvgPlanned: string;
+			colAvgActual: string;
+			colDeviation: string;
+			colWorkingDays: string;
+			minutes: string;
+			days: string;
+			onTime: string;
+			overTime: string;
+			underTime: string;
+			completed: string;
+			cancelled: string;
+			noShow: string;
+			planned: string;
+			actual: string;
 		};
 	};
 
@@ -603,6 +682,8 @@ export interface Translations {
 			nonePresent: string;
 		};
 		printDay: string;
+		conflictWarning: string;
+		alsoBooks: string;
 	};
 
 	// ── Settings ──────────────────────────────────────────────────────
@@ -689,6 +770,10 @@ export interface Translations {
 			importWarning: string; importConfirm: string;
 			importSuccess: string; importError: string;
 			backupSuccess: string; backupError: string;
+		};
+		vaultIntegrity: {
+			title: string; description: string; run: string; running: string;
+			allGood: string; missingHeader: string; missingWarning: string;
 		};
 		about: { title: string; version: string; description: string };
 		fillingMaterials: {
@@ -822,9 +907,9 @@ export interface Translations {
 	// ── Complications ─────────────────────────────────────────────────
 	complications: {
 		title: string; add: string; resolve: string; delete: string;
-		noComplications: string; resolved: string;
+		noComplications: string; resolved: string; confirmDelete: string;
 		severity: { mild: string; moderate: string; severe: string };
-		fields: { type: string; severity: string; description: string };
+		fields: { type: string; severity: string; description: string; dateReported: string };
 		types: {
 			infection: string; dry_socket: string; nerve_damage: string;
 			hemorrhage: string; allergic_reaction: string; pain_persistent: string;
@@ -862,6 +947,9 @@ export interface Translations {
 		newAssessment: string; saveAssessment: string;
 		examDate: string; doctor: string;
 		noFindings: string; deleteAssessment: string; deleteConfirm: string;
+		leadingLabel: string; noFindingYet: string;
+		treatmentIndicated: string; borderlineNeed: string; noTreatmentNeed: string;
+		assessmentTitle: string;
 		mmLabel: string;
 
 		// IOTN — Dental Health Component
@@ -1064,6 +1152,8 @@ export interface Translations {
 			perio: string;
 			plans: string;
 			documents: string;
+			par: string;
+			appointments: string;
 		};
 		chooseFolder: string;
 		progress: {
@@ -1182,6 +1272,111 @@ export interface Translations {
 			hintNumbers: string;
 			hintTabEnter: string;
 			hintRightClick: string;
+			upperJaw: string;
+			lowerJaw: string;
+			maxPd: string;
+			meanPd: string;
+			sites2: string;
+			sites6: string;
+			mobility: string;
+			aitPlanned: string;
+			hintRecession: string;
+			hintPlaque: string;
+			hintNumbersShort: string;
+			hintShift: string;
+			hintClear: string;
+			hintNext: string;
+			teeth6: string;
 		};
+		risk: { stable: string; maintenance: string; highRisk: string };
+		views: { chart: string; table: string; compare: string };
+		hud: {
+			site: string;
+			progress: string;
+			boneMode: string;
+			pdMode: string;
+			recessionMode: string;
+			autoAdvance: string;
+			bop: string;
+			plaque: string;
+			start: string;
+			clickToStart: string;
+			tooth: string;
+		};
+		tooth: {
+			mobility: string;
+			furcation: string;
+			vitality: string;
+			vital: string;
+			nonVital: string;
+			status: string;
+			statusNone: string;
+			statusImplant: string;
+			statusDestroyed: string;
+			statusMissing: string;
+			aitPlanned: string;
+			cptPlanned: string;
+		};
+		chart: {
+			legend: string;
+			boneLevel: string;
+			clearBoneLine: string;
+			recession: string;
+			siteModeTip: string;
+		};
+		compare: {
+			title: string;
+			baseline: string;
+			bopDelta: string;
+			pdDelta: string;
+			calDelta: string;
+			improved: string;
+			worsened: string;
+			resolvedPockets: string;
+			noBaseline: string;
+		};
+		export: { sectionTitle: string; assessmentOf: string; noMeasurements: string };
+		anamnesis: {
+			title: string;
+			diabetes: string;
+			hba1c: string;
+			smoking: string;
+			smokingCpd: string;
+			smokingYears: string;
+			cardiovascular: string;
+			immunosuppression: string;
+			generalOther: string;
+			priorPar: string;
+			priorParYear: string;
+			familyHistory: string;
+			specificOther: string;
+			specialHistory: string;
+			assessorDone: string;
+			assessorDate: string;
+		};
+		upt: {
+			title: string;
+			session: string;
+			window: string;
+			delivered: string;
+			markDelivered: string;
+			noGrade: string;
+			noBaseDate: string;
+			status: {
+				delivered_on_time: string;
+				delivered_late: string;
+				delivered_early: string;
+				overdue: string;
+				upcoming: string;
+				future: string;
+			};
+		};
+	};
+	ceph: {
+		analyze: string;
+		button: string;
+		selectHint: string;
+		title: string;
+		loadFailed: string;
 	};
 }

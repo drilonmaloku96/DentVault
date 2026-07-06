@@ -7,6 +7,7 @@ import type {
 	Patient, TimelineEntry, ToothChartEntry, TreatmentPlan, TreatmentPlanItem,
 	OrthoClassification, OrthoAssessment, ProbingRecord, ProbingMeasurement, ProbingToothData,
 	PatientCondition, PatientDocument, Doctor, Complication, EndoRecord, ToothNote,
+	ParCase, ParAssessmentSnapshot, Appointment,
 } from '$lib/types';
 import {
 	getPatient, getTimelineEntries, getChartData, getTreatmentPlans, getTreatmentPlanItems,
@@ -14,10 +15,14 @@ import {
 	getPatientConditions, getDocuments, getDoctors, getComplications,
 	getAcuteText, getMedicalText, getMiscNotes, getAllEndoRecordsForPatient,
 	getAllToothNotesForPatient, getPatientTags,
+	getParCases, getParAssessments, loadParAssessmentSnapshot,
+	getAppointmentsForPatient,
 } from '$lib/services/db';
+import { computeAssessmentStats } from '$lib/utils/par-stats';
 import { renderChartSVG, type TagConfig, type BridgeRoleConfig, type ProsthesisTypeConfig, type FillingMaterialConfig } from '$lib/services/chart-svg-static';
 import { writeTextFile, copyPatientFolderTo } from '$lib/services/files';
 import { vault } from '$lib/stores/vault.svelte';
+import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
 import { toLocalISODate, toFDI, FDI_TOOTH_NAMES } from '$lib/utils';
 
 // ── Export data model ──────────────────────────────────────────────────────
@@ -35,6 +40,8 @@ export interface PatientExportOptions {
 		perio?: boolean;
 		plans?: boolean;
 		documents?: boolean;
+		par?: boolean;
+		appointments?: boolean;
 	};
 }
 
@@ -53,6 +60,7 @@ interface PatientExportData {
 	}>;
 	conditions: PatientCondition[];
 	documents: PatientDocument[];
+	appointments: Appointment[];
 	doctors: Doctor[];
 	complicationsByEntry: Map<number, Complication[]>;
 	acuteText: string;
@@ -63,6 +71,7 @@ interface PatientExportData {
 	endoRecords: EndoRecord[];
 	toothNotes: ToothNote[];
 	exportDate: string;
+	parData: Array<{ parCase: ParCase; snapshots: ParAssessmentSnapshot[] }>;
 }
 
 // ── Data gathering ─────────────────────────────────────────────────────────
@@ -71,7 +80,7 @@ export async function gatherExportData(
 	patientId: string,
 	options?: PatientExportOptions,
 ): Promise<PatientExportData> {
-	const [patient, allEntries, chartData, plans, ortho, probingRecords, conditions, documents, doctors] =
+	const [patient, allEntries, chartData, plans, ortho, probingRecords, conditions, documents, doctors, allAppointments] =
 		await Promise.all([
 			getPatient(patientId),
 			getTimelineEntries(patientId),
@@ -82,6 +91,7 @@ export async function gatherExportData(
 			getPatientConditions(patientId),
 			getDocuments(patientId),
 			getDoctors(),
+			getAppointmentsForPatient(patientId),
 		]);
 
 	// Ortho assessments are now stored as timeline entries (ortho_snapshot type)
@@ -105,6 +115,13 @@ export async function gatherExportData(
 
 	// Sort oldest-first for report
 	entries = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
+
+	// Appointments — respect the same date-range options as the timeline section.
+	// Sort descending by start_time (most recent visit history first).
+	let appointments = allAppointments;
+	if (options?.dateFrom) appointments = appointments.filter(a => a.start_time.slice(0, 10) >= options.dateFrom!);
+	if (options?.dateTo) appointments = appointments.filter(a => a.start_time.slice(0, 10) <= options.dateTo!);
+	appointments = [...appointments].sort((a, b) => b.start_time.localeCompare(a.start_time));
 
 	// Plan items
 	const planItems = new Map<string, TreatmentPlanItem[]>();
@@ -130,7 +147,7 @@ export async function gatherExportData(
 		if (comps.length > 0) complicationsByEntry.set(entry.id, comps);
 	}
 
-	const [acuteText, medicalText, miscNotes, acuteTags, medicalTags, endoRecords, toothNotes] = await Promise.all([
+	const [acuteText, medicalText, miscNotes, acuteTags, medicalTags, endoRecords, toothNotes, parCasesRaw] = await Promise.all([
 		getAcuteText(patientId),
 		getMedicalText(patientId),
 		getMiscNotes(patientId),
@@ -138,7 +155,16 @@ export async function gatherExportData(
 		getPatientTags(patientId, 'medical'),
 		getAllEndoRecordsForPatient(patientId),
 		getAllToothNotesForPatient(patientId),
+		getParCases(patientId),
 	]);
+
+	const parData = await Promise.all(
+		parCasesRaw.map(async (parCase) => {
+			const assessments = await getParAssessments(parCase.id);
+			const snapshots = await Promise.all(assessments.map(a => loadParAssessmentSnapshot(a.id)));
+			return { parCase, snapshots };
+		}),
+	);
 
 	return {
 		patient,
@@ -151,6 +177,7 @@ export async function gatherExportData(
 		probingRecords: probingFull,
 		conditions,
 		documents,
+		appointments,
 		doctors,
 		complicationsByEntry,
 		acuteText,
@@ -161,6 +188,7 @@ export async function gatherExportData(
 		endoRecords,
 		toothNotes,
 		exportDate: toLocalISODate(),
+		parData,
 	};
 }
 
@@ -180,27 +208,6 @@ function fmtDate(d: string): string {
 	const parts = d.split('T')[0].split('-');
 	if (parts.length !== 3) return d;
 	return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
-/** Valid FDI number: quadrants 1–4 positions 1–8, quadrants 5–8 positions 1–5. */
-function isValidFDIExport(n: number): boolean {
-	const q = Math.floor(n / 10);
-	const p = n % 10;
-	if (q >= 1 && q <= 4) return p >= 1 && p <= 8;
-	if (q >= 5 && q <= 8) return p >= 1 && p <= 5;
-	return false;
-}
-
-/**
- * Timeline tooth_numbers are stored in FDI notation (entry bar "dNN" detection);
- * legacy entries may contain Universal 1–32. Valid FDI values are kept as-is,
- * everything else is treated as Universal and converted for display.
- */
-function timelineToothToFDI(token: string): string {
-	const n = parseInt(token.trim(), 10);
-	if (isNaN(n)) return token.trim();
-	if (isValidFDIExport(n)) return String(n);
-	return String(toFDI(n));
 }
 
 function doctorName(doctorId: number | null, colleagues: string, doctors: Doctor[]): string {
@@ -484,7 +491,8 @@ function calcDMFTExport(entries: ToothChartEntry[]): { D: number; M: number; F: 
 			for (const v of Object.values(surfs)) {
 				const tag = getSurfTagFromExport(v);
 				if (tag === 'decayed' || tag === 'decayed_radiographic') hasDecayed = true;
-				if (tag === 'filled' || tag === 'inlay' || tag === 'inlay_planned') hasFilled = true;
+				// inlay_planned is excluded — a planned restoration is not yet an F
+				if (tag === 'filled' || tag === 'inlay') hasFilled = true;
 			}
 		} catch { /* skip */ }
 		if (hasDecayed) D++;
@@ -734,10 +742,30 @@ function renderTimeline(
 	let html = `<div class="section"><h2>Clinical Timeline</h2>`;
 
 	for (const entry of entries) {
+		// par_step entries render as a slim inline milestone row — no full entry box
+		if (entry.entry_type === 'par_step') {
+			let parMetaStr = '';
+			try {
+				const m = JSON.parse(entry.description ?? '{}') as { bop?: number; max_pocket?: number; risk?: string };
+				if (typeof m.bop === 'number') {
+					parMetaStr = ` · BOP ${m.bop.toFixed(0)}% · Max ${m.max_pocket ?? 0}mm · ${
+						m.risk === 'stable' ? 'Stable' : m.risk === 'high_risk' ? 'High risk' : 'Maintenance'
+					}`;
+				}
+			} catch { /* skip */ }
+			html += `<div class="entry avoid-break" style="border-left:3px solid #2dd4bf;padding-left:10px;background:none;border:none;border-left:3px solid #2dd4bf;">`;
+			html += `<div class="entry-header"><span class="entry-date">${fmtDate(entry.entry_date)}</span>`;
+			html += `<span class="entry-type" style="background:#f0fdfa;color:#0f766e;">PAR</span></div>`;
+			html += `<p class="entry-title" style="margin:2px 0;">✓ ${esc(entry.title)}${esc(parMetaStr)}</p>`;
+			html += `</div>`;
+			continue;
+		}
+
 		const isSnapshot = entry.entry_type === 'chart_snapshot';
 		const comps = complicationsByEntry.get(entry.id) ?? [];
 		const doctorStr = doctorName(entry.doctor_id, entry.colleague_ids, doctors);
-		const teeth = entry.tooth_numbers ? entry.tooth_numbers.split(',').map(timelineToothToFDI).join(', ') : '';
+		// Timeline tooth_numbers are FDI notation (normalized by the v66 migration)
+		const teeth = entry.tooth_numbers ? entry.tooth_numbers.split(',').map(t => t.trim()).join(', ') : '';
 
 		html += `<div class="entry avoid-break">`;
 		html += `<div class="entry-header">`;
@@ -856,6 +884,140 @@ function renderPerio(data: PatientExportData): string {
 	return html;
 }
 
+// ── PAR ────────────────────────────────────────────────────────────────────
+
+const PAR_STEP_LABEL: Record<string, string> = {
+	baseline:       'Baseline (PA)',
+	ait:            'AIT',
+	reevaluation:   'Re-evaluation (UPT)',
+	correction:     'Correction',
+	maintenance:    'UPT Maintenance',
+};
+
+const PAR_RISK_LABEL: Record<string, string> = {
+	stable:      'Stable',
+	maintenance: 'Maintenance',
+	high_risk:   'High risk',
+};
+
+const PAR_SITES_BUC = ['db', 'b', 'mb'] as const;
+const PAR_SITES_LIN = ['dl', 'l', 'ml'] as const;
+
+function renderPar(data: PatientExportData): string {
+	const { parData } = data;
+	if (parData.length === 0) return '';
+
+	let html = `<div class="section page-break"><h2>PAR Periodontal Treatment</h2>`;
+
+	for (const { parCase, snapshots } of parData) {
+		const gradeLabel = parCase.grade ? `Grade ${parCase.grade}` : '';
+		const caseLabel = gradeLabel || 'PAR Case';
+		const endStr = parCase.end_date ? ` – ${fmtDate(parCase.end_date)}` : '';
+		html += `<h3>${esc(caseLabel)}${endStr}</h3>`;
+
+		if (snapshots.length === 0) {
+			html += `<p class="empty">No measurements recorded.</p>`;
+			continue;
+		}
+
+		for (const snap of snapshots) {
+			const { assessment, measurements, toothData } = snap;
+			const stats = computeAssessmentStats(snap);
+			const typeLabel = PAR_STEP_LABEL[assessment.type] ?? assessment.type;
+
+			html += `<div class="perio-record avoid-break">`;
+			html += `<h4 style="margin:8px 0 4px;font-size:12px;font-weight:600;">${esc(typeLabel)} — ${fmtDate(assessment.exam_date)}</h4>`;
+
+			// Stats strip
+			html += `<p style="font-size:11px;color:#475569;margin:2px 0 6px;">` +
+				`BOP: <strong>${stats.bopPercent.toFixed(0)}%</strong> · ` +
+				`Max PD: <strong>${stats.maxPocket}mm</strong> · ` +
+				`Mean PD: <strong>${stats.meanPocket.toFixed(1)}mm</strong> · ` +
+				`CAL: <strong>${stats.cal.toFixed(1)}mm</strong> · ` +
+				`Risk: <strong>${PAR_RISK_LABEL[stats.riskLevel] ?? stats.riskLevel}</strong>` +
+				`</p>`;
+
+			if (measurements.length === 0) {
+				html += `<p class="empty">No measurements recorded.</p></div>`;
+				continue;
+			}
+
+			// Group measurements by tooth
+			const byTooth = new Map<number, typeof measurements>();
+			for (const m of measurements) {
+				const list = byTooth.get(m.tooth) ?? [];
+				list.push(m);
+				byTooth.set(m.tooth, list);
+			}
+
+			const sortedTeeth = [...byTooth.keys()].sort((a, b) => a - b);
+
+			html += `<table class="perio-table"><thead>
+				<tr>
+					<th>FDI</th>
+					<th colspan="3">Buccal (DB / B / MB)</th>
+					<th colspan="3">Lingual (DL / L / ML)</th>
+					<th>Mob</th>
+					<th>Furc</th>
+					<th>Flags</th>
+				</tr></thead><tbody>`;
+
+			for (const tooth of sortedTeeth) {
+				const meas = byTooth.get(tooth) ?? [];
+				const mmap = new Map(meas.map(m => [m.site, m]));
+				const td = toothData.find(t => t.tooth === tooth);
+				const status = td?.status ?? null;
+				const mob = td?.mobility ?? null;
+
+				const cellVal = (site: import('$lib/types').ParSite) => {
+					const m = mmap.get(site);
+					if (!m) return '—';
+					const pd = m.pocket;
+					const rec = m.recession;
+					const bop = m.bop;
+					if (pd == null) return '—';
+					const cls = pd >= 6 ? ' class="pd-severe"' : pd >= 4 ? ' class="pd-moderate"' : '';
+					const recStr = rec != null && rec > 0 ? `<span style="color:#64748b;font-size:0.85em">/${rec}</span>` : '';
+					const bopDot = bop > 0 ? (bop === 2 ? '◆' : '●') : '';
+					return `${pd}${recStr}${bopDot ? `<span style="color:#ef4444;font-size:8px">${bopDot}</span>` : ''}`;
+				};
+
+				const furcB = td?.furcation_b;
+				const furcM = td?.furcation_m;
+				const furcD = td?.furcation_d;
+				const furcStr = [
+					furcB != null && furcB > 0 ? `B:${furcB}` : '',
+					furcM != null && furcM > 0 ? `M:${furcM}` : '',
+					furcD != null && furcD > 0 ? `D:${furcD}` : '',
+				].filter(Boolean).join(' ') || '—';
+
+				const flags = [
+					status ? esc(status) : '',
+					td?.ait_planned ? 'AIT' : '',
+					td?.cpt_planned ? 'CPT' : '',
+					td?.vitality === 0 ? 'non-vital' : '',
+				].filter(Boolean).join(', ');
+
+				html += `<tr>
+					<th>${tooth}</th>
+					<td>${cellVal('db')}</td><td>${cellVal('b')}</td><td>${cellVal('mb')}</td>
+					<td>${cellVal('dl')}</td><td>${cellVal('l')}</td><td>${cellVal('ml')}</td>
+					<td>${mob != null ? ['0','I','II','III'][mob] ?? mob : '—'}</td>
+					<td>${furcStr}</td>
+					<td style="text-align:left;font-size:10px">${flags}</td>
+				</tr>`;
+			}
+
+			html += `</tbody></table>`;
+			html += `<p class="perio-legend">● BOP · ◆ Pus · /n = Recession · Mob = Mobility grade</p>`;
+			html += `</div>`;
+		}
+	}
+
+	html += '</div>';
+	return html;
+}
+
 // Procedure key → human-readable label for export
 const PROC_LABELS: Record<string, string> = {
 	plan_extract:         'Extraction',
@@ -951,16 +1113,33 @@ function renderPlans(data: PatientExportData): string {
 	return html;
 }
 
+function renderAppointments(data: PatientExportData): string {
+	const { appointments } = data;
+	if (appointments.length === 0) return '';
+
+	let html = `<div class="section page-break"><h2>Appointments</h2>`;
+	html += `<table class="doc-table"><thead><tr><th>Date</th><th>Time</th><th>Duration</th><th>Type</th><th>Doctor</th><th>Room</th><th>Status</th></tr></thead><tbody>`;
+	for (const a of appointments) {
+		const time = `${a.start_time.slice(11, 16)}–${a.end_time.slice(11, 16)}`;
+		const typeLabel = [a.type_icon, a.type_name].filter(Boolean).join(' ') || '—';
+		const statusCfg = appointmentStatuses.map[a.status];
+		const statusLabel = statusCfg?.label ?? a.status;
+		html += `<tr><td>${fmtDate(a.start_time)}</td><td>${esc(time)}</td><td>${a.duration_min} min</td><td>${esc(typeLabel)}</td><td>${esc(a.doctor_name ?? '—')}</td><td>${esc(a.room_name ?? '—')}</td><td>${esc(statusLabel)}</td></tr>`;
+	}
+	html += '</tbody></table></div>';
+	return html;
+}
+
 function renderDocuments(data: PatientExportData): string {
 	const { documents } = data;
 	if (documents.length === 0) return '';
 
 	let html = `<div class="section page-break"><h2>Document Index</h2>`;
-	html += `<table class="doc-table"><thead><tr><th>Filename</th><th>Category</th><th>Date</th><th>Path</th></tr></thead><tbody>`;
+	html += `<table class="doc-table"><thead><tr><th>Filename</th><th>Category</th><th>Date</th><th>Path</th><th>Notes</th></tr></thead><tbody>`;
 	for (const doc of documents) {
 		const catFolder = doc.rel_path.split('/').slice(-2, -1)[0] ?? doc.category;
 		const filename = doc.rel_path.split('/').pop() ?? doc.filename;
-		html += `<tr><td>${esc(doc.original_name || doc.filename)}</td><td>${esc(doc.category)}</td><td>${fmtDate(doc.created_at)}</td><td><code>${esc(catFolder + '/' + filename)}</code></td></tr>`;
+		html += `<tr><td>${esc(doc.original_name || doc.filename)}</td><td>${esc(doc.category)}</td><td>${fmtDate(doc.created_at)}</td><td><code>${esc(catFolder + '/' + filename)}</code></td><td>${esc(doc.notes || '')}</td></tr>`;
 	}
 	html += '</tbody></table></div>';
 	return html;
@@ -989,7 +1168,9 @@ export function generatePatientHTML(
 	if (data.endoRecords.length > 0) bodyParts.push(renderEndo(data));
 	if (all('timeline')) bodyParts.push(renderTimeline(data, tags, bridgeConfigs, prosthesisConfigs, fillingMaterialConfigs));
 	if (all('perio')) bodyParts.push(renderPerio(data));
+	if (all('par') && data.parData.length > 0) bodyParts.push(renderPar(data));
 	if (all('plans')) bodyParts.push(renderPlans(data));
+	if (all('appointments')) bodyParts.push(renderAppointments(data));
 	if (all('documents')) bodyParts.push(renderDocuments(data));
 
 	return `<!DOCTYPE html>

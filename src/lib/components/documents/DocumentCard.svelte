@@ -8,9 +8,11 @@
 
 	let {
 		doc,
+		onEdit,
 		onDelete,
 	}: {
 		doc: PatientDocument;
+		onEdit: (doc: PatientDocument) => void;
 		onDelete: (doc: PatientDocument) => void;
 	} = $props();
 
@@ -84,6 +86,16 @@
 				title="Open with default app"
 			>
 				{i18n.t.documents.openFile}
+			</button>
+			<button
+				type="button"
+				onclick={() => onEdit(doc)}
+				class="rounded-lg bg-white/90 dark:bg-black/70 text-foreground p-1.5 shadow hover:bg-white dark:hover:bg-black transition-colors"
+				title={i18n.t.documents.editFile}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+					<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+				</svg>
 			</button>
 			<button
 				type="button"

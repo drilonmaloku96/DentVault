@@ -9,6 +9,8 @@
 	import ParPathwayLane from './pathway/ParPathwayLane.svelte';
 	import ParAssessmentPanel from './assessment/ParAssessmentPanel.svelte';
 	import ParNewAssessmentDialog from './assessment/ParNewAssessmentDialog.svelte';
+	import ParAnamnesisDialog from './case/ParAnamnesisDialog.svelte';
+	import ParUptWidget from './case/ParUptWidget.svelte';
 
 	let { patientId }: { patientId: string } = $props();
 
@@ -21,6 +23,7 @@
 
 	let showNewCase      = $state(false);
 	let showNewStep      = $state(false);
+	let showAnamnesis    = $state(false);
 
 	// ── Derived ──────────────────────────────────────────────
 	const selectedCase       = $derived(cases.find(c => c.id === selectedCaseId) ?? null);
@@ -152,11 +155,23 @@
 			{#if selectedCase}
 				<!-- Case header (meta + actions) -->
 				<div class="rounded-xl border border-border bg-card px-4 py-3">
-					<ParCaseHeader
-						parCase={selectedCase}
-						onUpdated={onCaseUpdated}
-						onDeleted={onCaseDeleted}
-					/>
+					<div class="flex items-start justify-between gap-2">
+						<div class="flex-1 min-w-0">
+							<ParCaseHeader
+								parCase={selectedCase}
+								onUpdated={onCaseUpdated}
+								onDeleted={onCaseDeleted}
+							/>
+						</div>
+						<button
+							type="button"
+							onclick={() => showAnamnesis = true}
+							class="shrink-0 rounded-md border border-border bg-muted/30 hover:bg-muted px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+							title={i18n.t.par.anamnesis.title}
+						>
+							{i18n.t.par.anamnesis.title}
+						</button>
+					</div>
 				</div>
 
 				<!-- Pathway lane -->
@@ -172,15 +187,29 @@
 					/>
 				</div>
 
-				<!-- Assessment detail panel -->
+				<!-- UPT schedule -->
+				<div class="rounded-xl border border-border bg-card px-4 py-3">
+					<ParUptWidget
+						parCase={selectedCase}
+						{assessments}
+						locked={selectedCase.status === 'ended'}
+					/>
+				</div>
+
+				<!-- Assessment detail panel — keyed so ParChartState (created once per
+				     component instance) is rebuilt when the user switches steps or the
+				     lock state changes; without this, measurements typed after switching
+				     would be saved to the previously selected assessment -->
 				{#if selectedAssessment}
 					<div class="rounded-xl border border-border bg-card px-4 py-4">
-						<ParAssessmentPanel
-							assessment={selectedAssessment}
-							parCase={selectedCase}
-							onUpdated={onAssessmentUpdated}
-							onDeleted={onAssessmentDeleted}
-						/>
+						{#key `${selectedAssessment.id}:${selectedAssessment.locked}:${selectedCase.status}`}
+							<ParAssessmentPanel
+								assessment={selectedAssessment}
+								parCase={selectedCase}
+								onUpdated={onAssessmentUpdated}
+								onDeleted={onAssessmentDeleted}
+							/>
+						{/key}
 					</div>
 				{:else if assessments.length === 0 && selectedCase.status === 'active'}
 					<div class="rounded-xl border border-dashed border-muted-foreground/20 px-4 py-8 text-center">
@@ -206,5 +235,14 @@
 		parCase={selectedCase}
 		{assessments}
 		onCreated={onAssessmentCreated}
+	/>
+{/if}
+
+<!-- Anamnesis dialog -->
+{#if selectedCase}
+	<ParAnamnesisDialog
+		bind:open={showAnamnesis}
+		caseId={selectedCase.id}
+		locked={selectedCase.status === 'ended'}
 	/>
 {/if}

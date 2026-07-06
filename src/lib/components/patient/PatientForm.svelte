@@ -14,10 +14,12 @@
 		initialData = undefined,
 		onSubmit,
 		submitLabel = 'Save Patient',
+		cancelHref = '/patients',
 	}: {
 		initialData?: PatientFormData;
 		onSubmit: (data: PatientFormData) => Promise<void>;
 		submitLabel?: string;
+		cancelHref?: string;
 	} = $props();
 
 	// ── Form state ────────────────────────────────────────────────────
@@ -32,19 +34,47 @@
 	let dobDay   = $state(_dobParts.d);
 	let dobMonth = $state(_dobParts.mo);
 	let dobYear  = $state(_dobParts.y);
+	let dobInvalid = $state(false);
+
+	let dobDayEl   = $state<HTMLInputElement | null>(null);
+	let dobMonthEl = $state<HTMLInputElement | null>(null);
+	let dobYearEl  = $state<HTMLInputElement | null>(null);
 
 	function syncDob() {
-		const d = dobDay.padStart(2, '0');
-		const m = dobMonth.padStart(2, '0');
-		const y = dobYear;
-		if (d.length === 2 && m.length === 2 && y.length === 4 &&
-			parseInt(d) >= 1 && parseInt(d) <= 31 &&
-			parseInt(m) >= 1 && parseInt(m) <= 12 &&
-			parseInt(y) >= 1900) {
-			dob = `${y}-${m}-${d}`;
+		const anyFilled = dobDay !== '' || dobMonth !== '' || dobYear !== '';
+		const allFilled = dobDay !== '' && dobMonth !== '' && dobYear !== '';
+		if (!anyFilled) {
+			dob = '';
+			dobInvalid = false;
+			return;
+		}
+		if (!allFilled) {
+			dob = '';
+			dobInvalid = true;
+			return;
+		}
+		const d = parseInt(dobDay, 10);
+		const m = parseInt(dobMonth, 10);
+		const y = parseInt(dobYear, 10);
+		const test = new Date(y, m - 1, d);
+		const roundTrips = test.getFullYear() === y && test.getMonth() === m - 1 && test.getDate() === d;
+		if (roundTrips && y >= 1900) {
+			dob = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+			dobInvalid = false;
 		} else {
 			dob = '';
+			dobInvalid = true;
 		}
+	}
+
+	function onDobDayInput() {
+		syncDob();
+		if (dobDay.length === 2) dobMonthEl?.focus();
+	}
+
+	function onDobMonthInput() {
+		syncDob();
+		if (dobMonth.length === 2) dobYearEl?.focus();
 	}
 	let gender    = $state(untrack(() => initialData?.gender    ?? ''));
 	let marital_status = $state(untrack(() => initialData?.marital_status ?? ''));
@@ -69,6 +99,12 @@
 	let allergies = $state<string[]>(untrack(() => {
 		try { return JSON.parse(initialData?.allergies ?? '[]'); } catch { return []; }
 	}));
+	let medications = $state<string[]>(untrack(() => {
+		try { return JSON.parse(initialData?.medications ?? '[]'); } catch { return []; }
+	}));
+	let risk_flags = $state<string[]>(untrack(() => {
+		try { return JSON.parse(initialData?.risk_flags ?? '[]'); } catch { return []; }
+	}));
 
 	let referral_source  = $state(untrack(() => initialData?.referral_source  ?? ''));
 	let smoking_status   = $state(untrack(() => initialData?.smoking_status   ?? ''));
@@ -84,7 +120,8 @@
 		const errs: Record<string, string> = {};
 		if (!firstname.trim()) errs.firstname = i18n.t.common.required;
 		if (!lastname.trim())  errs.lastname  = i18n.t.common.required;
-		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = i18n.t.common.required;
+		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = i18n.t.common.invalidEmail;
+		if (dobInvalid) errs.dob = i18n.t.common.invalidDate;
 		errors = errs;
 		return Object.keys(errs).length === 0;
 	}
@@ -115,6 +152,8 @@
 				insurance_id:       insurance_id.trim()       || undefined,
 				primary_physician:  primary_physician.trim()  || undefined,
 				allergies: JSON.stringify(allergies),
+				medications: JSON.stringify(medications),
+				risk_flags: JSON.stringify(risk_flags),
 				referral_source:  referral_source.trim()  || undefined,
 				smoking_status:   smoking_status           || undefined,
 				occupation:       occupation.trim()        || undefined,
@@ -161,35 +200,42 @@
 					<div class="flex items-center gap-1">
 						<input
 							id="dob-day"
+							bind:this={dobDayEl}
 							type="text"
 							inputmode="numeric"
 							maxlength="2"
 							placeholder="DD"
 							bind:value={dobDay}
-							oninput={syncDob}
+							oninput={onDobDayInput}
+							aria-invalid={dobInvalid}
 							class="w-12 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
 						/>
 						<span class="text-muted-foreground text-sm">.</span>
 						<input
+							bind:this={dobMonthEl}
 							type="text"
 							inputmode="numeric"
 							maxlength="2"
 							placeholder="MM"
 							bind:value={dobMonth}
-							oninput={syncDob}
+							oninput={onDobMonthInput}
+							aria-invalid={dobInvalid}
 							class="w-12 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
 						/>
 						<span class="text-muted-foreground text-sm">.</span>
 						<input
+							bind:this={dobYearEl}
 							type="text"
 							inputmode="numeric"
 							maxlength="4"
 							placeholder="YYYY"
 							bind:value={dobYear}
 							oninput={syncDob}
+							aria-invalid={dobInvalid}
 							class="w-16 rounded-md border bg-background px-2 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
 						/>
 					</div>
+					{#if errors.dob}<p class="text-destructive text-xs">{errors.dob}</p>{/if}
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="gender">{i18n.t.patients.fields.gender}</Label>
@@ -323,6 +369,20 @@
 				variant="danger"
 				onUpdate={(items) => (allergies = items)}
 			/>
+			<ArrayFieldEditor
+				items={medications}
+				label={i18n.t.patients.fields.medications}
+				placeholder="e.g. Warfarin, Metformin"
+				variant="info"
+				onUpdate={(items) => (medications = items)}
+			/>
+			<ArrayFieldEditor
+				items={risk_flags}
+				label={i18n.t.patients.fields.riskFlags}
+				placeholder="e.g. Diabetic, Pregnant"
+				variant="warning"
+				onUpdate={(items) => (risk_flags = items)}
+			/>
 		</CardContent>
 	</Card>
 
@@ -372,6 +432,6 @@
 				{submitLabel}
 			{/if}
 		</Button>
-		<Button type="button" variant="outline" onclick={() => goto('/patients')}>{i18n.t.actions.cancel}</Button>
+		<Button type="button" variant="outline" onclick={() => goto(cancelHref)}>{i18n.t.actions.cancel}</Button>
 	</div>
 </form>

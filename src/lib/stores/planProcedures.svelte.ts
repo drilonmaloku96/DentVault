@@ -10,16 +10,16 @@ export interface PlanProcedureConfig {
 }
 
 export const DEFAULT_PLAN_PROCEDURES: PlanProcedureConfig[] = [
-	{ key: 'plan_extract',         label: 'Extraktion',       color: '#ef4444', abbr: 'E',  shortcut: 'e', isDefault: true },
-	{ key: 'plan_fill',            label: 'Füllung',          color: '#f59e0b', abbr: 'F',  shortcut: 'f', isDefault: true },
-	{ key: 'plan_crown',           label: 'Krone',            color: '#ea580c', abbr: 'K',  shortcut: 'k', isDefault: true },
-	{ key: 'plan_rct',             label: 'Wurzelbehandlung', color: '#0891b2', abbr: 'W',  shortcut: 'w', isDefault: true },
-	{ key: 'plan_bridge',          label: 'Brücke',           color: '#7c3aed', abbr: 'B',  shortcut: 'b', isDefault: true },
-	{ key: 'plan_implant',         label: 'Implantat',        color: '#059669', abbr: 'I',  shortcut: 'i', isDefault: true },
-	{ key: 'plan_veneer',          label: 'Veneer',           color: '#db2777', abbr: 'V',  shortcut: 'v', isDefault: true },
-	{ key: 'plan_partial_denture', label: 'Teilprothese',     color: '#9333ea', abbr: 'TP', shortcut: 'p', isDefault: true },
-	{ key: 'plan_full_denture',    label: 'Totalprothese',    color: '#6d28d9', abbr: 'TT', shortcut: 't', isDefault: true },
-	{ key: 'plan_watch',           label: 'Beobachten',       color: '#64748b', abbr: '?',  shortcut: 'q', isDefault: true },
+	{ key: 'plan_extract',         label: 'Extraction',           color: '#ef4444', abbr: 'E',  shortcut: 'e', isDefault: true },
+	{ key: 'plan_fill',            label: 'Filling',              color: '#f59e0b', abbr: 'F',  shortcut: 'f', isDefault: true },
+	{ key: 'plan_crown',           label: 'Crown',                color: '#ea580c', abbr: 'C',  shortcut: 'c', isDefault: true },
+	{ key: 'plan_rct',             label: 'Root canal treatment', color: '#0891b2', abbr: 'R',  shortcut: 'r', isDefault: true },
+	{ key: 'plan_bridge',          label: 'Bridge',               color: '#7c3aed', abbr: 'B',  shortcut: 'b', isDefault: true },
+	{ key: 'plan_implant',         label: 'Implant',              color: '#059669', abbr: 'I',  shortcut: 'i', isDefault: true },
+	{ key: 'plan_veneer',          label: 'Veneer',               color: '#db2777', abbr: 'V',  shortcut: 'v', isDefault: true },
+	{ key: 'plan_partial_denture', label: 'Partial denture',      color: '#9333ea', abbr: 'PD', shortcut: 'p', isDefault: true },
+	{ key: 'plan_full_denture',    label: 'Full denture',         color: '#6d28d9', abbr: 'FD', shortcut: 't', isDefault: true },
+	{ key: 'plan_watch',           label: 'Watch',                color: '#64748b', abbr: '?',  shortcut: 'q', isDefault: true },
 ];
 
 function createPlanProceduresStore() {

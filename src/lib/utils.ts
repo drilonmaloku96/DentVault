@@ -47,55 +47,49 @@ export type WithoutChildren<T> = Omit<T, 'children'>;
 export type WithoutChild<T> = Omit<T, 'child'>;
 export type WithoutChildrenOrChild<T> = Omit<T, 'children' | 'child'>;
 
-// ── FDI tooth notation (European/German standard) ──────────────────────────
-// Internal storage uses Universal 1–32; FDI is display-only.
+// ── FDI tooth notation (quadrant/tooth, e.g. 14 = quadrant 1, tooth 4) ─────
+// The dental chart tables store Universal 1–32 internally; FDI is display-only.
+// Timeline entries and entry_teeth store FDI directly.
 const U_TO_FDI: Record<number, number> = {
 	 1:18,  2:17,  3:16,  4:15,  5:14,  6:13,  7:12,  8:11,
 	 9:21, 10:22, 11:23, 12:24, 13:25, 14:26, 15:27, 16:28,
 	17:38, 18:37, 19:36, 20:35, 21:34, 22:33, 23:32, 24:31,
 	25:41, 26:42, 27:43, 28:44, 29:45, 30:46, 31:47, 32:48,
 };
-const FDI_TO_U: Record<number, number> = Object.fromEntries(
-	Object.entries(U_TO_FDI).map(([u, f]) => [f, Number(u)])
-);
 
 /** Convert Universal tooth number (1–32) → FDI two-digit number */
 export function toFDI(universal: number): number {
 	return U_TO_FDI[universal] ?? universal;
 }
-/** Convert FDI two-digit number → Universal tooth number (1–32) */
-export function fromFDI(fdi: number): number {
-	return FDI_TO_U[fdi] ?? fdi;
-}
 
 export const FDI_TOOTH_NAMES: Record<number, string> = {
-	18: 'OK rechts – 3. Molar (Weisheitszahn)', 17: 'OK rechts – 2. Molar', 16: 'OK rechts – 1. Molar',
-	15: 'OK rechts – 2. Prämolar',              14: 'OK rechts – 1. Prämolar', 13: 'OK rechts – Eckzahn',
-	12: 'OK rechts – Seitlicher Schneidezahn',  11: 'OK rechts – Mittlerer Schneidezahn',
-	21: 'OK links – Mittlerer Schneidezahn',    22: 'OK links – Seitlicher Schneidezahn',
-	23: 'OK links – Eckzahn',                   24: 'OK links – 1. Prämolar',
-	25: 'OK links – 2. Prämolar',               26: 'OK links – 1. Molar',
-	27: 'OK links – 2. Molar',                  28: 'OK links – 3. Molar (Weisheitszahn)',
-	38: 'UK links – 3. Molar (Weisheitszahn)',  37: 'UK links – 2. Molar', 36: 'UK links – 1. Molar',
-	35: 'UK links – 2. Prämolar',               34: 'UK links – 1. Prämolar', 33: 'UK links – Eckzahn',
-	32: 'UK links – Seitlicher Schneidezahn',   31: 'UK links – Mittlerer Schneidezahn',
-	41: 'UK rechts – Mittlerer Schneidezahn',   42: 'UK rechts – Seitlicher Schneidezahn',
-	43: 'UK rechts – Eckzahn',                  44: 'UK rechts – 1. Prämolar',
-	45: 'UK rechts – 2. Prämolar',              46: 'UK rechts – 1. Molar',
-	47: 'UK rechts – 2. Molar',                 48: 'UK rechts – 3. Molar (Weisheitszahn)',
+	18: 'Upper right – 3rd molar (wisdom tooth)', 17: 'Upper right – 2nd molar', 16: 'Upper right – 1st molar',
+	15: 'Upper right – 2nd premolar',             14: 'Upper right – 1st premolar', 13: 'Upper right – canine',
+	12: 'Upper right – lateral incisor',          11: 'Upper right – central incisor',
+	21: 'Upper left – central incisor',           22: 'Upper left – lateral incisor',
+	23: 'Upper left – canine',                    24: 'Upper left – 1st premolar',
+	25: 'Upper left – 2nd premolar',              26: 'Upper left – 1st molar',
+	27: 'Upper left – 2nd molar',                 28: 'Upper left – 3rd molar (wisdom tooth)',
+	38: 'Lower left – 3rd molar (wisdom tooth)',  37: 'Lower left – 2nd molar', 36: 'Lower left – 1st molar',
+	35: 'Lower left – 2nd premolar',              34: 'Lower left – 1st premolar', 33: 'Lower left – canine',
+	32: 'Lower left – lateral incisor',           31: 'Lower left – central incisor',
+	41: 'Lower right – central incisor',          42: 'Lower right – lateral incisor',
+	43: 'Lower right – canine',                   44: 'Lower right – 1st premolar',
+	45: 'Lower right – 2nd premolar',             46: 'Lower right – 1st molar',
+	47: 'Lower right – 2nd molar',                48: 'Lower right – 3rd molar (wisdom tooth)',
 	// Primary (deciduous) teeth
-	55: 'OK rechts – 2. Milchmolar',            54: 'OK rechts – 1. Milchmolar',
-	53: 'OK rechts – Milch-Eckzahn',            52: 'OK rechts – Seitl. Milchschneidezahn',
-	51: 'OK rechts – Mittl. Milchschneidezahn',
-	61: 'OK links – Mittl. Milchschneidezahn',  62: 'OK links – Seitl. Milchschneidezahn',
-	63: 'OK links – Milch-Eckzahn',             64: 'OK links – 1. Milchmolar',
-	65: 'OK links – 2. Milchmolar',
-	75: 'UK links – 2. Milchmolar',             74: 'UK links – 1. Milchmolar',
-	73: 'UK links – Milch-Eckzahn',             72: 'UK links – Seitl. Milchschneidezahn',
-	71: 'UK links – Mittl. Milchschneidezahn',
-	81: 'UK rechts – Mittl. Milchschneidezahn', 82: 'UK rechts – Seitl. Milchschneidezahn',
-	83: 'UK rechts – Milch-Eckzahn',            84: 'UK rechts – 1. Milchmolar',
-	85: 'UK rechts – 2. Milchmolar',
+	55: 'Upper right – 2nd primary molar',        54: 'Upper right – 1st primary molar',
+	53: 'Upper right – primary canine',           52: 'Upper right – lateral primary incisor',
+	51: 'Upper right – central primary incisor',
+	61: 'Upper left – central primary incisor',   62: 'Upper left – lateral primary incisor',
+	63: 'Upper left – primary canine',            64: 'Upper left – 1st primary molar',
+	65: 'Upper left – 2nd primary molar',
+	75: 'Lower left – 2nd primary molar',         74: 'Lower left – 1st primary molar',
+	73: 'Lower left – primary canine',            72: 'Lower left – lateral primary incisor',
+	71: 'Lower left – central primary incisor',
+	81: 'Lower right – central primary incisor',  82: 'Lower right – lateral primary incisor',
+	83: 'Lower right – primary canine',           84: 'Lower right – 1st primary molar',
+	85: 'Lower right – 2nd primary molar',
 };
 
 // ── FDI clinical charting order ────────────────────────────────────────────
@@ -131,18 +125,6 @@ export function getPrevTooth(universal: number): number | null {
 export function isPrimaryTooth(n: number): boolean {
 	return (n >= 51 && n <= 55) || (n >= 61 && n <= 65) ||
 	       (n >= 71 && n <= 75) || (n >= 81 && n <= 85);
-}
-
-/** Maps a primary tooth FDI number to its permanent successor's FDI number.
- *  Primary molars (54/55 etc.) are replaced by premolars (14/15 etc.). */
-const PRIMARY_TO_SUCCESSOR: Record<number, number> = {
-	51:11, 52:12, 53:13, 54:14, 55:15,
-	61:21, 62:22, 63:23, 64:24, 65:25,
-	71:31, 72:32, 73:33, 74:34, 75:35,
-	81:41, 82:42, 83:43, 84:44, 85:45,
-};
-export function primarySuccessorFDI(fdi: number): number | null {
-	return PRIMARY_TO_SUCCESSOR[fdi] ?? null;
 }
 
 /**

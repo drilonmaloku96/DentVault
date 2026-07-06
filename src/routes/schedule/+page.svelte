@@ -4,6 +4,7 @@
 	import { i18n } from '$lib/i18n';
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
 	import {
 		getAppointmentsForDate,
 		insertAppointment,
@@ -63,6 +64,17 @@
 	// All drag selections passed to BookingPanel for the block-time tab
 	let bookingBlockSelections = $state<DragSelection[]>([]);
 
+	// Closing the dialog via Escape/overlay click flips sheetOpen through bind:open,
+	// bypassing onClose — clear stale multi-room state here too so it can't leak
+	// into the next booking.
+	$effect(() => {
+		if (!sheetOpen) {
+			extraRoomIds = [];
+			bookingBlockSelections = [];
+			prefillEndTime = '';
+		}
+	});
+
 	// Patient context from URL — or fall back to the last-viewed patient in the store
 	const patientId = $derived(page.url.searchParams.get('patient') ?? activePatient.id ?? '');
 
@@ -102,12 +114,27 @@
 		}
 	}
 
-	// Alt key toggles the staff presence overlay
+	// Alt key toggles the staff presence overlay; t/ArrowLeft/ArrowRight navigate days.
+	// On macOS, Option is a text-input modifier (€, @, umlauts) — so skip all of this
+	// while a dialog is open or the user is typing in a form control.
 	$effect(() => {
 		function onKeyDown(e: KeyboardEvent) {
+			if (sheetOpen || blockEditOpen || staffDialogOpen) return;
+			const target = e.target as HTMLElement | null;
+			if (target && (target.matches('input, textarea, select, [contenteditable], [contenteditable="true"]'))) return;
+
 			if (e.key === 'Alt' && !e.repeat) {
 				e.preventDefault();
 				showPresenceOverlay = !showPresenceOverlay;
+				return;
+			}
+			if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+			if (e.key === 't' || e.key === 'T') {
+				goToday();
+			} else if (e.key === 'ArrowLeft') {
+				prevDay();
+			} else if (e.key === 'ArrowRight') {
+				nextDay();
 			}
 		}
 		window.addEventListener('keydown', onKeyDown);
@@ -155,6 +182,7 @@
 		const clickMin = h * 60 + m;
 		return appointments.some(a => {
 			if (a.room_id !== roomId) return false;
+			if (a.status === 'cancelled') return false;
 			const [sh, sm] = a.start_time.slice(11, 16).split(':').map(Number);
 			const [eh, em] = a.end_time.slice(11, 16).split(':').map(Number);
 			return clickMin >= sh * 60 + sm && clickMin < eh * 60 + em;
@@ -241,6 +269,11 @@
 		await deleteAppointment(selectedAppointment.id);
 		sheetOpen = false;
 		selectedAppointment = null;
+		await loadDay();
+	}
+
+	async function handleAppointmentDelete(appt: Appointment) {
+		await deleteAppointment(appt.id);
 		await loadDay();
 	}
 
@@ -335,16 +368,12 @@
 			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 		});
 
-		const statusLabel: Record<string, string> = {
-			scheduled:  i18n.t.schedule.statuses.scheduled,
-			completed:  i18n.t.schedule.statuses.completed,
-			cancelled:  i18n.t.schedule.statuses.cancelled,
-			no_show:    i18n.t.schedule.statuses.no_show,
-		};
-		const statusColor: Record<string, string> = {
-			scheduled: '#2563eb', completed: '#16a34a',
-			cancelled: '#dc2626', no_show: '#d97706',
-		};
+		const statusLabel: Record<string, string> = Object.fromEntries(
+			appointmentStatuses.list.map((s) => [s.key, s.label]),
+		);
+		const statusColor: Record<string, string> = Object.fromEntries(
+			appointmentStatuses.list.map((s) => [s.key, s.color]),
+		);
 
 		const sorted = [...appointments].sort((a, b) => a.start_time.localeCompare(b.start_time));
 
@@ -531,6 +560,7 @@
 					onAppointmentDoubleClick={handleAppointmentClick}
 				onAppointmentQuickUpdate={handleAppointmentQuickUpdate}
 					onAppointmentStatusChange={handleAppointmentStatusChange}
+					onAppointmentDelete={handleAppointmentDelete}
 					onDragCreate={handleDragCreate}
 					onBlockClick={handleBlockClick}
 					onBlockQuickUpdate={handleBlockQuickUpdate}
@@ -548,6 +578,7 @@
 					prefillEndTime={prefillEndTime}
 					prefillPatientId={patientId}
 					date={currentDate}
+					dayAppointments={appointments}
 					extraRoomNames={extraRoomIds.map((id) => rooms.active.find((r) => r.id === id)?.name ?? id)}
 					blockSelections={bookingBlockSelections}
 					onSave={handleSave}

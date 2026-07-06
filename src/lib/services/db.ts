@@ -16,8 +16,6 @@ import type {
 	PatientClassification,
 	ToothChartEntry,
 	ToothChartFormData,
-	ClinicalExam,
-	ClinicalExamFormData,
 	PatientDocument,
 	PatientDocumentFormData,
 	PatientStatusCounts,
@@ -25,10 +23,6 @@ import type {
 	OutcomeStat,
 	SuccessRateStat,
 	RecentEntry,
-	PatientNoteEntry,
-	MedicalEntry,
-	MedicalEntryType,
-	AcuteProblem,
 	Doctor,
 	DoctorFormData,
 	AuditEntityType,
@@ -39,8 +33,6 @@ import type {
 	ProbingMeasurement,
 	ProbingToothData,
 	AnalyticsFilters,
-	ReportFilters,
-	ReportEntry,
 	AppointmentRoom,
 	AppointmentRoomFormData,
 	AppointmentType,
@@ -48,6 +40,11 @@ import type {
 	Appointment,
 	AppointmentFormData,
 	AppointmentStatus,
+	PatientAppointmentStats,
+	DoctorTreatmentStat,
+	DoctorPerformanceKPI,
+	DoctorMonthlyTrend,
+	DoctorDowStat,
 	ScheduleBlock,
 	ScheduleBlockFormData,
 	StaffBlockout,
@@ -56,10 +53,6 @@ import type {
 	DoctorWorkingHoursFormData,
 	AbsenceStat,
 	AppointmentDoctorStat,
-	KigFinding,
-	KigGroupCode,
-	OrthoAssessment,
-	OrthoKigEntry,
 } from '$lib/types';
 
 // ── Schema / Migrations ────────────────────────────────────────────────
@@ -891,12 +884,140 @@ const SCHEMA_STATEMENTS: { version: number; sql: string }[] = [
 			UNION ALL SELECT 4, '08:00', '18:00', '12:00', '13:00', 1
 			UNION ALL SELECT 5, '08:00', '18:00', '12:00', '13:00', 1
 			UNION ALL SELECT 6, '08:00', '13:00', NULL, NULL, 1
-		) AS days(day_of_week, start_time, end_time, break_start, break_end, is_active)
+		) AS days
 		WHERE NOT EXISTS (SELECT 1 FROM doctor_working_hours WHERE doctor_id = d.id)
 	` },
+	// ^ v65 originally wrote `AS days(day_of_week, …)` — SQLite has no derived-table
+	//   column-list aliases, so the statement was a syntax error and never executed
+	//   anywhere. Fixed in place (allowed despite append-only rule: a migration that
+	//   never ran on any DB has no history to preserve). Column names come from the
+	//   first UNION branch.
+
+	// ── v66: FDI-only entry teeth — drop junction rows that cannot be FDI
+	//         (1–10; the TS data migration converts the source strings) ────────
+	{ version: 66, sql: `DELETE FROM entry_teeth WHERE tooth_number BETWEEN 1 AND 10` },
+
+	// ── v67: Fold invisible legacy tables into the structures the UI actually
+	//         reads, so data recorded under old app versions becomes visible.
+	//         Legacy tables are left in place (append-only philosophy) — they
+	//         just become inert after this. Pure SQL, safe on empty tables. ────
+	{ version: 67, sql: `
+		INSERT INTO patient_misc_notes (patient_id, content, updated_at)
+		SELECT patient_id, group_concat(line, char(10)), datetime('now')
+		FROM (
+			SELECT patient_id,
+			       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'') AS line
+			FROM patient_note_entries
+			ORDER BY patient_id, created_at, id
+		)
+		GROUP BY patient_id
+		ON CONFLICT(patient_id) DO UPDATE SET
+			content = CASE
+				WHEN patient_misc_notes.content = '' THEN excluded.content
+				WHEN substr(patient_misc_notes.content, -length(excluded.content)) = excluded.content THEN patient_misc_notes.content
+				ELSE patient_misc_notes.content || char(10) || excluded.content
+			END,
+			updated_at = CASE
+				WHEN substr(patient_misc_notes.content, -length(excluded.content)) = excluded.content THEN patient_misc_notes.updated_at
+				ELSE excluded.updated_at
+			END
+	` },
+	{ version: 67, sql: `
+		INSERT INTO patient_medical_text (patient_id, content, updated_at)
+		SELECT patient_id, group_concat(line, char(10)), datetime('now')
+		FROM (
+			SELECT patient_id,
+			       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'') AS line
+			FROM medical_entries
+			ORDER BY patient_id, created_at, id
+		)
+		GROUP BY patient_id
+		ON CONFLICT(patient_id) DO UPDATE SET
+			content = CASE
+				WHEN patient_medical_text.content = '' THEN excluded.content
+				WHEN substr(patient_medical_text.content, -length(excluded.content)) = excluded.content THEN patient_medical_text.content
+				ELSE patient_medical_text.content || char(10) || excluded.content
+			END,
+			updated_at = CASE
+				WHEN substr(patient_medical_text.content, -length(excluded.content)) = excluded.content THEN patient_medical_text.updated_at
+				ELSE excluded.updated_at
+			END
+	` },
+	{ version: 67, sql: `
+		INSERT INTO patient_acute_text (patient_id, content, updated_at)
+		SELECT patient_id, group_concat(line, char(10)), datetime('now')
+		FROM (
+			SELECT patient_id,
+			       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'')
+			       || CASE WHEN resolved = 1 THEN ' (resolved)' ELSE '' END AS line
+			FROM acute_problems
+			ORDER BY patient_id, created_at, id
+		)
+		GROUP BY patient_id
+		ON CONFLICT(patient_id) DO UPDATE SET
+			content = CASE
+				WHEN patient_acute_text.content = '' THEN excluded.content
+				WHEN substr(patient_acute_text.content, -length(excluded.content)) = excluded.content THEN patient_acute_text.content
+				ELSE patient_acute_text.content || char(10) || excluded.content
+			END,
+			updated_at = CASE
+				WHEN substr(patient_acute_text.content, -length(excluded.content)) = excluded.content THEN patient_acute_text.updated_at
+				ELSE excluded.updated_at
+			END
+	` },
+	{ version: 67, sql: `
+		INSERT INTO timeline_entries (
+			patient_id, entry_date, entry_type, title, provider, tooth_numbers, description,
+			diagnosis_codes, cpt_codes, attachments, treatment_category, treatment_outcome,
+			related_entry_id, created_at, updated_at
+		)
+		SELECT
+			ce.patient_id, ce.exam_date, '', 'Legacy clinical exam', '', '',
+			trim(
+				(CASE WHEN COALESCE(ce.exam_type,'') != '' THEN 'Exam type: ' || ce.exam_type || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(ce.examiner,'') != '' THEN 'Examiner: ' || ce.examiner || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(ce.chief_complaint,'') != '' THEN 'Chief complaint: ' || ce.chief_complaint || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(ce.findings,'') != '' THEN 'Findings: ' || ce.findings || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(ce.notes,'') != '' THEN 'Notes: ' || ce.notes ELSE '' END)
+			),
+			'[]', '[]', '[]', '', '', NULL, ce.created_at, ce.created_at
+		FROM clinical_exams ce
+		WHERE NOT EXISTS (
+			SELECT 1 FROM timeline_entries te
+			WHERE te.patient_id = ce.patient_id AND te.title = 'Legacy clinical exam' AND te.entry_date = ce.exam_date
+		)
+	` },
+	{ version: 67, sql: `
+		INSERT INTO timeline_entries (
+			patient_id, entry_date, entry_type, title, provider, tooth_numbers, description,
+			diagnosis_codes, cpt_codes, attachments, treatment_category, treatment_outcome,
+			related_entry_id, doctor_id, created_at, updated_at
+		)
+		SELECT
+			oa.patient_id, oa.exam_date, '', 'Legacy ortho assessment', '', '',
+			trim(
+				(CASE WHEN COALESCE(oa.dentition_stage,'') != '' THEN 'Dentition stage: ' || oa.dentition_stage || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.treatment_phase,'') != '' THEN 'Treatment phase: ' || oa.treatment_phase || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.angle_class,'') != '' THEN 'Angle class: ' || oa.angle_class || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.cvm_stage,0) != 0 THEN 'CVM stage: ' || oa.cvm_stage || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.facial_profile,'') != '' THEN 'Facial profile: ' || oa.facial_profile || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.treatment_recommendation,'') != '' THEN 'Recommendation: ' || oa.treatment_recommendation || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.findings,'') NOT IN ('', '[]') THEN 'Findings (raw): ' || oa.findings || char(10) ELSE '' END) ||
+				(CASE WHEN COALESCE(oa.notes,'') != '' THEN 'Notes: ' || oa.notes ELSE '' END)
+			),
+			'[]', '[]', '[]', '', '', NULL, oa.doctor_id, oa.created_at, oa.created_at
+		FROM ortho_assessments oa
+		WHERE NOT EXISTS (
+			SELECT 1 FROM timeline_entries te
+			WHERE te.patient_id = oa.patient_id AND te.title = 'Legacy ortho assessment' AND te.entry_date = oa.exam_date
+		)
+	` },
+	{ version: 68, sql: `ALTER TABLE appointments ADD COLUMN arrival_time TEXT DEFAULT NULL` },
+	{ version: 68, sql: `ALTER TABLE appointments ADD COLUMN treatment_start_time TEXT DEFAULT NULL` },
+	{ version: 68, sql: `ALTER TABLE appointments ADD COLUMN treatment_end_time TEXT DEFAULT NULL` },
 ];
 
-const LATEST_VERSION = 65;
+const LATEST_VERSION = 68;
 
 async function runMigrations(conn: Database): Promise<void> {
 	// Create the version tracking table
@@ -964,6 +1085,11 @@ async function runMigrations(conn: Database): Promise<void> {
 	if (versionsApplied.has(23) || versionsApplied.has(59) || current < 23) {
 		await migrateEntryTeeth(conn);
 	}
+
+	// ── v66 data migration: normalize legacy Universal tooth references to FDI ──
+	if (versionsApplied.has(66) || current < 66) {
+		await migrateUniversalTeethToFDI(conn);
+	}
 }
 
 /**
@@ -1026,15 +1152,12 @@ async function migrateAbsToRelPaths(conn: Database): Promise<void> {
 // ── Entry-teeth sync helper ────────────────────────────────────────────
 
 /**
- * Valid tooth identifiers for entry_teeth:
- * - FDI permanent: 11–18, 21–28, 31–38, 41–48 (canonical notation — what the
- *   timeline entry bar detects from "dNN" references)
+ * Valid tooth identifiers for entry_teeth — FDI (quadrant/tooth) notation only:
+ * - FDI permanent: 11–18, 21–28, 31–38, 41–48 (e.g. 14 = quadrant 1, tooth 4)
  * - FDI primary:   51–55, 61–65, 71–75, 81–85
- * - Legacy Universal 1–32 (older entries / keyword-engine suggestions)
  */
 export function isValidEntryTooth(n: number): boolean {
 	if (!Number.isInteger(n)) return false;
-	if (n >= 1 && n <= 32) return true; // legacy universal
 	const q = Math.floor(n / 10);
 	const p = n % 10;
 	if (q >= 1 && q <= 4) return p >= 1 && p <= 8; // FDI permanent
@@ -1060,6 +1183,41 @@ async function migrateEntryTeeth(conn: Database): Promise<void> {
 	}
 }
 
+// Universal 1–10 → FDI. Only 1–10 can be converted unambiguously: they are
+// invalid as FDI, so they must be legacy Universal. Values 11–32 are valid FDI
+// and are treated as such from v66 on.
+const V66_UNIVERSAL_TO_FDI: Record<number, number> = {
+	1: 18, 2: 17, 3: 16, 4: 15, 5: 14, 6: 13, 7: 12, 8: 11, 9: 21, 10: 22,
+};
+
+/**
+ * v66 data migration: normalize timeline_entries.tooth_numbers to FDI-only.
+ * Converts unambiguous legacy Universal tokens (1–10), drops anything that is
+ * not a valid FDI number, and re-syncs entry_teeth for changed rows.
+ */
+async function migrateUniversalTeethToFDI(conn: Database): Promise<void> {
+	const rows = await conn.select<{ id: number; tooth_numbers: string }[]>(
+		`SELECT id, tooth_numbers FROM timeline_entries WHERE tooth_numbers != '' AND tooth_numbers IS NOT NULL`,
+	);
+	for (const row of rows) {
+		const tokens = row.tooth_numbers
+			.split(',')
+			.map((t) => parseInt(t.trim(), 10))
+			.filter((n) => !isNaN(n));
+		const fdi = [...new Set(tokens.map((n) => V66_UNIVERSAL_TO_FDI[n] ?? n))]
+			.filter(isValidEntryTooth)
+			.sort((a, b) => a - b);
+		const normalized = fdi.join(', ');
+		if (normalized !== row.tooth_numbers) {
+			await conn.execute('UPDATE timeline_entries SET tooth_numbers = $1 WHERE id = $2', [
+				normalized,
+				row.id,
+			]);
+			await syncEntryTeeth(conn, row.id, normalized);
+		}
+	}
+}
+
 // ── DB singleton ───────────────────────────────────────────────────────
 
 let db: Database | null = null;
@@ -1072,8 +1230,13 @@ export function resetDb(): void {
 export async function getDb(): Promise<Database> {
 	if (!db) {
 		const url = await invoke<string>('get_db_url');
-		db = await Database.load(url);
-		await runMigrations(db);
+		const conn = await Database.load(url);
+		// Cache the handle only after migrations succeed — assigning `db` first
+		// meant a failing migration was thrown once, then every later call got
+		// the unmigrated DB and migrations were never retried (this is how the
+		// broken v65 silently froze production vaults at schema v64).
+		await runMigrations(conn);
+		db = conn;
 	}
 	return db;
 }
@@ -1104,9 +1267,9 @@ export async function insertPatient(data: PatientFormData): Promise<Patient> {
 		  insurance_provider, insurance_id, referral_source, smoking_status, occupation,
 		  address, city, postal_code, country,
 		  emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
-		  blood_group, primary_physician, marital_status,
+		  blood_group, primary_physician, marital_status, allergies, medications, risk_flags,
 		  created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)`,
 		[
 			patientId,
 			data.firstname,
@@ -1130,6 +1293,9 @@ export async function insertPatient(data: PatientFormData): Promise<Patient> {
 			data.blood_group ?? '',
 			data.primary_physician ?? '',
 			data.marital_status ?? '',
+			data.allergies ?? '[]',
+			data.medications ?? '[]',
+			data.risk_flags ?? '[]',
 			now,
 			now,
 		],
@@ -1141,10 +1307,17 @@ export async function insertPatient(data: PatientFormData): Promise<Patient> {
 	return rows[0];
 }
 
+const UPCOMING_APPOINTMENT_SUBQUERY = `
+	(SELECT MIN(a.start_time) FROM appointments a
+	  WHERE a.patient_id = p.patient_id
+	    AND a.start_time >= datetime('now','localtime')
+	    AND a.status NOT IN ('cancelled','no_show')) AS upcoming_appointment`;
+
 export async function getAllPatients(): Promise<Patient[]> {
 	const conn = await getDb();
 	return conn.select<Patient[]>(
-		"SELECT * FROM patients WHERE status != 'archived' ORDER BY lastname ASC, firstname ASC",
+		`SELECT p.*, ${UPCOMING_APPOINTMENT_SUBQUERY}
+		 FROM patients p WHERE status != 'archived' ORDER BY lastname ASC, firstname ASC`,
 	);
 }
 
@@ -1177,9 +1350,10 @@ async function getCurrentUser(): Promise<string> {
 
 export async function getPatient(patientId: string): Promise<Patient | null> {
 	const conn = await getDb();
-	const rows = await conn.select<Patient[]>('SELECT * FROM patients WHERE patient_id = $1', [
-		patientId,
-	]);
+	const rows = await conn.select<Patient[]>(
+		`SELECT p.*, ${UPCOMING_APPOINTMENT_SUBQUERY} FROM patients p WHERE patient_id = $1`,
+		[patientId],
+	);
 	return rows[0] ?? null;
 }
 
@@ -1198,6 +1372,7 @@ export async function updatePatient(
 	let idx = 1;
 
 	for (const [key, value] of Object.entries(data)) {
+		if (value === undefined) continue;
 		fields.push(`${key} = $${idx}`);
 		values.push(value);
 		idx++;
@@ -1221,6 +1396,7 @@ export async function updatePatient(
 			const changedBefore: Record<string, unknown> = {};
 			const changedAfter: Record<string, unknown> = {};
 			for (const [k, v] of Object.entries(data)) {
+				if (v === undefined) continue;
 				const prev = (before as unknown as Record<string, unknown>)[k];
 				if (prev !== v) {
 					changedBefore[k] = prev;
@@ -1298,17 +1474,20 @@ export async function deletePatient(patientId: string): Promise<void> {
 export async function searchPatients(query: string, includeArchived = false): Promise<Patient[]> {
 	const conn = await getDb();
 	const pattern = `%${query}%`;
+	const prefixPattern = `${query}%`;
 	const archivedClause = includeArchived ? '' : "AND status != 'archived'";
 	return conn.select<Patient[]>(
-		`SELECT * FROM patients
+		`SELECT p.*, ${UPCOMING_APPOINTMENT_SUBQUERY}
+		 FROM patients p
 		 WHERE (firstname LIKE $1 OR lastname LIKE $1 OR patient_id LIKE $1
 		   OR phone LIKE $1 OR email LIKE $1
 		   OR (firstname || ' ' || lastname) LIKE $1
 		   OR (lastname  || ' ' || firstname) LIKE $1
 		   OR (lastname  || ', ' || firstname) LIKE $1)
 		 ${archivedClause}
-		 ORDER BY lastname ASC, firstname ASC`,
-		[pattern],
+		 ORDER BY CASE WHEN lastname LIKE $2 THEN 0 WHEN firstname LIKE $2 THEN 1 ELSE 2 END,
+		          lastname ASC, firstname ASC`,
+		[pattern, prefixPattern],
 	);
 }
 
@@ -1366,6 +1545,16 @@ export async function deleteTimelineEntriesByDocumentId(documentId: number): Pro
 	await conn.execute('DELETE FROM timeline_entries WHERE document_id = $1', [documentId]);
 }
 
+/** Keep the mirrored "document" timeline entry's title in sync after a rename. */
+export async function updateTimelineEntryTitleByDocumentId(documentId: number, title: string): Promise<void> {
+	const conn = await getDb();
+	const now = nowISO();
+	await conn.execute(
+		'UPDATE timeline_entries SET title = $1, updated_at = $2 WHERE document_id = $3',
+		[title, now, documentId],
+	);
+}
+
 export async function getTimelineEntries(
 	patientId: string,
 	options?: { type?: string; limit?: number; offset?: number },
@@ -1403,28 +1592,25 @@ export async function getPriorProceduresForTooth(
 	excludeEntryId?: number,
 ): Promise<TimelineEntry[]> {
 	const conn = await getDb();
-	const teeth = toothNumbers.split(',').map(t => t.trim()).filter(Boolean);
+	// tooth_numbers strings are stored with ", " separators (entry bar / form),
+	// so LIKE matching on the raw column misses everything after the first tooth.
+	// The entry_teeth junction table is synced on every insert/update — query it instead.
+	const teeth = toothNumbers
+		.split(',')
+		.map(t => parseInt(t.trim(), 10))
+		.filter(n => !isNaN(n) && isValidEntryTooth(n));
 	if (teeth.length === 0) return [];
 
 	const params: unknown[] = [patientId];
 	let idx = 2;
 
-	const toothClauses = teeth.map(n => {
-		const clauses = [
-			`tooth_numbers = $${idx}`,
-			`tooth_numbers LIKE $${idx + 1}`,
-			`tooth_numbers LIKE $${idx + 2}`,
-			`tooth_numbers LIKE $${idx + 3}`,
-		];
-		params.push(n, `${n},%`, `%,${n},%`, `%,${n}`);
-		idx += 4;
-		return `(${clauses.join(' OR ')})`;
-	});
+	const toothPlaceholders = teeth.map(() => `$${idx++}`);
+	params.push(...teeth);
 
 	let sql = `SELECT * FROM timeline_entries
 	 WHERE patient_id = $1
 	   AND entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
-	   AND (${toothClauses.join(' OR ')})`;
+	   AND id IN (SELECT entry_id FROM entry_teeth WHERE tooth_number IN (${toothPlaceholders.join(', ')}))`;
 
 	if (beforeDate) {
 		sql += ` AND entry_date <= $${idx}`;
@@ -1609,15 +1795,6 @@ export async function getTreatmentPlans(patientId: string): Promise<TreatmentPla
 	);
 }
 
-export async function getTreatmentPlan(planId: string): Promise<TreatmentPlan | null> {
-	const conn = await getDb();
-	const rows = await conn.select<TreatmentPlan[]>(
-		'SELECT * FROM treatment_plans WHERE plan_id = $1',
-		[planId],
-	);
-	return rows[0] ?? null;
-}
-
 export async function updateTreatmentPlan(
 	planId: string,
 	data: Partial<TreatmentPlanFormData> & { status?: TreatmentPlanStatus; total_estimated_cost?: number },
@@ -1784,45 +1961,6 @@ export async function updatePlanChartData(planId: string, chartDataJson: string)
 	);
 }
 
-export async function upsertPlanChartItem(
-	planId: string,
-	toothNumberInt: number,
-	procedureType: string,
-	description: string,
-): Promise<void> {
-	const conn = await getDb();
-	const existing = await conn.select<TreatmentPlanItem[]>(
-		'SELECT * FROM treatment_plan_items WHERE plan_id = $1 AND tooth_number_int = $2',
-		[planId, toothNumberInt],
-	);
-	if (existing.length > 0) {
-		await conn.execute(
-			'UPDATE treatment_plan_items SET procedure_type = $1, description = $2 WHERE id = $3',
-			[procedureType, description, existing[0].id],
-		);
-	} else {
-		const countRows = await conn.select<{ n: number }[]>(
-			'SELECT COUNT(*) AS n FROM treatment_plan_items WHERE plan_id = $1',
-			[planId],
-		);
-		const nextOrder = (countRows[0]?.n ?? 0) + 1;
-		await conn.execute(
-			`INSERT INTO treatment_plan_items
-			  (plan_id, sequence_order, description, procedure_type, tooth_number_int, tooth_numbers, estimated_cost, status)
-			 VALUES ($1, $2, $3, $4, $5, $6, 0, 'pending')`,
-			[planId, nextOrder, description, procedureType, toothNumberInt, String(toothNumberInt)],
-		);
-	}
-}
-
-export async function deletePlanChartItem(planId: string, toothNumberInt: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute(
-		'DELETE FROM treatment_plan_items WHERE plan_id = $1 AND tooth_number_int = $2',
-		[planId, toothNumberInt],
-	);
-}
-
 // ── Ortho Classification CRUD ──────────────────────────────────────────
 
 export async function getOrthoClassification(patientId: string): Promise<OrthoClassification | null> {
@@ -1906,82 +2044,6 @@ export async function upsertOrthoClassification(
 			values,
 		);
 	}
-}
-
-// ── KIG Findings CRUD ─────────────────────────────────────────────────
-
-export async function getKigFindings(patientId: string): Promise<KigFinding[]> {
-	const conn = await getDb();
-	return conn.select<KigFinding[]>(
-		`SELECT * FROM kig_findings WHERE patient_id = $1 ORDER BY kig_group`,
-		[patientId],
-	);
-}
-
-export async function upsertKigFinding(
-	patientId: string,
-	kigGroup: KigGroupCode,
-	kigLevel: number,
-	measuredValue: number | null,
-	notes: string,
-): Promise<void> {
-	const conn = await getDb();
-	await conn.execute(
-		`INSERT INTO kig_findings (patient_id, kig_group, kig_level, measured_value, notes)
-		 VALUES ($1, $2, $3, $4, $5)
-		 ON CONFLICT(patient_id, kig_group) DO UPDATE SET
-		   kig_level = excluded.kig_level,
-		   measured_value = excluded.measured_value,
-		   notes = excluded.notes`,
-		[patientId, kigGroup, kigLevel, measuredValue, notes],
-	);
-}
-
-export async function deleteKigFinding(patientId: string, kigGroup: KigGroupCode): Promise<void> {
-	const conn = await getDb();
-	await conn.execute(
-		`DELETE FROM kig_findings WHERE patient_id = $1 AND kig_group = $2`,
-		[patientId, kigGroup],
-	);
-}
-
-// ── Ortho Assessment Snapshots ─────────────────────────────────────────
-
-export async function getOrthoAssessments(patientId: string): Promise<OrthoAssessment[]> {
-	const conn = await getDb();
-	type RawRow = Omit<OrthoAssessment, 'findings'> & { findings: string };
-	const rows = await conn.select<RawRow[]>(
-		`SELECT * FROM ortho_assessments WHERE patient_id = $1 ORDER BY exam_date DESC, created_at DESC`,
-		[patientId],
-	);
-	return rows.map((r) => ({ ...r, findings: JSON.parse(r.findings) as OrthoKigEntry[] }));
-}
-
-export async function saveOrthoAssessment(
-	patientId: string,
-	examDate: string,
-	doctorId: number | null,
-	findings: OrthoKigEntry[],
-	notes: string,
-	dentitionStage: string,
-	treatmentPhase: string,
-	angleClass: string,
-	cvmStage: number,
-	facialProfile: string,
-	treatmentRecommendation: string,
-): Promise<void> {
-	const conn = await getDb();
-	await conn.execute(
-		`INSERT INTO ortho_assessments
-		 (patient_id, exam_date, doctor_id, findings, notes, dentition_stage, treatment_phase, angle_class, cvm_stage, facial_profile, treatment_recommendation)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		[patientId, examDate, doctorId, JSON.stringify(findings), notes, dentitionStage, treatmentPhase, angleClass, cvmStage, facialProfile, treatmentRecommendation],
-	);
-}
-
-export async function deleteOrthoAssessment(id: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute(`DELETE FROM ortho_assessments WHERE id = $1`, [id]);
 }
 
 // ── Patient Classification CRUD ────────────────────────────────────────
@@ -2158,77 +2220,6 @@ export async function getBridgeGroup(
 	);
 }
 
-// ── Clinical Exams CRUD ────────────────────────────────────────────────
-
-export async function insertClinicalExam(
-	patientId: string,
-	data: ClinicalExamFormData,
-): Promise<ClinicalExam> {
-	const conn = await getDb();
-	const now = nowISO();
-
-	// Keep only the latest chart per day — delete any existing exam for the same patient + date
-	await conn.execute(
-		'DELETE FROM clinical_exams WHERE patient_id = $1 AND exam_date = $2',
-		[patientId, data.exam_date],
-	);
-
-	await conn.execute(
-		`INSERT INTO clinical_exams
-		  (patient_id, exam_date, exam_type, examiner, chief_complaint, findings, notes, created_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		[
-			patientId,
-			data.exam_date,
-			data.exam_type ?? 'full',
-			data.examiner ?? '',
-			data.chief_complaint ?? '',
-			data.findings ?? '',
-			data.notes ?? '',
-			now,
-		],
-	);
-
-	const rows = await conn.select<ClinicalExam[]>(
-		'SELECT * FROM clinical_exams WHERE patient_id = $1 ORDER BY id DESC LIMIT 1',
-		[patientId],
-	);
-	return rows[0];
-}
-
-export async function getClinicalExams(patientId: string): Promise<ClinicalExam[]> {
-	const conn = await getDb();
-	return conn.select<ClinicalExam[]>(
-		'SELECT * FROM clinical_exams WHERE patient_id = $1 ORDER BY exam_date DESC, id DESC',
-		[patientId],
-	);
-}
-
-export async function updateClinicalExam(
-	id: number,
-	data: Partial<ClinicalExamFormData>,
-): Promise<void> {
-	const conn = await getDb();
-	const fields: string[] = [];
-	const values: unknown[] = [];
-	let idx = 1;
-	for (const [key, value] of Object.entries(data)) {
-		fields.push(`${key} = $${idx}`);
-		values.push(value);
-		idx++;
-	}
-	values.push(id);
-	await conn.execute(
-		`UPDATE clinical_exams SET ${fields.join(', ')} WHERE id = $${idx}`,
-		values,
-	);
-}
-
-export async function deleteClinicalExam(id: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('DELETE FROM clinical_exams WHERE id = $1', [id]);
-}
-
 // ── Documents CRUD ─────────────────────────────────────────────────────
 
 export async function insertDocument(
@@ -2280,7 +2271,7 @@ export async function getDocuments(
 
 export async function updateDocument(
 	id: number,
-	data: Partial<Pick<PatientDocument, 'category' | 'notes'>>,
+	data: Partial<Pick<PatientDocument, 'category' | 'notes' | 'original_name'>>,
 ): Promise<void> {
 	const conn = await getDb();
 	const fields: string[] = [];
@@ -2295,6 +2286,23 @@ export async function updateDocument(
 	await conn.execute(
 		`UPDATE documents SET ${fields.join(', ')} WHERE id = $${idx}`,
 		values,
+	);
+}
+
+/**
+ * Repoint a patient's document paths after their vault folder was renamed.
+ * Folder names embed the patient ID, so a prefix collision inside the same
+ * path is not a realistic risk.
+ */
+export async function updateDocumentPathsForPatient(
+	patientId: string,
+	oldFolder: string,
+	newFolder: string,
+): Promise<void> {
+	const conn = await getDb();
+	await conn.execute(
+		`UPDATE documents SET rel_path = REPLACE(rel_path, $1, $2), abs_path = REPLACE(abs_path, $1, $2) WHERE patient_id = $3`,
+		[oldFolder, newFolder, patientId],
 	);
 }
 
@@ -2328,20 +2336,6 @@ export async function deleteDocument(id: number): Promise<void> {
 	}
 }
 
-/**
- * Return all relative file paths tracked in the documents table for a patient.
- * Used by the vault auto-scan to determine which on-disk files are already imported.
- * Falls back to abs_path for legacy rows that haven't been migrated yet.
- */
-export async function getTrackedFilePaths(patientId: string): Promise<string[]> {
-	const conn = await getDb();
-	const rows = await conn.select<{ rel_path: string; abs_path: string }[]>(
-		'SELECT rel_path, abs_path FROM documents WHERE patient_id = $1',
-		[patientId],
-	);
-	return rows.map((r) => r.rel_path || r.abs_path);
-}
-
 // ── Analytics / Dashboard ──────────────────────────────────────────────
 
 export async function getPatientStatusCounts(): Promise<PatientStatusCounts> {
@@ -2355,18 +2349,6 @@ export async function getPatientStatusCounts(): Promise<PatientStatusCounts> {
 		[],
 	);
 	return rows[0] ?? { total: 0, active: 0, inactive: 0, archived: 0 };
-}
-
-export async function getProcedureCountThisMonth(): Promise<number> {
-	const conn = await getDb();
-	const rows = await conn.select<{ count: number }[]>(
-		`SELECT COUNT(*) as count FROM timeline_entries
-		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
-		   AND entry_date >= date('now', 'start of month')
-		   AND entry_date <= date('now')`,
-		[],
-	);
-	return rows[0]?.count ?? 0;
 }
 
 export async function getCategoryStats(): Promise<CategoryStat[]> {
@@ -2403,8 +2385,7 @@ export async function getOverallSuccessRate(): Promise<SuccessRateStat> {
 		  COUNT(*) as total_with_outcome
 		 FROM timeline_entries
 		 WHERE entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')
-		   AND treatment_outcome != ''
-		   AND treatment_outcome != 'unknown'`,
+		   AND treatment_outcome NOT IN ('', 'unknown', 'ongoing')`,
 		[],
 	);
 	return rows[0] ?? { successful: 0, total_with_outcome: 0 };
@@ -2477,125 +2458,6 @@ export async function bulkSetSettings(entries: { key: string; value: string }[])
 			[key, value],
 		);
 	}
-}
-
-// ── Patient Note Entries CRUD ──────────────────────────────────────────
-
-export async function getNoteEntries(patientId: string): Promise<PatientNoteEntry[]> {
-	const conn = await getDb();
-	return conn.select<PatientNoteEntry[]>(
-		'SELECT * FROM patient_note_entries WHERE patient_id = $1 ORDER BY created_at ASC, id ASC',
-		[patientId],
-	);
-}
-
-export async function insertNoteEntry(patientId: string, content: string): Promise<PatientNoteEntry> {
-	const conn = await getDb();
-	const now = nowISO();
-	await conn.execute(
-		'INSERT INTO patient_note_entries (patient_id, content, created_at) VALUES ($1, $2, $3)',
-		[patientId, content, now],
-	);
-	const rows = await conn.select<PatientNoteEntry[]>(
-		'SELECT * FROM patient_note_entries WHERE patient_id = $1 ORDER BY id DESC LIMIT 1',
-		[patientId],
-	);
-	return rows[0];
-}
-
-export async function deleteNoteEntry(id: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('DELETE FROM patient_note_entries WHERE id = $1', [id]);
-}
-
-// ── Medical Entries CRUD ───────────────────────────────────────────────
-
-export async function getMedicalEntries(patientId: string): Promise<MedicalEntry[]> {
-	const conn = await getDb();
-	return conn.select<MedicalEntry[]>(
-		'SELECT * FROM medical_entries WHERE patient_id = $1 ORDER BY created_at ASC, id ASC',
-		[patientId],
-	);
-}
-
-export async function insertMedicalEntry(
-	patientId: string,
-	content: string,
-	entry_type: MedicalEntryType = 'note',
-	createdAt?: string,
-): Promise<MedicalEntry> {
-	const conn = await getDb();
-	const ts = createdAt ?? nowISO();
-	await conn.execute(
-		'INSERT INTO medical_entries (patient_id, content, entry_type, created_at) VALUES ($1, $2, $3, $4)',
-		[patientId, content, entry_type, ts],
-	);
-	const rows = await conn.select<MedicalEntry[]>(
-		'SELECT * FROM medical_entries WHERE patient_id = $1 ORDER BY id DESC LIMIT 1',
-		[patientId],
-	);
-	return rows[0];
-}
-
-export async function deleteMedicalEntry(id: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('DELETE FROM medical_entries WHERE id = $1', [id]);
-}
-
-export async function updateMedicalEntryDate(id: number, createdAt: string): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('UPDATE medical_entries SET created_at = $1 WHERE id = $2', [createdAt, id]);
-}
-
-// ── Acute Problems CRUD ────────────────────────────────────────────────
-
-export async function getAcuteProblems(patientId: string): Promise<AcuteProblem[]> {
-	const conn = await getDb();
-	return conn.select<AcuteProblem[]>(
-		'SELECT * FROM acute_problems WHERE patient_id = $1 ORDER BY resolved ASC, created_at DESC, id DESC',
-		[patientId],
-	);
-}
-
-export async function insertAcuteProblem(
-	patientId: string,
-	content: string,
-	createdAt?: string,
-): Promise<AcuteProblem> {
-	const conn = await getDb();
-	const ts = createdAt ?? nowISO();
-	await conn.execute(
-		'INSERT INTO acute_problems (patient_id, content, resolved, created_at) VALUES ($1, $2, 0, $3)',
-		[patientId, content, ts],
-	);
-	const rows = await conn.select<AcuteProblem[]>(
-		'SELECT * FROM acute_problems WHERE patient_id = $1 ORDER BY id DESC LIMIT 1',
-		[patientId],
-	);
-	return rows[0];
-}
-
-export async function resolveAcuteProblem(id: number, resolved: boolean): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('UPDATE acute_problems SET resolved = $1 WHERE id = $2', [resolved ? 1 : 0, id]);
-}
-
-export async function deleteAcuteProblem(id: number): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('DELETE FROM acute_problems WHERE id = $1', [id]);
-}
-
-export async function updateAcuteProblemDate(id: number, createdAt: string): Promise<void> {
-	const conn = await getDb();
-	await conn.execute('UPDATE acute_problems SET created_at = $1 WHERE id = $2', [createdAt, id]);
-}
-
-// ── Timeline: unlock chart snapshot ───────────────────────────────────
-
-export async function unlockTimelineEntry(id: number): Promise<void> {
-	const conn = await getDb();
-	const now = nowISO();
-	await conn.execute('UPDATE timeline_entries SET is_locked = 0, updated_at = $1 WHERE id = $2', [now, id]);
 }
 
 export async function updateSnapshotChartData(id: number, chartData: string): Promise<void> {
@@ -2848,6 +2710,12 @@ export async function recordChartHistory(patientId: string, snapshotEntryId: num
 	}
 }
 
+/** Remove history rows tied to a snapshot entry (used when a same-day snapshot is replaced). */
+export async function deleteChartHistoryForSnapshot(snapshotEntryId: number): Promise<void> {
+	const conn = await getDb();
+	await conn.execute('DELETE FROM dental_chart_history WHERE snapshot_entry_id = $1', [snapshotEntryId]);
+}
+
 export async function getToothHistory(patientId: string, toothNumber: number): Promise<DentalChartHistoryEntry[]> {
 	const conn = await getDb();
 	return conn.select<DentalChartHistoryEntry[]>(
@@ -2982,161 +2850,7 @@ export async function getProbingToothData(recordId: number): Promise<ProbingToot
 	);
 }
 
-// ── Reports / Filtered queries ─────────────────────────────────────────
-
-export async function getFilteredEntries(filters: ReportFilters): Promise<ReportEntry[]> {
-	const conn = await getDb();
-	const params: unknown[] = [];
-	let idx = 1;
-	const clauses: string[] = [];
-
-	if (filters.dateFrom) {
-		clauses.push(`te.entry_date >= $${idx}`);
-		params.push(filters.dateFrom);
-		idx++;
-	}
-	if (filters.dateTo) {
-		clauses.push(`te.entry_date <= $${idx}`);
-		params.push(filters.dateTo);
-		idx++;
-	}
-	if (filters.doctorId !== undefined && filters.doctorId !== null) {
-		clauses.push(`te.doctor_id = $${idx}`);
-		params.push(filters.doctorId);
-		idx++;
-	}
-	if (filters.categories && filters.categories.length > 0) {
-		const placeholders = filters.categories.map(() => `$${idx++}`);
-		clauses.push(`te.treatment_category IN (${placeholders.join(', ')})`);
-		params.push(...filters.categories);
-	}
-	if (filters.outcomes && filters.outcomes.length > 0) {
-		const placeholders = filters.outcomes.map(() => `$${idx++}`);
-		clauses.push(`te.treatment_outcome IN (${placeholders.join(', ')})`);
-		params.push(...filters.outcomes);
-	}
-	if (filters.toothNumbers && filters.toothNumbers.length > 0) {
-		const toothClauses = filters.toothNumbers.map(n => {
-			const c = [
-				`te.tooth_numbers = $${idx}`,
-				`te.tooth_numbers LIKE $${idx + 1}`,
-				`te.tooth_numbers LIKE $${idx + 2}`,
-				`te.tooth_numbers LIKE $${idx + 3}`,
-			];
-			params.push(String(n), `${n},%`, `%,${n},%`, `%,${n}`);
-			idx += 4;
-			return `(${c.join(' OR ')})`;
-		});
-		clauses.push(`(${toothClauses.join(' OR ')})`);
-	}
-
-	const whereClause = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
-
-	return conn.select<ReportEntry[]>(
-		`SELECT te.id, te.patient_id,
-		        (p.lastname || ', ' || p.firstname) as patient_name,
-		        te.entry_date, te.entry_type, te.title,
-		        te.treatment_category, te.treatment_outcome,
-		        te.tooth_numbers, te.description,
-		        COALESCE(d.name, '') as doctor_name
-		 FROM timeline_entries te
-		 JOIN patients p ON te.patient_id = p.patient_id
-		 LEFT JOIN doctors d ON te.doctor_id = d.id
-		 ${whereClause}
-		 ORDER BY te.entry_date DESC, te.id DESC
-		 LIMIT 1000`,
-		params,
-	);
-}
-
-export async function getFilteredSummary(filters: ReportFilters): Promise<{
-	total: number;
-	byCategory: CategoryStat[];
-	byOutcome: { outcome: string; count: number }[];
-	byProvider: { doctor_name: string; total: number; successful: number }[];
-}> {
-	const entries = await getFilteredEntries(filters);
-	const total = entries.length;
-
-	const catMap = new Map<string, number>();
-	const outcomeMap = new Map<string, number>();
-	const providerMap = new Map<string, { total: number; successful: number }>();
-
-	for (const e of entries) {
-		if (e.treatment_category) {
-			catMap.set(e.treatment_category, (catMap.get(e.treatment_category) ?? 0) + 1);
-		}
-		if (e.treatment_outcome) {
-			outcomeMap.set(e.treatment_outcome, (outcomeMap.get(e.treatment_outcome) ?? 0) + 1);
-		}
-		if (e.doctor_name) {
-			const p = providerMap.get(e.doctor_name) ?? { total: 0, successful: 0 };
-			p.total++;
-			if (e.treatment_outcome === 'successful') p.successful++;
-			providerMap.set(e.doctor_name, p);
-		}
-	}
-
-	const byCategory: CategoryStat[] = [...catMap.entries()]
-		.map(([category, count]) => ({ category, count }))
-		.sort((a, b) => b.count - a.count);
-
-	const byOutcome = [...outcomeMap.entries()]
-		.map(([outcome, count]) => ({ outcome, count }))
-		.sort((a, b) => b.count - a.count);
-
-	const byProvider = [...providerMap.entries()]
-		.map(([doctor_name, stats]) => ({ doctor_name, ...stats }))
-		.sort((a, b) => b.total - a.total);
-
-	return { total, byCategory, byOutcome, byProvider };
-}
-
-export async function getPatientSummary(patientId: string): Promise<import('../types').PatientSummary> {
-	const conn = await getDb();
-	const [timelineRows, recentEntries, planRows, documentRows, perioRows, conditionRows, acuteTagRows, medicalTagRows] = await Promise.all([
-		conn.select<[{ count: number }]>(
-			`SELECT COUNT(*) as count FROM timeline_entries WHERE patient_id = $1 AND entry_type != 'document'`,
-			[patientId],
-		),
-		conn.select<import('../types').PatientSummaryEntry[]>(
-			`SELECT id, entry_date, title, entry_type, treatment_category FROM timeline_entries WHERE patient_id = $1 AND entry_type != 'document' ORDER BY entry_date DESC, id DESC LIMIT 4`,
-			[patientId],
-		),
-		conn.select<[{ total: number; active: number }]>(
-			`SELECT COUNT(*) as total, SUM(CASE WHEN status IN ('active','draft') THEN 1 ELSE 0 END) as active FROM treatment_plans WHERE patient_id = $1`,
-			[patientId],
-		),
-		conn.select<[{ count: number }]>(
-			`SELECT COUNT(*) as count FROM documents WHERE patient_id = $1`,
-			[patientId],
-		),
-		conn.select<[{ count: number; last_date: string | null }]>(
-			`SELECT COUNT(*) as count, MAX(exam_date) as last_date FROM probing_records WHERE patient_id = $1`,
-			[patientId],
-		),
-		conn.select<[{ count: number }]>(
-			`SELECT COUNT(*) as count FROM patient_conditions WHERE patient_id = $1 AND is_active = 1`,
-			[patientId],
-		),
-		conn.select<{ tag: string }[]>(`SELECT tag FROM patient_acute_tags WHERE patient_id = $1`, [patientId]),
-		conn.select<{ tag: string }[]>(`SELECT tag FROM patient_medical_tags WHERE patient_id = $1`, [patientId]),
-	]);
-	return {
-		timelineCount: timelineRows[0]?.count ?? 0,
-		recentEntries,
-		planCount: planRows[0]?.total ?? 0,
-		activePlanCount: planRows[0]?.active ?? 0,
-		documentCount: documentRows[0]?.count ?? 0,
-		perioExamCount: perioRows[0]?.count ?? 0,
-		lastPerioDate: perioRows[0]?.last_date ?? null,
-		activeConditionCount: conditionRows[0]?.count ?? 0,
-		acuteTags: acuteTagRows.map(r => r.tag),
-		medicalTags: medicalTagRows.map(r => r.tag),
-	};
-}
-
-export async function getProviderOutcomeStats(filters?: AnalyticsFilters): Promise<{ doctor_name: string; total: number; successful: number; retreated: number; failed: number }[]> {
+export async function getProviderOutcomeStats(filters?: AnalyticsFilters): Promise<{ doctor_name: string; total: number; successful: number; retreated: number; failed: number; final_total: number }[]> {
 	const conn = await getDb();
 	const params: unknown[] = [];
 	const clauses: string[] = ["te.entry_type NOT IN ('document', 'plan', 'chart_snapshot', 'ortho_snapshot')", "te.treatment_outcome != ''"];
@@ -3160,12 +2874,14 @@ export async function getProviderOutcomeStats(filters?: AnalyticsFilters): Promi
 
 	const whereClause = `WHERE ${clauses.join(' AND ')}`;
 
-	return conn.select<{ doctor_name: string; total: number; successful: number; retreated: number; failed: number }[]>(
+	return conn.select<{ doctor_name: string; total: number; successful: number; retreated: number; failed: number; final_total: number }[]>(
 		`SELECT COALESCE(d.name, 'Unassigned') as doctor_name,
 		        COUNT(*) as total,
 		        SUM(CASE WHEN te.treatment_outcome = 'successful' THEN 1 ELSE 0 END) as successful,
 		        SUM(CASE WHEN te.treatment_outcome = 'retreated' THEN 1 ELSE 0 END) as retreated,
-		        SUM(CASE WHEN te.treatment_outcome IN ('failed_extracted', 'failed_other') THEN 1 ELSE 0 END) as failed
+		        SUM(CASE WHEN te.treatment_outcome IN ('failed_extracted', 'failed_other') THEN 1 ELSE 0 END) as failed,
+		        SUM(CASE WHEN te.treatment_outcome IN ('successful','retreated','failed_extracted','failed_other')
+		            THEN 1 ELSE 0 END) as final_total
 		 FROM timeline_entries te
 		 LEFT JOIN doctors d ON te.doctor_id = d.id
 		 ${whereClause}
@@ -3403,11 +3119,6 @@ export async function getAppointmentRooms(): Promise<AppointmentRoom[]> {
 	return conn.select<AppointmentRoom[]>('SELECT * FROM appointment_rooms ORDER BY sort_order, name', []);
 }
 
-export async function getActiveRooms(): Promise<AppointmentRoom[]> {
-	const conn = await getDb();
-	return conn.select<AppointmentRoom[]>('SELECT * FROM appointment_rooms WHERE is_active=1 ORDER BY sort_order, name', []);
-}
-
 export async function insertAppointmentRoom(data: AppointmentRoomFormData): Promise<AppointmentRoom> {
 	const conn = await getDb();
 	const id = crypto.randomUUID();
@@ -3444,11 +3155,6 @@ export async function deleteAppointmentRoom(id: string): Promise<void> {
 export async function getAppointmentTypes(): Promise<AppointmentType[]> {
 	const conn = await getDb();
 	return conn.select<AppointmentType[]>('SELECT * FROM appointment_types ORDER BY sort_order, name', []);
-}
-
-export async function getActiveTypes(): Promise<AppointmentType[]> {
-	const conn = await getDb();
-	return conn.select<AppointmentType[]>('SELECT * FROM appointment_types WHERE is_active=1 ORDER BY sort_order, name', []);
 }
 
 export async function insertAppointmentType(data: AppointmentTypeFormData): Promise<AppointmentType> {
@@ -3575,22 +3281,225 @@ export async function deleteAppointment(id: string): Promise<void> {
 
 export async function updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
 	const conn = await getDb();
+	// Temporal columns are first-time-only: once written they are never overwritten
+	// by later status changes, preserving the first-observed timestamp.
 	await conn.execute(
-		'UPDATE appointments SET status=$1, updated_at=$2 WHERE id=$3',
+		`UPDATE appointments SET status=$1, updated_at=$2,
+		  arrival_time = CASE WHEN $1 IN ('waiting', 'in_chair') AND arrival_time IS NULL THEN $2 ELSE arrival_time END,
+		  treatment_start_time = CASE WHEN $1 = 'in_chair' AND treatment_start_time IS NULL THEN $2 ELSE treatment_start_time END,
+		  cancelled_at = CASE WHEN $1 = 'cancelled' AND cancelled_at IS NULL THEN datetime('now') ELSE cancelled_at END,
+		  no_show_recorded_at = CASE WHEN $1 = 'no_show' AND no_show_recorded_at IS NULL THEN datetime('now') ELSE no_show_recorded_at END
+		 WHERE id=$3`,
 		[status, new Date().toISOString(), id],
+	);
+}
+
+/** Aggregated punctuality / wait / duration statistics over a patient's past appointments. */
+export async function getPatientAppointmentStats(patientId: string): Promise<PatientAppointmentStats> {
+	const conn = await getDb();
+	const rows = await conn.select<PatientAppointmentStats[]>(
+		`SELECT
+			COUNT(*) AS total,
+			SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
+			SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) AS no_show_count,
+			SUM(CASE WHEN arrival_time IS NOT NULL THEN 1 ELSE 0 END) AS tracked_count,
+			AVG(CASE
+				WHEN arrival_time IS NOT NULL
+				THEN (strftime('%s', arrival_time) - strftime('%s', start_time)) / 60.0
+				ELSE NULL
+			END) AS avg_minutes_offset,
+			AVG(CASE
+				WHEN arrival_time IS NOT NULL AND treatment_start_time IS NOT NULL
+				THEN (strftime('%s', treatment_start_time) - strftime('%s', arrival_time)) / 60.0
+				ELSE NULL
+			END) AS avg_wait_minutes,
+			AVG(CASE
+				WHEN treatment_start_time IS NOT NULL AND treatment_end_time IS NOT NULL
+				THEN (strftime('%s', treatment_end_time) - strftime('%s', treatment_start_time)) / 60.0
+				ELSE NULL
+			END) AS avg_actual_duration_min,
+			AVG(CASE
+				WHEN treatment_start_time IS NOT NULL AND treatment_end_time IS NOT NULL
+				THEN (strftime('%s', treatment_end_time) - strftime('%s', treatment_start_time)) / 60.0 - duration_min
+				ELSE NULL
+			END) AS avg_duration_deviation
+		FROM appointments
+		WHERE patient_id = $1 AND start_time < datetime('now')`,
+		[patientId],
+	);
+	return rows[0] ?? {
+		total: 0, cancelled_count: 0, no_show_count: 0, tracked_count: 0,
+		avg_minutes_offset: null, avg_wait_minutes: null, avg_actual_duration_min: null, avg_duration_deviation: null,
+	};
+}
+
+/**
+ * Per-appointment-type treatment time breakdown for a doctor.
+ * Only counts appointments that have both treatment_start_time and treatment_end_time.
+ */
+export async function getDoctorTreatmentStats(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorTreatmentStat[]> {
+	const conn = await getDb();
+	return conn.select<DoctorTreatmentStat[]>(
+		`SELECT
+			a.type_id,
+			at.name AS type_name,
+			at.color AS type_color,
+			COUNT(*) AS appointment_count,
+			ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+			ROUND(AVG(CASE
+				WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+				THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+				ELSE NULL
+			END), 1) AS avg_actual_duration,
+			ROUND(AVG(CASE
+				WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+				THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+				ELSE NULL
+			END), 1) AS avg_deviation
+		FROM appointments a
+		LEFT JOIN appointment_types at ON a.type_id = at.id
+		WHERE a.doctor_id = $1
+			AND a.start_time >= $2 || 'T00:00:00'
+			AND a.start_time <= $3 || 'T23:59:59'
+			AND a.treatment_end_time IS NOT NULL
+		GROUP BY a.type_id
+		ORDER BY appointment_count DESC`,
+		[doctorId, dateFrom, dateTo],
+	);
+}
+
+/** Full performance KPIs for a specific doctor over a date range. */
+export async function getDoctorPerformanceKPI(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorPerformanceKPI | null> {
+	const conn = await getDb();
+	const rows = await conn.select<DoctorPerformanceKPI[]>(
+		`SELECT
+		   d.id AS doctor_id, d.name AS doctor_name, d.color AS doctor_color,
+		   COUNT(a.id) AS total,
+		   COALESCE(SUM(CASE WHEN a.status='completed'  THEN 1 ELSE 0 END), 0) AS completed,
+		   COALESCE(SUM(CASE WHEN a.status='cancelled'  THEN 1 ELSE 0 END), 0) AS cancelled,
+		   COALESCE(SUM(CASE WHEN a.status='no_show'    THEN 1 ELSE 0 END), 0) AS no_show,
+		   COUNT(DISTINCT date(a.start_time)) AS working_days,
+		   ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+		     ELSE NULL END), 1) AS avg_actual_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+		     ELSE NULL END), 1) AS avg_deviation
+		 FROM doctors d
+		 LEFT JOIN appointments a ON a.doctor_id = d.id
+		   AND a.start_time >= $2 || 'T00:00:00'
+		   AND a.start_time <= $3 || 'T23:59:59'
+		 WHERE d.id = $1
+		 GROUP BY d.id, d.name, d.color`,
+		[doctorId, dateFrom, dateTo],
+	);
+	return rows[0] ?? null;
+}
+
+/** Full performance KPIs for all doctors over a date range. */
+export async function getAllDoctorKPIs(
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorPerformanceKPI[]> {
+	const conn = await getDb();
+	return conn.select<DoctorPerformanceKPI[]>(
+		`SELECT
+		   d.id AS doctor_id, d.name AS doctor_name, d.color AS doctor_color,
+		   COUNT(a.id) AS total,
+		   COALESCE(SUM(CASE WHEN a.status='completed'  THEN 1 ELSE 0 END), 0) AS completed,
+		   COALESCE(SUM(CASE WHEN a.status='cancelled'  THEN 1 ELSE 0 END), 0) AS cancelled,
+		   COALESCE(SUM(CASE WHEN a.status='no_show'    THEN 1 ELSE 0 END), 0) AS no_show,
+		   COUNT(DISTINCT date(a.start_time)) AS working_days,
+		   ROUND(AVG(a.duration_min), 1) AS avg_planned_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0
+		     ELSE NULL END), 1) AS avg_actual_duration,
+		   ROUND(AVG(CASE
+		     WHEN a.treatment_start_time IS NOT NULL AND a.treatment_end_time IS NOT NULL
+		     THEN (strftime('%s', a.treatment_end_time) - strftime('%s', a.treatment_start_time)) / 60.0 - a.duration_min
+		     ELSE NULL END), 1) AS avg_deviation
+		 FROM doctors d
+		 LEFT JOIN appointments a ON a.doctor_id = d.id
+		   AND a.start_time >= $1 || 'T00:00:00'
+		   AND a.start_time <= $2 || 'T23:59:59'
+		 GROUP BY d.id, d.name, d.color
+		 ORDER BY d.name`,
+		[dateFrom, dateTo],
+	);
+}
+
+/** Month-by-month appointment trend for a doctor over a date range. */
+export async function getDoctorMonthlyTrend(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorMonthlyTrend[]> {
+	const conn = await getDb();
+	return conn.select<DoctorMonthlyTrend[]>(
+		`SELECT
+		   strftime('%Y-%m', start_time) AS month,
+		   COUNT(*) AS total,
+		   SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) AS completed,
+		   SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) AS cancelled,
+		   SUM(CASE WHEN status='no_show'   THEN 1 ELSE 0 END) AS no_show
+		 FROM appointments
+		 WHERE doctor_id = $1
+		   AND start_time >= $2 || 'T00:00:00'
+		   AND start_time <= $3 || 'T23:59:59'
+		 GROUP BY month
+		 ORDER BY month`,
+		[doctorId, dateFrom, dateTo],
+	);
+}
+
+/** Day-of-week appointment distribution for a doctor over a date range. */
+export async function getDoctorDowDistribution(
+	doctorId: string,
+	dateFrom: string,
+	dateTo: string,
+): Promise<DoctorDowStat[]> {
+	const conn = await getDb();
+	return conn.select<DoctorDowStat[]>(
+		`SELECT
+		   CAST(strftime('%w', start_time) AS INTEGER) AS dow,
+		   COUNT(*) AS count
+		 FROM appointments
+		 WHERE doctor_id = $1
+		   AND start_time >= $2 || 'T00:00:00'
+		   AND start_time <= $3 || 'T23:59:59'
+		   AND status NOT IN ('cancelled', 'no_show')
+		 GROUP BY dow
+		 ORDER BY dow`,
+		[doctorId, dateFrom, dateTo],
 	);
 }
 
 /**
  * When a timeline entry is saved with a specific entry type (appointment type name),
- * find any scheduled appointment for that patient on the same date and update its
- * type_id to match + link timeline_entry_id. Returns true if an appointment was synced.
+ * find the matching appointment for that patient on the same date and:
+ * - Link it via timeline_entry_id + sync type_id
+ * - If treatment was actively tracked (treatment_start_time set), record treatment_end_time = NOW()
+ * - If a doctorId is provided and the appointment has no doctor yet, assign it
+ * Returns true if an appointment was synced.
  */
 export async function syncAppointmentFromTimelineEntry(
 	patientId: string,
 	entryDate: string,
 	entryId: string,
 	entryTypeName: string,
+	doctorId?: string | null,
 ): Promise<boolean> {
 	if (!entryTypeName) return false;
 	const conn = await getDb();
@@ -3611,9 +3520,15 @@ export async function syncAppointmentFromTimelineEntry(
 		[patientId, entryDate],
 	);
 	if (appts.length === 0) return false;
+	const appt = appts[0];
+	const now = new Date().toISOString();
 	await conn.execute(
-		`UPDATE appointments SET type_id=$1, timeline_entry_id=$2, updated_at=$3 WHERE id=$4`,
-		[typeId, entryId, new Date().toISOString(), appts[0].id],
+		`UPDATE appointments SET
+		   type_id=$1, timeline_entry_id=$2, updated_at=$3,
+		   treatment_end_time = CASE WHEN treatment_start_time IS NOT NULL AND treatment_end_time IS NULL THEN $3 ELSE treatment_end_time END,
+		   doctor_id = COALESCE(doctor_id, $4)
+		 WHERE id=$5`,
+		[typeId, entryId, now, doctorId ?? null, appt.id],
 	);
 	return true;
 }
@@ -3670,18 +3585,6 @@ export async function getStaffBlockoutsForDate(date: string): Promise<StaffBlock
 		 WHERE $1 BETWEEN sb.start_date AND sb.end_date
 		 ORDER BY sb.start_date`,
 		[date]
-	);
-}
-
-export async function getStaffBlockoutsForRange(start: string, end: string): Promise<StaffBlockout[]> {
-	const db = await getDb();
-	return await db.select<StaffBlockout[]>(
-		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
-		 FROM staff_blockouts sb
-		 JOIN doctors d ON sb.doctor_id = d.id
-		 WHERE sb.start_date <= $1 AND sb.end_date >= $2
-		 ORDER BY sb.start_date`,
-		[end, start]
 	);
 }
 
@@ -3826,20 +3729,6 @@ export async function getPatientVisitCounts(today: string): Promise<{ today: num
 		[today, weekStart, weekEnd]
 	);
 	return rows[0] ?? { today: 0, week: 0 };
-}
-
-export async function getAbsencesByDoctorAndYear(doctorId: string, year: number): Promise<StaffBlockout[]> {
-	const db = await getDb();
-	return await db.select<StaffBlockout[]>(
-		`SELECT sb.*, d.name AS doctor_name, d.color AS doctor_color
-		 FROM staff_blockouts sb
-		 JOIN doctors d ON sb.doctor_id = d.id
-		 WHERE sb.doctor_id = $1
-		   AND sb.start_date <= $2 || '-12-31'
-		   AND sb.end_date >= $2 || '-01-01'
-		 ORDER BY sb.start_date`,
-		[doctorId, String(year)]
-	);
 }
 
 // ── Endo Documentation CRUD ────────────────────────────────────────────
@@ -3995,17 +3884,6 @@ export async function getParCases(patientId: string): Promise<import('$lib/types
 		sgb22: Boolean(r.sgb22),
 		is_transfer: Boolean(r.is_transfer),
 	}));
-}
-
-export async function getParCase(id: number): Promise<import('$lib/types').ParCase | null> {
-	const conn = await getDb();
-	const rows = await conn.select<import('$lib/types').ParCase[]>(
-		'SELECT * FROM par_cases WHERE id = $1',
-		[id],
-	);
-	if (!rows[0]) return null;
-	const r = rows[0];
-	return { ...r, sgb22: Boolean(r.sgb22), is_transfer: Boolean(r.is_transfer) };
 }
 
 export async function createParCase(
