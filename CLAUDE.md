@@ -342,7 +342,9 @@ Same mouse-based drag pattern as `VaultDropDialog` (mousedown + global `mousemov
 
 **Ceph Phase 1** (`ROADMAP_CEPH_INTEGRATION.md`): `ceph_analysis` timeline entries on `SAVE_CEPH` (measurements in `chart_data`), `CephSnapshotCard`, register PDFs in `documents`, `renderCeph()` in the HTML export
 
-**Phase 7:** Multi-user roles — map `doctors` table to login/session concept
+**Phase 7:** Multi-user roles — map `doctors` table to login/session concept (absorbed into `ROADMAP_MULTI_COMPUTER.md` Phase 2)
+
+**Multi-computer clinic architecture** — full blueprint in `ROADMAP_MULTI_COMPUTER.md`: one server machine (Rust axum + the same SQLite/vault) with workstations in "connected mode"; `db.ts` transport split, WebSocket invalidations replacing the polling loops, optimistic versioning, roles/sessions, server-side auto-tracking. Phase 0 groundwork (transport interface, `invalidations` store, network-mount guard) can start any time
 
 **Phase 8:** Recall / reminder system (only the v54 `recall_due` column exists so far) · Schedule nav item in Settings to add appointment statuses section link · ~~Week/month schedule views~~ — evaluated and dropped as not useful in a clinic context
 
