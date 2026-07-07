@@ -9,6 +9,13 @@ let _theme = $state<'dark' | 'light'>('dark');
 function applyClass(t: 'dark' | 'light') {
 	if (typeof document === 'undefined') return;
 	document.documentElement.classList.toggle('dark', t === 'dark');
+	// data-theme drives the :root[data-theme="..."] token overrides in app.css.
+	// Without it, the @media (prefers-color-scheme: dark) block keeps all CSS
+	// custom properties dark when the OS is dark — only Tailwind `dark:` variants
+	// (class-driven) would switch, which made light mode look mostly dark.
+	document.documentElement.dataset.theme = t;
+	// Native form controls (date inputs, selects, scrollbars) follow color-scheme
+	document.documentElement.style.colorScheme = t;
 }
 
 export const theme = {

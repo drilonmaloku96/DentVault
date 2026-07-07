@@ -205,6 +205,49 @@ fn delete_patient_folder(vault_path: String, patient_folder: String) -> Result<(
     Ok(())
 }
 
+/// Delete a single file within a patient's vault folder.
+/// `file_path` is vault-relative (starts with `patient_folder`) — mirrors `VaultFileInfo.rel_path`.
+#[tauri::command]
+fn delete_patient_file(vault_path: String, patient_folder: String, file_path: String) -> Result<(), String> {
+    if !file_path.starts_with(&patient_folder) {
+        return Err("File path is outside the patient folder".to_string());
+    }
+    let target = PathBuf::from(&vault_path).join(&file_path);
+    if target.exists() {
+        std::fs::remove_file(&target).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Move a single file within a patient's vault to a different category/sub-folder.
+/// `src_path` is vault-relative (starts with `patient_folder`), mirrors `VaultFileInfo.rel_path`.
+/// `dest_folder` is patient-relative (e.g. "xrays" or "xrays/2023").
+#[tauri::command]
+fn move_patient_file(
+    vault_path: String,
+    patient_folder: String,
+    src_path: String,
+    dest_folder: String,
+) -> Result<(), String> {
+    if !src_path.starts_with(&patient_folder) {
+        return Err("File path is outside the patient folder".to_string());
+    }
+    let vault = PathBuf::from(&vault_path);
+    let src = vault.join(&src_path);
+    let file_name = src
+        .file_name()
+        .ok_or_else(|| "Invalid source path".to_string())?
+        .to_string_lossy()
+        .to_string();
+    let dest_dir = vault.join(&patient_folder).join(&dest_folder);
+    std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
+    let dest = dest_dir.join(&file_name);
+    if dest.exists() {
+        return Err(format!("A file named '{}' already exists in that folder", file_name));
+    }
+    std::fs::rename(&src, &dest).map_err(|e| e.to_string())
+}
+
 /// Rename a patient folder in the vault. No-op if source missing; error if target exists.
 #[tauri::command]
 fn rename_patient_folder(vault_path: String, old_folder: String, new_folder: String) -> Result<(), String> {
@@ -760,6 +803,8 @@ pub fn run() {
             get_template_categories,
             copy_template_to_patient,
             delete_patient_folder,
+            delete_patient_file,
+            move_patient_file,
             rename_patient_folder,
             write_text_file,
             read_text_file,

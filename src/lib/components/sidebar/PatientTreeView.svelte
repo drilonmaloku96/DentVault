@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { toLocalISODate } from '$lib/utils';
 	import { onMount, onDestroy } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { invoke } from '@tauri-apps/api/core';
 	import {
 		listVaultFiles, openDocumentFile, formatFileSize, type VaultFileInfo,
 		listDocTemplates, saveDocTemplate, deleteDocTemplate, pickFile,
@@ -11,9 +11,8 @@
 	} from '$lib/services/files';
 	import type { Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
-	import { activePatient } from '$lib/stores/activePatient.svelte';
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
-	import { insertDocument, insertTimelineEntry } from '$lib/services/db';
+	import { insertDocument, insertTimelineEntry, getDocuments } from '$lib/services/db';
 	import { docCategories } from '$lib/stores/categories.svelte';
 
 	let { patient }: { patient: Patient } = $props();
@@ -21,6 +20,7 @@
 	let files       = $state<VaultFileInfo[]>([]);
 	let isLoading   = $state(true);
 	let openFolders = $state<Record<string, boolean>>({});
+	let fileWatcherId: number | null = null;
 
 	// !Documents template folder
 	let docTemplates     = $state<DocTemplateInfo[]>([]);
@@ -35,10 +35,18 @@
 	// mouse events instead: mousedown on template → track mousemove globally
 	// → detect folder under cursor via data-drop-folder attribute → mouseup = drop.
 	let draggingTemplate   = $state<DocTemplateInfo | null>(null);
+	let draggingFile       = $state<VaultFileInfo | null>(null);
 	let isDraggingTemplate = $state(false);
+	let isDraggingFile     = $state(false);
 	let dragOverPath       = $state<string | null>(null);
 	let dragStartPos = { x: 0, y: 0 };
 	const DRAG_THRESHOLD = 5; // px of movement before drag activates
+
+	// ── Multi-file selection (shift-click) — lets several files be dragged as a group ──
+	let multiSelected = $state<Set<string>>(new Set()); // keyed by VaultFileInfo.rel_path
+
+	// ── Context menu state ──────────────────────────────────────────────
+	let contextMenu = $state<{ file: VaultFileInfo; x: number; y: number } | null>(null);
 
 	// ── Standard category folder names (language-aware) ────────────────
 	const standardFolders = $derived(
@@ -175,9 +183,53 @@
 
 	// ── Mount ───────────────────────────────────────────────────────────
 
-	onMount(async () => {
-		cephSelection.clear(); // stale selection from a previous patient
-		if (!vault.path || !patientFolder) { isLoading = false; return; }
+	// ── Auto-track files that appear in the vault outside the app's own flows ──
+	// (Finder drops, or files a Ceph analysis saves next to the source X-ray). Runs
+	// after every refresh; any file already recorded in `documents` (dropped via
+	// VaultDropDialog or a template) is skipped, so nothing gets double-tracked.
+	let isAutoTracking = false;
+
+	async function autoTrackUntrackedFiles(freshFiles: VaultFileInfo[]) {
+		if (!patient.patient_id || isAutoTracking) return;
+		isAutoTracking = true;
+		try {
+			const existingDocs = await getDocuments(patient.patient_id);
+			const trackedPaths = new Set(existingDocs.map(d => d.rel_path));
+			const untracked = freshFiles.filter(f => !trackedPaths.has(f.rel_path));
+
+			for (const f of untracked) {
+				const categoryKey = folderToKey[f.category_folder] ?? f.category_folder;
+				const mime = getMimeType(f.filename);
+
+				const doc = await insertDocument(patient.patient_id, {
+					filename: f.filename,
+					original_name: f.filename,
+					category: categoryKey,
+					mime_type: mime,
+					file_size: f.file_size,
+					abs_path: f.abs_path,
+					rel_path: f.rel_path,
+				});
+
+				await insertTimelineEntry(patient.patient_id, {
+					entry_date: f.modified_at || toLocalISODate(),
+					entry_type: 'document',
+					title: f.filename,
+					treatment_category: categoryKey,
+					document_id: doc.id,
+					// Vault-relative path — abs paths in attachments break vault portability
+					attachments: JSON.stringify([{ path: f.rel_path, name: f.filename, mime, size: f.file_size }]),
+				});
+			}
+		} catch (err) {
+			console.error('[AutoTrack] error:', err);
+		} finally {
+			isAutoTracking = false;
+		}
+	}
+
+	async function refreshFiles() {
+		if (!vault.path || !patientFolder) return;
 		try {
 			const [result, tpl] = await Promise.all([
 				listVaultFiles(vault.path, patientFolder),
@@ -188,6 +240,25 @@
 			for (const cat of standardFolders) {
 				openFolders[cat] = result.some(f => f.category_folder === cat);
 			}
+			// Fire-and-forget — don't block the sidebar refresh on DB writes
+			autoTrackUntrackedFiles(result);
+		} catch {
+			files = [];
+		}
+	}
+
+	let watchInterval: ReturnType<typeof setInterval> | null = null;
+
+	onMount(async () => {
+		cephSelection.clear(); // stale selection from a previous patient
+		multiSelected = new Set();
+		if (!vault.path || !patientFolder) { isLoading = false; return; }
+
+		try {
+			await refreshFiles();
+
+			// Set up a polling mechanism to refresh when files change (auto-refresh on file add/delete)
+			watchInterval = setInterval(refreshFiles, 2000);
 		} catch {
 			files = [];
 		} finally {
@@ -200,6 +271,13 @@
 		document.removeEventListener('mousemove', onGlobalMouseMove);
 		document.removeEventListener('mouseup', onGlobalMouseUp);
 		document.body.classList.remove('cursor-grabbing');
+		// Clean up file watcher interval
+		if (watchInterval !== null) {
+			clearInterval(watchInterval);
+		}
+		if (fileWatcherId !== null) {
+			invoke('unwatch_folder', { id: fileWatcherId }).catch(() => {});
+		}
 	});
 
 	// ── Template folder actions ─────────────────────────────────────────
@@ -238,22 +316,63 @@
 		document.addEventListener('mouseup', onGlobalMouseUp);
 	}
 
-	function onGlobalMouseMove(e: MouseEvent) {
-		if (!draggingTemplate) return;
+	function onFileMouseDown(e: MouseEvent, file: VaultFileInfo) {
+		if (e.button !== 0) return; // left-click only
+		if (e.shiftKey) return; // shift-click toggles multi-select instead of starting a drag
+		e.preventDefault(); // prevent browser text selection on drag
+		draggingFile = file;
+		dragStartPos = { x: e.clientX, y: e.clientY };
+		isDraggingFile = false;
+		document.addEventListener('mousemove', onGlobalMouseMove);
+		document.addEventListener('mouseup', onGlobalMouseUp);
+	}
 
-		// Activate drag only after passing threshold (avoids accidental drags on clicks)
-		if (!isDraggingTemplate) {
-			const dx = e.clientX - dragStartPos.x;
-			const dy = e.clientY - dragStartPos.y;
-			if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return;
-			isDraggingTemplate = true;
-			document.body.classList.add('cursor-grabbing');
+	/** Folder path (category + sub-path) the file currently lives in — comparable to a `data-drop-folder` value. */
+	function currentFolderPath(file: VaultFileInfo): string {
+		return file.path_in_category ? `${file.category_folder}/${file.path_in_category}` : file.category_folder;
+	}
+
+	function toggleMultiSelect(file: VaultFileInfo) {
+		const next = new Set(multiSelected);
+		if (next.has(file.rel_path)) next.delete(file.rel_path);
+		else next.add(file.rel_path);
+		multiSelected = next;
+	}
+
+	function onGlobalMouseMove(e: MouseEvent) {
+		// Handle template drag
+		if (draggingTemplate) {
+			// Activate drag only after passing threshold (avoids accidental drags on clicks)
+			if (!isDraggingTemplate) {
+				const dx = e.clientX - dragStartPos.x;
+				const dy = e.clientY - dragStartPos.y;
+				if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return;
+				isDraggingTemplate = true;
+				document.body.classList.add('cursor-grabbing');
+			}
+
+			// Find the folder element under the cursor
+			const el = document.elementFromPoint(e.clientX, e.clientY);
+			const folderEl = el?.closest('[data-drop-folder]') as HTMLElement | null;
+			dragOverPath = folderEl?.dataset.dropFolder ?? null;
 		}
 
-		// Find the folder element under the cursor
-		const el = document.elementFromPoint(e.clientX, e.clientY);
-		const folderEl = el?.closest('[data-drop-folder]') as HTMLElement | null;
-		dragOverPath = folderEl?.dataset.dropFolder ?? null;
+		// Handle file drag
+		if (draggingFile) {
+			// Activate drag only after passing threshold (avoids accidental drags on clicks)
+			if (!isDraggingFile) {
+				const dx = e.clientX - dragStartPos.x;
+				const dy = e.clientY - dragStartPos.y;
+				if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return;
+				isDraggingFile = true;
+				document.body.classList.add('cursor-grabbing');
+			}
+
+			// Find the folder element under the cursor
+			const el = document.elementFromPoint(e.clientX, e.clientY);
+			const folderEl = el?.closest('[data-drop-folder]') as HTMLElement | null;
+			dragOverPath = folderEl?.dataset.dropFolder ?? null;
+		}
 	}
 
 	function onGlobalMouseUp(_e: MouseEvent) {
@@ -262,16 +381,48 @@
 		document.body.classList.remove('cursor-grabbing');
 
 		const tpl = draggingTemplate;
+		const file = draggingFile;
 		const targetFolder = dragOverPath;
 
 		// Reset all drag state
 		draggingTemplate = null;
+		draggingFile = null;
 		isDraggingTemplate = false;
+		isDraggingFile = false;
 		dragOverPath = null;
 
 		if (tpl && targetFolder) {
 			performDrop(tpl, targetFolder);
+		} else if (file && targetFolder) {
+			// Dragging a file that's part of an active multi-selection moves the whole group
+			const group = multiSelected.has(file.rel_path) && multiSelected.size > 1
+				? files.filter(f => multiSelected.has(f.rel_path))
+				: [file];
+			const toMove = group.filter(f => currentFolderPath(f) !== targetFolder);
+			if (toMove.length > 0) performFileMove(toMove, targetFolder);
+			multiSelected = new Set();
 		}
+	}
+
+	/** Appends _1, _2, ... before the extension until `filename` is free within `folderPath`. */
+	function uniqueFilename(filename: string, folderPath: string, existing: VaultFileInfo[]): string {
+		const parts = folderPath.split('/');
+		const top = parts[0];
+		const sub = parts.slice(1).join('/');
+		const exists = (name: string) =>
+			existing.some(f => f.filename === name && f.category_folder === top && f.path_in_category === sub);
+
+		if (!exists(filename)) return filename;
+		const dotIdx = filename.lastIndexOf('.');
+		const base = dotIdx > 0 ? filename.slice(0, dotIdx) : filename;
+		const ext = dotIdx > 0 ? filename.slice(dotIdx) : '';
+		let counter = 1;
+		let candidate = `${base}_${counter}${ext}`;
+		while (exists(candidate)) {
+			counter++;
+			candidate = `${base}_${counter}${ext}`;
+		}
+		return candidate;
 	}
 
 	async function performDrop(tpl: DocTemplateInfo, folderPath: string) {
@@ -282,9 +433,14 @@
 		const dotIdx = tpl.filename.lastIndexOf('.');
 		const baseName = dotIdx > 0 ? tpl.filename.slice(0, dotIdx) : tpl.filename;
 		const ext = dotIdx > 0 ? tpl.filename.slice(dotIdx) : '';
-		const destFilename = `${baseName}_${patient.lastname}_${patient.firstname}${ext}`;
+		const baseDestFilename = `${baseName}_${patient.lastname}_${patient.firstname}${ext}`;
 
 		try {
+			// Re-fetch the current folder contents so repeated drops of the same template
+			// get _1, _2, ... suffixes instead of silently overwriting the previous file.
+			const currentFiles = await listVaultFiles(vault.path, patientFolder);
+			const destFilename = uniqueFilename(baseDestFilename, folderPath, currentFiles);
+
 			const { absPath, relPath, fileSize } = await saveDocumentFile({
 				srcPath: tpl.abs_path,
 				vaultPath: vault.path,
@@ -312,7 +468,8 @@
 				title: tpl.filename,
 				treatment_category: categoryKey,
 				document_id: doc.id,
-				attachments: JSON.stringify([{ path: absPath, name: tpl.filename, mime, size: fileSize }]),
+				// Vault-relative path — abs paths in attachments break vault portability
+				attachments: JSON.stringify([{ path: relPath, name: tpl.filename, mime, size: fileSize }]),
 			});
 
 			files = await listVaultFiles(vault.path, patientFolder);
@@ -320,7 +477,95 @@
 		} catch (err) { console.error('[DnD] drop error:', err); }
 	}
 
+	async function performFileMove(filesToMove: VaultFileInfo[], newFolder: string) {
+		if (!vault.path || !patientFolder || filesToMove.length === 0) return;
+		try {
+			for (const f of filesToMove) {
+				await invoke('move_patient_file', {
+					vaultPath: vault.path,
+					patientFolder,
+					srcPath: f.rel_path,
+					destFolder: newFolder,
+				});
+			}
+			files = await listVaultFiles(vault.path, patientFolder);
+			openFolders[newFolder] = true;
+		} catch (err) { console.error('[FileMove] error:', err); }
+	}
+
+	function handleFileContextMenu(e: MouseEvent, file: VaultFileInfo) {
+		e.preventDefault();
+		contextMenu = {
+			file,
+			x: e.clientX,
+			y: e.clientY,
+		};
+		document.addEventListener('click', closeContextMenu);
+	}
+
+	function closeContextMenu() {
+		contextMenu = null;
+		document.removeEventListener('click', closeContextMenu);
+	}
+
+	async function deleteFile(file: VaultFileInfo) {
+		if (!vault.path || !patientFolder) return;
+		if (!confirm(`Delete "${file.filename}"?`)) return;
+
+		try {
+			await invoke('delete_patient_file', {
+				vaultPath: vault.path,
+				patientFolder,
+				filePath: file.rel_path,
+			});
+			files = await listVaultFiles(vault.path, patientFolder);
+		} catch (err) { console.error('[FileDelete] error:', err); }
+		closeContextMenu();
+	}
+
+	async function createNewFolder(parentFolder: string) {
+		const folderName = prompt('Folder name:');
+		if (!folderName || !vault.path || !patientFolder) return;
+
+		try {
+			await invoke('create_patient_subfolder', {
+				vaultPath: vault.path,
+				patientFolder,
+				parentRel: parentFolder,
+				folderName,
+			});
+			files = await listVaultFiles(vault.path, patientFolder);
+			openFolders[parentFolder] = true;
+		} catch (err) { console.error('[CreateFolder] error:', err); }
+	}
+
 	// ── UI helpers ──────────────────────────────────────────────────────
+
+	type FileKind = 'image' | 'pdf' | 'document' | 'spreadsheet' | 'archive' | 'dicom' | 'generic';
+
+	const FILE_KIND_BY_EXT: Record<string, FileKind> = {
+		jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', svg: 'image', webp: 'image',
+		pdf: 'pdf',
+		doc: 'document', docx: 'document', txt: 'document', rtf: 'document',
+		xls: 'spreadsheet', xlsx: 'spreadsheet', csv: 'spreadsheet',
+		zip: 'archive', rar: 'archive', '7z': 'archive',
+		dcm: 'dicom',
+	};
+
+	const FILE_KIND_COLOR: Record<FileKind, string> = {
+		image: 'text-info',
+		pdf: 'text-primary',
+		document: 'text-muted-foreground',
+		spreadsheet: 'text-success',
+		archive: 'text-warning',
+		dicom: 'text-info',
+		generic: 'text-muted-foreground/60',
+	};
+
+	function getFileKind(filename: string): FileKind {
+		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
+		return FILE_KIND_BY_EXT[ext] ?? 'generic';
+	}
 
 	function folderLabel(folderPath: string): string {
 		const topFolder = folderPath.split('/')[0];
@@ -495,23 +740,71 @@
 			</div>
 		{/if}
 	</div>
-
-	<!-- Back button -->
-	<div class="border-t border-sidebar-border px-2 py-2">
-		<button
-			type="button"
-			onclick={() => { activePatient.clear(); goto('/patients'); }}
-			class="flex w-full items-center justify-center gap-1.5 rounded-md bg-sidebar-accent px-3 py-1.5 text-xs font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent/80"
-		>
-			<svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M19 12H5M12 19l-7-7 7-7"/>
-			</svg>
-			{i18n.t.sidebar.backToList}
-		</button>
-	</div>
 </div>
 
+<!-- Context menu for files -->
+{#if contextMenu}
+	{@const cm = contextMenu}
+	<div
+		style="position: fixed; left: {cm.x}px; top: {cm.y}px; z-index: 50;"
+		class="bg-popover border border-border rounded-md shadow-lg overflow-hidden min-w-[120px]"
+	>
+		<button
+			type="button"
+			onclick={() => {
+				openFile(cm.file);
+				closeContextMenu();
+			}}
+			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
+		>
+			Open
+		</button>
+		<div class="border-t border-border/50"></div>
+		<button
+			type="button"
+			onclick={() => {
+				selectFile(cm.file);
+				closeContextMenu();
+			}}
+			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
+		>
+			Select for Ceph
+		</button>
+		<div class="border-t border-border/50"></div>
+		<button
+			type="button"
+			onclick={() => {
+				deleteFile(cm.file);
+			}}
+			class="w-full px-3 py-1.5 text-left text-xs text-critical hover:bg-critical/10 transition-colors"
+		>
+			Delete
+		</button>
+	</div>
+{/if}
+
 <!-- ── Recursive snippets ──────────────────────────────────────────────── -->
+
+{#snippet fileTypeIcon(kind: FileKind, colorClass: string)}
+	{#if kind === 'image' || kind === 'dicom'}
+		<svg class="h-3.5 w-3.5 shrink-0 {colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+			<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+		</svg>
+	{:else if kind === 'spreadsheet'}
+		<svg class="h-3.5 w-3.5 shrink-0 {colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+			<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="21"/>
+		</svg>
+	{:else if kind === 'archive'}
+		<svg class="h-3.5 w-3.5 shrink-0 {colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+			<rect x="3" y="8" width="18" height="13" rx="1"/><path d="M1 4h22v4H1z"/><line x1="10" y1="12" x2="14" y2="12"/>
+		</svg>
+	{:else}
+		<!-- pdf / document / generic — page glyph, PDF gets the primary accent -->
+		<svg class="h-3.5 w-3.5 shrink-0 {colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+		</svg>
+	{/if}
+{/snippet}
 
 {#snippet templateFolderContents(node: TemplateFolderNode, depth: number)}
 	<div class="ml-[19px] border-l-2 border-teal-500/30 pl-[10px] flex flex-col gap-0.5 pb-0.5">
@@ -585,7 +878,7 @@
 		<div
 			data-drop-folder={node.folderPath}
 			class={[
-				'flex items-center gap-1.5 rounded px-2 py-1 transition-colors',
+				'flex items-center gap-1.5 rounded px-2 py-1 transition-colors group',
 				isDropTarget
 					? 'bg-teal-100/60 dark:bg-teal-900/30 ring-1 ring-teal-400/60'
 					: 'hover:bg-sidebar-accent/60',
@@ -634,29 +927,54 @@
 					</span>
 				{/if}
 			</button>
+
+			<!-- Create subfolder button (hover only) -->
+			<button
+				type="button"
+				title="Create subfolder"
+				onclick={() => createNewFolder(node.folderPath)}
+				class="shrink-0 opacity-0 group-hover:opacity-100 rounded p-0.5 text-sidebar-primary/60 hover:bg-sidebar-primary/10 hover:text-sidebar-primary transition-all"
+			>
+				<svg class="h-3.5 w-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M12 5v14M5 12h14"/>
+				</svg>
+			</button>
 		</div>
 
-		<!-- Contents: files + sub-folders -->
+		<!-- Contents: files + sub-folders — also a drop target, so dropping anywhere
+		     among the files (not just on the folder row) still lands in this folder -->
 		{#if isOpen}
-			<div class="ml-[{depth > 0 ? (depth * 14) + 19 : 19}px] border-l-2 border-sidebar-border/50 pl-[10px] flex flex-col gap-0.5 pb-1">
+			<div
+				data-drop-folder={node.folderPath}
+				class={[
+					'ml-[' + (depth > 0 ? (depth * 14) + 19 : 19) + 'px] border-l-2 pl-[10px] flex flex-col gap-0.5 pb-1 rounded-r transition-colors',
+					isDropTarget ? 'border-teal-400/60 bg-teal-100/30 dark:bg-teal-900/20' : 'border-sidebar-border/50',
+				].join(' ')}
+			>
 				{#each node.files as file (file.abs_path)}
 					{@const isSelected = cephSelection.isSelected(file.rel_path)}
+					{@const isMultiSelected = multiSelected.has(file.rel_path)}
+					{@const isDragging = isDraggingFile && (draggingFile?.abs_path === file.abs_path || (multiSelected.size > 1 && !!draggingFile && multiSelected.has(draggingFile.rel_path) && isMultiSelected))}
 					<button
 						type="button"
-						onclick={() => selectFile(file)}
+						onclick={(e) => {
+							if (e.shiftKey) toggleMultiSelect(file);
+							else { if (multiSelected.size > 0) multiSelected = new Set(); selectFile(file); }
+						}}
 						ondblclick={() => openFile(file)}
-						title="{file.filename}\n{formatFileSize(file.file_size)}"
+						onmousedown={(e) => onFileMouseDown(e, file)}
+						oncontextmenu={(e) => handleFileContextMenu(e, file)}
+						title="{file.filename}\n{formatFileSize(file.file_size)}\n{i18n.t.sidebar.shiftClickHint}"
 						class={[
-							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group',
-							isSelected
+							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group cursor-move',
+							isDragging ? 'opacity-50 bg-sidebar-primary/25' : '',
+							!isDragging && isMultiSelected ? 'bg-primary/15 ring-1 ring-primary/50' : '',
+							isSelected && !isDragging && !isMultiSelected
 								? 'bg-sidebar-primary/15 ring-1 ring-sidebar-primary/40'
-								: 'hover:bg-sidebar-accent/60',
+								: !isDragging && !isMultiSelected ? 'hover:bg-sidebar-accent/60' : '',
 						].join(' ')}
 					>
-						<svg class="h-3 w-3 shrink-0 {isSelected ? 'text-sidebar-primary' : 'text-muted-foreground/70'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-							<polyline points="14 2 14 8 20 8"/>
-						</svg>
+						{@render fileTypeIcon(getFileKind(file.filename), isSelected ? 'text-sidebar-primary' : FILE_KIND_COLOR[getFileKind(file.filename)])}
 						<span class="flex-1 truncate text-[11px] font-mono {isSelected ? 'text-sidebar-primary font-semibold' : 'text-sidebar-foreground'}">
 							{file.filename}
 						</span>

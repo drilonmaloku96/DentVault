@@ -136,23 +136,20 @@
 	}
 </script>
 
-<div class="rounded-lg border border-amber-200 dark:border-amber-800 overflow-hidden h-full flex flex-col">
+<div class="rounded-lg border border-primary/20 dark:border-primary/30 overflow-hidden h-full flex flex-col">
 
-	<!-- Title + save status -->
-	<div class="flex items-center justify-between px-4 pt-3 pb-1">
-		<span class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide select-none">
-			{i18n.t.patients.medicalHistory}
-		</span>
-		<span class="text-[10px] min-w-[3rem] text-right transition-opacity duration-300 {saveStatus === 'idle' ? 'opacity-0' : 'opacity-100'}">
-			{#if saveStatus === 'saving'}<span class="text-muted-foreground/50">{i18n.t.common.loading}</span>
-			{:else if saveStatus === 'saved'}<span class="text-emerald-500">{i18n.t.settings.saved}</span>
+	<!-- Save status indicator (minimal) -->
+	{#if saveStatus !== 'idle'}
+		<div class="text-[10px] px-4 py-1 text-right">
+			{#if saveStatus === 'saving'}<span class="text-text-muted/50">{i18n.t.common.loading}</span>
+			{:else if saveStatus === 'saved'}<span class="text-success">{i18n.t.settings.saved}</span>
 			{/if}
-		</span>
-	</div>
+		</div>
+	{/if}
 
 	<!-- Auto-growing textarea -->
 	{#if isLoading}
-		<div class="flex-1 min-h-[72px] animate-pulse bg-amber-50/50 mx-4 mb-3 rounded"></div>
+		<div class="flex-1 min-h-[72px] animate-pulse bg-primary-light/30 dark:bg-primary/10 mx-4 mb-3 rounded"></div>
 	{:else}
 		<textarea
 			bind:this={textareaEl}
@@ -161,14 +158,14 @@
 			onkeydown={handleTextareaKeydown}
 			placeholder={i18n.t.patients.medicalHistoryPlaceholder + '\n# to tag conditions'}
 			class="w-full max-w-full flex-1 min-h-[72px] resize-none overflow-x-hidden px-4 py-2 text-sm bg-transparent outline-none
-			       placeholder:text-amber-300/50 leading-relaxed text-foreground focus:outline-none"
+			       placeholder:text-primary/30 leading-relaxed text-foreground focus:outline-none"
 		></textarea>
 	{/if}
 
 	<!-- # palette (inline flow — won't be clipped) -->
 	{#if showHashPalette && (hashSuggestions.length > 0 || hashShowCreate)}
 		<div class="mx-4 mb-2 rounded-md border border-border bg-popover shadow-sm overflow-hidden">
-			<div class="px-3 py-1 border-b border-border/50 text-[10px] text-muted-foreground">
+			<div class="px-3 py-1 border-b border-border/50 text-[10px] text-text-tertiary">
 				{#if hashQuery}<span class="font-mono text-foreground">#{hashQuery}</span> — {/if}type to search conditions
 			</div>
 			{#each hashSuggestions as tag, i}
@@ -178,7 +175,7 @@
 					aria-selected={i === hashActiveIdx}
 					class={[
 						'flex items-center gap-2 px-3 py-1.5 cursor-pointer select-none text-xs transition-colors',
-						i === hashActiveIdx ? 'bg-amber-50 dark:bg-amber-950/20' : 'hover:bg-muted/50',
+						i === hashActiveIdx ? 'bg-primary-light/40 dark:bg-primary/15' : 'hover:bg-muted/50',
 						i > 0 ? 'border-t border-border/40' : '',
 					].join(' ')}
 					onmouseenter={() => (hashActiveIdx = i)}
@@ -186,7 +183,7 @@
 				>
 					<span class="flex-1 truncate">{medicalTagOptions.displayLabel(tag)}</span>
 					{#if activeTags.includes(tag.key)}
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3 text-amber-500 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3 text-primary shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
 					{/if}
 				</div>
 			{/each}
@@ -197,15 +194,15 @@
 					aria-selected={hashActiveIdx === hashSuggestions.length}
 					class={[
 						'flex items-center gap-2 px-3 py-1.5 cursor-pointer select-none text-xs border-t border-border/40 transition-colors',
-						hashActiveIdx === hashSuggestions.length ? 'bg-amber-50 dark:bg-amber-950/20' : 'hover:bg-muted/50',
+						hashActiveIdx === hashSuggestions.length ? 'bg-primary-light/40 dark:bg-primary/15' : 'hover:bg-muted/50',
 					].join(' ')}
 					onmouseenter={() => (hashActiveIdx = hashSuggestions.length)}
 					onmousedown={(e) => { e.preventDefault(); createAndSelectHashCondition(hashQuery.trim()); }}
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3 shrink-0 text-muted-foreground"><path d="M12 5v14M5 12h14"/></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3 shrink-0 text-text-tertiary"><path d="M12 5v14M5 12h14"/></svg>
 					<span class="flex-1">
-						<span class="text-muted-foreground">{i18n.t.patients.createCondition} </span>
-						<span class="font-medium">"{hashQuery.trim()}"</span>
+						<span class="text-text-tertiary">{i18n.t.patients.createCondition} </span>
+						<span class="font-medium">{hashQuery.trim()}</span>
 					</span>
 				</div>
 			{/if}
@@ -221,7 +218,7 @@
 				<button
 					type="button"
 					onclick={() => toggleTag(tagKey)}
-					class="inline-flex items-center gap-1 rounded-full border border-amber-500 bg-amber-500 text-white px-2.5 py-0.5 text-[11px] font-medium hover:bg-amber-600 transition-colors select-none"
+					class="inline-flex items-center gap-1 rounded-full border border-primary bg-primary text-white px-2.5 py-0.5 text-[11px] font-medium hover:bg-primary/90 transition-colors select-none"
 				>
 					{label}
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="h-2.5 w-2.5 opacity-70"><path d="M18 6L6 18M6 6l12 12"/></svg>

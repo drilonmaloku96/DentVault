@@ -124,11 +124,9 @@ export interface Translations {
 			saveFailed: string;
 		};
 		bar: {
-			typeSelect: string;
 			staffButton: string;
 			staffSearch: string;
 			noResults: string;
-			detectedTeeth: string;
 			titlePlaceholder: string;
 			titleAriaLabel: string;
 			bodyPlaceholder: string;
@@ -138,7 +136,12 @@ export interface Translations {
 			errorEmpty: string;
 			errorSave: string;
 			entryFallback: string;
-			formatting: { red: string; blue: string; green: string; remove: string; };
+			formatting: {
+			strikethrough: string;
+			highlight: { yellow: string; green: string; pink: string; orange: string };
+			custom: string;
+			clear: string;
+		};
 		};
 	};
 
@@ -1067,7 +1070,6 @@ export interface Translations {
 	sidebar: {
 		searchPlaceholder: string;
 		newPatient: string;
-		backToList: string;
 		noResults: string; noPatients: string;
 		results: string; patientsLabel: string;
 		sections: {
@@ -1082,6 +1084,8 @@ export interface Translations {
 		timelineTitle: string;
 		openInFinder: string;
 		dragHint: string;
+		shiftClickHint: string;
+		resizeHandle: string;
 	};
 
 	// ── Onboarding wizard ─────────────────────────────────────────────────

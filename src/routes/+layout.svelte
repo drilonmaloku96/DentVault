@@ -21,8 +21,33 @@
 	import { uiScale } from '$lib/stores/uiScale.svelte';
 	import { textHighlightColors } from '$lib/stores/textHighlightColors.svelte';
 	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
+	import { sidebarWidth } from '$lib/stores/sidebarWidth.svelte';
 	import { scrollIndicator } from '$lib/actions/scrollIndicator';
 	let { children } = $props();
+
+	// ── Sidebar resize (pointer-based, per project drag convention) ─────
+	let isResizingSidebar = $state(false);
+
+	function onResizeHandleDown(e: PointerEvent) {
+		if (e.button !== 0) return;
+		e.preventDefault();
+		isResizingSidebar = true;
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+	}
+
+	function onResizeHandleMove(e: PointerEvent) {
+		if (!isResizingSidebar) return;
+		// clientX is in visual px; layout px are scaled by the root zoom (uiScale)
+		const zoom = parseFloat(document.documentElement.style.zoom || '1') || 1;
+		sidebarWidth.set(e.clientX / zoom);
+	}
+
+	function onResizeHandleUp(e: PointerEvent) {
+		if (!isResizingSidebar) return;
+		isResizingSidebar = false;
+		(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+		sidebarWidth.save();
+	}
 
 	// Theme + vault + stores all init on mount
 	onMount(async () => {
@@ -109,8 +134,11 @@
 {:else}
 	<div class="flex h-full overflow-hidden bg-background">
 
-		<!-- ── Left Sidebar ────────────────────────────────────────── -->
-		<aside class="flex h-full w-56 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar">
+		<!-- ── Left Sidebar (user-resizable via right-edge drag handle) ── -->
+		<aside
+			style="width: {sidebarWidth.px}px"
+			class="relative flex h-full shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar"
+		>
 
 			<!-- Back button / branding -->
 			<div class="flex h-12 shrink-0 items-center px-2">
@@ -211,6 +239,20 @@
 					<div class="h-1"></div>
 				</nav>
 			</div>
+
+			<!-- Resize handle — right edge; drag to resize, double-click to reset -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				onpointerdown={onResizeHandleDown}
+				onpointermove={onResizeHandleMove}
+				onpointerup={onResizeHandleUp}
+				ondblclick={() => sidebarWidth.reset()}
+				title={i18n.t.sidebar.resizeHandle}
+				class={[
+					'absolute inset-y-0 right-0 z-10 w-1.5 cursor-col-resize transition-colors',
+					isResizingSidebar ? 'bg-sidebar-primary/60' : 'hover:bg-sidebar-primary/40',
+				].join(' ')}
+			></div>
 		</aside>
 
 		<!-- ── Main Content ────────────────────────────────────────── -->

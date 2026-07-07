@@ -44,19 +44,16 @@
 <!-- Plain scratch-pad editor — no header bar, just a clean textarea that auto-saves -->
 <div class="rounded-lg border border-border bg-card overflow-hidden h-full flex flex-col">
 
-	<!-- Minimal title + save status row -->
-	<div class="flex items-center justify-between px-4 pt-3 pb-1">
-		<span class="text-xs font-medium text-muted-foreground/70 uppercase tracking-wide select-none">
-			Miscellaneous Notes
-		</span>
-		<span class="text-[10px] min-w-[3rem] text-right transition-opacity duration-300 {saveStatus === 'idle' ? 'opacity-0' : 'opacity-100'}">
+	<!-- Save status indicator (minimal) -->
+	{#if saveStatus !== 'idle'}
+		<div class="text-[10px] px-4 py-1 text-right">
 			{#if saveStatus === 'saving'}
 				<span class="text-muted-foreground/50">Saving…</span>
 			{:else if saveStatus === 'saved'}
 				<span class="text-emerald-500">Saved ✓</span>
 			{/if}
-		</span>
-	</div>
+		</div>
+	{/if}
 
 	<!-- Auto-resizing textarea -->
 	{#if isLoading}

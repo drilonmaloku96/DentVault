@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
+	import { sidebarWidth } from '$lib/stores/sidebarWidth.svelte';
 	import type { TimelineEntry, TimelineFormData, TreatmentPlan, TreatmentPlanFormData } from '$lib/types';
 	import {
 		getTimelineEntries,
@@ -411,7 +412,7 @@
 <div class="relative">
 
 {#if isDragOver}
-	<div class="fixed inset-y-0 left-56 right-0 z-50 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-primary bg-primary/5 backdrop-blur-[1px] pointer-events-none">
+	<div style="left: {sidebarWidth.px}px" class="fixed inset-y-0 right-0 z-50 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-primary bg-primary/5 backdrop-blur-[1px] pointer-events-none">
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 text-primary/60">
 			<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
 			<polyline points="17 8 12 3 7 8"/>
@@ -423,7 +424,7 @@
 {/if}
 
 <!-- ── Header (fixed below patient header, top tracks header height) ─────── -->
-<div class="fixed left-56 right-0 z-10 bg-background flex items-center gap-2 pt-2 pb-2 px-6 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]" style="top: {headerHeight}px">
+<div class="fixed right-0 z-10 bg-background flex items-center gap-2 pt-2 pb-2 px-6 border-b border-border/40 shadow-[0_2px_8px_-2px_hsl(var(--foreground)/0.06)]" style="top: {headerHeight}px; left: {sidebarWidth.px}px">
 
 	<!-- Filter bar (left side, compact) -->
 	<div class="flex items-center gap-1.5 min-w-0 flex-1">

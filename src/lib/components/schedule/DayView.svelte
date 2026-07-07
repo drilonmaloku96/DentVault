@@ -536,9 +536,12 @@
 		}
 
 		// ── Hover update ──────────────────────────────────────────────
+		// elementsFromPoint (plural) looks through appointment/block overlays to the
+		// slot cell beneath — elementFromPoint alone froze the hover time line
+		// whenever the pointer glided over an appointment.
 		if (!isDragging) {
-			const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-			const cell = el?.closest('[data-slot]') as HTMLElement | null;
+			const els = document.elementsFromPoint(e.clientX, e.clientY) as Element[];
+			const cell = els.find(el => (el as HTMLElement).dataset?.slot) as HTMLElement | undefined;
 			if (cell) {
 				const s = parseInt(cell.dataset.slot ?? '');
 				if (!isNaN(s)) hoverSlot = s;
@@ -547,8 +550,8 @@
 
 		// ── Slot drag update ──────────────────────────────────────────
 		if (!isDragging || !gridEl) return;
-		const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-		const cell = el?.closest('[data-slot]') as HTMLElement | null;
+		const dragEls = document.elementsFromPoint(e.clientX, e.clientY) as Element[];
+		const cell = dragEls.find(el => (el as HTMLElement).dataset?.slot) as HTMLElement | undefined;
 		if (!cell) return;
 		const slot = parseInt(cell.dataset.slot ?? '');
 		const roomId = cell.dataset.room ?? '';

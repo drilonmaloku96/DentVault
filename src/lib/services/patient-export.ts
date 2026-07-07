@@ -194,6 +194,31 @@ export async function gatherExportData(
 
 // ── HTML helpers ───────────────────────────────────────────────────────────
 
+/**
+ * Path of a file relative to its patient folder (`xrays/2023/scan.png`), for
+ * `src`/`href` into the export's copied folder tree. Handles absolute (legacy)
+ * and vault-relative inputs and any subfolder depth — naive "take the parent
+ * dir" broke every file that lived in a category subfolder. Patient folders
+ * are named `Lastname_Firstname_ID`, so the segment ending in the patient id
+ * anchors the split. Returns null if the path doesn't contain the folder.
+ */
+function pathInPatientFolder(path: string, patientId: string): string | null {
+	const parts = path.replace(/\\/g, '/').split('/').filter(Boolean);
+	const idx = parts.findIndex(seg => seg === patientId || seg.endsWith(`_${patientId}`));
+	if (idx === -1 || idx === parts.length - 1) return null;
+	return parts.slice(idx + 1).join('/');
+}
+
+/** True when the auto-generated title is just the first words of the description. */
+function titleIsRedundant(title: string, description: string | null | undefined): boolean {
+	if (!description || !title) return false;
+	const norm = (s: string) =>
+		s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/​/g, '')
+			.replace(/\s+/g, ' ').trim().toLowerCase();
+	const t = norm(title.replace(/…$/, ''));
+	return t.length > 0 && norm(description).startsWith(t);
+}
+
 function esc(s: string | null | undefined): string {
 	if (!s) return '';
 	return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -770,11 +795,15 @@ function renderTimeline(
 		html += `<div class="entry avoid-break">`;
 		html += `<div class="entry-header">`;
 		html += `<span class="entry-date">${fmtDate(entry.entry_date)}</span>`;
-		html += `<span class="entry-type">${esc(entry.entry_type)}</span>`;
+		// Composer entries save with entry_type '' — skip the badge instead of rendering an empty pill
+		if (entry.entry_type) html += `<span class="entry-type">${esc(entry.entry_type)}</span>`;
 		if (entry.treatment_category) html += `<span class="entry-cat">${esc(entry.treatment_category)}</span>`;
 		if (entry.treatment_outcome) html += `<span class="entry-outcome">${esc(entry.treatment_outcome)}</span>`;
 		html += `</div>`;
-		html += `<p class="entry-title">${esc(entry.title)}</p>`;
+		// Auto-generated titles just repeat the description's first words — same rule as TimelineEntryCard
+		if (!titleIsRedundant(entry.title, entry.description)) {
+			html += `<p class="entry-title">${esc(entry.title)}</p>`;
+		}
 		if (teeth) html += `<p class="entry-teeth">Teeth: ${esc(teeth)}</p>`;
 		if (doctorStr) html += `<p class="entry-doctor">Doctor: ${esc(doctorStr)}</p>`;
 
@@ -788,15 +817,18 @@ function renderTimeline(
 			html += `<div class="entry-desc">${entry.description}</div>`;
 		}
 
-		// Attachments (images)
+		// Attachments — images inline, everything else as a link into the copied folder tree
 		try {
 			const attachments = JSON.parse(entry.attachments || '[]') as Array<{ path: string; name: string; mime: string }>;
 			for (const att of attachments) {
+				const filename = att.path.split('/').pop() ?? att.name;
+				// Path within the patient folder (subfolder-safe); legacy fallback: parent dir only
+				const relSrc = pathInPatientFolder(att.path, data.patient.patient_id)
+					?? `${att.path.replace(/\\/g, '/').split('/').slice(-2, -1)[0] ?? 'documents'}/${filename}`;
 				if (att.mime && att.mime.startsWith('image/')) {
-					const filename = att.path.split('/').pop() ?? att.name;
-					// Use relative path into the copied category folder
-					const catFolder = att.path.replace(/\\/g, '/').split('/').slice(-2, -1)[0] ?? 'documents';
-					html += `<figure class="attachment"><img src="${esc(catFolder + '/' + filename)}" alt="${esc(att.name)}" loading="lazy"/><figcaption>${esc(att.name)}</figcaption></figure>`;
+					html += `<figure class="attachment"><img src="${esc(relSrc)}" alt="${esc(att.name)}" loading="lazy"/><figcaption>${esc(att.name)}</figcaption></figure>`;
+				} else {
+					html += `<p class="attachment-file">📎 <a href="${esc(relSrc)}">${esc(att.name)}</a></p>`;
 				}
 			}
 		} catch { /* ignore */ }
@@ -1137,9 +1169,10 @@ function renderDocuments(data: PatientExportData): string {
 	let html = `<div class="section page-break"><h2>Document Index</h2>`;
 	html += `<table class="doc-table"><thead><tr><th>Filename</th><th>Category</th><th>Date</th><th>Path</th><th>Notes</th></tr></thead><tbody>`;
 	for (const doc of documents) {
-		const catFolder = doc.rel_path.split('/').slice(-2, -1)[0] ?? doc.category;
-		const filename = doc.rel_path.split('/').pop() ?? doc.filename;
-		html += `<tr><td>${esc(doc.original_name || doc.filename)}</td><td>${esc(doc.category)}</td><td>${fmtDate(doc.created_at)}</td><td><code>${esc(catFolder + '/' + filename)}</code></td><td>${esc(doc.notes || '')}</td></tr>`;
+		// Subfolder-safe path within the copied patient folder; legacy fallback: parent dir only
+		const relPath = pathInPatientFolder(doc.rel_path, data.patient.patient_id)
+			?? `${doc.rel_path.split('/').slice(-2, -1)[0] ?? doc.category}/${doc.rel_path.split('/').pop() ?? doc.filename}`;
+		html += `<tr><td>${esc(doc.original_name || doc.filename)}</td><td>${esc(doc.category)}</td><td>${fmtDate(doc.created_at)}</td><td><code><a href="${esc(relPath)}">${esc(relPath)}</a></code></td><td>${esc(doc.notes || '')}</td></tr>`;
 	}
 	html += '</tbody></table></div>';
 	return html;
@@ -1221,6 +1254,9 @@ code { font-size: 11px; background: #f1f5f9; padding: 1px 3px; border-radius: 3p
 .attachment { margin: 8px 0; page-break-inside: avoid; }
 .attachment img { max-width: 100%; max-height: 200px; border: 1px solid #e2e8f0; border-radius: 4px; display: block; }
 .attachment figcaption { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+.attachment-file { font-size: 11px; margin: 4px 0; }
+.attachment-file a { color: #1d4ed8; text-decoration: none; }
+.attachment-file a:hover { text-decoration: underline; }
 /* Chart */
 .chart-container { margin: 8px 0; background: #fafafa; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; page-break-inside: avoid; }
 .chart-snapshot { background: #f8f8f8; }

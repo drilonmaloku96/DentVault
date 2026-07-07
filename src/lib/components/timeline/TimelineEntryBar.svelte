@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { doctors } from '$lib/stores/doctors.svelte';
-	import { entryTypes } from '$lib/stores/entryTypes.svelte';
+	import { sidebarWidth } from '$lib/stores/sidebarWidth.svelte';
 	import { staffLabel } from '$lib/utils/staff';
 	import { toLocalISODate, formatDate } from '$lib/utils';
 	import TextBlockPalette from '$lib/components/ui/TextBlockPalette.svelte';
 	import StaffMentionPalette from '$lib/components/ui/StaffMentionPalette.svelte';
 	import TextColorPicker from '$lib/components/timeline/TextColorPicker.svelte';
 	import type { Doctor } from '$lib/types';
-	import type { TimelineFormData, TimelineEntryType } from '$lib/types';
+	import type { TimelineFormData } from '$lib/types';
 	import { i18n } from '$lib/i18n';
 
 	let {
@@ -20,12 +20,6 @@
 
 	// ── Helpers ───────────────────────────────────────────────────────────
 	function todayISO() { return toLocalISODate(); }
-
-	function isoToDisplay(iso: string): string {
-		if (!iso || iso.length !== 10) return iso;
-		const [y, m, d] = iso.split('-');
-		return `${d}/${m}/${y}`;
-	}
 
 	function stripHtml(html: string): string {
 		return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ');
@@ -119,7 +113,6 @@
 	let docBoxEl             = $state<HTMLDivElement | null>(null);
 	let description          = $state('');
 	let entryDate            = $state(todayISO());
-	let entryType            = $state<string>('');
 	let selectedIds          = $state<number[]>([]);
 	let showMentionPalette = $state(false);
 	let mentionQuery       = $state('');
@@ -212,7 +205,6 @@
 	export function reset() {
 		description        = '';
 		entryDate          = todayISO();
-		entryType          = '';
 		selectedIds        = [];
 		showMentionPalette = false;
 		mentionQuery       = '';
@@ -251,7 +243,7 @@
 				.trim();
 			await onSave({
 				entry_date:    entryDate,
-				entry_type:    entryType as TimelineEntryType,
+				entry_type:    '',
 				title:         autoTitle(bodyText, entryDate),
 				description:   cleanDesc || undefined,
 				tooth_numbers: detectedTeeth.length > 0 ? detectedTeeth.join(', ') : undefined,
@@ -371,6 +363,29 @@
 		if (e.key === 'Enter' && (showMentionPalette || showPalette)) { e.preventDefault(); return; }
 		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleSubmit(); return; }
 		if (e.key === 'Enter') { e.preventDefault(); insertBodyLineBreak(); return; }
+
+		// ⌘B / ⌘I / ⌘U (+ ⌘⇧X strikethrough, ⌘\ clear formatting) — handled explicitly
+		// because WKWebView under Tauri does not deliver these to contenteditable
+		// natively (the native menu eats them)
+		if ((e.metaKey || e.ctrlKey) && !e.altKey) {
+			const key = e.key.toLowerCase();
+			if (!e.shiftKey && key === '\\') {
+				e.preventDefault();
+				document.execCommand('removeFormat');
+				if (document.queryCommandState('underline')) document.execCommand('underline');
+				description = editorEl?.innerHTML ?? '';
+				return;
+			}
+			const cmd = e.shiftKey
+				? (key === 'x' ? 'strikeThrough' : undefined)
+				: { b: 'bold', i: 'italic', u: 'underline' }[key];
+			if (cmd) {
+				e.preventDefault();
+				document.execCommand(cmd);
+				description = editorEl?.innerHTML ?? '';
+				return;
+			}
+		}
 	}
 </script>
 
@@ -400,62 +415,51 @@
 </style>
 
 <!-- ── Fixed chatbox bar ──────────────────────────────────────────────── -->
-<div class="fixed bottom-0 left-56 right-0 z-40 px-6 pt-3 pb-4 bg-background/98 backdrop-blur-sm border-t border-border shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.08)]">
+<div style="left: {sidebarWidth.px}px" class="fixed bottom-0 right-0 z-40 px-6 pt-3 pb-4 bg-background/98 backdrop-blur-sm border-t border-border shadow-[0_-4px_20px_-4px_hsl(var(--foreground)/0.08)]">
 
-	<!-- ── Metadata row ──────────────────────────────────────────────── -->
-	<div class="flex flex-wrap items-center gap-2 mb-2">
+	<!-- ── Unified documentation box ─────────────────────────────────── -->
+	<div bind:this={docBoxEl} class="relative rounded-xl border border-border bg-muted/30 px-4 pt-2.5 pb-2.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 focus-within:bg-background transition-all">
 
-		<!-- Date — always today, not editable -->
-		<span class="h-7 flex items-center rounded-full border border-border bg-muted/60 px-3 text-xs font-medium text-foreground select-none">
-			{isoToDisplay(entryDate)}
-		</span>
+		<!-- Floating tagged-staff / detected-teeth pills — only appear once something is tagged,
+		     overlapping the box's top edge instead of a persistent metadata bar above it -->
+		{#if selectedIds.length > 0 || detectedTeeth.length > 0}
+			<div class="absolute -top-3 left-3 right-11 flex flex-wrap items-center gap-1 z-10">
+				{#each selectedIds as id (id)}
+					{@const doc = doctors.list.find(d => d.id === id)}
+					{#if doc}
+						<span
+							style="--doc-color: {doc.color}"
+							class="h-6 rounded-full border border-[var(--doc-color)] bg-[var(--doc-color)] text-white pl-2.5 pr-1.5 text-[11px] font-medium flex items-center gap-1 shadow-sm"
+						>
+							{staffLabel(doc)}
+							<button
+								type="button"
+								onclick={() => toggleStaff(id)}
+								class="opacity-70 hover:opacity-100 transition-opacity leading-none text-[11px] font-bold"
+								title={i18n.t.actions.remove}
+							>×</button>
+						</span>
+					{/if}
+				{/each}
+				{#each detectedTeeth as tooth}
+					<span class="h-6 rounded-full px-2 text-[10px] font-mono font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center shadow-sm">
+						{tooth}
+					</span>
+				{/each}
+			</div>
+		{/if}
 
-		<span class="h-5 w-px bg-border shrink-0 hidden sm:block"></span>
-
-		<!-- Entry type select -->
-		<select
-			bind:value={entryType}
-			class="h-7 rounded-full border border-border bg-muted/60 px-2.5 text-xs font-medium text-foreground outline-none focus:border-ring focus:ring-1 focus:ring-ring/30 transition-colors cursor-pointer"
-		>
-			<option value="">{i18n.t.timeline.bar.typeSelect}</option>
-			{#each entryTypes.list as t}
-				<option value={t.key}>{t.label}</option>
-			{/each}
-		</select>
-
-		<span class="h-5 w-px bg-border shrink-0 hidden sm:block"></span>
-
-		<!-- Selected staff chips (removable) -->
-		{#each selectedIds as id, idx (id)}
-			{@const doc = doctors.list.find(d => d.id === id)}
-			{#if doc}
-				<span
-					style="--doc-color: {doc.color}"
-					class="h-7 rounded-full border border-[var(--doc-color)] bg-[var(--doc-color)] text-white px-2.5 text-xs font-medium flex items-center gap-1.5 shadow-sm"
-				>
-					{#if idx > 0}<span class="opacity-70 text-[9px] font-bold leading-none">+</span>{/if}
-					{staffLabel(doc)}{#if doc.specialty}<span class="opacity-75 text-[10px] ml-0.5"> · {doc.specialty}</span>{/if}
-					<button
-						type="button"
-						onclick={() => toggleStaff(id)}
-						class="opacity-70 hover:opacity-100 transition-opacity leading-none ml-0.5 text-[11px] font-bold"
-						title={i18n.t.actions.remove}
-					>×</button>
-				</span>
-			{/if}
-		{/each}
-
-		<!-- Staff picker dropdown -->
-		<div class="relative">
+		<!-- Floating add-staff trigger — top-right, opens the staff picker upward -->
+		<div class="absolute -top-3 right-3 z-20">
 			<button
 				type="button"
 				onclick={openStaffDropdown}
-				class="h-7 rounded-full border border-dashed border-border px-2.5 text-xs font-medium text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors flex items-center gap-1"
+				title={i18n.t.timeline.bar.staffButton}
+				class="h-6 w-6 flex items-center justify-center rounded-full border border-dashed border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors shadow-sm"
 			>
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 					<path d="M12 5v14M5 12h14"/>
 				</svg>
-				{i18n.t.timeline.bar.staffButton}
 			</button>
 
 			{#if staffDropdownOpen}
@@ -466,8 +470,8 @@
 					onclick={() => { staffDropdownOpen = false; }}
 				></div>
 
-				<!-- Dropdown panel — opens upward from the bar -->
-				<div class="absolute bottom-full mb-2 left-0 z-50 w-56 rounded-lg border border-border bg-background shadow-xl overflow-hidden">
+				<!-- Dropdown panel — opens upward from the trigger -->
+				<div class="absolute bottom-full mb-2 right-0 z-50 w-56 rounded-lg border border-border bg-background shadow-xl overflow-hidden">
 					<!-- Search input -->
 					<div class="p-2 border-b border-border/60">
 						<input
@@ -517,23 +521,6 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Detected tooth tags -->
-		{#if detectedTeeth.length > 0}
-			<span class="h-5 w-px bg-border shrink-0 hidden sm:block"></span>
-			<div class="flex items-center gap-1">
-				<span class="text-[10px] text-muted-foreground/50 font-medium">{i18n.t.timeline.bar.detectedTeeth}</span>
-				{#each detectedTeeth as tooth}
-					<span class="h-5 rounded px-1.5 text-[10px] font-mono font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center">
-						{tooth}
-					</span>
-				{/each}
-			</div>
-		{/if}
-	</div>
-
-	<!-- ── Unified documentation box ─────────────────────────────────── -->
-	<div bind:this={docBoxEl} class="relative rounded-xl border border-border bg-muted/30 px-4 pt-2.5 pb-2.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 focus-within:bg-background transition-all">
 
 		<!-- Body editor -->
 		<!-- svelte-ignore a11y_interactive_supports_focus -->

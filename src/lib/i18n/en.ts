@@ -224,11 +224,9 @@ export const en: Translations = {
 			saveFailed: 'Failed to save file',
 		},
 		bar: {
-			typeSelect: '— Type —',
 			staffButton: 'Staff',
 			staffSearch: 'Search name…',
 			noResults: 'No results',
-			detectedTeeth: 'Teeth:',
 			titlePlaceholder: 'Title…',
 			titleAriaLabel: 'Title',
 			bodyPlaceholder: 'Documentation… (/ for text blocks)',
@@ -238,7 +236,12 @@ export const en: Translations = {
 			errorEmpty: 'Please enter a title or description.',
 			errorSave: 'Error saving.',
 			entryFallback: 'Entry',
-			formatting: { red: 'Red', blue: 'Blue', green: 'Green', remove: 'Remove color' },
+			formatting: {
+				strikethrough: 'Strikethrough (⌘⇧X)',
+				highlight: { yellow: 'Highlight — Yellow', green: 'Highlight — Green', pink: 'Highlight — Pink', orange: 'Highlight — Orange' },
+				custom: 'Custom color…',
+				clear: 'Clear formatting (⌘\\)',
+			},
 		},
 	},
 
@@ -1422,7 +1425,6 @@ export const en: Translations = {
 	sidebar: {
 		searchPlaceholder: 'Search patients…',
 		newPatient: 'New Patient',
-		backToList: 'Back to list',
 		noResults: 'No patients found',
 		noPatients: 'No patients yet',
 		results: 'result',
@@ -1448,6 +1450,8 @@ export const en: Translations = {
 		timelineTitle: 'Go to timeline',
 		openInFinder: 'Open in Finder',
 		dragHint: 'Drag to a folder to copy',
+		shiftClickHint: 'Shift-click to select multiple, then drag to move them together',
+		resizeHandle: 'Drag to resize · double-click to reset',
 	},
 
 	onboarding: {

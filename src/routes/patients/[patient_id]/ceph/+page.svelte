@@ -157,9 +157,21 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- Full-window surface, no header bar — Cephalyzer's logo is the back button
-     (it posts NAVIGATE_BACK over the bridge); Escape works too -->
+<!-- Full-window surface, no header bar — Cephalyzer's logo also acts as a back button
+     (it posts NAVIGATE_BACK over the bridge); Escape works too. The floating arrow below
+     is an explicit, unambiguous back affordance layered on top of the iframe. -->
 <div class="fixed inset-0 z-[45] bg-background" role="region" aria-label={i18n.t.ceph.title}>
+	<button
+		type="button"
+		onclick={backToPatient}
+		title="{i18n.t.actions.back} (Esc)"
+		class="absolute top-3 left-3 z-[50] flex items-center justify-center h-9 w-9 rounded-full border border-border bg-background/90 backdrop-blur-sm shadow-md text-foreground/70 hover:text-foreground hover:bg-muted transition-colors"
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+			<path d="M19 12H5M12 19l-7-7 7-7"/>
+		</svg>
+	</button>
+
 	<iframe
 		bind:this={iframeEl}
 		src="/cephalyzer/index.html?v={cacheBust}"

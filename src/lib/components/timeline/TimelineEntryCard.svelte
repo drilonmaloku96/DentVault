@@ -4,7 +4,6 @@
 	import { i18n } from '$lib/i18n';
 	import { Button } from '$lib/components/ui/button';
 	import { openDocumentFile, fileToAssetUrl, isImageMime, formatFileSize, toAbsPath } from '$lib/services/files';
-	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffLabel } from '$lib/utils/staff';
 	import { formatDate } from '$lib/utils';
@@ -37,6 +36,18 @@
 	let menuOpen = $state(false);
 	let descExpanded = $state(false);
 	const descIsLong = $derived((entry.description ?? '').length > 350);
+
+	// The composer auto-generates the title from the first words of the body, so
+	// showing it above the description just repeats the opening line. Hide it
+	// whenever it's a prefix of the description (whitespace/markup-insensitive).
+	const titleIsRedundant = $derived.by(() => {
+		if (!entry.description || !entry.title) return false;
+		const norm = (s: string) =>
+			s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/​/g, '')
+				.replace(/\s+/g, ' ').trim().toLowerCase();
+		const t = norm(entry.title.replace(/…$/, ''));
+		return t.length > 0 && norm(entry.description).startsWith(t);
+	});
 
 	// ── Inline date editing ──────────────────────────────────────────────
 	let editingDate = $state(false);
@@ -79,15 +90,15 @@
 	type DynamicCfg = { icon: string; label: string; dotClass?: undefined; bgClass?: undefined; textClass?: undefined; color: string };
 
 	const STATIC_TYPE_CONFIG: Record<string, StaticCfg> = {
-		visit:          { icon: '🏥', label: 'Visit',     dotClass: 'bg-blue-500',   bgClass: 'bg-blue-50 dark:bg-blue-950/30',     textClass: 'text-blue-700 dark:text-blue-400'   },
-		procedure:      { icon: '🔧', label: 'Procedure', dotClass: 'bg-violet-500', bgClass: 'bg-violet-50 dark:bg-violet-950/30', textClass: 'text-violet-700 dark:text-violet-400' },
-		note:           { icon: '📝', label: 'Note',      dotClass: 'bg-zinc-400',   bgClass: 'bg-zinc-50 dark:bg-zinc-800/40',     textClass: 'text-zinc-600 dark:text-zinc-400'   },
-		lab:            { icon: '🧪', label: 'Lab',       dotClass: 'bg-amber-500',  bgClass: 'bg-amber-50 dark:bg-amber-950/30',   textClass: 'text-amber-700 dark:text-amber-400' },
-		imaging:        { icon: '📷', label: 'Imaging',   dotClass: 'bg-teal-500',   bgClass: 'bg-teal-50 dark:bg-teal-950/30',     textClass: 'text-teal-700 dark:text-teal-400'   },
-		referral:       { icon: '📋', label: 'Referral',  dotClass: 'bg-rose-500',   bgClass: 'bg-rose-50 dark:bg-rose-950/30',     textClass: 'text-rose-700 dark:text-rose-400'   },
-		document:       { icon: '📎', label: 'File',      dotClass: 'bg-sky-500',    bgClass: 'bg-sky-50 dark:bg-sky-950/30',       textClass: 'text-sky-700 dark:text-sky-400'     },
-		plan:           { icon: '📋', label: 'Plan',      dotClass: 'bg-primary',    bgClass: 'bg-primary/5',                       textClass: 'text-primary'                       },
-		chart_snapshot: { icon: '🦷', label: 'Chart',     dotClass: 'bg-indigo-500', bgClass: 'bg-indigo-50 dark:bg-indigo-950/30', textClass: 'text-indigo-700 dark:text-indigo-400' },
+		visit:          { icon: '🏥', label: 'Visit',     dotClass: 'bg-info',             bgClass: 'bg-info-light',                                   textClass: 'text-info'                        },
+		procedure:      { icon: '🔧', label: 'Procedure', dotClass: 'bg-text-tertiary',   bgClass: 'bg-surface-tertiary dark:bg-surface-tertiary',  textClass: 'text-text-tertiary'               },
+		note:           { icon: '📝', label: 'Note',      dotClass: 'bg-text-tertiary',   bgClass: 'bg-surface-tertiary dark:bg-surface-tertiary',  textClass: 'text-text-tertiary'               },
+		lab:            { icon: '🧪', label: 'Lab',       dotClass: 'bg-warning',         bgClass: 'bg-warning-light',                               textClass: 'text-warning'                     },
+		imaging:        { icon: '📷', label: 'Imaging',   dotClass: 'bg-primary',         bgClass: 'bg-primary-light',                               textClass: 'text-primary'                     },
+		referral:       { icon: '📋', label: 'Referral',  dotClass: 'bg-critical',        bgClass: 'bg-critical-light',                              textClass: 'text-critical'                    },
+		document:       { icon: '📎', label: 'File',      dotClass: 'bg-info',            bgClass: 'bg-info-light',                                  textClass: 'text-info'                        },
+		plan:           { icon: '📋', label: 'Plan',      dotClass: 'bg-primary',         bgClass: 'bg-primary/5',                                   textClass: 'text-primary'                     },
+		chart_snapshot: { icon: '🦷', label: 'Chart',     dotClass: 'bg-primary',         bgClass: 'bg-primary-light',                               textClass: 'text-primary'                     },
 	};
 
 	const cfg = $derived.by<StaticCfg | DynamicCfg>(() => {
@@ -95,6 +106,29 @@
 			icon: '—', label: i18n.t.timeline.entry.typePlaceholder,
 			dotClass: 'bg-border', bgClass: 'bg-muted', textClass: 'text-muted-foreground',
 		} satisfies StaticCfg;
+
+		// For procedures, map treatment_category to procedure-type colors
+		if (entry.entry_type === 'procedure' && entry.treatment_category) {
+			const catColorMap: Record<string, { dotClass: string; bgClass: string; textClass: string }> = {
+				endodontics:    { dotClass: 'bg-proc-endo',    bgClass: 'bg-proc-endo/10 dark:bg-proc-endo/15',   textClass: 'text-proc-endo' },
+				periodontics:   { dotClass: 'bg-proc-perio',   bgClass: 'bg-proc-perio/10 dark:bg-proc-perio/15', textClass: 'text-proc-perio' },
+				orthodontics:   { dotClass: 'bg-proc-ortho',   bgClass: 'bg-proc-ortho/10 dark:bg-proc-ortho/15', textClass: 'text-proc-ortho' },
+				prosthodontics: { dotClass: 'bg-proc-prosth',  bgClass: 'bg-proc-prosth/10 dark:bg-proc-prosth/15', textClass: 'text-proc-prosth' },
+				preventive:     { dotClass: 'bg-proc-hygiene', bgClass: 'bg-proc-hygiene/10 dark:bg-proc-hygiene/15', textClass: 'text-proc-hygiene' },
+				restorative:    { dotClass: 'bg-proc-hygiene', bgClass: 'bg-proc-hygiene/10 dark:bg-proc-hygiene/15', textClass: 'text-proc-hygiene' },
+				oral_surgery:   { dotClass: 'bg-critical',     bgClass: 'bg-critical-light',                        textClass: 'text-critical' },
+				imaging:        { dotClass: 'bg-primary',      bgClass: 'bg-primary-light',                        textClass: 'text-primary' },
+				other:          { dotClass: 'bg-text-tertiary', bgClass: 'bg-surface-tertiary dark:bg-surface-tertiary', textClass: 'text-text-tertiary' },
+			};
+			const catCfg = catColorMap[entry.treatment_category];
+			if (catCfg) {
+				const catLabel = entry.treatment_category in categoryLabels
+					? categoryLabels[entry.treatment_category as keyof typeof categoryLabels].label
+					: entry.treatment_category;
+				return { icon: '🔧', label: catLabel, ...catCfg };
+			}
+		}
+
 		const staticCfg = STATIC_TYPE_CONFIG[entry.entry_type];
 		if (staticCfg) return staticCfg;
 		const appt = appointmentTypes.active.find(t => t.name === entry.entry_type);
@@ -110,11 +144,6 @@
 	);
 	const cfgDotStyle = $derived(cfg.color ? `background-color: ${cfg.color};` : undefined);
 
-	// ── Document category metadata — driven by configurable categories store ──
-	const docCatLabel = $derived(docCategories.getLabel(entry.treatment_category));
-	const docCatIcon  = $derived(docCategories.getIcon(entry.treatment_category));
-	const docCatColor = $derived(docCategories.getColor(entry.treatment_category));
-
 	// ── Treatment category & outcome labels (clinical entries) ────────────
 	const categoryLabels = $derived<Record<string, { label: string; icon: string }>>({
 		endodontics:    { label: i18n.t.categories.endodontics,    icon: '🦷' },
@@ -129,15 +158,18 @@
 	});
 
 	const outcomeLabels = $derived<Record<string, { label: string; colorClass: string }>>({
-		successful:       { label: i18n.t.outcomes.successful,        colorClass: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400' },
-		retreated:        { label: i18n.t.outcomes.retreated,         colorClass: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400' },
-		failed_extracted: { label: i18n.t.outcomes.failed_extracted,  colorClass: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400' },
-		failed_other:     { label: i18n.t.outcomes.failed_other,      colorClass: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400' },
-		ongoing:          { label: i18n.t.outcomes.ongoing,           colorClass: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400' },
-		unknown:          { label: i18n.t.outcomes.unknown,           colorClass: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' },
+		successful:       { label: i18n.t.outcomes.successful,        colorClass: 'bg-success-light text-success border-success/20 dark:bg-success/15 dark:text-success' },
+		retreated:        { label: i18n.t.outcomes.retreated,         colorClass: 'bg-warning-light text-warning border-warning/20 dark:bg-warning/15 dark:text-warning' },
+		failed_extracted: { label: i18n.t.outcomes.failed_extracted,  colorClass: 'bg-critical-light text-critical border-critical/20 dark:bg-critical/15 dark:text-critical' },
+		failed_other:     { label: i18n.t.outcomes.failed_other,      colorClass: 'bg-critical-light text-critical border-critical/20 dark:bg-critical/15 dark:text-critical' },
+		ongoing:          { label: i18n.t.outcomes.ongoing,           colorClass: 'bg-info-light text-info border-info/20 dark:bg-info/15 dark:text-info' },
+		unknown:          { label: i18n.t.outcomes.unknown,           colorClass: 'bg-muted text-text-secondary border-border dark:bg-muted dark:text-text-tertiary' },
 	});
 
-
+	// ── Tagged staff (floats over the description as colored pills) ──────
+	const primaryDoc    = $derived(entry.doctor_id !== null ? doctors.map.get(entry.doctor_id) : undefined);
+	const colleagueIds  = $derived(JSON.parse(entry.colleague_ids || '[]') as number[]);
+	const hasTaggedStaff = $derived(!!primaryDoc || colleagueIds.some((id) => doctors.map.get(id)));
 
 	// ── Document attachment helpers ──────────────────────────────────────
 
@@ -301,14 +333,20 @@
 	<!-- ── Document entry — slim inline file row ── -->
 	{#if entry.entry_type === 'document'}
 		<div class="mb-1 flex-1">
-			<!-- Single compact row -->
-			<div class="group/doc flex items-center gap-2 rounded py-1 -mx-1 px-1 hover:bg-muted/20 transition-colors">
+			<!-- Single compact row — double-click anywhere on the row opens the file -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="group/doc flex items-center gap-2 rounded py-1 -mx-1 px-1 hover:bg-muted/20 transition-colors {docFile && resolvedDocPath ? 'cursor-pointer' : ''}"
+				ondblclick={handleOpenFile}
+				title={docFile && resolvedDocPath ? 'Double-click to open' : undefined}
+			>
 
 				<!-- File icon / tiny image thumbnail -->
 				{#if docFile && isImageMime(docFile.mime)}
 					<button
 						type="button"
 						onclick={handleImageClick}
+						ondblclick={(e) => e.stopPropagation()}
 						class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted hover:opacity-75 transition-opacity"
 						title="Click to preview"
 					>
@@ -320,11 +358,6 @@
 
 				<!-- Filename -->
 				<span class="text-[13px] font-medium truncate flex-1 leading-none" title={entry.title}>{entry.title}</span>
-
-				<!-- Category badge (no redundant "File" label) -->
-				{#if entry.treatment_category}
-					<span class="shrink-0 inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[10px] font-medium opacity-70 {docCatColor}">{docCatIcon} {docCatLabel}</span>
-				{/if}
 
 				<!-- Date (editable) · size -->
 				<div class="flex items-center gap-1 text-[11px] text-muted-foreground/50 shrink-0 tabular-nums">
@@ -375,7 +408,7 @@
 				{/if}
 
 				<!-- 3-dot menu (delete) -->
-				<div class="relative shrink-0">
+				<div class="relative shrink-0" ondblclick={(e) => e.stopPropagation()} role="presentation">
 					<button
 						type="button"
 						onclick={() => (menuOpen = !menuOpen)}
@@ -453,8 +486,10 @@
 					style={cfg.color ? `color: ${cfg.color}` : undefined}
 				>{cfg.icon}</span>
 
-				<!-- Title -->
-				<span class="text-sm font-semibold text-foreground leading-tight">{entry.title}</span>
+				<!-- Title (hidden when it's just the auto-generated repeat of the body's first words) -->
+				{#if !titleIsRedundant}
+					<span class="text-sm font-semibold text-foreground leading-tight">{entry.title}</span>
+				{/if}
 
 				<!-- Category badge -->
 				{#if entry.treatment_category && categoryLabels[entry.treatment_category]}
@@ -556,43 +591,45 @@
 				</div>
 			</div>
 
-			<!-- Meta: doctor · colleagues · teeth -->
-			{#if (entry.doctor_id !== null && doctors.map.get(entry.doctor_id)) || entry.provider || JSON.parse(entry.colleague_ids || '[]').some((id: number) => doctors.map.get(id)) || entry.tooth_numbers}
+			<!-- Legacy provider text / tooth numbers — doctor pills float over the description below -->
+			{#if (!primaryDoc && entry.provider) || entry.tooth_numbers}
 				<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 ml-[22px] text-[11px] text-muted-foreground/60">
-					{#if entry.doctor_id !== null && doctors.map.get(entry.doctor_id)}
-						{@const doc = doctors.map.get(entry.doctor_id)!}
-						<span class="inline-flex items-center gap-1">
-							<span class="h-1.5 w-1.5 rounded-full shrink-0 inline-block" style="background:{doc.color}"></span>
-							{staffLabel(doc)}
-						</span>
-					{:else if entry.provider}
+					{#if !primaryDoc && entry.provider}
 						<span class="text-muted-foreground/40">{entry.provider} <span class="text-[9px]">(legacy)</span></span>
 					{/if}
-					{#each JSON.parse(entry.colleague_ids || '[]') as colId}
-						{#if doctors.map.get(colId)}
-							{@const col = doctors.map.get(colId)!}
-							<span
-								class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
-								style="border-color: {col.color}40; background-color: {col.color}0d; color: {col.color};"
-							>
-								{staffLabel(col)}
-							</span>
-						{/if}
-					{/each}
 					{#if entry.tooth_numbers}
 						<span>{i18n.t.common.tooth} {entry.tooth_numbers}</span>
 					{/if}
 				</div>
 			{/if}
 
-			<!-- Description -->
+			<!-- Description — tagged doctor/colleague pills float over its top-right corner -->
 			{#if entry.description}
-				<div class="mt-1.5 ml-[22px] text-[13px] text-muted-foreground/80 leading-relaxed font-mono">
-					{#if descExpanded || !descIsLong}
-						<div class="[&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
-					{:else}
-						<div class="line-clamp-4 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
+				<div class="relative mt-1.5 ml-[22px]">
+					{#if hasTaggedStaff}
+						<div class="absolute -top-1 right-0 flex flex-wrap items-center justify-end gap-1 max-w-[70%] z-10">
+							{#if primaryDoc}
+								<span class="h-5 rounded-full text-white text-[10px] font-medium px-2 flex items-center shadow-sm" style="background:{primaryDoc.color}">
+									{staffLabel(primaryDoc)}
+								</span>
+							{/if}
+							{#each colleagueIds as colId}
+								{#if doctors.map.get(colId)}
+									{@const col = doctors.map.get(colId)!}
+									<span class="h-5 rounded-full text-white text-[10px] font-medium px-2 flex items-center shadow-sm" style="background:{col.color}">
+										{staffLabel(col)}
+									</span>
+								{/if}
+							{/each}
+						</div>
 					{/if}
+					<div class="text-[13px] text-muted-foreground/80 leading-relaxed font-mono">
+						{#if descExpanded || !descIsLong}
+							<div class="[&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
+						{:else}
+							<div class="line-clamp-4 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_b]:font-semibold [&_i]:italic">{@html entry.description}</div>
+						{/if}
+					</div>
 				</div>
 				{#if descIsLong}
 					<button
@@ -604,6 +641,23 @@
 					</button>
 				{/if}
 			{:else}
+				{#if hasTaggedStaff}
+					<div class="flex flex-wrap items-center gap-1 mt-1.5 ml-[22px]">
+						{#if primaryDoc}
+							<span class="h-5 rounded-full text-white text-[10px] font-medium px-2 flex items-center shadow-sm" style="background:{primaryDoc.color}">
+								{staffLabel(primaryDoc)}
+							</span>
+						{/if}
+						{#each colleagueIds as colId}
+							{#if doctors.map.get(colId)}
+								{@const col = doctors.map.get(colId)!}
+								<span class="h-5 rounded-full text-white text-[10px] font-medium px-2 flex items-center shadow-sm" style="background:{col.color}">
+									{staffLabel(col)}
+								</span>
+							{/if}
+						{/each}
+					</div>
+				{/if}
 				<p class="mt-1.5 ml-[22px] text-[11px] text-muted-foreground/30 italic">—</p>
 			{/if}
 

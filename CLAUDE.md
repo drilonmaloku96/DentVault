@@ -8,6 +8,7 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 **Core principle**: Every piece of clinical data must be structured, tagged, and queryable — not buried in free-text notes. The app's primary long-term value is clinical outcome tracking and statistical analysis.
 
 **Reference docs** (read these when working on specific areas):
+- `docs/claude/DESIGN_SYSTEM.md` — **Design system specification**: color palette (warm paper + clinical teal + semantic colors), typography scale, component library, dark mode, layout patterns. Defines all Tailwind color tokens used throughout the app.
 - `docs/claude/DATA_INTEGRITY.md` — **MANDATORY before adding/changing any feature**: dataset & evaluation mindset, known mistake patterns (dead pipelines, string-matched queries, notation mixing, enum drift, rate denominators), pre-merge checklist
 - `docs/claude/DENTAL_CHART.md` — watch status, root canals, crown findings, bridge/prosthesis, surface picker
 - `docs/claude/TIMELINE.md` — timeline entries, rich text editor, ortho snapshots, plan indicators
@@ -21,7 +22,8 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Svelte 5 runes**: `$state()`, `$derived()`, `$effect()`, `$props()`
 - **Snippet slots**: `{@render children()}`
 - **Tailwind v4**: `@theme inline` blocks in `src/app.css`, no `tailwind.config.js`
-- **Colors**: oklch CSS custom properties in `src/app.css`
+- **Colors**: hex-based CSS custom properties in `src/app.css` (see `DESIGN_SYSTEM.md` for the complete palette: warm paper, deep-pine sidebar, clinical teal primary, semantic colors for critical/warning/success/info, and procedure-type colors for endodontics/periodontics/orthodontics/prosthetics/hygiene). All components inherit from tokens—no hardcoded colors.
+- **Theme switching**: `theme.svelte.ts` must set **all three** of `.dark` class (drives Tailwind `dark:` variants), `data-theme` attribute (drives the `:root[data-theme]` token override blocks in `app.css` — without it the `@media (prefers-color-scheme: dark)` block keeps every token dark when the OS is dark, so "light mode" only changed the few class-driven bits), and `style.colorScheme` (native form controls/scrollbars).
 - **shadcn-svelte**: components at `$lib/components/ui/`, install with `npx shadcn-svelte@1.1.1 add <name> -y`
 - **DB access**: exclusively through `src/lib/services/db.ts`, positional `$1, $2` params
 - **Migrations**: append to `SCHEMA_STATEMENTS` array in `src/lib/services/db.ts`, never modify existing ones. Update `LATEST_VERSION` after adding. Current version: **68**. Test every new migration's SQL against a copy of a real vault DB with the `sqlite3` CLI before shipping — SQLite rejects some common syntax (e.g. derived-table column-list aliases `AS t(a,b)`, which made v65 a permanent no-op until fixed).
@@ -38,17 +40,22 @@ Built with **Tauri 2 + SvelteKit + Svelte 5 + TypeScript + SQLite + Tailwind CSS
 - **Data-integrity hard rules** (full list + rationale in `docs/claude/DATA_INTEGRITY.md`): never `LIKE`-match serialized fields — query `entry_teeth`/typed columns; every new DB function needs a caller in the same change; never branch on hardcoded members of user-configurable sets; enum literals must exist in `types.ts`; rates use final outcomes only (`successful/retreated/failed_extracted/failed_other`); `_planned` values never count as performed; SQLite dates use `'localtime'`
 - **JSON export**: `downloadJson` from `src/lib/services/export.ts` (CSV helpers `entriesToCSV`/`downloadCSV` were removed with the old clinical filter report — zero callers)
 
-### Fixed UI bars
+### Fixed UI bars & the resizable sidebar
 
 `position: sticky` inside a `flex-col` that's inside the layout's `h-full` wrapper fails at the bottom of long content — use `fixed` instead.
 
-Both persistent bars use the same pattern (`left-56 right-0` = sidebar width offset):
-- **Bottom bar** (`TimelineEntryBar`): `fixed bottom-0 left-56 right-0 z-40`
-- **Top toolbar** (`TimelineView` filter/search bar): `fixed left-56 right-0 z-10`, `top` set via inline `style="top: {headerHeight}px"` prop
+**The sidebar is user-resizable** (`sidebarWidth.svelte.ts` store — 180–480px, default 224, double-click the right-edge drag handle in `+layout.svelte` to reset; persisted to localStorage only, deliberately not the vault DB since width is display-specific). Any fixed-position element that must start where the sidebar ends **must NOT hardcode `left-56`** — bind `style="left: {sidebarWidth.px}px"` instead. Current bindings:
+- **Bottom bar** (`TimelineEntryBar`): `fixed bottom-0 right-0 z-40` + dynamic `left`
+- **Top toolbar** (`TimelineView` filter/search bar): `fixed right-0 z-10` + dynamic `left`, `top` set via inline `style="top: {headerHeight}px"` prop
+- **OS-drop overlay** (`TimelineView` `isDragOver`): `fixed inset-y-0 right-0 z-50` + dynamic `left`
+
+The sidebar resize handle divides `e.clientX` by the root `zoom` (uiScale) — pointer coords are visual px, layout px are scaled (see the zoom rule below).
 
 The patient page (`+page.svelte`) measures the sticky patient header's actual rendered height with a `ResizeObserver` and passes it as `headerHeight` to `TimelineView`. This keeps the toolbar correctly positioned below the patient header at all window widths, even when the header wraps at narrow sizes.
 
-**Minimum window size**: `820 × 560 px` (set in `src-tauri/tauri.conf.json`). Design and test all fixed/sticky UI at this width. Content area at min-width = `820 − 224 (sidebar) − 48 (p-6 × 2) = 548 px`.
+**Minimum window size**: `820 × 560 px` (set in `src-tauri/tauri.conf.json`). Design and test all fixed/sticky UI at this width and at the sidebar's max width. Content area at min-width, default sidebar = `820 − 224 (sidebar) − 48 (p-6 × 2) = 548 px`.
+
+**Root-zoom coordinate rule (uiScale)**: `uiScale` sets `zoom` on `<html>`, so `getBoundingClientRect()`/`clientX/Y` (visual px = layout × zoom) disagree with `style.left/top`/`offsetWidth` (layout px) everywhere in the app. Any popup/overlay positioned from selection or pointer coordinates must divide rect differences by `parseFloat(document.documentElement.style.zoom || '1')` — and prefer `position:absolute` inside a relative container over `position:fixed` + body-append (the error compounds toward the bottom of the screen; this is what pushed the text color picker off-screen from the composer). Same class of bug as the ceph route's full-window geometry.
 
 ---
 
@@ -66,7 +73,7 @@ generatePatientHTML()     ← assembles sections into full HTML document
 exportPatient()           ← orchestrator: gather → render → copy files → write HTML
 ```
 
-**Section toggles**: `demographics`, `medical`, `notes`, `ortho`, `chart`, `timeline`, `perio`, `plans`, `documents`. Medical section also exports acute/medical clinical tags; perio exports recession (`pd/rec`), mobility, furcation.
+**Section toggles**: `demographics`, `medical`, `notes`, `ortho`, `chart`, `timeline`, `perio`, `plans`, `documents`, `par`, `appointments`. Medical section also exports acute/medical clinical tags; perio exports recession (`pd/rec`), mobility, furcation.
 
 ### Rules
 1. New patient data source → add to `gatherExportData()` + `PatientExportData`
@@ -74,6 +81,12 @@ exportPatient()           ← orchestrator: gather → render → copy files →
 3. New dialog/section → add `render*()` function; include in `generatePatientHTML()`
 4. New fields on existing table → update relevant `render*()` function
 5. No silent omissions — if a field exists in the UI it must appear in the export
+
+### File-path invariants (July 2026 audit)
+- **Attachment/document hrefs use `pathInPatientFolder(path, patientId)`** — path within the patient folder, anchored on the segment ending in the patient id, works for absolute (legacy) and vault-relative inputs at any subfolder depth. The old "take the parent dir" (`slice(-2, -1)`) broke every file living in a category *sub*folder (`xrays/2023/scan.png` → `src="2023/scan.png"`); it survives only as the fallback for paths missing the patient folder.
+- **Non-image attachments render as links** (`.attachment-file`) into the copied folder tree — images stay inline `<figure>`s. `copy_patient_folder_to` copies category folders recursively (`copy_dir_all`), so subfoldered targets exist in the export.
+- **`titleIsRedundant()` mirrors `TimelineEntryCard`** — auto-generated titles that repeat the description's first words are skipped in `renderTimeline` too; empty `entry_type` renders no badge (composer entries save `''`).
+- Rich text (colors, semi-transparent highlights, strikethrough) reaches the export automatically — `entry.description` is inserted as raw HTML on a white page, so the rgba highlight tints stay readable.
 
 ### Checklist
 - [ ] New data in `gatherExportData()`?
@@ -176,9 +189,11 @@ Full roadmap + status: `ROADMAP_CEPH_INTEGRATION.md`. Cephalyzer stays ONE codeb
   Chart/Plans/Ortho) activates when the selection is an image or `.ceph` of the open patient
   and navigates to `patients/[patient_id]/ceph?file=<vault-relative-path>`.
 - **Ceph route** (`src/routes/patients/[patient_id]/ceph/+page.svelte`): full-window
-  `fixed inset-0 z-[45]` iframe, no DentVault header — the Cephalyzer logo is the back
-  button (posts `NAVIGATE_BACK`); Escape works on both sides of the boundary. The page
-  neutralizes the UI-scale zoom (`documentElement.style.zoom = '1'`) while open and
+  `fixed inset-0 z-[45]` iframe, no DentVault header — the Cephalyzer logo also acts as a
+  back button (posts `NAVIGATE_BACK`); Escape works on both sides of the boundary. A small
+  floating circular back-arrow button (`absolute top-3 left-3 z-[50]`) is layered on top of
+  the iframe as an explicit affordance, since the logo alone didn't read as "back" to users.
+  The page neutralizes the UI-scale zoom (`documentElement.style.zoom = '1'`) while open and
   restores it on leave — a zoomed root breaks fixed full-window geometry.
 - **Bridge protocol** (field names are load-bearing, both sides shipped): parent→iframe
   `LOAD_IMAGE { url, name, patientName }`, `LOAD_CEPH { content, patientName }`,
@@ -198,8 +213,11 @@ Full roadmap + status: `ROADMAP_CEPH_INTEGRATION.md`. Cephalyzer stays ONE codeb
   mirror the X-ray's.
 - **Rust commands**: `read_text_file`, `read_base64_file`, `write_base64_file` (uses the
   `base64` crate). i18n block: `ceph.*`.
-- **Not done yet (Phase 1 of the roadmap)**: saved `.ceph`/PDFs are untracked vault files —
-  no `ceph_analysis` timeline entry, no `documents` row, not in the HTML export.
+- **Saved `.ceph`/PDFs are auto-tracked** (see "Auto-tracking files added outside the app"):
+  they get a `documents` row + generic `document` timeline entry and appear in the HTML
+  export (timeline attachment link + Document Index). **Still open for Phase 1 of the
+  roadmap**: a dedicated `ceph_analysis` entry type with parsed measurements in
+  `chart_data`, `CephSnapshotCard`, and a `renderCeph()` export section.
 - **Dev ports**: 5173 belongs to this app's Tauri `devUrl` (strictPort); Cephalyzer's dev
   server is pinned to 5175; automated browser tests run a second instance via
   `npm run dev -- --port 4998`. Never kill vite processes broadly — a dead 5173 server
@@ -214,6 +232,8 @@ Left sidebar (`src/routes/+layout.svelte`): `{#each primaryNav}` rows with icon 
 **PAR is archived for v1** — parked, not fixed. `components/par/`, `par_*` DB tables/functions, and `par_step` timeline rendering in `TimelineView.svelte` are untouched — only the dead `ParCaseView` import/`showPar` state on the patient page were removed (the entry point was already unwired). Known bug: case-completion never sets `ParStatus: 'ended'` so `lockParCaseAssessments()` never engages — fix when un-archiving.
 
 **Reports is no longer archived** — `/reports` is now the Doctor Performance Analytics dashboard (nav link restored). The old clinical filter report and its dead code (`getFilteredEntries`, `getFilteredSummary`, `ReportFilters`, `ReportEntry`, `entriesToCSV`, `downloadCSV`) were deleted.
+
+**No "Back to List" button in the patient sidebar** (`PatientTreeView.svelte`) — removed as redundant with the main nav's "Patients" link. Don't re-add it.
 
 ## Doctor Performance Analytics
 
@@ -250,7 +270,9 @@ Page (`src/routes/reports/+page.svelte`): doctor selector (all or single), date 
 When `typeFilters.size > 1`, the filter button shows a compact `N types` badge instead of all labels, to stay within the toolbar's available width.
 
 ### Timeline entry bar
-No title field — `autoTitle(bodyText, date)` always generates the title on save. Triggers: `/` for text blocks, `@` for staff mentions, `d15`-style for teeth. No `#` trigger in the bar (conditions are tagged in the Acute/Medical boxes instead).
+No title field — `autoTitle(bodyText, date)` always generates the title on save (still stored/exported, but `TimelineEntryCard` hides it in the card whenever it's a whitespace/markup-insensitive prefix of the description — showing it would just repeat the opening line). ⌘B/⌘I/⌘U and ⌘⇧X (strikethrough — clinical convention: retracted text stays visible, struck through) are handled explicitly in `handleDescriptionKeydown` via `execCommand` — WKWebView under Tauri doesn't deliver them to contenteditable natively. Selecting text pops the formatting bar (`TextColorPicker.svelte`): B/I/U/S buttons, configurable text-color circles (`textHighlightColors` store — despite the name these are FORE colors), fixed highlighter squares (semi-transparent `rgba` tints so the theme's own text color stays readable in both modes — do not switch to opaque marker colors), and a clear-formatting button (⌘\) that strips everything via `execCommand('removeFormat')` + an explicit underline toggle-off. Never "remove" a color with `foreColor 'inherit'` / `hiliteColor 'transparent'` — execCommand nests the new wrapper INSIDE the colored span, so those values resolve to the very color being removed and nothing visibly changes. The popup mounts inside the composer box with zoom-corrected absolute positioning (see the root-zoom coordinate rule). Highlights/strikethrough reach the HTML export automatically — `renderTimeline` inserts `entry.description` HTML raw. No date or entry-type field either — every entry from this bar saves with `entry_type: ''` (the existing "Unclassified" state, already handled throughout filters/badges) and today's date; there is nothing to pick from a persistent metadata row anymore. Triggers: `/` for text blocks, `@` for staff mentions, `d15`-style for teeth. No `#` trigger in the bar (conditions are tagged in the Acute/Medical boxes instead).
+
+Tagged doctors (via `@mention` or the staff picker) and detected tooth numbers render as **floating pills** overlapping the top edge of the documentation box (`absolute -top-3`) instead of a metadata bar above it — they only appear once something is actually tagged. The "add staff" trigger is a small dashed-circle icon button floating at the top-right of the box; its dropdown opens upward from there. `TimelineEntryCard.svelte` mirrors this for saved entries — tagged doctors (primary + colleagues, both) render as solid-colored pills floating over the top-right of the description text, not as a separate meta line.
 
 ### Acute Problems & Medical History boxes
 Both boxes (`AcuteProblemsBox.svelte`, `MedicalHistoryBox.svelte`) support `#word` typing in their textarea to trigger an inline condition autocomplete palette. Selecting a condition: activates the tag + replaces `#query` with `#Label` in the textarea. Creating a new condition: adds it to the `acuteTagOptions`/`medicalTagOptions` store. Active tags shown as removable colored pills below the textarea. The `#` hint is in the textarea placeholder text (second line). No separate "add condition" button.
@@ -266,14 +288,32 @@ Acute Problems, Medical History, and Notes render as **`FloatingPanel`** instanc
 **Panel content scaling**: box components inside `FloatingPanel` use `h-full flex flex-col` on the outer div and `flex-1 min-h-[...] resize-none` on the textarea so content fills the resizable panel and scrolls internally. The old JS `autoResize()` (textarea auto-grow) was removed from the boxes — do not reintroduce it; it fights flex sizing.
 
 ### OS file drag-and-drop → VaultDropDialog
-Files enter the timeline **exclusively** via OS drag-and-drop. The automatic vault-scan system (`NewFilesDialog`, `checkNewVaultFiles`, `scanVaultForUntrackedFiles`, `getTrackedFilePaths`, the amber "files found in vault" banner) is fully removed — **do not re-implement it**.
+In-app drops open a folder-picker dialog before filing the document; **files added any other way** (Finder, a Ceph analysis save) are picked up automatically by the auto-track mechanism below — see that section for how the two stay non-overlapping. The old interactive review-wizard system (`NewFilesDialog`, `checkNewVaultFiles`, `scanVaultForUntrackedFiles`, `getTrackedFilePaths`, the amber "files found in vault" banner, one-file-at-a-time date/category/staff form) is still fully removed — **do not re-implement that wizard UI**; the replacement below is deliberately silent, not a review step.
 
 - **Tauri WKWebView rule**: `dataTransfer.files` is always empty — Tauri intercepts OS drops natively. `TimelineView.svelte` listens to `tauri://drag-enter` / `drag-leave` / `drag-drop` (from `@tauri-apps/api/event`) in `onMount` (with unlisten cleanup) and opens `VaultDropDialog` with `event.payload.paths`.
 - **`VaultDropDialog.svelte`** (`src/lib/components/timeline/`): folder-tree picker (Rust `list_patient_folders`), inline subfolder creation (`create_patient_subfolder`), pointer-based drag-to-reorganize of folders (`move_patient_folder`). Saving copies each file via `copy_file_to_vault`, then `insertDocument` + a `document` timeline entry.
 - **Vault-relative paths**: `rel_path` in `documents` and `path` in the `attachments` JSON must be relative to **vault root** — `{patientFolder}/{selectedFolder}/{filename}` — so `toAbsPath(relPath, vault.path)` resolves thumbnails correctly.
 - **Folder drag targets**: `data-folder-rel` attributes mark drop targets for `elementsFromPoint`; empty string `""` is the valid patient-root target, so destination checks must use `dest === null`, never `!dest`.
 - **Never use HTML5 `draggable="true"`** for in-app drags — it fires `tauri://drag-enter` and confuses the OS-drop overlay. Use pointer events + `setPointerCapture`.
+
+### Auto-tracking files added outside the app (Finder, Ceph saves)
+`PatientTreeView.svelte`'s `autoTrackUntrackedFiles()` runs after every `refreshFiles()` (on mount and on the 2s poll) — compares the fresh `list_vault_files()` result against `getDocuments(patientId)` by `rel_path`, and for any file on disk with no matching `documents` row, silently creates one (`category` inferred from the file's top-level folder via `folderToKey`, `mime_type` via `getMimeType`) plus a generic `document` timeline entry (`entry_date` = the file's mtime, falling back to today). No dialog, no per-file review — this is intentionally silent, unlike the removed `NewFilesDialog` wizard.
+
+- **Why in-app drops don't get double-tracked**: both `VaultDropDialog` and the template-drop flow (`performDrop` in `PatientTreeView.svelte`) call `insertDocument` *before* the next `listVaultFiles()` refresh, so by the time `autoTrackUntrackedFiles` runs, the file is already in `documents` and gets skipped.
+- **Backfill is implicit, not a separate pass**: there's no "first run" flag — any file untracked at the time this code runs (whether it's brand new or has been sitting in the vault since before this feature existed) gets tracked the same way. A patient with old untracked Finder-dropped files will get a batch of entries the first time their page loads after this shipped.
+- **Scope**: only runs while a patient's own timeline page is mounted (that's where the poll lives) — not while browsing other patients, and not while the full-window Ceph route is open. Returning from Ceph to the patient page re-triggers `onMount` → `refreshFiles()` immediately, so newly-saved `.ceph`/PDF files are tracked the moment the user is back, without waiting for the poll.
+- **Concurrency guard**: `isAutoTracking` prevents overlapping runs — since each file requires a couple of awaited DB writes, a slow batch could otherwise still be running when the next 2s poll fires and re-read a not-yet-committed `getDocuments()` snapshot, tracking the same file twice.
+- **No distinct entry type for Ceph saves yet** — `.ceph`/PDF files get the same generic `document` entry as anything else. A dedicated `ceph_analysis` type with parsed measurements in `chart_data` is still the separate, bigger "Ceph Phase 1" work in `ROADMAP_CEPH_INTEGRATION.md`.
 - i18n block: `timeline.vaultDrop.*`.
+
+### Sidebar file tree (`PatientTreeView.svelte`) — reorganizing files already in the vault
+Same mouse-based drag pattern as `VaultDropDialog` (mousedown + global `mousemove`/`mouseup`, `data-drop-folder` attribute + `elementFromPoint().closest(...)`, `DRAG_THRESHOLD = 5px` before a drag activates) — never HTML5 `draggable`.
+
+- **Drop zone = the whole folder row AND its open file-list container**, not just the folder icon — both carry `data-drop-folder={node.folderPath}` so dropping among files (not only directly on the row) still resolves to that folder via `closest()`.
+- **Rust commands** (`src-tauri/src/lib.rs`): `move_patient_file` (single file between category/sub-folders) and `delete_patient_file` both take vault-relative paths matching `VaultFileInfo.rel_path` and validate `file_path.starts_with(patient_folder)` before touching disk. `create_patient_subfolder`'s Rust parameter is `parent_rel`, not `parent_folder` — a JS→Rust key mismatch here silently no-ops the call (Tauri just reports a missing-argument error that only reaches the console), which is exactly what broke folder creation and file moves for a while. Double-check invoke argument names against the `#[tauri::command]` signature, not against sibling call sites.
+- **Shift-click multi-select**: shift-clicking a file toggles it into `multiSelected` (a `Set<rel_path>`, violet ring highlight) without touching `cephSelection`. A plain click clears `multiSelected` and does the normal single-select-for-Ceph behavior. Dragging a file that's part of an active multi-selection (`multiSelected.size > 1`) moves the whole group in one drop; `currentFolderPath(file)` (category + `path_in_category`) is what's compared against the drop target, not the bare `category_folder`, so dropping a sub-folder file back onto its own folder is correctly treated as a no-op instead of erroring on "file already exists."
+- **Template-drop filename collisions**: `performDrop()` calls `uniqueFilename()` against a freshly-fetched file list before saving, appending `_1`, `_2`, ... — repeated drops of the same template no longer silently overwrite the previous copy.
+- **File-type icons**: `getFileKind()` classifies by extension into a small `FileKind` union (`image | pdf | document | spreadsheet | archive | dicom | generic`), rendered via the `fileTypeIcon` snippet as stroke-SVGs colored from semantic tokens (`FILE_KIND_COLOR`) — no emoji.
 
 ---
 
@@ -291,6 +331,10 @@ Files enter the timeline **exclusively** via OS drag-and-drop. The automatic vau
 - [x] v1 release audit — patients/schedule bug-fix pass; Reports & PAR archived (nav removed, code/data intact); provider success-rate denominator fixed to final outcomes only; complications recording UI built; vault integrity check surfaced in Settings; v67 migration folds legacy tables (`patient_note_entries`, `medical_entries`, `acute_problems`, `clinical_exams`, `ortho_assessments`) into current structures, then their dead CRUD deleted; document metadata editing; Patients nav item added; HTML export gained an appointments/visit-history section; verified zero-caller dead code removed from `db.ts`/`files.ts`/`utils.ts`
 - [x] Symbiosis feature port — appointment time tracking (v68: arrival/treatment start/end timestamps, first-time-only capture); Doctor Performance Analytics dashboard replaces the archived clinical report at `/reports` (nav restored); patient info "Appointment Statistics" card; floating patient panels (`FloatingPanel.svelte` — Acute/Medical/Notes as draggable resizable windows, backdrop modals removed); OS drag-and-drop file ingestion (`VaultDropDialog` + Rust folder-tree commands); NewFilesDialog vault-scan system fully removed
 - [x] Cephalyzer integration core flow (July 2026) — embedded analyzer at `patients/[patient_id]/ceph` with postMessage bridge, sidebar file selection + toolbar "Ceph Analysis" button, save-to-vault next to the X-ray, sibling-`.ceph` auto-reopen (see "Cephalyzer Integration" section + `ROADMAP_CEPH_INTEGRATION.md`; Phase 1 timeline/export integration still open)
+- [x] File management + timeline bar cleanup (July 2026) — template-drop filename collisions fixed (`uniqueFilename()`); timeline document rows open on double-click; sidebar file-type icons are stroke-SVGs, not emoji; folder drop zone expanded to the whole row + open file list, not just the icon; "Back to List" sidebar button removed; Cephalyzer page gained an explicit floating back-arrow button; timeline entry bar's Type dropdown and persistent metadata row removed in favor of floating tagged-doctor/tooth pills (see "Timeline entry bar" section); fixed a broken inter-folder file drag/move (missing `move_patient_file`/`delete_patient_file` Rust commands, mismatched `create_patient_subfolder` argument name) and added shift-click multi-select for moving several files at once (see "Sidebar file tree" section)
+- [x] Silent auto-tracking of externally-added files (July 2026) — any file that appears in a patient's vault folder via Finder or a Ceph analysis save now gets a `documents` row + generic `document` timeline entry automatically, no dialog (see "Auto-tracking files added outside the app" section). This intentionally supersedes the earlier "files enter the timeline exclusively via OS drag-and-drop" rule — the removed `NewFilesDialog` review-wizard UI stays removed, but untracked-file *detection* is back in a silent, non-interactive form
+- [x] UI polish batch (July 2026) — resizable left sidebar (drag handle + `sidebarWidth` store; all `left-56` fixed bars now bind the store — see "Fixed UI bars & the resizable sidebar"); light-mode fix (theme store now sets `data-theme` + `color-scheme`, not just the `.dark` class); schedule hover time line no longer freezes over appointment blocks (`elementsFromPoint` looks through overlays); composer formatting (⌘B/I/U handled explicitly, selection popup gained B/I/U/S buttons + highlighter swatches + native custom color picker, ⌘⇧X strikethrough, ⌘\ clear via `removeFormat`, color picker repositioned zoom-correctly inside the box); auto-generated title hidden in timeline cards when it repeats the description's opening; document-category badge removed from timeline document rows (auto-assignment too unreliable to display)
+- [x] Export audit + fixes (July 2026) — attachment/document paths in the HTML report are now subfolder-safe via `pathInPatientFolder()` (old parent-dir-only logic broke images in category subfolders); non-image attachments (PDFs, `.ceph`) render as links; Document Index paths are links; redundant auto-titles skipped and empty `entry_type` badges dropped in `renderTimeline`; attachments JSON now stores vault-relative paths in `performDrop` + auto-track (abs paths broke vault portability — the documented convention is enforced everywhere now)
 
 ---
 
