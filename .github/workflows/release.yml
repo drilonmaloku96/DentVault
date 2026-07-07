@@ -45,7 +45,7 @@ jobs:
           releaseDraft: true
           prerelease: false
 
-  build-macos:
+  build-macos-arm:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,8 +56,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install Rust stable
+      - name: Install Rust stable (aarch64-apple-darwin)
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -67,13 +69,50 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build Tauri app (macOS)
+      - name: Build Tauri app (macOS Apple Silicon)
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          args: --target aarch64-apple-darwin
           tagName: ${{ github.event.inputs.version }}
           releaseName: 'DentVault ${{ github.event.inputs.version }}'
           releaseBody: 'macOS (Apple Silicon) build of DentVault'
+          releaseDraft: true
+          prerelease: false
+
+  build-macos-intel:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Rust stable (x86_64-apple-darwin)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri app (macOS Intel)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target x86_64-apple-darwin
+          tagName: ${{ github.event.inputs.version }}
+          releaseName: 'DentVault ${{ github.event.inputs.version }}'
+          releaseBody: 'macOS (Intel) build of DentVault'
           releaseDraft: true
           prerelease: false
