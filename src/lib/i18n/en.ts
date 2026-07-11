@@ -1146,6 +1146,10 @@ export const en: Translations = {
 			kuerzelLabel: 'Code',
 			kuerzelPlaceholder: 'e.g. W',
 			builtInStatus: 'Built-in',
+			noShowThresholdTitle: 'No-Show Auto-Detection',
+			noShowThresholdDesc: 'Appointments still marked "Scheduled" this many minutes after their start time are automatically flipped to "No-show" while the Schedule page is open.',
+			noShowThresholdLabel: 'Auto-mark as no-show after',
+			noShowThresholdMinutes: 'minutes late',
 		},
 	},
 

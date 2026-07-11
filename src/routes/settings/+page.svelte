@@ -38,6 +38,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { appointmentStatuses, type AppointmentStatusConfig } from '$lib/stores/appointmentStatuses.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import { noShowThreshold } from '$lib/stores/noShowThreshold.svelte';
 	import StaffWorkingHoursGrid from '$lib/components/schedule/StaffWorkingHoursGrid.svelte';
 	import type { DentalTag, PatternType, AppointmentRoom, AppointmentType, WorkingHoursEntry, Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
@@ -1068,6 +1069,23 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			await workingHours.save(localWorkingHours);
 			workingHoursSaved = true; setTimeout(() => (workingHoursSaved = false), 2000);
 		} finally { workingHoursSaving = false; }
+	}
+
+	// ── No-Show Auto-Detection ────────────────────────────────────────────────
+	let localNoShowThreshold = $state(noShowThreshold.value);
+	let noShowThresholdSaving = $state(false);
+	let noShowThresholdSaved  = $state(false);
+
+	$effect(() => {
+		localNoShowThreshold = noShowThreshold.value;
+	});
+
+	async function handleSaveNoShowThreshold() {
+		noShowThresholdSaving = true;
+		try {
+			await noShowThreshold.set(localNoShowThreshold);
+			noShowThresholdSaved = true; setTimeout(() => (noShowThresholdSaved = false), 2000);
+		} finally { noShowThresholdSaving = false; }
 	}
 
 	// ── Backup & Export ─────────────────────────────────────────────────────
@@ -3883,6 +3901,41 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{/if}
 					</div>
 				{/each}
+			</div>
+		</div>
+	</section>
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
+			<h2 class="text-base font-semibold">{i18n.t.settings.schedule.noShowThresholdTitle}</h2>
+			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.noShowThresholdDesc}</p>
+		</div>
+		<Separator />
+
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.noShowThresholdTitle}</span>
+				<div class="flex items-center gap-2">
+					{#if noShowThresholdSaved}
+						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
+					{/if}
+					<Button size="sm" onclick={handleSaveNoShowThreshold} disabled={noShowThresholdSaving}>
+						{noShowThresholdSaving ? i18n.t.common.loading : i18n.t.actions.save}
+					</Button>
+				</div>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<span class="text-sm">{i18n.t.settings.schedule.noShowThresholdLabel}</span>
+				<input
+					type="number"
+					min="1"
+					step="1"
+					bind:value={localNoShowThreshold}
+					class="border border-border rounded px-2 py-1 text-sm bg-background w-16"
+				/>
+				<span class="text-sm text-muted-foreground">{i18n.t.settings.schedule.noShowThresholdMinutes}</span>
 			</div>
 		</div>
 	</section>

@@ -14,6 +14,7 @@
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import { noShowThreshold } from '$lib/stores/noShowThreshold.svelte';
 	import PatientSidebar from '$lib/components/sidebar/PatientSidebar.svelte';
 	import OnboardingWizard from '$lib/components/onboarding/OnboardingWizard.svelte';
 	import { i18n } from '$lib/i18n';
@@ -73,6 +74,7 @@
 		await rooms.load();
 		await appointmentTypes.load();
 		await workingHours.load();
+		await noShowThreshold.load();
 		// Load UI scale preference
 		await uiScale.load();
 		await textHighlightColors.load();

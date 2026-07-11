@@ -5,6 +5,7 @@
 	import { rooms } from '$lib/stores/rooms.svelte';
 	import { workingHours } from '$lib/stores/workingHours.svelte';
 	import { appointmentStatuses } from '$lib/stores/appointmentStatuses.svelte';
+	import { noShowThreshold } from '$lib/stores/noShowThreshold.svelte';
 	import {
 		getAppointmentsForDate,
 		insertAppointment,
@@ -342,6 +343,41 @@
 		const idx = appointments.findIndex(a => a.id === id);
 		if (idx !== -1) appointments[idx].status = status;
 	}
+
+	// ── No-show auto-detection ──────────────────────────────────────────
+	// Only 'scheduled' appointments qualify — a patient who checked in
+	// ('waiting'/'in_chair') or a custom status is left alone; those aren't
+	// "never showed up." Re-entrancy guard mirrors PatientTreeView's
+	// autoTrackUntrackedFiles isAutoTracking pattern, since each flip is an
+	// awaited DB write and a slow batch could still be running when the next
+	// tick fires.
+	let isSweepingNoShows = false;
+	async function sweepNoShows() {
+		if (isSweepingNoShows) return;
+		isSweepingNoShows = true;
+		try {
+			const now = Date.now();
+			const thresholdMs = noShowThreshold.value * 60_000;
+			const late = appointments.filter(a =>
+				a.status === 'scheduled' && now - new Date(a.start_time).getTime() > thresholdMs
+			);
+			for (const a of late) {
+				await handleAppointmentStatusChange(a.id, 'no_show');
+			}
+		} finally {
+			isSweepingNoShows = false;
+		}
+	}
+
+	// Only ticks while viewing today — a past/future day's appointments can't
+	// newly become "30 minutes late" relative to the current moment, and this
+	// mirrors DayView's isToday-gated current-time interval.
+	$effect(() => {
+		if (currentDate !== todayStr) return;
+		sweepNoShows();
+		const interval = setInterval(sweepNoShows, 60_000);
+		return () => clearInterval(interval);
+	});
 
 	async function handleBlockoutDelete(id: string) {
 		await deleteStaffBlockout(id);

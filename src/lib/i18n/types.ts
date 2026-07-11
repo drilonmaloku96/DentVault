@@ -891,6 +891,10 @@ export interface Translations {
 			kuerzelLabel: string;
 			kuerzelPlaceholder: string;
 			builtInStatus: string;
+			noShowThresholdTitle: string;
+			noShowThresholdDesc: string;
+			noShowThresholdLabel: string;
+			noShowThresholdMinutes: string;
 		};
 	};
 

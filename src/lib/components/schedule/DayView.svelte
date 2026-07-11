@@ -272,18 +272,29 @@
 	// Set in onGridPointerUp after a plain appointment click to suppress the
 	// subsequent click event that bubbles/falls through to slot cells.
 	let suppressNextSlotClick = false;
+	// Set when onGridPointerDown handles a shift-click multi-select toggle and returns
+	// early without setting apptPendingId/isDragging — otherwise the matching pointerup
+	// falls through to the "click on empty area → deselect" branch and immediately wipes
+	// the selection just toggled on.
+	let suppressNextEmptyDeselect = false;
 	// Double-click detection (can't rely on ondblclick — e.preventDefault on pointerdown kills it)
 	let lastApptClickId: string | null = null;
 	let lastApptClickTime = 0;
 
 	type ApptDragOp = 'move' | 'resize-top' | 'resize-bottom';
 	let selectedApptId = $state<string | null>(null);
+	// Shift-click multi-select — mirrors PatientTreeView's multiSelected pattern.
+	// A plain click on any appointment collapses this back to a single selectedApptId.
+	let multiSelectedApptIds = $state<Set<string>>(new Set());
 	// Pending: pointer-down on appt but not yet confirmed as drag
 	let apptPendingId = $state<string | null>(null);
 	let apptPendingOp = $state<ApptDragOp>('move');
 	let apptPendingDownX = $state(0);
 	let apptPendingDownY = $state(0);
 	let apptPendingSlot = $state(0);
+	// Set at pointerdown when the press lands on a 'move'-eligible member of an
+	// active multi-selection — carries the whole group into the drag if it activates.
+	let apptPendingGroupIds = $state<Set<string> | null>(null);
 	// Active drag
 	let apptDragActive = $state(false);
 	let apptDragOp = $state<ApptDragOp | null>(null);
@@ -295,6 +306,20 @@
 	let apptGhostStartSlot = $state<number | null>(null);
 	let apptGhostEndSlot = $state<number | null>(null);
 	let apptGhostRoomId = $state<string | null>(null);
+	// Other group members' original offsets (relative to the anchor appt above) and
+	// their live ghost positions, kept only while dragging a multi-selected group.
+	interface ApptGroupOffset { id: string; slotDelta: number; durSlots: number; roomIndexDelta: number }
+	let apptDragGroupOffsets = $state<ApptGroupOffset[]>([]);
+	let apptDragGroupGhosts = $state<Array<{ id: string; startSlot: number; endSlot: number; roomId: string }>>([]);
+
+	// Real appointment boxes to hide (opacity) while their ghost is being dragged.
+	const apptDragHiddenIds = $derived.by(() => {
+		if (!apptDragActive) return new Set<string>();
+		const ids = new Set<string>();
+		if (apptDragSource) ids.add(apptDragSource.id);
+		for (const g of apptDragGroupGhosts) ids.add(g.id);
+		return ids;
+	});
 
 	let gridEl = $state<HTMLDivElement | null>(null);
 	let lastPointerX = $state(0);
@@ -368,12 +393,33 @@
 		const targetAppt = (!isCancelledDomHit ? domAppt : null) ?? apptAtSlot;
 		if (targetAppt) {
 			const handle = handleEl?.getAttribute('data-appt-handle') as 'top' | 'bottom' | null;
+
+			// Shift-click (not on a resize handle) toggles multi-select instead of
+			// starting a drag/resize — mirrors PatientTreeView's shift-click pattern.
+			if (e.shiftKey && !handle) {
+				const next = new Set(multiSelectedApptIds);
+				if (selectedApptId && selectedApptId !== targetAppt.id) next.add(selectedApptId);
+				if (next.has(targetAppt.id)) next.delete(targetAppt.id);
+				else next.add(targetAppt.id);
+				multiSelectedApptIds = next;
+				selectedApptId = null;
+				selectedBlockId = null;
+				suppressNextEmptyDeselect = true;
+				e.preventDefault();
+				return;
+			}
+
 			const op: ApptDragOp = handle === 'top' ? 'resize-top' : handle === 'bottom' ? 'resize-bottom' : 'move';
 			apptPendingId = targetAppt.id;
 			apptPendingOp = op;
 			apptPendingDownX = e.clientX;
 			apptPendingDownY = e.clientY;
 			apptPendingSlot = apptDragOrigStartSlot;
+			// A plain press on a 'move'-eligible member of an active multi-selection
+			// carries the whole group into the drag if it activates (see onGridPointerMove).
+			apptPendingGroupIds = (op === 'move' && multiSelectedApptIds.has(targetAppt.id) && multiSelectedApptIds.size > 1)
+				? new Set(multiSelectedApptIds)
+				: null;
 			e.preventDefault();
 			(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 			return;
@@ -455,6 +501,32 @@
 					apptGhostStartSlot = apptDragOrigStartSlot;
 					apptGhostEndSlot = apptDragOrigEndSlot;
 					apptGhostRoomId = appt.room_id;
+
+					// Build the other group members' fixed offsets from the anchor, so
+					// the whole selection moves together preserving relative time/room.
+					if (apptPendingGroupIds && apptPendingGroupIds.size > 1) {
+						const anchorRoomIdx = activeRooms.findIndex(r => r.id === appt.room_id);
+						const offsets: ApptGroupOffset[] = [];
+						for (const id of apptPendingGroupIds) {
+							if (id === appt.id) continue;
+							const member = appointments.find(a => a.id === id);
+							if (!member) continue;
+							const mRoomIdx = activeRooms.findIndex(r => r.id === member.room_id);
+							if (mRoomIdx === -1) continue;
+							const mStart = getSlotFromTime(member.start_time);
+							const mEnd = getSlotFromTime(member.end_time);
+							offsets.push({
+								id,
+								slotDelta: mStart - apptDragOrigStartSlot,
+								durSlots: mEnd - mStart,
+								roomIndexDelta: mRoomIdx - anchorRoomIdx,
+							});
+						}
+						apptDragGroupOffsets = offsets;
+					} else {
+						apptDragGroupOffsets = [];
+					}
+					apptDragGroupGhosts = [];
 				}
 			}
 		}
@@ -468,7 +540,33 @@
 				const curRoomId = cell.dataset.room ?? (apptGhostRoomId ?? apptDragOrigRoomId);
 				if (!isNaN(curSlot)) {
 					const dur = apptDragOrigEndSlot - apptDragOrigStartSlot;
-					if (apptDragOp === 'move') {
+					if (apptDragOp === 'move' && apptDragGroupOffsets.length > 0) {
+						// Group move — clamp so every member stays within the visible/room bounds.
+						const minSlotDelta = Math.min(0, ...apptDragGroupOffsets.map(o => o.slotDelta));
+						const rawNewStart = apptDragOrigStartSlot + (curSlot - apptDragAnchorSlot);
+						const newStart = Math.max(visibleStart() - minSlotDelta, rawNewStart);
+
+						const anchorOrigRoomIdx = activeRooms.findIndex(r => r.id === apptDragOrigRoomId);
+						const rawRoomIdx = activeRooms.findIndex(r => r.id === curRoomId);
+						const minMemberDelta = Math.min(0, ...apptDragGroupOffsets.map(o => o.roomIndexDelta));
+						const maxMemberDelta = Math.max(0, ...apptDragGroupOffsets.map(o => o.roomIndexDelta));
+						const lowerBound = -minMemberDelta;
+						const upperBound = activeRooms.length - 1 - maxMemberDelta;
+						const desiredRoomIdx = rawRoomIdx >= 0 ? rawRoomIdx : anchorOrigRoomIdx;
+						const newAnchorRoomIdx = Math.min(upperBound, Math.max(lowerBound, desiredRoomIdx));
+						const newAnchorRoomId = activeRooms[newAnchorRoomIdx]?.id ?? apptDragOrigRoomId;
+
+						apptGhostStartSlot = newStart;
+						apptGhostEndSlot = newStart + dur;
+						apptGhostRoomId = newAnchorRoomId;
+
+						apptDragGroupGhosts = apptDragGroupOffsets.map(o => ({
+							id: o.id,
+							startSlot: newStart + o.slotDelta,
+							endSlot: newStart + o.slotDelta + o.durSlots,
+							roomId: activeRooms[newAnchorRoomIdx + o.roomIndexDelta]?.id ?? newAnchorRoomId,
+						}));
+					} else if (apptDragOp === 'move') {
 						const newStart = Math.max(visibleStart(), apptDragOrigStartSlot + (curSlot - apptDragAnchorSlot));
 						apptGhostStartSlot = newStart;
 						apptGhostEndSlot = newStart + dur;
@@ -583,25 +681,38 @@
 					lastApptClickId = apptPendingId;
 					lastApptClickTime = now;
 				}
+				// A plain click (no drag) always collapses any active multi-selection
+				// down to just this appointment.
+				multiSelectedApptIds = new Set();
 				suppressNextSlotClick = true;
 			} else {
-				// Drag complete → commit
+				// Drag complete → commit anchor, then every other group member (if any)
+				// by the same time/room offset it was dragged with.
 				if (apptDragSource && apptGhostStartSlot !== null && apptGhostEndSlot !== null) {
 					const newStart = `${date}T${slotToTime(apptGhostStartSlot)}:00`;
 					const newEnd   = `${date}T${slotToTime(apptGhostEndSlot)}:00`;
 					const dur = (apptGhostEndSlot - apptGhostStartSlot) * MINUTES_PER_SLOT;
 					const roomId = apptGhostRoomId ?? apptDragOrigRoomId;
 					onAppointmentQuickUpdate?.(apptDragSource.id, newStart, newEnd, dur, roomId);
+					for (const g of apptDragGroupGhosts) {
+						const gStart = `${date}T${slotToTime(g.startSlot)}:00`;
+						const gEnd   = `${date}T${slotToTime(g.endSlot)}:00`;
+						const gDur = (g.endSlot - g.startSlot) * MINUTES_PER_SLOT;
+						onAppointmentQuickUpdate?.(g.id, gStart, gEnd, gDur, g.roomId);
+					}
 					selectedApptId = apptDragSource.id;
 				}
 			}
 			apptPendingId = null;
+			apptPendingGroupIds = null;
 			apptDragActive = false;
 			apptDragOp = null;
 			apptDragSource = null;
 			apptGhostStartSlot = null;
 			apptGhostEndSlot = null;
 			apptGhostRoomId = null;
+			apptDragGroupOffsets = [];
+			apptDragGroupGhosts = [];
 			return;
 		}
 
@@ -611,6 +722,7 @@
 				// Plain click → select, clear appointment selection
 				selectedBlockId = blockPendingId;
 				selectedApptId = null;
+				multiSelectedApptIds = new Set();
 			} else {
 				// Drag complete → commit
 				if (blockDragSource && blockGhostStartSlot !== null && blockGhostEndSlot !== null) {
@@ -634,8 +746,13 @@
 		// ── Slot drag path ────────────────────────────────────────────
 		// Click on empty area → deselect both appointment and block
 		if (!isDragging) {
+			if (suppressNextEmptyDeselect) {
+				suppressNextEmptyDeselect = false;
+				return;
+			}
 			selectedApptId = null;
 			selectedBlockId = null;
+			multiSelectedApptIds = new Set();
 			return;
 		}
 		isDragging = false;
@@ -679,6 +796,53 @@
 		dragStartRoomIdx = null;
 		dragEndRoomIdx = null;
 		dragShiftHeld = false;
+	}
+
+	// A pointercancel (browser-initiated, e.g. losing capture mid-gesture) skips
+	// pointerup entirely — without this, apptPendingId/blockPendingId/isDragging can
+	// stay stuck true, which makes onGridPointerDown reinterpret the next click-drag
+	// in the same room column as continuing to move/resize the previously-touched
+	// appointment instead of starting a new slot drag.
+	function onGridPointerCancel() {
+		apptPendingId = null;
+		apptPendingGroupIds = null;
+		apptDragActive = false;
+		apptDragOp = null;
+		apptDragSource = null;
+		apptGhostStartSlot = null;
+		apptGhostEndSlot = null;
+		apptGhostRoomId = null;
+		apptDragGroupOffsets = [];
+		apptDragGroupGhosts = [];
+
+		blockPendingId = null;
+		blockDragActive = false;
+		blockDragOp = null;
+		blockDragSource = null;
+		blockGhostStartSlot = null;
+		blockGhostEndSlot = null;
+		blockGhostRoomId = null;
+
+		isDragging = false;
+		dragRoomId = null;
+		dragStartSlot = null;
+		dragEndSlot = null;
+		dragStartRoomIdx = null;
+		dragEndRoomIdx = null;
+		dragShiftHeld = false;
+		dragHasMoved = false;
+	}
+
+	// Right-click on empty grid space (not on an appointment or block — those own
+	// their right-click via AppointmentBlock's context menu, which stopPropagation's)
+	// deselects, mirroring the intent of the plain-click deselect path above.
+	function onGridContextMenu(e: MouseEvent) {
+		const target = e.target as HTMLElement;
+		if (target.closest('[data-appt-id]') || target.closest('[data-block-id]')) return;
+		e.preventDefault();
+		selectedApptId = null;
+		selectedBlockId = null;
+		multiSelectedApptIds = new Set();
 	}
 
 	// Shift key released while not dragging → fire pending selections
@@ -767,7 +931,9 @@
 			onpointerdown={onGridPointerDown}
 			onpointermove={onGridPointerMove}
 			onpointerup={onGridPointerUp}
+			onpointercancel={onGridPointerCancel}
 			onpointerleave={() => { hoverSlot = null; }}
+			oncontextmenu={onGridContextMenu}
 			role="grid"
 		>
 			<!-- Top-left corner -->
@@ -1040,12 +1206,12 @@
 							grid-column: {col};
 							grid-row: {getRowStart(clampedStart)} / span {getRowSpan(clampedStart, clampedEnd)};
 							{laneCount > 1 ? `width: calc(100%/${laneCount}); margin-left: calc(100%*${lane?.lane ?? 0}/${laneCount});` : ''}
-							{apptDragActive && apptDragSource?.id === appt.id ? 'opacity: 0.25; pointer-events: none;' : ''}
+							{apptDragHiddenIds.has(appt.id) ? 'opacity: 0.25; pointer-events: none;' : ''}
 						"
 					>
 						<AppointmentBlock
 							appointment={appt}
-							isSelected={selectedApptId === appt.id}
+							isSelected={selectedApptId === appt.id || multiSelectedApptIds.has(appt.id)}
 							slotHeight={SLOT_HEIGHT}
 							minutesPerSlot={MINUTES_PER_SLOT}
 							onstatuschange={onAppointmentStatusChange}
@@ -1089,6 +1255,41 @@
 					</div>
 				{/if}
 			{/if}
+
+			<!-- Group-move ghosts (other multi-selected appointments dragged along with the anchor) -->
+			{#each apptDragGroupGhosts as g (g.id)}
+				{@const member = appointments.find(a => a.id === g.id)}
+				{@const gCol = getColumnIndex(g.roomId)}
+				{@const gRowStart = getRowStart(g.startSlot)}
+				{@const gRowSpan = Math.max(1, g.endSlot - g.startSlot)}
+				{@const gColor = member?.type_color ?? '#6366f1'}
+				{#if gCol >= 2}
+					<div
+						class="pointer-events-none p-0.5"
+						style="
+							grid-column: {gCol};
+							grid-row: {gRowStart} / span {gRowSpan};
+							z-index: 25;
+						"
+					>
+						<div
+							class="w-full h-full rounded overflow-hidden flex flex-col justify-between p-1.5 text-[10px]"
+							style="
+								border-left: 3px solid {gColor};
+								background-color: {hexToRgba(gColor, 0.22)};
+								outline: 2px dashed {gColor};
+								outline-offset: -2px;
+								color: {gColor};
+							"
+						>
+							<span class="font-bold leading-none">{slotToTime(g.startSlot)}–{slotToTime(g.endSlot)}</span>
+							{#if gRowSpan >= 3}
+								<span class="opacity-70 leading-none">{(g.endSlot - g.startSlot) * MINUTES_PER_SLOT}′</span>
+							{/if}
+						</div>
+					</div>
+				{/if}
+			{/each}
 
 			<!-- Schedule block drag ghost -->
 			{#if blockDragActive && blockDragSource && blockGhostStartSlot !== null && blockGhostEndSlot !== null && blockGhostRoomId}

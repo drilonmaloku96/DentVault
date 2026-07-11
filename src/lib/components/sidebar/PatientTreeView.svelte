@@ -45,6 +45,12 @@
 	// ── Multi-file selection (shift-click) — lets several files be dragged as a group ──
 	let multiSelected = $state<Set<string>>(new Set()); // keyed by VaultFileInfo.rel_path
 
+	// ── Multi-template selection (shift-click) — lets several !Documents templates be dragged as a group ──
+	let multiSelectedTemplates = $state<Set<string>>(new Set()); // keyed by DocTemplateInfo.rel_path
+
+	// ── Single-template selection (plain click) — visual-only highlight, mirrors cephSelection's ring on files ──
+	let selectedTemplate = $state<string | null>(null); // keyed by DocTemplateInfo.rel_path
+
 	// ── Context menu state ──────────────────────────────────────────────
 	let contextMenu = $state<{ file: VaultFileInfo; x: number; y: number } | null>(null);
 
@@ -252,6 +258,8 @@
 	onMount(async () => {
 		cephSelection.clear(); // stale selection from a previous patient
 		multiSelected = new Set();
+		multiSelectedTemplates = new Set();
+		selectedTemplate = null;
 		if (!vault.path || !patientFolder) { isLoading = false; return; }
 
 		try {
@@ -308,6 +316,7 @@
 
 	function onTemplateMouseDown(e: MouseEvent, tpl: DocTemplateInfo) {
 		if (e.button !== 0) return; // left-click only
+		if (e.shiftKey) return; // shift-click toggles multi-select instead of starting a drag
 		e.preventDefault(); // prevent browser text selection on drag
 		draggingTemplate = tpl;
 		dragStartPos = { x: e.clientX, y: e.clientY };
@@ -337,6 +346,13 @@
 		if (next.has(file.rel_path)) next.delete(file.rel_path);
 		else next.add(file.rel_path);
 		multiSelected = next;
+	}
+
+	function toggleMultiSelectTemplate(tpl: DocTemplateInfo) {
+		const next = new Set(multiSelectedTemplates);
+		if (next.has(tpl.rel_path)) next.delete(tpl.rel_path);
+		else next.add(tpl.rel_path);
+		multiSelectedTemplates = next;
 	}
 
 	function onGlobalMouseMove(e: MouseEvent) {
@@ -392,7 +408,13 @@
 		dragOverPath = null;
 
 		if (tpl && targetFolder) {
-			performDrop(tpl, targetFolder);
+			// Dragging a template that's part of an active multi-selection drops the whole group
+			const group = multiSelectedTemplates.has(tpl.rel_path) && multiSelectedTemplates.size > 1
+				? docTemplates.filter(t => multiSelectedTemplates.has(t.rel_path))
+				: [tpl];
+			performDropGroup(group, targetFolder);
+			multiSelectedTemplates = new Set();
+			selectedTemplate = null;
 		} else if (file && targetFolder) {
 			// Dragging a file that's part of an active multi-selection moves the whole group
 			const group = multiSelected.has(file.rel_path) && multiSelected.size > 1
@@ -475,6 +497,12 @@
 			files = await listVaultFiles(vault.path, patientFolder);
 			openFolders[folderPath] = true;
 		} catch (err) { console.error('[DnD] drop error:', err); }
+	}
+
+	/** Drops several templates in sequence — sequential (not Promise.all) so each
+	 *  call's uniqueFilename() check sees the previous drop's file already on disk. */
+	async function performDropGroup(templates: DocTemplateInfo[], folderPath: string) {
+		for (const tpl of templates) await performDrop(tpl, folderPath);
 	}
 
 	async function performFileMove(filesToMove: VaultFileInfo[], newFolder: string) {
@@ -835,19 +863,37 @@
 
 		<!-- Files in this folder (draggable via mousedown) -->
 		{#each node.files as tpl}
+			{@const isMultiSelectedTpl = multiSelectedTemplates.has(tpl.rel_path)}
+			{@const isSelectedTpl = selectedTemplate === tpl.rel_path}
+			{@const isDraggingTpl = isDraggingTemplate && (draggingTemplate?.rel_path === tpl.rel_path || (multiSelectedTemplates.size > 1 && !!draggingTemplate && multiSelectedTemplates.has(draggingTemplate.rel_path) && isMultiSelectedTpl))}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
-				class="flex items-center gap-1 rounded px-2 py-0.5 hover:bg-teal-50/60 dark:hover:bg-teal-950/20 group transition-colors cursor-grab select-none"
+				class={[
+					'flex items-center gap-1 rounded px-2 py-0.5 group transition-colors cursor-grab select-none',
+					isDraggingTpl ? 'opacity-50 bg-teal-200/50 dark:bg-teal-800/30' : '',
+					!isDraggingTpl && isMultiSelectedTpl ? 'bg-primary/15 ring-1 ring-primary/50' : '',
+					isSelectedTpl && !isDraggingTpl && !isMultiSelectedTpl
+						? 'bg-teal-500/15 ring-1 ring-teal-500/50'
+						: !isDraggingTpl && !isMultiSelectedTpl ? 'hover:bg-teal-50/60 dark:hover:bg-teal-950/20' : '',
+				].join(' ')}
+				onclick={(e) => {
+					if (e.shiftKey) toggleMultiSelectTemplate(tpl);
+					else {
+						if (multiSelectedTemplates.size > 0) multiSelectedTemplates = new Set();
+						if (multiSelected.size > 0) multiSelected = new Set();
+						selectedTemplate = isSelectedTpl ? null : tpl.rel_path;
+					}
+				}}
 				onmousedown={(e) => onTemplateMouseDown(e, tpl)}
 				ondblclick={() => openDocumentFile(tpl.abs_path)}
 			>
-				<svg class="h-3 w-3 shrink-0 text-teal-500/70 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+				<svg class="h-3 w-3 shrink-0 {isSelectedTpl ? 'text-teal-600' : 'text-teal-500/70'} pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
 					<polyline points="14 2 14 8 20 8"/>
 				</svg>
 				<span
-					class="flex-1 min-w-0 block truncate text-[11px] text-sidebar-foreground group-hover:text-teal-700 dark:group-hover:text-teal-400 font-mono transition-colors pointer-events-none"
-					title="{tpl.rel_path}&#10;{formatFileSize(tpl.file_size)}"
+					class="flex-1 min-w-0 block truncate text-[11px] font-mono transition-colors pointer-events-none {isSelectedTpl ? 'text-teal-700 dark:text-teal-400 font-semibold' : 'text-sidebar-foreground group-hover:text-teal-700 dark:group-hover:text-teal-400'}"
+					title="{tpl.rel_path}&#10;{formatFileSize(tpl.file_size)}&#10;{i18n.t.sidebar.shiftClickHint}"
 				>
 					{tpl.filename}
 				</span>
@@ -877,12 +923,12 @@
 		<!-- Folder row — serves as mouse-based drop target via data-drop-folder attribute -->
 		<div
 			data-drop-folder={node.folderPath}
+			style={depth > 0 ? `margin-left: ${depth * 14}px` : undefined}
 			class={[
 				'flex items-center gap-1.5 rounded px-2 py-1 transition-colors group',
 				isDropTarget
 					? 'bg-teal-100/60 dark:bg-teal-900/30 ring-1 ring-teal-400/60'
 					: 'hover:bg-sidebar-accent/60',
-				depth > 0 ? 'ml-[' + (depth * 14) + 'px]' : '',
 			].join(' ')}
 			role="region"
 		>
@@ -946,8 +992,9 @@
 		{#if isOpen}
 			<div
 				data-drop-folder={node.folderPath}
+				style="margin-left: {depth > 0 ? (depth * 14) + 19 : 19}px"
 				class={[
-					'ml-[' + (depth > 0 ? (depth * 14) + 19 : 19) + 'px] border-l-2 pl-[10px] flex flex-col gap-0.5 pb-1 rounded-r transition-colors',
+					'border-l-2 pl-[10px] flex flex-col gap-0.5 pb-1 rounded-r transition-colors',
 					isDropTarget ? 'border-teal-400/60 bg-teal-100/30 dark:bg-teal-900/20' : 'border-sidebar-border/50',
 				].join(' ')}
 			>
@@ -955,18 +1002,29 @@
 					{@const isSelected = cephSelection.isSelected(file.rel_path)}
 					{@const isMultiSelected = multiSelected.has(file.rel_path)}
 					{@const isDragging = isDraggingFile && (draggingFile?.abs_path === file.abs_path || (multiSelected.size > 1 && !!draggingFile && multiSelected.has(draggingFile.rel_path) && isMultiSelected))}
-					<button
-						type="button"
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<!-- Plain div, not <button> — WKWebView (Tauri macOS) swallows the mousemove
+					     stream that follows a mousedown on a native <button>, which silently broke
+					     the drag (mousedown fired, but the drag never activated). Templates below
+					     use a div for the same reason and drag correctly. -->
+					<div
+						role="button"
+						tabindex="0"
 						onclick={(e) => {
 							if (e.shiftKey) toggleMultiSelect(file);
-							else { if (multiSelected.size > 0) multiSelected = new Set(); selectFile(file); }
+							else {
+								if (multiSelected.size > 0) multiSelected = new Set();
+								if (multiSelectedTemplates.size > 0) multiSelectedTemplates = new Set();
+								if (selectedTemplate !== null) selectedTemplate = null;
+								selectFile(file);
+							}
 						}}
 						ondblclick={() => openFile(file)}
 						onmousedown={(e) => onFileMouseDown(e, file)}
 						oncontextmenu={(e) => handleFileContextMenu(e, file)}
 						title="{file.filename}\n{formatFileSize(file.file_size)}\n{i18n.t.sidebar.shiftClickHint}"
 						class={[
-							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group cursor-move',
+							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group cursor-move select-none',
 							isDragging ? 'opacity-50 bg-sidebar-primary/25' : '',
 							!isDragging && isMultiSelected ? 'bg-primary/15 ring-1 ring-primary/50' : '',
 							isSelected && !isDragging && !isMultiSelected
@@ -981,7 +1039,7 @@
 						<span class="shrink-0 text-[9px] text-muted-foreground/60 tabular-nums">
 							{formatFileSize(file.file_size)}
 						</span>
-					</button>
+					</div>
 				{/each}
 
 				{#each node.children as child}
