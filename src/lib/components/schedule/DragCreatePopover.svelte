@@ -29,8 +29,48 @@
 	let blockColor = $state('#94a3b8');
 	let blockNotes = $state('');
 
+	// Room selection override (block mode only)
+	let roomMode = $state<'drag' | 'all' | 'custom'>('drag');
+	let customRoomIds = $state<Set<string>>(new Set());
+	let showRoomCustomizer = $state(false);
+
 	const isMulti = $derived(selections.length > 1 || (selections[0]?.roomIds.length ?? 0) > 1);
 	const totalSlots = $derived(selections.reduce((n, s) => n + s.roomIds.length, 0));
+
+	// null = use each selection's own roomIds unchanged (current/default behavior)
+	const effectiveRoomIds = $derived(
+		roomMode === 'all'
+			? rooms.active.map((r) => r.id)
+			: roomMode === 'custom'
+				? Array.from(customRoomIds)
+				: null
+	);
+
+	const effectiveTotalSlots = $derived(
+		effectiveRoomIds === null ? totalSlots : effectiveRoomIds.length * selections.length
+	);
+
+	function toggleApplyAllRooms(checked: boolean) {
+		roomMode = checked ? 'all' : 'drag';
+	}
+
+	function toggleRoomCustomizer() {
+		if (!showRoomCustomizer && customRoomIds.size === 0) {
+			// Seed from the union of rooms actually dragged across, so the user refines
+			// a starting point rather than starting from scratch.
+			customRoomIds = new Set(selections.flatMap((s) => s.roomIds));
+		}
+		showRoomCustomizer = !showRoomCustomizer;
+	}
+
+	function toggleCustomRoom(id: string, checked: boolean) {
+		if (checked) {
+			customRoomIds.add(id);
+		} else {
+			customRoomIds.delete(id);
+		}
+		roomMode = 'custom';
+	}
 
 	// Room name lookup
 	function roomName(id: string): string {
@@ -65,8 +105,10 @@
 
 	function handleBlockSave() {
 		if (!blockTitle.trim()) return;
+		const roomIds = effectiveRoomIds; // capture once
+		if (roomIds !== null && roomIds.length === 0) return;
 		const blocks: ScheduleBlockFormData[] = selections.flatMap((sel) =>
-			sel.roomIds.map((rid) => ({
+			(roomIds ?? sel.roomIds).map((rid) => ({
 				room_id: rid,
 				doctor_id: blockDoctorId,
 				title: blockTitle.trim(),
@@ -152,6 +194,47 @@
 				onkeydown={(e) => e.key === 'Enter' && handleBlockSave()}
 			/>
 
+			<div class="flex flex-col gap-1">
+				<label class="flex items-center gap-1.5 text-xs text-foreground">
+					<input
+						type="checkbox"
+						checked={roomMode === 'all'}
+						onchange={(e) => toggleApplyAllRooms(e.currentTarget.checked)}
+					/>
+					{i18n.t.schedule.blocks.applyAllRooms}
+				</label>
+
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						class="text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
+						onclick={toggleRoomCustomizer}
+					>
+						{i18n.t.schedule.blocks.customizeRooms}
+					</button>
+					{#if roomMode === 'custom'}
+						<span class="text-[11px] text-muted-foreground">
+							{i18n.t.schedule.blocks.roomsSelected.replace('{n}', String(customRoomIds.size))}
+						</span>
+					{/if}
+				</div>
+
+				{#if showRoomCustomizer}
+					<div class="flex flex-col gap-0.5 max-h-28 overflow-y-auto border border-border rounded px-2 py-1.5">
+						{#each rooms.active as r}
+							<label class="flex items-center gap-1.5 text-xs">
+								<input
+									type="checkbox"
+									checked={customRoomIds.has(r.id)}
+									onchange={(e) => toggleCustomRoom(r.id, e.currentTarget.checked)}
+								/>
+								{r.name}
+							</label>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
 			<select class={inputClass} bind:value={blockDoctorId}>
 				<option value="">— {i18n.t.schedule.doctor} ({i18n.t.schedule.optional}) —</option>
 				{#each doctors.list as d}
@@ -181,10 +264,10 @@
 		<div class="flex gap-2">
 			<button
 				class="flex-1 rounded px-2 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-				disabled={!blockTitle.trim()}
+				disabled={!blockTitle.trim() || (roomMode === 'custom' && customRoomIds.size === 0)}
 				onclick={handleBlockSave}
 			>
-				{i18n.t.actions.save}{totalSlots > 1 ? ` (${totalSlots})` : ''}
+				{i18n.t.actions.save}{effectiveTotalSlots > 1 ? ` (${effectiveTotalSlots})` : ''}
 			</button>
 			<button
 				class="rounded px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent transition-colors"

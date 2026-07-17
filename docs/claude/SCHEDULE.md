@@ -23,13 +23,22 @@ Detection via `data-appt-id` on wrapper div and `data-appt-handle="top|bottom"` 
 
 ## Multi-Select + Group Drag
 
-Shift-clicking appointments (mirrors `PatientTreeView`'s file multi-select pattern) toggles them into `multiSelectedApptIds` (`Set<string>`, in `DayView.svelte`). `AppointmentBlock`'s `isSelected` prop is `selectedApptId === appt.id || multiSelectedApptIds.has(appt.id)`, so every selected member gets the ring.
+Shift-clicking appointments (mirrors `PatientTreeView`'s file multi-select pattern) toggles them into `multiSelectedApptIds` (`Set<string>`, in `DayView.svelte`). `AppointmentBlock`'s `isSelected` prop is `selectedApptId === appt.id || multiSelectedApptIds.has(appt.id)`, so every selected member gets the ring. **Schedule blocks have the identical mechanism** (`multiSelectedBlockIds`, July 2026) — the shift-click branch is duplicated (not shared) in `onGridPointerDown`, once for the appointment-hit-test path and once for the block-hit-test path, since the two paths resolve different target ids and neither reads the other's state. Shift-clicking a block does NOT clear an in-progress appointment multi-selection or vice versa — the two sets are independent and can both be non-empty at once, which is what makes the bulk-delete below able to mix types.
 
 - **Starting the toggle set**: the first shift-click seeds the set from any existing `selectedApptId` before adding the clicked appointment, so a plain-select-then-shift-click flow grows the group as expected.
 - **Group drag**: a plain (non-shift) press-and-drag on a `move`-op member of an active multi-selection (`multiSelectedApptIds.size > 1`) carries the whole group. At drag activation, every other member's time/room offset relative to the pressed ("anchor") appointment is captured once (`apptDragGroupOffsets`); each pointermove tick reapplies those fixed offsets to the anchor's new position to produce each member's ghost (`apptDragGroupGhosts`), clamped so no member is dragged past the visible-time floor or off the edge of the room list. On drop, `onAppointmentQuickUpdate` fires once per group member; the group stays selected afterward.
 - **Resize handles always act on the single clicked appointment**, never the group, regardless of multi-selection membership — group semantics only apply to the plain-drag `move` op.
 - **Collapse to single**: a plain click (no drag, no shift) on any appointment — a member of the group or not — clears `multiSelectedApptIds` and falls back to normal single-select. Right-click-empty-space deselect and schedule-block selection also clear it, for consistency.
-- **The "flash and auto-deselect" trap**: the shift-click toggle branch in `onGridPointerDown` returns early without setting `apptPendingId`/`isDragging` (it's not starting a drag). The browser still fires a matching `pointerup` for that click, and — because neither of those flags got set — it would otherwise fall through to the "click on empty area → deselect" branch at the bottom of `onGridPointerUp` and immediately wipe the selection just toggled on. Fixed with a one-shot `suppressNextEmptyDeselect` flag (mirrors the existing `suppressNextSlotClick` pattern), set in the shift-click branch and consumed at the top of that deselect branch. Any future early-`return` branch added to `onGridPointerDown` needs the same guard if it doesn't also drive `apptPendingId`/`blockPendingId`/`isDragging`.
+- **The "flash and auto-deselect" trap**: the shift-click toggle branch in `onGridPointerDown` returns early without setting `apptPendingId`/`isDragging` (it's not starting a drag). The browser still fires a matching `pointerup` for that click, and — because neither of those flags got set — it would otherwise fall through to the "click on empty area → deselect" branch at the bottom of `onGridPointerUp` and immediately wipe the selection just toggled on. Fixed with a one-shot `suppressNextEmptyDeselect` flag (mirrors the existing `suppressNextSlotClick` pattern), set in the shift-click branch and consumed at the top of that deselect branch. Any future early-`return` branch added to `onGridPointerDown` needs the same guard if it doesn't also drive `apptPendingId`/`blockPendingId`/`isDragging`. The block shift-click branch (see above) sets the same flag for the same reason.
+
+### Universal Bulk Delete (July 2026)
+
+Right-click on an item that's part of an active multi-selection (`multiSelectedApptIds.size + multiSelectedBlockIds.size > 1`, and the specific item is one of the selected members) shows a small "Delete N selected" confirm popup instead of that item's normal context menu, and deletes **every currently-selected appointment and block together** in one action — mixed types included.
+
+- **Interception, not a shared menu component**: `AppointmentBlock.svelte` and `ScheduleBlockCell.svelte` each got a new `isMultiSelected` prop + `onbulkdeleterequest` callback. `AppointmentBlock`'s existing `onContextMenu` checks `isMultiSelected` FIRST, before any of its normal status/edit/delete menu logic, and short-circuits into `onbulkdeleterequest?.(e)` when true — the normal per-item menu is completely untouched when not multi-selected. `ScheduleBlockCell` had no context menu at all before this; it now has exactly one conditional branch (`if (isMultiSelected) { ...request bulk delete... }`), nothing else — it deliberately does NOT gain a general single-block right-click menu, only the bulk-delete branch.
+- **Confirm popup positioning uses the root-zoom coordinate rule**: `e.clientX/Y` from the triggering `contextmenu` event are visual px, but the popup is positioned via `style="left: Xpx; top: Ypx"` (layout px), so `DayView`'s `requestBulkDelete` divides by `document.documentElement.style.zoom` before storing `bulkDeleteConfirm`. Getting this backwards (or omitting it) reproduces the same class of bug that pushed the composer's text-color picker off-screen at non-100% UI scale.
+- **`Promise.allSettled`, not `Promise.all`**, in `handleBulkDelete` (`schedule/+page.svelte`) — one stale/already-deleted id in the batch shouldn't abort deleting the rest.
+- Confirming clears both `multiSelectedApptIds` and `multiSelectedBlockIds` and calls `loadDay()`; canceling (button, Escape, or right/left-click on the backdrop) leaves the selection intact so the user can retry or add/remove members first.
 
 ## Appointment Status System
 
@@ -66,15 +75,24 @@ Appointments still in the built-in `'scheduled'` status (patient never checked i
 
 Identical pattern to appointments.
 - **Single click** → selects (shows ring, enables drag-move + edge-resize)
+- **Shift-click** → toggles multi-select (`multiSelectedBlockIds`) instead — see "Multi-Select + Group Drag" above
 - **Double click** → opens `ScheduleBlockEditDialog`
 
 Detection via `data-block-id` on wrapper div and `data-block-handle="top|bottom"` on resize handles inside `ScheduleBlockCell.svelte`. Quick-update callback: `onBlockQuickUpdate(id, startTime, endTime, roomId)`. Block drag state mirrors appointment drag state (prefix `block*` vs `appt*`).
 
-`ScheduleBlockCell.svelte`: Accepts `isSelected?: boolean` prop — shows color ring. Has `data-block-handle="top"` and `data-block-handle="bottom"` resize handle divs. No `onclick` prop — parent wrapper handles all pointer events.
+`ScheduleBlockCell.svelte`: Accepts `isSelected?: boolean` prop (`selectedBlockId === block.id || multiSelectedBlockIds.has(block.id)`, OR'd at the call site) — shows color ring. Has `data-block-handle="top"` and `data-block-handle="bottom"` resize handle divs. No `onclick` prop — parent wrapper handles all pointer events.
+
+### Multi-Room Block Creation (July 2026)
+
+`DragCreatePopover.svelte`'s block form (`mode === 'block'`) has a room-selection section beyond whatever room columns the user physically dragged across:
+- **"Apply to all rooms"** checkbox — every room in `rooms.active`.
+- **"Customize rooms"** — reveals a per-room checklist, seeded (once, on first reveal) from the union of rooms in the current drag selection, then freely editable.
+- Internally: `roomMode: 'drag' | 'all' | 'custom'`. `'drag'` is the untouched original behavior (`sel.roomIds` per time-range, unchanged since before this feature). `'all'`/`'custom'` compute an `effectiveRoomIds` list that overrides EVERY time-range's rooms in `handleBlockSave()` — not just the first — so a multi-row drag with an "all rooms" override applies to all rooms at every dragged time-range.
+- This still produces **N independent `schedule_blocks` rows**, one per room, with no linking between them (no `group_id`, no cascading edit/delete) — deliberately, to avoid a schema migration. If you need to remove a block created this way from multiple rooms at once, use the universal multi-select + bulk delete above (shift-click each room's copy, right-click → "Delete N selected"), not a single delete-propagates-to-siblings mechanism.
 
 ## Deselect on Empty Click
 
-Left-clicking (slot drag path with no movement) or right-clicking empty calendar area clears `selectedApptId`, `selectedBlockId`, and `multiSelectedApptIds`.
+Left-clicking (slot drag path with no movement) or right-clicking empty calendar area clears `selectedApptId`, `selectedBlockId`, `multiSelectedApptIds`, and `multiSelectedBlockIds`.
 
 ## BookingPanel Keyboard Navigation
 

@@ -23,6 +23,7 @@
 	onBlockQuickUpdate?: (id: string, startTime: string, endTime: string, roomId: string) => void;
 	onAppointmentStatusChange?: (id: string, status: AppointmentStatus) => void;
 	onAppointmentDelete?: (appointment: Appointment) => void;
+	onBulkDelete?: (apptIds: string[], blockIds: string[]) => void;
 	}
 
 	let {
@@ -42,6 +43,7 @@
 		onBlockQuickUpdate,
 		onAppointmentStatusChange,
 		onAppointmentDelete,
+		onBulkDelete,
 	}: Props = $props();
 
 	const SLOT_HEIGHT = 14; // px per 5-min slot
@@ -252,6 +254,9 @@
 
 	// ── Schedule block drag state ─────────────────────────────────────
 	let selectedBlockId = $state<string | null>(null);
+	// Shift-click multi-select for blocks — mirrors multiSelectedApptIds. Both sets
+	// can be populated at once (a bulk delete may span appointments and blocks).
+	let multiSelectedBlockIds = $state<Set<string>>(new Set());
 	type BlockDragOp = 'move' | 'resize-top' | 'resize-bottom';
 	let blockPendingId = $state<string | null>(null);
 	let blockPendingOp = $state<BlockDragOp>('move');
@@ -320,6 +325,32 @@
 		for (const g of apptDragGroupGhosts) ids.add(g.id);
 		return ids;
 	});
+
+	// ── Unified bulk delete (appointments + blocks) ───────────────────
+	// Right-clicking any member of an active multi-selection opens this small
+	// confirm popup; confirming deletes every selected item of both types.
+	let bulkDeleteConfirm = $state<{ x: number; y: number } | null>(null);
+	const totalMultiSelected = $derived(multiSelectedApptIds.size + multiSelectedBlockIds.size);
+
+	function bulkZoom(): number {
+		if (typeof document === 'undefined') return 1;
+		return parseFloat(document.documentElement.style.zoom) || 1;
+	}
+
+	function requestBulkDelete(e: MouseEvent) {
+		e.preventDefault();
+		const z = bulkZoom();
+		bulkDeleteConfirm = { x: e.clientX / z, y: e.clientY / z };
+	}
+	function confirmBulkDelete() {
+		onBulkDelete?.(Array.from(multiSelectedApptIds), Array.from(multiSelectedBlockIds));
+		multiSelectedApptIds = new Set();
+		multiSelectedBlockIds = new Set();
+		bulkDeleteConfirm = null;
+	}
+	function cancelBulkDelete() {
+		bulkDeleteConfirm = null;
+	}
 
 	let gridEl = $state<HTMLDivElement | null>(null);
 	let lastPointerX = $state(0);
@@ -433,6 +464,24 @@
 				?? blockWrapperEl?.getAttribute('data-block-id')
 				?? null;
 			if (!wrapperId) return;
+
+			// Shift-click (not on a resize handle) toggles block multi-select instead of
+			// starting a drag/resize — mirrors the appointment shift-click branch above.
+			// Sets suppressNextEmptyDeselect (this returns early without arming a drag) so
+			// the matching pointerup doesn't fall through to the empty-area deselect branch.
+			if (e.shiftKey && !blockHandleEl) {
+				const next = new Set(multiSelectedBlockIds);
+				if (selectedBlockId && selectedBlockId !== wrapperId) next.add(selectedBlockId);
+				if (next.has(wrapperId)) next.delete(wrapperId);
+				else next.add(wrapperId);
+				multiSelectedBlockIds = next;
+				selectedApptId = null;
+				selectedBlockId = null;
+				suppressNextEmptyDeselect = true;
+				e.preventDefault();
+				return;
+			}
+
 			const handle = blockHandleEl?.getAttribute('data-block-handle') as 'top' | 'bottom' | null;
 			const op: BlockDragOp = handle === 'top' ? 'resize-top' : handle === 'bottom' ? 'resize-bottom' : 'move';
 			blockPendingId = wrapperId;
@@ -684,6 +733,7 @@
 				// A plain click (no drag) always collapses any active multi-selection
 				// down to just this appointment.
 				multiSelectedApptIds = new Set();
+				multiSelectedBlockIds = new Set();
 				suppressNextSlotClick = true;
 			} else {
 				// Drag complete → commit anchor, then every other group member (if any)
@@ -723,6 +773,7 @@
 				selectedBlockId = blockPendingId;
 				selectedApptId = null;
 				multiSelectedApptIds = new Set();
+				multiSelectedBlockIds = new Set();
 			} else {
 				// Drag complete → commit
 				if (blockDragSource && blockGhostStartSlot !== null && blockGhostEndSlot !== null) {
@@ -753,6 +804,7 @@
 			selectedApptId = null;
 			selectedBlockId = null;
 			multiSelectedApptIds = new Set();
+			multiSelectedBlockIds = new Set();
 			return;
 		}
 		isDragging = false;
@@ -843,11 +895,16 @@
 		selectedApptId = null;
 		selectedBlockId = null;
 		multiSelectedApptIds = new Set();
+		multiSelectedBlockIds = new Set();
 	}
 
 	// Shift key released while not dragging → fire pending selections
 	// Escape → cancel pending
 	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && bulkDeleteConfirm) {
+			bulkDeleteConfirm = null;
+			return;
+		}
 		if (e.key === 'Escape' && pendingSelections.length > 0 && !isDragging) {
 			pendingSelections = [];
 		}
@@ -1183,7 +1240,9 @@
 							{block}
 							slotHeight={SLOT_HEIGHT}
 							minutesPerSlot={MINUTES_PER_SLOT}
-							isSelected={selectedBlockId === block.id}
+							isSelected={selectedBlockId === block.id || multiSelectedBlockIds.has(block.id)}
+							isMultiSelected={multiSelectedBlockIds.has(block.id) && totalMultiSelected > 1}
+							onbulkdeleterequest={requestBulkDelete}
 						/>
 					</div>
 				{/if}
@@ -1212,11 +1271,13 @@
 						<AppointmentBlock
 							appointment={appt}
 							isSelected={selectedApptId === appt.id || multiSelectedApptIds.has(appt.id)}
+							isMultiSelected={multiSelectedApptIds.has(appt.id) && totalMultiSelected > 1}
 							slotHeight={SLOT_HEIGHT}
 							minutesPerSlot={MINUTES_PER_SLOT}
 							onstatuschange={onAppointmentStatusChange}
 							onedit={() => onAppointmentDoubleClick?.(appt)}
 							ondelete={() => onAppointmentDelete?.(appt)}
+							onbulkdeleterequest={requestBulkDelete}
 						/>
 					</div>
 				{/if}
@@ -1325,5 +1386,37 @@
 				{/if}
 			{/if}
 		</div>
+
+		<!-- Unified bulk-delete confirm (appointments + blocks) -->
+		{#if bulkDeleteConfirm}
+			<!-- Click-outside backdrop -->
+			<div
+				class="fixed inset-0 z-[199]"
+				role="none"
+				onpointerdown={cancelBulkDelete}
+				oncontextmenu={(e) => { e.preventDefault(); cancelBulkDelete(); }}
+			></div>
+			<div
+				class="fixed z-[200] rounded-md border border-border bg-popover shadow-lg p-3 w-60"
+				style="left: {bulkDeleteConfirm.x}px; top: {bulkDeleteConfirm.y}px;"
+				role="dialog"
+			>
+				<p class="text-sm text-foreground mb-2.5">
+					{i18n.t.schedule.confirmDeleteSelected.replace('{n}', String(totalMultiSelected))}
+				</p>
+				<div class="flex items-center justify-end gap-2">
+					<button
+						type="button"
+						class="px-2.5 py-1 text-xs rounded-md border border-border hover:bg-muted transition-colors"
+						onclick={cancelBulkDelete}
+					>{i18n.t.actions.cancel}</button>
+					<button
+						type="button"
+						class="px-2.5 py-1 text-xs rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors font-medium"
+						onclick={confirmBulkDelete}
+					>{i18n.t.actions.delete}</button>
+				</div>
+			</div>
+		{/if}
 	</div>
 {/if}

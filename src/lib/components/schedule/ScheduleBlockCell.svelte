@@ -6,9 +6,11 @@
 		slotHeight?: number;
 		minutesPerSlot?: number;
 		isSelected?: boolean;
+		isMultiSelected?: boolean;
+		onbulkdeleterequest?: (e: MouseEvent) => void;
 	}
 
-	let { block, slotHeight = 8, minutesPerSlot = 5, isSelected = false }: Props = $props();
+	let { block, slotHeight = 8, minutesPerSlot = 5, isSelected = false, isMultiSelected = false, onbulkdeleterequest }: Props = $props();
 
 	function hexToRgb(hex: string) {
 		if (!hex || !hex.startsWith('#') || hex.length < 7) return '148, 163, 184';
@@ -30,6 +32,9 @@
 
 <div
 	class="relative w-full h-full rounded overflow-hidden select-none"
+	oncontextmenu={(e) => { if (isMultiSelected) { e.preventDefault(); e.stopPropagation(); onbulkdeleterequest?.(e); } }}
+	role="button"
+	tabindex="-1"
 	style="
 		border-left: 3px solid {color};
 		background: repeating-linear-gradient(

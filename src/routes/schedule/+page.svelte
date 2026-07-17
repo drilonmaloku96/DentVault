@@ -278,6 +278,16 @@
 		await loadDay();
 	}
 
+	// Unified bulk delete for a mixed multi-selection of appointments + blocks.
+	// allSettled so one stale/already-deleted id doesn't abort the rest of the batch.
+	async function handleBulkDelete(apptIds: string[], blockIds: string[]) {
+		await Promise.allSettled([
+			...apptIds.map((id) => deleteAppointment(id)),
+			...blockIds.map((id) => deleteScheduleBlock(id)),
+		]);
+		await loadDay();
+	}
+
 	// Schedule block CRUD (receives array — one entry per room from drag)
 	async function handleBlockSave(dataList: ScheduleBlockFormData[]) {
 		await Promise.all(dataList.map((d) => insertScheduleBlock(d)));
@@ -597,6 +607,7 @@
 				onAppointmentQuickUpdate={handleAppointmentQuickUpdate}
 					onAppointmentStatusChange={handleAppointmentStatusChange}
 					onAppointmentDelete={handleAppointmentDelete}
+					onBulkDelete={handleBulkDelete}
 					onDragCreate={handleDragCreate}
 					onBlockClick={handleBlockClick}
 					onBlockQuickUpdate={handleBlockQuickUpdate}

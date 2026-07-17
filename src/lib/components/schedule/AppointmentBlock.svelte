@@ -8,13 +8,15 @@
 		slotHeight?: number;
 		minutesPerSlot?: number;
 		isSelected?: boolean;
+		isMultiSelected?: boolean;
 		ondblclick?: () => void;
 		onstatuschange?: (id: string, status: string) => void;
 		onedit?: () => void;
 		ondelete?: () => void;
+		onbulkdeleterequest?: (e: MouseEvent) => void;
 	}
 
-	let { appointment, slotHeight = 8, minutesPerSlot = 5, isSelected = false, ondblclick, onstatuschange, onedit, ondelete }: Props = $props();
+	let { appointment, slotHeight = 8, minutesPerSlot = 5, isSelected = false, isMultiSelected = false, ondblclick, onstatuschange, onedit, ondelete, onbulkdeleterequest }: Props = $props();
 
 	const isCompact = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) < 40);
 	const showNotes = $derived(slotHeight * (appointment.duration_min / minutesPerSlot) >= 56);
@@ -134,6 +136,14 @@
 	}
 
 	function onContextMenu(e: MouseEvent) {
+		// When this appointment is part of an active multi-selection, right-click
+		// triggers the unified bulk-delete confirm instead of the per-item menu.
+		if (isMultiSelected) {
+			e.preventDefault();
+			e.stopPropagation();
+			onbulkdeleterequest?.(e);
+			return;
+		}
 		if (!onstatuschange) return;
 		e.preventDefault();
 		e.stopPropagation();
