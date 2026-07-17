@@ -185,9 +185,9 @@ Full roadmap + status: `ROADMAP_CEPH_INTEGRATION.md`. Cephalyzer stays ONE codeb
   the WKWebView cached the old stable `assets/index.js` URL and kept running stale bundles.
 - **Entry flow** (user-chosen design — do NOT add per-card analyze buttons): file rows in
   the sidebar tree (`PatientTreeView`) are click-selectable via `cephSelection.svelte.ts`
-  (toggle + highlight); the "Ceph Analysis" button in the TimelineView toolbar (next to
-  Chart/Plans/Ortho) activates when the selection is an image or `.ceph` of the open patient
-  and navigates to `patients/[patient_id]/ceph?file=<vault-relative-path>`.
+  (toggle + highlight). See "Image Analysis Entry Points" below for how selecting a file
+  routes into Ceph / X-ray Report / Facial Analysis — the three no longer have separate
+  toolbar buttons.
 - **Ceph route** (`src/routes/patients/[patient_id]/ceph/+page.svelte`): full-window
   `fixed inset-0 z-[45]` iframe, no DentVault header — the Cephalyzer logo also acts as a
   back button (posts `NAVIGATE_BACK`); Escape works on both sides of the boundary. A small
@@ -222,8 +222,121 @@ Full roadmap + status: `ROADMAP_CEPH_INTEGRATION.md`. Cephalyzer stays ONE codeb
   server is pinned to 5175; automated browser tests run a second instance via
   `npm run dev -- --port 4998`. Never kill vite processes broadly — a dead 5173 server
   leaves a running window that 500s on every lazily-loaded route.
+  `npm run tauri dev` fails outright with `Error: Port 5173 is already in use` if anything
+  else holds that port — observed in practice with a stray Cephalyzer vite instance started
+  with an explicit `--port 5173` override (its 5175 pin is just its default, not enforced).
+  Before killing whatever's on 5173, `lsof -i :5173 -sTCP:LISTEN` and `ps -p <pid> -o command`
+  to confirm it's not the user's own live session (Cephalyzer or otherwise) — it may not be a
+  DentVault process at all, so don't assume and don't kill without checking first.
 
 ---
+
+## Image Analysis Entry Points (Ceph / X-ray Report / Facial Analysis)
+
+Three image-analysis destinations (Cephalometric Analysis, Facial Analysis, X-ray Report) share
+one selection store (`cephSelection.svelte.ts`) and one picker component — **do not reintroduce
+three separate toolbar buttons**, that was the pre-July-2026 design and was deliberately combined
+because it crowded the toolbar.
+
+- **`$lib/components/imaging/AnalysisTypeMenu.svelte`** is the single source of truth for the
+  3-item list, per-item enablement, icons/colors, and navigation. Props: `onClose`, `showHeader`
+  (sidebar popup shows an "Analyze as" label, the toolbar dropdown doesn't), `panelClass`
+  (caller-supplied positioning — it renders itself `position: absolute; z-50`, so callers must
+  wrap it in a `position: relative` container). It reads `cephSelection.file` /
+  `.isAnalyzable` / `.isImage` reactively itself — callers never pass the file in. Ceph is
+  enabled for `isAnalyzable` (image or `.ceph`); Facial Analysis and X-ray Report require
+  `isImage` (excludes `.ceph`). Adding a fourth analysis type = add one entry to this component's
+  `items` array, nothing else.
+- **Toolbar** (`TimelineView.svelte`): one neutral "Analyze" button (no color accent — the three
+  destinations each still get their own accent color inside the dropdown) with a chevron, next to
+  Ortho. Toggles `analyzeMenuOpen`; renders `AnalysisTypeMenu` with `panelClass="top-full mt-1
+  right-0"` when open. i18n: `imaging.analyzeButton` / `imaging.analyzeAs`.
+- **Sidebar popup-on-select** (`PatientTreeView.svelte`): `cephSelection.toggle(file)` returns a
+  `boolean` — `true` only on a FRESH select (unselected → selected), `false` on deselect. The
+  file row's click handler opens `AnalysisTypeMenu` (anchored `top-full left-0 mt-1` off that
+  specific row, which needs `position: relative`) only when the toggle returned `true` AND
+  `cephSelection.isImage` is true — never on deselect, shift-click multi-select, or `.ceph`
+  files (only one destination applies to those, so there's nothing to pick). A `suppressAnalyzePopup`
+  flag set in the drag-end handler (`onGlobalMouseUp`) prevents the popup from opening as a side
+  effect of the `click` event that still fires after a drag-move's `mouseup` — without it, every
+  file drag would also pop the picker open on release.
+- Both the toolbar dropdown and the sidebar popup coexist by design — the popup is a fast path
+  for "I just clicked this file to analyze it right now"; the toolbar dropdown covers "I already
+  selected a file earlier and want to analyze it now."
+
+---
+
+## X-ray Report (general/panoramic X-ray PDF reports)
+
+Native full-screen viewer + written report → A4-landscape PDF, for any X-ray image (not just cephs).
+
+- **Entry**: select an image in the sidebar file tree — see "Image Analysis Entry Points" above.
+- **Viewer** (`src/routes/patients/[patient_id]/xray-report/+page.svelte`, `FullScreenView`, no iframe): interaction mirrors Cephalyzer's `ImageCanvas` — wheel zoom 0.12 step clamped [0.1, 5], `Z`/`B`/`C` toggle drag-adjust modes (zoom / brightness / contrast, mode auto-clears after one drag), `Escape` clears the mode **with `preventDefault()`** so `FullScreenView` doesn't also navigate back, right-drag pans. Pointer deltas are divided by the root zoom per the uiScale rule; the root zoom is NOT neutralized (unlike the ceph route). Report box = `FloatingPanel` (textarea + Generate); closing it shows a "Report" reopen button in the header.
+- **Generate** (`generateXrayReportPdf` in `src/lib/services/xray-report-pdf.ts`, jsPDF): A4 landscape, header = patient name + date (the entry's date on re-generate, so the printed date stays stable), image fitted to width and capped at 60% of page height, text flows to continuation pages (never truncates). PDF written next to the source X-ray as `{basename}_report.pdf` via `write_base64_file` (overwrite = re-generate), then a `documents` row is ensured by `rel_path` **before** returning to the patient page so the auto-tracker doesn't create a duplicate generic entry. Deliberately no `document_id` on the entry — `deleteDocument` would cascade-delete the report.
+- **One `xray_report` entry per source image** (in `SYSTEM_ENTRY_TYPES`): `description` = HTML-escaped text with `<br>`, `chart_data` = `{source, pdf, text}` (raw `text` reloads into the textarea on reopen), `attachments` = vault-relative `[{path,name,mime,size}]` (PDF + source X-ray). Lookup via `getXrayReportEntryForSource(patientId, sourceRelPath)` — SQL filters `entry_type = 'xray_report'` with positional params, JS matches `chart_data.source` (never `LIKE` on serialized fields). `entry_date` set on create, kept on update.
+- **Export**: `renderTimeline` maps the badge to "X-ray Report"; both attachments flow through the existing figure/link rendering. **Known gap**: `TimelineEntryCard` renders attachment rows only for `document` entries, so the card shows badge/title/text but no inline file rows (files remain reachable via the sidebar tree and the HTML export).
+- i18n block: `xrayReport.*`.
+
+## Facial Analysis (extraoral photo evaluation)
+
+Third native image-analysis mode alongside Ceph Analysis (embedded Cephalyzer) and X-ray Report.
+Full design doc: `ROADMAP_FACIAL_ANALYSIS.md` (orthodontic background, landmark vocabulary,
+AI-trainability requirements, phases). Phases F0–F2 shipped July 2026; F3 (dataset export) and
+F4 (auto-place model, frontal-smile view) are still open.
+
+- **Shared viewport**: `src/lib/components/imaging/ImageViewport.svelte` was extracted from
+  X-ray Report's viewer (wheel zoom / Z-B-C drag-adjust / right-drag pan / root-zoom-corrected
+  pointer deltas — same interaction model as Ceph's `ImageCanvas`) so both routes share one
+  implementation. Its `children` snippet renders inside the same zoom/pan-transformed,
+  natural-pixel-sized wrapper, so overlay content (landmark dots) authored in image-pixel
+  coordinates stays glued to the image at any zoom/pan. `onImageClick(x, y)` fires natural-image
+  coordinates on a plain left click (movement < 5px, no active drag-adjust mode).
+- **Entry**: same `cephSelection.isImage` gate as X-ray Report — see "Image Analysis Entry
+  Points" above; navigates to `patients/[patient_id]/facial-analysis?file=<vault-relative-path>`
+  with no view param. The route itself decides: if a `facial_analysis` entry already exists for
+  that source image, its saved `view` loads directly (skipping the chooser); otherwise a small
+  dialog picks Profile/Frontal before landmark placement starts.
+- **Layout**: the Landmarks checklist is a `FloatingPanel` (draggable, like X-ray Report's report
+  box), but the Measurements panel is a **static, non-draggable right-side sidebar** (`<aside>`,
+  fixed 360px width, `shrink-0`) — not a `FloatingPanel`. This was a deliberate correction (July
+  2026): measurements are a reference the user checks constantly while placing landmarks, so
+  they shouldn't be movable/closable clutter. `ImageViewport` and the sidebar sit in a shared
+  `flex-1 min-h-0 flex` row so the viewer's `ResizeObserver`-driven fit recomputes correctly
+  against its now-narrower share of the width. Do not convert the Measurements sidebar back into
+  a `FloatingPanel`, and do not apply this static treatment to the Landmarks panel unless asked.
+- **Landmark placement** (`LandmarkLayer.svelte`): guided sequential queue driven by
+  `FACIAL_TEMPLATES[view].landmarks` (fixed order) — one active landmark at a time with a
+  name+hint card, click-to-place auto-advances to the next unplaced one, a checklist alongside
+  shows progress and lets you jump back. Every placed dot stays individually draggable
+  (`setPointerCapture` on the dot's own `<g>`, `stopPropagation` so a drag never triggers a
+  stray placement) — the SVG root itself is `pointer-events: none` so clicks pass through to the
+  viewport except where a dot explicitly opts in.
+- **Profile facing-direction**: no detection heuristic — a `⇋ Flip` button (profile view only)
+  mirrors the working image via canvas (`ctx.translate/scale(-1,1)`) and re-expresses every
+  placed landmark's x-coordinate (`naturalWidth − x`) into the flipped frame, so landmarks are
+  always stored in one canonical face-right frame regardless of source orientation. This is the
+  ONLY coordinate frame used anywhere (display, placement, PDF annotation) — no dual-frame math.
+- **Measurement engine** (`src/lib/services/facial-measurements.ts`, pure functions): profile
+  (17 landmarks) and frontal (23 landmarks) templates with fixed placement order, plus
+  `computeMeasurements(view, landmarks)` — gracefully skips (never throws) any measurement whose
+  required landmarks aren't placed yet. Angles/ratios/relative-line-distances only (photos have
+  no mm scale) — `mm`-unit measurements store raw pixel-space values, a documented limitation.
+- **PDF** (`facial-analysis-pdf.ts`, sibling to `xray-report-pdf.ts`): A4 landscape, annotated
+  image (canvas-flattened image + landmark dots/lines/labels, built by the route via
+  `buildAnnotatedImage()`) in the left column, measurement table with norm bands in the right
+  column, notes printed as a "Clinical Notes" section below. Written next to the source photo as
+  `{basename}_facial.pdf`; same `documents`-row-before-return auto-tracker dodge and no
+  `document_id` on the entry (cascade-delete trap) as X-ray Report.
+- **One `facial_analysis` entry per source image** (in `SYSTEM_ENTRY_TYPES`), `chart_data` =
+  `FacialAnalysisChartData` (`$lib/types.ts`) — `schemaVersion`, `view`, `mirrored`,
+  `landmarks: Record<id, {x,y,placedBy,confidence}>`, `measurements`, `notes`. This IS the future
+  AI-training data format: landmarks in natural-image pixel coords, closed stable id vocabulary,
+  `placedBy: 'human' | 'ai'` so a future auto-place model's suggestions and the user's
+  corrections both stay labeled. Lookup via `getFacialAnalysisEntryForSource` (mirrors
+  `getXrayReportEntryForSource` — positional params, JS-side `chart_data.source` match, never
+  `LIKE` on serialized fields).
+- i18n block: `facialAnalysis.*` (chrome only — landmark/measurement display names live in the
+  template tables, not i18n, per the Customizability/i18n rules).
 
 ## Sidebar Navigation
 
@@ -265,7 +378,7 @@ Page (`src/routes/reports/+page.svelte`): doctor selector (all or single), date 
 `TimelineView.svelte` derives `availableTypes` from the patient's actual `entries` array — only types that exist, with counts. No static category buckets. Active filters stored in `typeFilters: Set<string>` containing raw `entry_type` values.
 
 `typeLabel(key)` maps entry_type values to display labels:
-- `''` → "Unclassified", `'document'` → "Documents", `'chart_snapshot'` → "Chart Snapshots", `'ortho_snapshot'` → "Ortho Records", `'plan'` → "Treatment Plans", anything else → `entryTypes.labelFor(key)` (handles legacy keys + current appointment type names).
+- `''` → "Unclassified", `'document'` → "Documents", `'chart_snapshot'` → "Chart Snapshots", `'ortho_snapshot'` → "Ortho Records", `'plan'` → "Treatment Plans", `'xray_report'` → "X-ray Reports", anything else → `entryTypes.labelFor(key)` (handles legacy keys + current appointment type names).
 
 When `typeFilters.size > 1`, the filter button shows a compact `N types` badge instead of all labels, to stay within the toolbar's available width.
 
@@ -317,6 +430,7 @@ Same mouse-based drag pattern as `VaultDropDialog` (mousedown + global `mousemov
 - **Draggable rows must be `<div>`, never `<button>`** (July 2026 fix): each file row was a native `<button>`; in WKWebView (Tauri macOS) the `mousemove` stream that this drag pattern depends on doesn't reliably continue after a `mousedown` on a `<button>`, so the drag never activated (`onFileMouseDown` fired, but `isDraggingFile` never flipped true) — dropping a file into another folder was silently impossible. Template rows were already plain `div`s and worked. Fixed by converting the file row to a `div` (`role="button" tabindex="0"`, same onclick/ondblclick/onmousedown/oncontextmenu handlers, `select-none` added). Do not revert this to a `<button>`.
 - **Template multi-select**: shift-clicking a template in `!Documents` toggles it into `multiSelectedTemplates` (`Set<rel_path>`), mirroring file multi-select. Dragging a template that's part of an active selection (`size > 1`) drops the whole group via `performDropGroup()`, which awaits `performDrop()` **sequentially** per template — not `Promise.all` — so each call's `uniqueFilename()` check (re-reads `listVaultFiles()`) sees the previous drop already on disk and correctly appends `_1`, `_2`, ... instead of racing to the same filename.
 - **Nested-folder indentation must use inline `style="margin-left: …"`, never a dynamically-built `ml-[Npx]` class string** — Tailwind's JIT scanner matches literal class tokens in the source text; `'ml-[' + depth*14 + 'px]'` never appears as one token, so no CSS is generated and nested rows silently render unindented. Both the folder row and its open content container hit this.
+- **Right-click folder creation** (July 2026): right-clicking a folder row (`handleFolderContextMenu`) opens a menu with "New subfolder" (`createNewFolder(node.folderPath)` — same call the hover-only `+` button already made, this is just a second entry point to it, not a new mechanism); right-clicking empty space in the tree background (`onEmptyTreeContextMenu`, bound on the tree's outer wrapper) opens "New folder" at the patient root (`createNewFolder('')`, matching `create_patient_subfolder`'s existing empty-`parent_rel`-means-root behavior). Both share `folderContextMenu` state (`{ kind: 'folder' | 'empty', folderPath, x, y }`) with the pre-existing file context menu's `closeContextMenu()`. The empty-space handler mirrors `DayView.svelte`'s `onGridContextMenu` guard pattern exactly: bail via `target.closest('[data-folder-row]')` before acting, since the folder-row content div is a **sibling**, not a descendant, of the row carrying `data-folder-row` — bubbling from inside an open folder's own row still needs the guard to correctly attribute the click. `handleFileContextMenu` (files) now also calls `e.stopPropagation()` — it didn't before, and without it a right-click on any file bubbled past the guard too (files aren't inside a `data-folder-row` element either) and incorrectly opened "New folder" *in addition to* the file's own menu, stacking two menus on screen. If you add another right-click surface to this tree, stopPropagation it and/or extend the guard, or this bug reappears.
 
 ---
 
@@ -339,6 +453,11 @@ Same mouse-based drag pattern as `VaultDropDialog` (mousedown + global `mousemov
 - [x] UI polish batch (July 2026) — resizable left sidebar (drag handle + `sidebarWidth` store; all `left-56` fixed bars now bind the store — see "Fixed UI bars & the resizable sidebar"); light-mode fix (theme store now sets `data-theme` + `color-scheme`, not just the `.dark` class); schedule hover time line no longer freezes over appointment blocks (`elementsFromPoint` looks through overlays); composer formatting (⌘B/I/U handled explicitly, selection popup gained B/I/U/S buttons + highlighter swatches + native custom color picker, ⌘⇧X strikethrough, ⌘\ clear via `removeFormat`, color picker repositioned zoom-correctly inside the box); auto-generated title hidden in timeline cards when it repeats the description's opening; document-category badge removed from timeline document rows (auto-assignment too unreliable to display)
 - [x] Export audit + fixes (July 2026) — attachment/document paths in the HTML report are now subfolder-safe via `pathInPatientFolder()` (old parent-dir-only logic broke images in category subfolders); non-image attachments (PDFs, `.ceph`) render as links; Document Index paths are links; redundant auto-titles skipped and empty `entry_type` badges dropped in `renderTimeline`; attachments JSON now stores vault-relative paths in `performDrop` + auto-track (abs paths broke vault portability — the documented convention is enforced everywhere now)
 - [x] Schedule grid interaction fixes + multi-select (July 2026) — right-click on empty calendar space now deselects (`onGridContextMenu`, grid-level, distinct from `AppointmentBlock`'s own right-click status menu); `onpointercancel` wired to the same cleanup as `onpointerup` so a cancelled gesture can no longer leave `apptPendingId`/`isDragging` stuck, which previously blocked drag-creating a new appointment in the same room column as a just-selected one; shift-click multi-select for appointments (`multiSelectedApptIds`) with group drag-move (preserves each member's relative time/room offset from the dragged anchor, clamped to grid bounds) — see `docs/claude/SCHEDULE.md` "Multi-Select + Group Drag" for the `suppressNextEmptyDeselect` gotcha this introduced
+- [x] X-ray Report feature (July 2026) — full-screen viewer (Cephalyzer-style zoom/pan/brightness/contrast) + FloatingPanel report box + jsPDF A4-landscape report saved next to the X-ray, one upserted `xray_report` entry per source image with reload-for-editing; see the "X-ray Report" section
+- [x] Facial Analysis feature F0–F2 (July 2026) — shared `ImageViewport` extracted from X-ray Report's viewer (both now share zoom/pan/brightness/contrast); native profile (17-landmark) and frontal (23-landmark) extraoral photo analysis with guided sequential landmark placement, drag-to-correct, face-right flip normalization, live orthodontic measurements (convexity, E-line, nasolabial/mentolabial/H-angle, facial thirds, rule of fifths, facial index, cants, etc.) against stored norms, annotated A4-landscape PDF, one upserted `facial_analysis` entry per source photo with reload-for-editing; data model designed for later AI-assisted landmark placement (`placedBy: human|ai`, versioned schema). F3 (dataset export tool) and F4 (auto-place model, frontal-smile view) remain open — see `ROADMAP_FACIAL_ANALYSIS.md`
+- [x] Image-analysis entry consolidation + sidebar folder context menu (July 2026) — Ceph Analysis / X-ray Report / Facial Analysis's three toolbar buttons replaced with one neutral "Analyze" dropdown button (`AnalysisTypeMenu.svelte`, shared by both entry points below) to stop crowding the toolbar; selecting a fresh image in the sidebar file tree now also pops the same picker anchored to that file row (not on deselect/multi-select/drag — see "Image Analysis Entry Points"); Facial Analysis's Measurements panel converted from a `FloatingPanel` to a static right-side sidebar (Landmarks panel unchanged); right-click context menu added to the sidebar folder tree for "New subfolder" (on a folder row) and "New folder" at patient root (on empty tree space), alongside the pre-existing hover-`+` button and file context menu — see "Sidebar file tree" for the `stopPropagation`/`data-folder-row` guard interaction this introduced
+- [x] Multi-room block creation + universal bulk delete (July 2026) — schedule blocks can now be created across "Apply to all rooms" or a customized room subset in one action from `DragCreatePopover`, as N independent (unlinked) `schedule_blocks` rows; schedule blocks gained shift-click multi-select (`multiSelectedBlockIds`, mirroring the existing appointment mechanism); right-click on any multi-selected appointment or block now shows "Delete N selected" and bulk-deletes the whole mixed-type selection in one action instead of each item behaving independently — see `docs/claude/SCHEDULE.md` "Multi-Room Block Creation" and "Universal Bulk Delete" for the root-zoom popup-positioning and `Promise.allSettled` details
+- [x] Cephalyzer embed sync (July 2026) — `npm run sync-ceph` re-pulled the reference Cephalyzer app: comparison superimposition rework (rotation-aligned NL/SN/S modes, mm- or S–N-normalized scale, auto-fit-and-center), analysis click-to-highlight (clicking a measurement row draws its defining geometry on the X-ray canvas), one-click `.ceph` load (no intermediate dialog), template angle/distance restore fidelity, exact-instance `.ceph` loading (no default-merging), mm-only distance display, and a `.ceph` export fix (`extendedMode` was silently dropped on every round-trip). Verified the DentVault-side postMessage bridge (`LOAD_IMAGE`/`LOAD_CEPH`/`CEPH_READY`/`SAVE_CEPH`/`SAVE_PDF`/`NAVIGATE_BACK`) is untouched upstream, so no bridge changes were needed on this side — see the "Cephalyzer Integration" section
 - [x] No-show auto-detection (July 2026) — `'scheduled'` appointments past `start_time` + a configurable minutes threshold (default 30, Settings → Schedule → "No-Show Auto-Detection", `noShowThreshold` store / `no_show_threshold_min` setting) auto-flip to `'no_show'` via a `setInterval` sweep in `schedule/+page.svelte`, gated to only run while viewing today and reusing `handleAppointmentStatusChange` so `no_show_recorded_at` stamps correctly — see `docs/claude/SCHEDULE.md` "No-Show Auto-Detection" for the same-day-only scope tradeoff (no app-wide background sweep)
 
 ---
