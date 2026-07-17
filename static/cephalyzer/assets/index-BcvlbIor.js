@@ -34,7 +34,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   "use strict";
   var _aa, _ba, _ca, _da;
   var __vite_style__ = document.createElement("style");
-  __vite_style__.textContent = '@import "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";\n\n\n@layer components;\n\n/*! tailwindcss v4.1.11 | MIT License | https://tailwindcss.com */\n\n@layer properties {\n  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {\n    *, :before, :after, ::backdrop {\n      --tw-translate-x: 0;\n      --tw-translate-y: 0;\n      --tw-translate-z: 0;\n      --tw-rotate-x: initial;\n      --tw-rotate-y: initial;\n      --tw-rotate-z: initial;\n      --tw-skew-x: initial;\n      --tw-skew-y: initial;\n      --tw-space-y-reverse: 0;\n      --tw-space-x-reverse: 0;\n      --tw-divide-y-reverse: 0;\n      --tw-border-style: solid;\n      --tw-gradient-position: initial;\n      --tw-gradient-from: #0000;\n      --tw-gradient-via: #0000;\n      --tw-gradient-to: #0000;\n      --tw-gradient-stops: initial;\n      --tw-gradient-via-stops: initial;\n      --tw-gradient-from-position: 0%;\n      --tw-gradient-via-position: 50%;\n      --tw-gradient-to-position: 100%;\n      --tw-leading: initial;\n      --tw-font-weight: initial;\n      --tw-tracking: initial;\n      --tw-ordinal: initial;\n      --tw-slashed-zero: initial;\n      --tw-numeric-figure: initial;\n      --tw-numeric-spacing: initial;\n      --tw-numeric-fraction: initial;\n      --tw-shadow: 0 0 #0000;\n      --tw-shadow-color: initial;\n      --tw-shadow-alpha: 100%;\n      --tw-inset-shadow: 0 0 #0000;\n      --tw-inset-shadow-color: initial;\n      --tw-inset-shadow-alpha: 100%;\n      --tw-ring-color: initial;\n      --tw-ring-shadow: 0 0 #0000;\n      --tw-inset-ring-color: initial;\n      --tw-inset-ring-shadow: 0 0 #0000;\n      --tw-ring-inset: initial;\n      --tw-ring-offset-width: 0px;\n      --tw-ring-offset-color: #fff;\n      --tw-ring-offset-shadow: 0 0 #0000;\n      --tw-outline-style: solid;\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n      --tw-backdrop-blur: initial;\n      --tw-backdrop-brightness: initial;\n      --tw-backdrop-contrast: initial;\n      --tw-backdrop-grayscale: initial;\n      --tw-backdrop-hue-rotate: initial;\n      --tw-backdrop-invert: initial;\n      --tw-backdrop-opacity: initial;\n      --tw-backdrop-saturate: initial;\n      --tw-backdrop-sepia: initial;\n      --tw-duration: initial;\n      --tw-ease: initial;\n      --tw-scale-x: 1;\n      --tw-scale-y: 1;\n      --tw-scale-z: 1;\n      --tw-content: "";\n      --tw-animation-delay: 0s;\n      --tw-animation-direction: normal;\n      --tw-animation-duration: initial;\n      --tw-animation-fill-mode: none;\n      --tw-animation-iteration-count: 1;\n      --tw-enter-opacity: 1;\n      --tw-enter-rotate: 0;\n      --tw-enter-scale: 1;\n      --tw-enter-translate-x: 0;\n      --tw-enter-translate-y: 0;\n      --tw-exit-opacity: 1;\n      --tw-exit-rotate: 0;\n      --tw-exit-scale: 1;\n      --tw-exit-translate-x: 0;\n      --tw-exit-translate-y: 0;\n    }\n  }\n}\n\n@layer theme {\n  :root, :host {\n    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";\n    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;\n    --color-red-100: oklch(93.6% .032 17.717);\n    --color-red-200: oklch(88.5% .062 18.334);\n    --color-red-300: oklch(80.8% .114 19.571);\n    --color-red-400: oklch(70.4% .191 22.216);\n    --color-red-500: oklch(63.7% .237 25.331);\n    --color-red-600: oklch(57.7% .245 27.325);\n    --color-red-800: oklch(44.4% .177 26.899);\n    --color-red-900: oklch(39.6% .141 25.723);\n    --color-red-950: oklch(25.8% .092 26.042);\n    --color-orange-200: oklch(90.1% .076 70.697);\n    --color-orange-300: oklch(83.7% .128 66.29);\n    --color-orange-400: oklch(75% .183 55.934);\n    --color-orange-500: oklch(70.5% .213 47.604);\n    --color-orange-600: oklch(64.6% .222 41.116);\n    --color-orange-800: oklch(47% .157 37.304);\n    --color-orange-900: oklch(40.8% .123 38.172);\n    --color-amber-100: oklch(96.2% .059 95.617);\n    --color-amber-300: oklch(87.9% .169 91.605);\n    --color-amber-400: oklch(82.8% .189 84.429);\n    --color-amber-500: oklch(76.9% .188 70.08);\n    --color-amber-800: oklch(47.3% .137 46.201);\n    --color-amber-900: oklch(41.4% .112 45.904);\n    --color-yellow-200: oklch(94.5% .129 101.54);\n    --color-yellow-300: oklch(90.5% .182 98.111);\n    --color-yellow-400: oklch(85.2% .199 91.936);\n    --color-yellow-500: oklch(79.5% .184 86.047);\n    --color-yellow-600: oklch(68.1% .162 75.834);\n    --color-yellow-900: oklch(42.1% .095 57.708);\n    --color-yellow-950: oklch(28.6% .066 53.813);\n    --color-green-100: oklch(96.2% .044 156.743);\n    --color-green-200: oklch(92.5% .084 155.995);\n    --color-green-300: oklch(87.1% .15 154.449);\n    --color-green-400: oklch(79.2% .209 151.711);\n    --color-green-500: oklch(72.3% .219 149.579);\n    --color-green-600: oklch(62.7% .194 149.214);\n    --color-green-700: oklch(52.7% .154 150.069);\n    --color-green-800: oklch(44.8% .119 151.328);\n    --color-green-900: oklch(39.3% .095 152.535);\n    --color-green-950: oklch(26.6% .065 152.934);\n    --color-cyan-400: oklch(78.9% .154 211.53);\n    --color-cyan-500: oklch(71.5% .143 215.221);\n    --color-blue-100: oklch(93.2% .032 255.585);\n    --color-blue-200: oklch(88.2% .059 254.128);\n    --color-blue-300: oklch(80.9% .105 251.813);\n    --color-blue-400: oklch(70.7% .165 254.624);\n    --color-blue-500: oklch(62.3% .214 259.815);\n    --color-blue-600: oklch(54.6% .245 262.881);\n    --color-blue-700: oklch(48.8% .243 264.376);\n    --color-blue-800: oklch(42.4% .199 265.638);\n    --color-blue-900: oklch(37.9% .146 265.522);\n    --color-blue-950: oklch(28.2% .091 267.935);\n    --color-indigo-500: oklch(58.5% .233 277.117);\n    --color-purple-300: oklch(82.7% .119 306.383);\n    --color-purple-400: oklch(71.4% .203 305.504);\n    --color-purple-500: oklch(62.7% .265 303.9);\n    --color-purple-600: oklch(55.8% .288 302.321);\n    --color-purple-700: oklch(49.6% .265 301.924);\n    --color-pink-500: oklch(65.6% .241 354.308);\n    --color-gray-100: oklch(96.7% .003 264.542);\n    --color-gray-200: oklch(92.8% .006 264.531);\n    --color-gray-300: oklch(87.2% .01 258.338);\n    --color-gray-400: oklch(70.7% .022 261.325);\n    --color-gray-500: oklch(55.1% .027 264.364);\n    --color-gray-600: oklch(44.6% .03 256.802);\n    --color-gray-700: oklch(37.3% .034 259.733);\n    --color-gray-800: oklch(27.8% .033 256.848);\n    --color-gray-900: oklch(21% .034 264.665);\n    --color-gray-950: oklch(13% .028 261.692);\n    --color-black: #000;\n    --color-white: #fff;\n    --spacing: .25rem;\n    --container-xs: 20rem;\n    --container-sm: 24rem;\n    --container-md: 28rem;\n    --container-lg: 32rem;\n    --container-2xl: 42rem;\n    --text-xs: .75rem;\n    --text-xs--line-height: calc(1 / .75);\n    --text-sm: .875rem;\n    --text-sm--line-height: calc(1.25 / .875);\n    --text-base: 1rem;\n    --text-base--line-height: calc(1.5 / 1);\n    --text-lg: 1.125rem;\n    --text-lg--line-height: calc(1.75 / 1.125);\n    --text-xl: 1.25rem;\n    --text-xl--line-height: calc(1.75 / 1.25);\n    --text-2xl: 1.5rem;\n    --text-2xl--line-height: calc(2 / 1.5);\n    --font-weight-normal: 400;\n    --font-weight-medium: 500;\n    --font-weight-semibold: 600;\n    --font-weight-bold: 700;\n    --tracking-tight: -.025em;\n    --tracking-widest: .1em;\n    --leading-tight: 1.25;\n    --leading-relaxed: 1.625;\n    --radius-xs: .125rem;\n    --ease-out: cubic-bezier(0, 0, .2, 1);\n    --ease-in-out: cubic-bezier(.4, 0, .2, 1);\n    --animate-spin: spin 1s linear infinite;\n    --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;\n    --blur-sm: 8px;\n    --blur-xl: 24px;\n    --aspect-video: 16 / 9;\n    --default-transition-duration: .15s;\n    --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);\n    --default-font-family: var(--font-sans);\n    --default-mono-font-family: var(--font-mono);\n  }\n}\n\n@layer base {\n  *, :after, :before, ::backdrop {\n    box-sizing: border-box;\n    border: 0 solid;\n    margin: 0;\n    padding: 0;\n  }\n\n  ::file-selector-button {\n    box-sizing: border-box;\n    border: 0 solid;\n    margin: 0;\n    padding: 0;\n  }\n\n  html, :host {\n    -webkit-text-size-adjust: 100%;\n    tab-size: 4;\n    line-height: 1.5;\n    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");\n    font-feature-settings: var(--default-font-feature-settings, normal);\n    font-variation-settings: var(--default-font-variation-settings, normal);\n    -webkit-tap-highlight-color: transparent;\n  }\n\n  hr {\n    height: 0;\n    color: inherit;\n    border-top-width: 1px;\n  }\n\n  abbr:where([title]) {\n    -webkit-text-decoration: underline dotted;\n    text-decoration: underline dotted;\n  }\n\n  h1, h2, h3, h4, h5, h6 {\n    font-size: inherit;\n    font-weight: inherit;\n  }\n\n  a {\n    color: inherit;\n    -webkit-text-decoration: inherit;\n    -webkit-text-decoration: inherit;\n    -webkit-text-decoration: inherit;\n    text-decoration: inherit;\n  }\n\n  b, strong {\n    font-weight: bolder;\n  }\n\n  code, kbd, samp, pre {\n    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);\n    font-feature-settings: var(--default-mono-font-feature-settings, normal);\n    font-variation-settings: var(--default-mono-font-variation-settings, normal);\n    font-size: 1em;\n  }\n\n  small {\n    font-size: 80%;\n  }\n\n  sub, sup {\n    vertical-align: baseline;\n    font-size: 75%;\n    line-height: 0;\n    position: relative;\n  }\n\n  sub {\n    bottom: -.25em;\n  }\n\n  sup {\n    top: -.5em;\n  }\n\n  table {\n    text-indent: 0;\n    border-color: inherit;\n    border-collapse: collapse;\n  }\n\n  :-moz-focusring {\n    outline: auto;\n  }\n\n  progress {\n    vertical-align: baseline;\n  }\n\n  summary {\n    display: list-item;\n  }\n\n  ol, ul, menu {\n    list-style: none;\n  }\n\n  img, svg, video, canvas, audio, iframe, embed, object {\n    vertical-align: middle;\n    display: block;\n  }\n\n  img, video {\n    max-width: 100%;\n    height: auto;\n  }\n\n  button, input, select, optgroup, textarea {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    opacity: 1;\n    background-color: #0000;\n    border-radius: 0;\n  }\n\n  ::file-selector-button {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    opacity: 1;\n    background-color: #0000;\n    border-radius: 0;\n  }\n\n  :where(select:is([multiple], [size])) optgroup {\n    font-weight: bolder;\n  }\n\n  :where(select:is([multiple], [size])) optgroup option {\n    padding-inline-start: 20px;\n  }\n\n  ::file-selector-button {\n    margin-inline-end: 4px;\n  }\n\n  ::placeholder {\n    opacity: 1;\n  }\n\n  @supports (not ((-webkit-appearance: -apple-pay-button))) or (contain-intrinsic-size: 1px) {\n    ::placeholder {\n      color: currentColor;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      ::placeholder {\n        color: color-mix(in oklab, currentcolor 50%, transparent);\n      }\n    }\n  }\n\n  textarea {\n    resize: vertical;\n  }\n\n  ::-webkit-search-decoration {\n    -webkit-appearance: none;\n  }\n\n  ::-webkit-date-and-time-value {\n    min-height: 1lh;\n    text-align: inherit;\n  }\n\n  ::-webkit-datetime-edit {\n    display: inline-flex;\n  }\n\n  ::-webkit-datetime-edit-fields-wrapper {\n    padding: 0;\n  }\n\n  ::-webkit-datetime-edit {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-year-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-month-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-day-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-hour-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-minute-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-second-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-millisecond-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-meridiem-field {\n    padding-block: 0;\n  }\n\n  :-moz-ui-invalid {\n    box-shadow: none;\n  }\n\n  button, input:where([type="button"], [type="reset"], [type="submit"]) {\n    appearance: button;\n  }\n\n  ::file-selector-button {\n    appearance: button;\n  }\n\n  ::-webkit-inner-spin-button {\n    height: auto;\n  }\n\n  ::-webkit-outer-spin-button {\n    height: auto;\n  }\n\n  [hidden]:where(:not([hidden="until-found"])) {\n    display: none !important;\n  }\n\n  * {\n    border-color: var(--border);\n    outline-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    * {\n      outline-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  body {\n    background-color: var(--background);\n    color: var(--foreground);\n    font-family: Inter, system-ui, sans-serif;\n  }\n}\n\n@layer utilities {\n  .\\@container\\/card-header {\n    container: card-header / inline-size;\n  }\n\n  .pointer-events-auto {\n    pointer-events: auto;\n  }\n\n  .pointer-events-none {\n    pointer-events: none;\n  }\n\n  .collapse {\n    visibility: collapse;\n  }\n\n  .invisible {\n    visibility: hidden;\n  }\n\n  .visible {\n    visibility: visible;\n  }\n\n  .sr-only {\n    clip: rect(0, 0, 0, 0);\n    white-space: nowrap;\n    border-width: 0;\n    width: 1px;\n    height: 1px;\n    margin: -1px;\n    padding: 0;\n    position: absolute;\n    overflow: hidden;\n  }\n\n  .absolute {\n    position: absolute;\n  }\n\n  .fixed {\n    position: fixed;\n  }\n\n  .relative {\n    position: relative;\n  }\n\n  .static {\n    position: static;\n  }\n\n  .inset-0 {\n    inset: calc(var(--spacing) * 0);\n  }\n\n  .inset-x-0 {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .inset-y-0 {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .-top-12 {\n    top: calc(var(--spacing) * -12);\n  }\n\n  .top-0 {\n    top: calc(var(--spacing) * 0);\n  }\n\n  .top-1\\.5 {\n    top: calc(var(--spacing) * 1.5);\n  }\n\n  .top-1\\/2 {\n    top: 50%;\n  }\n\n  .top-3 {\n    top: calc(var(--spacing) * 3);\n  }\n\n  .top-3\\.5 {\n    top: calc(var(--spacing) * 3.5);\n  }\n\n  .top-4 {\n    top: calc(var(--spacing) * 4);\n  }\n\n  .top-8 {\n    top: calc(var(--spacing) * 8);\n  }\n\n  .top-10 {\n    top: calc(var(--spacing) * 10);\n  }\n\n  .top-\\[1px\\] {\n    top: 1px;\n  }\n\n  .top-\\[50\\%\\] {\n    top: 50%;\n  }\n\n  .top-\\[60\\%\\] {\n    top: 60%;\n  }\n\n  .top-full {\n    top: 100%;\n  }\n\n  .-right-12 {\n    right: calc(var(--spacing) * -12);\n  }\n\n  .right-0 {\n    right: calc(var(--spacing) * 0);\n  }\n\n  .right-1 {\n    right: calc(var(--spacing) * 1);\n  }\n\n  .right-2 {\n    right: calc(var(--spacing) * 2);\n  }\n\n  .right-3 {\n    right: calc(var(--spacing) * 3);\n  }\n\n  .right-4 {\n    right: calc(var(--spacing) * 4);\n  }\n\n  .-bottom-12 {\n    bottom: calc(var(--spacing) * -12);\n  }\n\n  .bottom-0 {\n    bottom: calc(var(--spacing) * 0);\n  }\n\n  .bottom-2 {\n    bottom: calc(var(--spacing) * 2);\n  }\n\n  .bottom-3 {\n    bottom: calc(var(--spacing) * 3);\n  }\n\n  .bottom-4 {\n    bottom: calc(var(--spacing) * 4);\n  }\n\n  .-left-12 {\n    left: calc(var(--spacing) * -12);\n  }\n\n  .left-0 {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .left-1\\/2 {\n    left: 50%;\n  }\n\n  .left-2 {\n    left: calc(var(--spacing) * 2);\n  }\n\n  .left-4 {\n    left: calc(var(--spacing) * 4);\n  }\n\n  .left-\\[50\\%\\] {\n    left: 50%;\n  }\n\n  .isolate {\n    isolation: isolate;\n  }\n\n  .z-5 {\n    z-index: 5;\n  }\n\n  .z-10 {\n    z-index: 10;\n  }\n\n  .z-20 {\n    z-index: 20;\n  }\n\n  .z-30 {\n    z-index: 30;\n  }\n\n  .z-50 {\n    z-index: 50;\n  }\n\n  .z-\\[1\\] {\n    z-index: 1;\n  }\n\n  .col-start-2 {\n    grid-column-start: 2;\n  }\n\n  .row-span-2 {\n    grid-row: span 2 / span 2;\n  }\n\n  .row-start-1 {\n    grid-row-start: 1;\n  }\n\n  .\\!container {\n    width: 100% !important;\n  }\n\n  @media (min-width: 40rem) {\n    .\\!container {\n      max-width: 40rem !important;\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .\\!container {\n      max-width: 48rem !important;\n    }\n  }\n\n  @media (min-width: 64rem) {\n    .\\!container {\n      max-width: 64rem !important;\n    }\n  }\n\n  @media (min-width: 80rem) {\n    .\\!container {\n      max-width: 80rem !important;\n    }\n  }\n\n  @media (min-width: 96rem) {\n    .\\!container {\n      max-width: 96rem !important;\n    }\n  }\n\n  .container {\n    width: 100%;\n  }\n\n  @media (min-width: 40rem) {\n    .container {\n      max-width: 40rem;\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .container {\n      max-width: 48rem;\n    }\n  }\n\n  @media (min-width: 64rem) {\n    .container {\n      max-width: 64rem;\n    }\n  }\n\n  @media (min-width: 80rem) {\n    .container {\n      max-width: 80rem;\n    }\n  }\n\n  @media (min-width: 96rem) {\n    .container {\n      max-width: 96rem;\n    }\n  }\n\n  .-mx-1 {\n    margin-inline: calc(var(--spacing) * -1);\n  }\n\n  .mx-0\\.5 {\n    margin-inline: calc(var(--spacing) * .5);\n  }\n\n  .mx-1 {\n    margin-inline: calc(var(--spacing) * 1);\n  }\n\n  .mx-2 {\n    margin-inline: calc(var(--spacing) * 2);\n  }\n\n  .mx-3\\.5 {\n    margin-inline: calc(var(--spacing) * 3.5);\n  }\n\n  .mx-auto {\n    margin-inline: auto;\n  }\n\n  .my-1 {\n    margin-block: calc(var(--spacing) * 1);\n  }\n\n  .-mt-4 {\n    margin-top: calc(var(--spacing) * -4);\n  }\n\n  .mt-0\\.5 {\n    margin-top: calc(var(--spacing) * .5);\n  }\n\n  .mt-1 {\n    margin-top: calc(var(--spacing) * 1);\n  }\n\n  .mt-1\\.5 {\n    margin-top: calc(var(--spacing) * 1.5);\n  }\n\n  .mt-2 {\n    margin-top: calc(var(--spacing) * 2);\n  }\n\n  .mt-3 {\n    margin-top: calc(var(--spacing) * 3);\n  }\n\n  .mt-4 {\n    margin-top: calc(var(--spacing) * 4);\n  }\n\n  .mt-auto {\n    margin-top: auto;\n  }\n\n  .mr-0\\.5 {\n    margin-right: calc(var(--spacing) * .5);\n  }\n\n  .mr-1 {\n    margin-right: calc(var(--spacing) * 1);\n  }\n\n  .mr-1\\.5 {\n    margin-right: calc(var(--spacing) * 1.5);\n  }\n\n  .mr-2 {\n    margin-right: calc(var(--spacing) * 2);\n  }\n\n  .mb-1 {\n    margin-bottom: calc(var(--spacing) * 1);\n  }\n\n  .mb-1\\.5 {\n    margin-bottom: calc(var(--spacing) * 1.5);\n  }\n\n  .mb-2 {\n    margin-bottom: calc(var(--spacing) * 2);\n  }\n\n  .mb-2\\.5 {\n    margin-bottom: calc(var(--spacing) * 2.5);\n  }\n\n  .mb-4 {\n    margin-bottom: calc(var(--spacing) * 4);\n  }\n\n  .mb-5 {\n    margin-bottom: calc(var(--spacing) * 5);\n  }\n\n  .-ml-4 {\n    margin-left: calc(var(--spacing) * -4);\n  }\n\n  .ml-1 {\n    margin-left: calc(var(--spacing) * 1);\n  }\n\n  .ml-2 {\n    margin-left: calc(var(--spacing) * 2);\n  }\n\n  .ml-4 {\n    margin-left: calc(var(--spacing) * 4);\n  }\n\n  .ml-6 {\n    margin-left: calc(var(--spacing) * 6);\n  }\n\n  .ml-auto {\n    margin-left: auto;\n  }\n\n  .line-clamp-1 {\n    -webkit-line-clamp: 1;\n    -webkit-box-orient: vertical;\n    display: -webkit-box;\n    overflow: hidden;\n  }\n\n  .block {\n    display: block;\n  }\n\n  .contents {\n    display: contents;\n  }\n\n  .flex {\n    display: flex;\n  }\n\n  .grid {\n    display: grid;\n  }\n\n  .hidden {\n    display: none;\n  }\n\n  .inline {\n    display: inline;\n  }\n\n  .inline-flex {\n    display: inline-flex;\n  }\n\n  .table {\n    display: table;\n  }\n\n  .table-caption {\n    display: table-caption;\n  }\n\n  .table-cell {\n    display: table-cell;\n  }\n\n  .table-row {\n    display: table-row;\n  }\n\n  .field-sizing-content {\n    field-sizing: content;\n  }\n\n  .aspect-square {\n    aspect-ratio: 1;\n  }\n\n  .aspect-video {\n    aspect-ratio: var(--aspect-video);\n  }\n\n  .size-\\(--cell-size\\) {\n    width: var(--cell-size);\n    height: var(--cell-size);\n  }\n\n  .size-2 {\n    width: calc(var(--spacing) * 2);\n    height: calc(var(--spacing) * 2);\n  }\n\n  .size-2\\.5 {\n    width: calc(var(--spacing) * 2.5);\n    height: calc(var(--spacing) * 2.5);\n  }\n\n  .size-3 {\n    width: calc(var(--spacing) * 3);\n    height: calc(var(--spacing) * 3);\n  }\n\n  .size-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .size-4 {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .size-7 {\n    width: calc(var(--spacing) * 7);\n    height: calc(var(--spacing) * 7);\n  }\n\n  .size-8 {\n    width: calc(var(--spacing) * 8);\n    height: calc(var(--spacing) * 8);\n  }\n\n  .size-9 {\n    width: calc(var(--spacing) * 9);\n    height: calc(var(--spacing) * 9);\n  }\n\n  .size-auto {\n    width: auto;\n    height: auto;\n  }\n\n  .size-full {\n    width: 100%;\n    height: 100%;\n  }\n\n  .h-\\(--cell-size\\) {\n    height: var(--cell-size);\n  }\n\n  .h-0\\.5 {\n    height: calc(var(--spacing) * .5);\n  }\n\n  .h-1 {\n    height: calc(var(--spacing) * 1);\n  }\n\n  .h-1\\.5 {\n    height: calc(var(--spacing) * 1.5);\n  }\n\n  .h-2 {\n    height: calc(var(--spacing) * 2);\n  }\n\n  .h-2\\.5 {\n    height: calc(var(--spacing) * 2.5);\n  }\n\n  .h-3 {\n    height: calc(var(--spacing) * 3);\n  }\n\n  .h-3\\.5 {\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .h-4 {\n    height: calc(var(--spacing) * 4);\n  }\n\n  .h-5 {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .h-6 {\n    height: calc(var(--spacing) * 6);\n  }\n\n  .h-7 {\n    height: calc(var(--spacing) * 7);\n  }\n\n  .h-8 {\n    height: calc(var(--spacing) * 8);\n  }\n\n  .h-9 {\n    height: calc(var(--spacing) * 9);\n  }\n\n  .h-10 {\n    height: calc(var(--spacing) * 10);\n  }\n\n  .h-12 {\n    height: calc(var(--spacing) * 12);\n  }\n\n  .h-14 {\n    height: calc(var(--spacing) * 14);\n  }\n\n  .h-16 {\n    height: calc(var(--spacing) * 16);\n  }\n\n  .h-32 {\n    height: calc(var(--spacing) * 32);\n  }\n\n  .h-48 {\n    height: calc(var(--spacing) * 48);\n  }\n\n  .h-\\[1\\.15rem\\] {\n    height: 1.15rem;\n  }\n\n  .h-\\[98vh\\] {\n    height: 98vh;\n  }\n\n  .h-\\[800px\\] {\n    height: 800px;\n  }\n\n  .h-\\[calc\\(100\\%-1px\\)\\] {\n    height: calc(100% - 1px);\n  }\n\n  .h-\\[calc\\(100vh-57px\\)\\] {\n    height: calc(100vh - 57px);\n  }\n\n  .h-\\[var\\(--radix-navigation-menu-viewport-height\\)\\] {\n    height: var(--radix-navigation-menu-viewport-height);\n  }\n\n  .h-\\[var\\(--radix-select-trigger-height\\)\\] {\n    height: var(--radix-select-trigger-height);\n  }\n\n  .h-auto {\n    height: auto;\n  }\n\n  .h-full {\n    height: 100%;\n  }\n\n  .h-px {\n    height: 1px;\n  }\n\n  .h-screen {\n    height: 100vh;\n  }\n\n  .h-svh {\n    height: 100svh;\n  }\n\n  .max-h-\\(--radix-context-menu-content-available-height\\) {\n    max-height: var(--radix-context-menu-content-available-height);\n  }\n\n  .max-h-\\(--radix-dropdown-menu-content-available-height\\) {\n    max-height: var(--radix-dropdown-menu-content-available-height);\n  }\n\n  .max-h-\\(--radix-select-content-available-height\\) {\n    max-height: var(--radix-select-content-available-height);\n  }\n\n  .max-h-48 {\n    max-height: calc(var(--spacing) * 48);\n  }\n\n  .max-h-\\[300px\\] {\n    max-height: 300px;\n  }\n\n  .min-h-0 {\n    min-height: calc(var(--spacing) * 0);\n  }\n\n  .min-h-4 {\n    min-height: calc(var(--spacing) * 4);\n  }\n\n  .min-h-16 {\n    min-height: calc(var(--spacing) * 16);\n  }\n\n  .min-h-\\[60px\\] {\n    min-height: 60px;\n  }\n\n  .min-h-\\[100px\\] {\n    min-height: 100px;\n  }\n\n  .min-h-screen {\n    min-height: 100vh;\n  }\n\n  .min-h-svh {\n    min-height: 100svh;\n  }\n\n  .w-\\(--cell-size\\) {\n    width: var(--cell-size);\n  }\n\n  .w-\\(--sidebar-width\\) {\n    width: var(--sidebar-width);\n  }\n\n  .w-1 {\n    width: calc(var(--spacing) * 1);\n  }\n\n  .w-1\\.5 {\n    width: calc(var(--spacing) * 1.5);\n  }\n\n  .w-2 {\n    width: calc(var(--spacing) * 2);\n  }\n\n  .w-2\\.5 {\n    width: calc(var(--spacing) * 2.5);\n  }\n\n  .w-3 {\n    width: calc(var(--spacing) * 3);\n  }\n\n  .w-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n  }\n\n  .w-3\\/4 {\n    width: 75%;\n  }\n\n  .w-4 {\n    width: calc(var(--spacing) * 4);\n  }\n\n  .w-5 {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .w-6 {\n    width: calc(var(--spacing) * 6);\n  }\n\n  .w-7 {\n    width: calc(var(--spacing) * 7);\n  }\n\n  .w-8 {\n    width: calc(var(--spacing) * 8);\n  }\n\n  .w-9 {\n    width: calc(var(--spacing) * 9);\n  }\n\n  .w-12 {\n    width: calc(var(--spacing) * 12);\n  }\n\n  .w-14 {\n    width: calc(var(--spacing) * 14);\n  }\n\n  .w-16 {\n    width: calc(var(--spacing) * 16);\n  }\n\n  .w-60 {\n    width: calc(var(--spacing) * 60);\n  }\n\n  .w-64 {\n    width: calc(var(--spacing) * 64);\n  }\n\n  .w-72 {\n    width: calc(var(--spacing) * 72);\n  }\n\n  .w-\\[100px\\] {\n    width: 100px;\n  }\n\n  .w-auto {\n    width: auto;\n  }\n\n  .w-fit {\n    width: fit-content;\n  }\n\n  .w-full {\n    width: 100%;\n  }\n\n  .w-max {\n    width: max-content;\n  }\n\n  .w-px {\n    width: 1px;\n  }\n\n  .max-w-\\(--skeleton-width\\) {\n    max-width: var(--skeleton-width);\n  }\n\n  .max-w-2xl {\n    max-width: var(--container-2xl);\n  }\n\n  .max-w-80 {\n    max-width: calc(var(--spacing) * 80);\n  }\n\n  .max-w-\\[90vw\\] {\n    max-width: 90vw;\n  }\n\n  .max-w-\\[calc\\(100\\%-2rem\\)\\] {\n    max-width: calc(100% - 2rem);\n  }\n\n  .max-w-lg {\n    max-width: var(--container-lg);\n  }\n\n  .max-w-max {\n    max-width: max-content;\n  }\n\n  .max-w-md {\n    max-width: var(--container-md);\n  }\n\n  .max-w-xs {\n    max-width: var(--container-xs);\n  }\n\n  .min-w-\\(--cell-size\\) {\n    min-width: var(--cell-size);\n  }\n\n  .min-w-0 {\n    min-width: calc(var(--spacing) * 0);\n  }\n\n  .min-w-5 {\n    min-width: calc(var(--spacing) * 5);\n  }\n\n  .min-w-8 {\n    min-width: calc(var(--spacing) * 8);\n  }\n\n  .min-w-9 {\n    min-width: calc(var(--spacing) * 9);\n  }\n\n  .min-w-10 {\n    min-width: calc(var(--spacing) * 10);\n  }\n\n  .min-w-\\[8rem\\] {\n    min-width: 8rem;\n  }\n\n  .min-w-\\[12rem\\] {\n    min-width: 12rem;\n  }\n\n  .min-w-\\[180px\\] {\n    min-width: 180px;\n  }\n\n  .min-w-\\[var\\(--radix-select-trigger-width\\)\\] {\n    min-width: var(--radix-select-trigger-width);\n  }\n\n  .flex-1 {\n    flex: 1;\n  }\n\n  .flex-shrink-0, .shrink-0 {\n    flex-shrink: 0;\n  }\n\n  .grow {\n    flex-grow: 1;\n  }\n\n  .grow-0 {\n    flex-grow: 0;\n  }\n\n  .basis-full {\n    flex-basis: 100%;\n  }\n\n  .caption-bottom {\n    caption-side: bottom;\n  }\n\n  .border-collapse {\n    border-collapse: collapse;\n  }\n\n  .origin-\\(--radix-context-menu-content-transform-origin\\) {\n    transform-origin: var(--radix-context-menu-content-transform-origin);\n  }\n\n  .origin-\\(--radix-dropdown-menu-content-transform-origin\\) {\n    transform-origin: var(--radix-dropdown-menu-content-transform-origin);\n  }\n\n  .origin-\\(--radix-hover-card-content-transform-origin\\) {\n    transform-origin: var(--radix-hover-card-content-transform-origin);\n  }\n\n  .origin-\\(--radix-menubar-content-transform-origin\\) {\n    transform-origin: var(--radix-menubar-content-transform-origin);\n  }\n\n  .origin-\\(--radix-popover-content-transform-origin\\) {\n    transform-origin: var(--radix-popover-content-transform-origin);\n  }\n\n  .origin-\\(--radix-select-content-transform-origin\\) {\n    transform-origin: var(--radix-select-content-transform-origin);\n  }\n\n  .origin-\\(--radix-tooltip-content-transform-origin\\) {\n    transform-origin: var(--radix-tooltip-content-transform-origin);\n  }\n\n  .-translate-x-1\\/2 {\n    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .-translate-x-px {\n    --tw-translate-x: -1px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-x-\\[-50\\%\\] {\n    --tw-translate-x: -50%;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-x-px {\n    --tw-translate-x: 1px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .-translate-y-1\\/2 {\n    --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-0\\.5 {\n    --tw-translate-y: calc(var(--spacing) * .5);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-\\[-50\\%\\] {\n    --tw-translate-y: -50%;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-\\[calc\\(-50\\%_-_2px\\)\\] {\n    --tw-translate-y: calc(-50% - 2px);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .rotate-45 {\n    rotate: 45deg;\n  }\n\n  .rotate-90 {\n    rotate: 90deg;\n  }\n\n  .transform {\n    transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );\n  }\n\n  .animate-caret-blink {\n    animation: 1.25s ease-out infinite caret-blink;\n  }\n\n  .animate-in {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .animate-pulse {\n    animation: var(--animate-pulse);\n  }\n\n  .animate-spin {\n    animation: var(--animate-spin);\n  }\n\n  .cursor-default {\n    cursor: default;\n  }\n\n  .cursor-grab {\n    cursor: grab;\n  }\n\n  .cursor-not-allowed {\n    cursor: not-allowed;\n  }\n\n  .cursor-pointer {\n    cursor: pointer;\n  }\n\n  .touch-none {\n    touch-action: none;\n  }\n\n  .resize {\n    resize: both;\n  }\n\n  .resize-none {\n    resize: none;\n  }\n\n  .scroll-my-1 {\n    scroll-margin-block: calc(var(--spacing) * 1);\n  }\n\n  .scroll-py-1 {\n    scroll-padding-block: calc(var(--spacing) * 1);\n  }\n\n  .list-inside {\n    list-style-position: inside;\n  }\n\n  .list-disc {\n    list-style-type: disc;\n  }\n\n  .list-none {\n    list-style-type: none;\n  }\n\n  .auto-rows-min {\n    grid-auto-rows: min-content;\n  }\n\n  .grid-cols-1 {\n    grid-template-columns: repeat(1, minmax(0, 1fr));\n  }\n\n  .grid-cols-2 {\n    grid-template-columns: repeat(2, minmax(0, 1fr));\n  }\n\n  .grid-cols-\\[0_1fr\\] {\n    grid-template-columns: 0 1fr;\n  }\n\n  .grid-rows-\\[auto_auto\\] {\n    grid-template-rows: auto auto;\n  }\n\n  .flex-col {\n    flex-direction: column;\n  }\n\n  .flex-col-reverse {\n    flex-direction: column-reverse;\n  }\n\n  .flex-row {\n    flex-direction: row;\n  }\n\n  .flex-wrap {\n    flex-wrap: wrap;\n  }\n\n  .items-center {\n    align-items: center;\n  }\n\n  .items-end {\n    align-items: flex-end;\n  }\n\n  .items-start {\n    align-items: flex-start;\n  }\n\n  .justify-between {\n    justify-content: space-between;\n  }\n\n  .justify-center {\n    justify-content: center;\n  }\n\n  .justify-end {\n    justify-content: flex-end;\n  }\n\n  .justify-start {\n    justify-content: flex-start;\n  }\n\n  .justify-items-start {\n    justify-items: start;\n  }\n\n  .gap-0\\.5 {\n    gap: calc(var(--spacing) * .5);\n  }\n\n  .gap-1 {\n    gap: calc(var(--spacing) * 1);\n  }\n\n  .gap-1\\.5 {\n    gap: calc(var(--spacing) * 1.5);\n  }\n\n  .gap-2 {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  .gap-2\\.5 {\n    gap: calc(var(--spacing) * 2.5);\n  }\n\n  .gap-3 {\n    gap: calc(var(--spacing) * 3);\n  }\n\n  .gap-4 {\n    gap: calc(var(--spacing) * 4);\n  }\n\n  .gap-6 {\n    gap: calc(var(--spacing) * 6);\n  }\n\n  :where(.space-y-0 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 0) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 0) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-0\\.5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * .5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * .5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-1 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 1) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-2 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-2\\.5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 2.5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 2.5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-3 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-4 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-6 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-8 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-x-2 > :not(:last-child)) {\n    --tw-space-x-reverse: 0;\n    margin-inline-start: calc(calc(var(--spacing) * 2) * var(--tw-space-x-reverse));\n    margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));\n  }\n\n  :where(.space-x-3 > :not(:last-child)) {\n    --tw-space-x-reverse: 0;\n    margin-inline-start: calc(calc(var(--spacing) * 3) * var(--tw-space-x-reverse));\n    margin-inline-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-x-reverse)));\n  }\n\n  .gap-y-0\\.5 {\n    row-gap: calc(var(--spacing) * .5);\n  }\n\n  :where(.divide-y > :not(:last-child)) {\n    --tw-divide-y-reverse: 0;\n    border-bottom-style: var(--tw-border-style);\n    border-top-style: var(--tw-border-style);\n    border-top-width: calc(1px * var(--tw-divide-y-reverse));\n    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));\n  }\n\n  :where(.divide-gray-800\\/30 > :not(:last-child)) {\n    border-color: #1e29394d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    :where(.divide-gray-800\\/30 > :not(:last-child)) {\n      border-color: color-mix(in oklab, var(--color-gray-800) 30%, transparent);\n    }\n  }\n\n  .self-start {\n    align-self: flex-start;\n  }\n\n  .justify-self-end {\n    justify-self: flex-end;\n  }\n\n  .truncate {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n  }\n\n  .overflow-auto {\n    overflow: auto;\n  }\n\n  .overflow-hidden {\n    overflow: hidden;\n  }\n\n  .overflow-x-auto {\n    overflow-x: auto;\n  }\n\n  .overflow-x-hidden {\n    overflow-x: hidden;\n  }\n\n  .overflow-y-auto {\n    overflow-y: auto;\n  }\n\n  .rounded {\n    border-radius: .25rem;\n  }\n\n  .rounded-\\[2px\\] {\n    border-radius: 2px;\n  }\n\n  .rounded-\\[4px\\] {\n    border-radius: 4px;\n  }\n\n  .rounded-\\[inherit\\] {\n    border-radius: inherit;\n  }\n\n  .rounded-full {\n    border-radius: 3.40282e38px;\n  }\n\n  .rounded-lg {\n    border-radius: var(--radius);\n  }\n\n  .rounded-md {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .rounded-none {\n    border-radius: 0;\n  }\n\n  .rounded-sm {\n    border-radius: calc(var(--radius)  - 4px);\n  }\n\n  .rounded-xl {\n    border-radius: calc(var(--radius)  + 4px);\n  }\n\n  .rounded-xs {\n    border-radius: var(--radius-xs);\n  }\n\n  .rounded-t-lg {\n    border-top-left-radius: var(--radius);\n    border-top-right-radius: var(--radius);\n  }\n\n  .rounded-l-md {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .rounded-tl-sm {\n    border-top-left-radius: calc(var(--radius)  - 4px);\n  }\n\n  .rounded-r-md {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .border {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .border-2 {\n    border-style: var(--tw-border-style);\n    border-width: 2px;\n  }\n\n  .border-4 {\n    border-style: var(--tw-border-style);\n    border-width: 4px;\n  }\n\n  .border-y {\n    border-block-style: var(--tw-border-style);\n    border-block-width: 1px;\n  }\n\n  .border-t {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n\n  .border-r {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .border-b {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  .border-l {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .border-dashed {\n    --tw-border-style: dashed;\n    border-style: dashed;\n  }\n\n  .border-amber-500 {\n    border-color: var(--color-amber-500);\n  }\n\n  .border-amber-800\\/50 {\n    border-color: #953d0080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-amber-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-amber-800) 50%, transparent);\n    }\n  }\n\n  .border-blue-400 {\n    border-color: var(--color-blue-400);\n  }\n\n  .border-blue-400\\/60 {\n    border-color: #54a2ff99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-400\\/60 {\n      border-color: color-mix(in oklab, var(--color-blue-400) 60%, transparent);\n    }\n  }\n\n  .border-blue-500 {\n    border-color: var(--color-blue-500);\n  }\n\n  .border-blue-600 {\n    border-color: var(--color-blue-600);\n  }\n\n  .border-blue-600\\/50 {\n    border-color: #155dfc80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-600) 50%, transparent);\n    }\n  }\n\n  .border-blue-600\\/60 {\n    border-color: #155dfc99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-600\\/60 {\n      border-color: color-mix(in oklab, var(--color-blue-600) 60%, transparent);\n    }\n  }\n\n  .border-blue-800\\/50 {\n    border-color: #193cb880;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-800) 50%, transparent);\n    }\n  }\n\n  .border-blue-900\\/50 {\n    border-color: #1c398e80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-900) 50%, transparent);\n    }\n  }\n\n  .border-cyan-400 {\n    border-color: var(--color-cyan-400);\n  }\n\n  .border-gray-500 {\n    border-color: var(--color-gray-500);\n  }\n\n  .border-gray-600 {\n    border-color: var(--color-gray-600);\n  }\n\n  .border-gray-600\\/50 {\n    border-color: #4a556580;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-600) 50%, transparent);\n    }\n  }\n\n  .border-gray-700 {\n    border-color: var(--color-gray-700);\n  }\n\n  .border-gray-700\\/30 {\n    border-color: #3641534d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/30 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n    }\n  }\n\n  .border-gray-700\\/40 {\n    border-color: #36415366;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/40 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 40%, transparent);\n    }\n  }\n\n  .border-gray-700\\/50 {\n    border-color: #36415380;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n    }\n  }\n\n  .border-gray-700\\/60 {\n    border-color: #36415399;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/60 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 60%, transparent);\n    }\n  }\n\n  .border-gray-800 {\n    border-color: var(--color-gray-800);\n  }\n\n  .border-gray-800\\/50 {\n    border-color: #1e293980;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n    }\n  }\n\n  .border-gray-800\\/60 {\n    border-color: #1e293999;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-800\\/60 {\n      border-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n    }\n  }\n\n  .border-green-400 {\n    border-color: var(--color-green-400);\n  }\n\n  .border-green-500 {\n    border-color: var(--color-green-500);\n  }\n\n  .border-green-600 {\n    border-color: var(--color-green-600);\n  }\n\n  .border-green-600\\/30 {\n    border-color: #00a5444d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-green-600\\/30 {\n      border-color: color-mix(in oklab, var(--color-green-600) 30%, transparent);\n    }\n  }\n\n  .border-green-800\\/50 {\n    border-color: #01663080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-green-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-green-800) 50%, transparent);\n    }\n  }\n\n  .border-green-900\\/50 {\n    border-color: #0d542b80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-green-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-green-900) 50%, transparent);\n    }\n  }\n\n  .border-input {\n    border-color: var(--input);\n  }\n\n  .border-orange-500 {\n    border-color: var(--color-orange-500);\n  }\n\n  .border-orange-600 {\n    border-color: var(--color-orange-600);\n  }\n\n  .border-orange-600\\/50 {\n    border-color: #f0510080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-orange-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-orange-600) 50%, transparent);\n    }\n  }\n\n  .border-orange-800\\/30 {\n    border-color: #9f2d004d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-orange-800\\/30 {\n      border-color: color-mix(in oklab, var(--color-orange-800) 30%, transparent);\n    }\n  }\n\n  .border-primary {\n    border-color: var(--primary);\n  }\n\n  .border-purple-500 {\n    border-color: var(--color-purple-500);\n  }\n\n  .border-purple-500\\/20 {\n    border-color: #ac4bff33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-purple-500\\/20 {\n      border-color: color-mix(in oklab, var(--color-purple-500) 20%, transparent);\n    }\n  }\n\n  .border-red-500 {\n    border-color: var(--color-red-500);\n  }\n\n  .border-red-600 {\n    border-color: var(--color-red-600);\n  }\n\n  .border-red-900\\/50 {\n    border-color: #82181a80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-red-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-red-900) 50%, transparent);\n    }\n  }\n\n  .border-sidebar-border {\n    border-color: var(--sidebar-border);\n  }\n\n  .border-transparent {\n    border-color: #0000;\n  }\n\n  .border-yellow-300 {\n    border-color: var(--color-yellow-300);\n  }\n\n  .border-yellow-500 {\n    border-color: var(--color-yellow-500);\n  }\n\n  .border-yellow-600 {\n    border-color: var(--color-yellow-600);\n  }\n\n  .border-yellow-900\\/50 {\n    border-color: #733e0a80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-yellow-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-yellow-900) 50%, transparent);\n    }\n  }\n\n  .border-t-transparent {\n    border-top-color: #0000;\n  }\n\n  .border-l-transparent {\n    border-left-color: #0000;\n  }\n\n  .bg-accent {\n    background-color: var(--accent);\n  }\n\n  .bg-amber-100 {\n    background-color: var(--color-amber-100);\n  }\n\n  .bg-amber-900\\/20 {\n    background-color: #7b330633;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-amber-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-amber-900) 20%, transparent);\n    }\n  }\n\n  .bg-amber-900\\/30 {\n    background-color: #7b33064d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-amber-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-amber-900) 30%, transparent);\n    }\n  }\n\n  .bg-background {\n    background-color: var(--background);\n  }\n\n  .bg-black {\n    background-color: var(--color-black);\n  }\n\n  .bg-black\\/50 {\n    background-color: #00000080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-black\\/50 {\n      background-color: color-mix(in oklab, var(--color-black) 50%, transparent);\n    }\n  }\n\n  .bg-blue-100 {\n    background-color: var(--color-blue-100);\n  }\n\n  .bg-blue-500 {\n    background-color: var(--color-blue-500);\n  }\n\n  .bg-blue-500\\/10 {\n    background-color: #3080ff1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-500\\/10 {\n      background-color: color-mix(in oklab, var(--color-blue-500) 10%, transparent);\n    }\n  }\n\n  .bg-blue-500\\/50 {\n    background-color: #3080ff80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-500\\/50 {\n      background-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent);\n    }\n  }\n\n  .bg-blue-600 {\n    background-color: var(--color-blue-600);\n  }\n\n  .bg-blue-600\\/20 {\n    background-color: #155dfc33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-blue-600) 20%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/10 {\n    background-color: #1c398e1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/10 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 10%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/20 {\n    background-color: #1c398e33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/30 {\n    background-color: #1c398e4d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 30%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/40 {\n    background-color: #1c398e66;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/40 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 40%, transparent);\n    }\n  }\n\n  .bg-blue-950\\/30 {\n    background-color: #1624564d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-blue-950) 30%, transparent);\n    }\n  }\n\n  .bg-blue-950\\/90 {\n    background-color: #162456e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-blue-950) 90%, transparent);\n    }\n  }\n\n  .bg-border {\n    background-color: var(--border);\n  }\n\n  .bg-card {\n    background-color: var(--card);\n  }\n\n  .bg-destructive {\n    background-color: var(--destructive);\n  }\n\n  .bg-foreground {\n    background-color: var(--foreground);\n  }\n\n  .bg-gray-100 {\n    background-color: var(--color-gray-100);\n  }\n\n  .bg-gray-400 {\n    background-color: var(--color-gray-400);\n  }\n\n  .bg-gray-600 {\n    background-color: var(--color-gray-600);\n  }\n\n  .bg-gray-700 {\n    background-color: var(--color-gray-700);\n  }\n\n  .bg-gray-700\\/30 {\n    background-color: #3641534d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-700\\/30 {\n      background-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n    }\n  }\n\n  .bg-gray-700\\/50 {\n    background-color: #36415380;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-700\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n    }\n  }\n\n  .bg-gray-800 {\n    background-color: var(--color-gray-800);\n  }\n\n  .bg-gray-800\\/15 {\n    background-color: #1e293926;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/15 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 15%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/30 {\n    background-color: #1e29394d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/30 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 30%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/40 {\n    background-color: #1e293966;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/40 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 40%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/50 {\n    background-color: #1e293980;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/60 {\n    background-color: #1e293999;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/60 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/80 {\n    background-color: #1e2939cc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/80 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 80%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/90 {\n    background-color: #1e2939e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/90 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 90%, transparent);\n    }\n  }\n\n  .bg-gray-900 {\n    background-color: var(--color-gray-900);\n  }\n\n  .bg-gray-900\\/50 {\n    background-color: #10182880;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 50%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/80 {\n    background-color: #101828cc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/80 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 80%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/90 {\n    background-color: #101828e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/90 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 90%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/95 {\n    background-color: #101828f2;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/95 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 95%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/98 {\n    background-color: #101828fa;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/98 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 98%, transparent);\n    }\n  }\n\n  .bg-gray-950 {\n    background-color: var(--color-gray-950);\n  }\n\n  .bg-green-100 {\n    background-color: var(--color-green-100);\n  }\n\n  .bg-green-200\\/20 {\n    background-color: #b9f8cf33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-200\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-200) 20%, transparent);\n    }\n  }\n\n  .bg-green-400 {\n    background-color: var(--color-green-400);\n  }\n\n  .bg-green-400\\/20 {\n    background-color: #05df7233;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-400\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-400) 20%, transparent);\n    }\n  }\n\n  .bg-green-500\\/10 {\n    background-color: #00c7581a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-500\\/10 {\n      background-color: color-mix(in oklab, var(--color-green-500) 10%, transparent);\n    }\n  }\n\n  .bg-green-500\\/15 {\n    background-color: #00c75826;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-500\\/15 {\n      background-color: color-mix(in oklab, var(--color-green-500) 15%, transparent);\n    }\n  }\n\n  .bg-green-600 {\n    background-color: var(--color-green-600);\n  }\n\n  .bg-green-600\\/10 {\n    background-color: #00a5441a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-green-600) 10%, transparent);\n    }\n  }\n\n  .bg-green-600\\/20 {\n    background-color: #00a54433;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-600) 20%, transparent);\n    }\n  }\n\n  .bg-green-900\\/20 {\n    background-color: #0d542b33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-900) 20%, transparent);\n    }\n  }\n\n  .bg-green-900\\/30 {\n    background-color: #0d542b4d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-green-900) 30%, transparent);\n    }\n  }\n\n  .bg-green-950\\/30 {\n    background-color: #032e154d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-green-950) 30%, transparent);\n    }\n  }\n\n  .bg-green-950\\/90 {\n    background-color: #032e15e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-green-950) 90%, transparent);\n    }\n  }\n\n  .bg-muted, .bg-muted\\/50 {\n    background-color: var(--muted);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-muted\\/50 {\n      background-color: color-mix(in oklab, var(--muted) 50%, transparent);\n    }\n  }\n\n  .bg-orange-500 {\n    background-color: var(--color-orange-500);\n  }\n\n  .bg-orange-600\\/10 {\n    background-color: #f051001a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-orange-600) 10%, transparent);\n    }\n  }\n\n  .bg-orange-600\\/20 {\n    background-color: #f0510033;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-orange-600) 20%, transparent);\n    }\n  }\n\n  .bg-orange-900\\/10 {\n    background-color: #7e2a0c1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-900\\/10 {\n      background-color: color-mix(in oklab, var(--color-orange-900) 10%, transparent);\n    }\n  }\n\n  .bg-orange-900\\/20 {\n    background-color: #7e2a0c33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-orange-900) 20%, transparent);\n    }\n  }\n\n  .bg-popover {\n    background-color: var(--popover);\n  }\n\n  .bg-primary, .bg-primary\\/20 {\n    background-color: var(--primary);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-primary\\/20 {\n      background-color: color-mix(in oklab, var(--primary) 20%, transparent);\n    }\n  }\n\n  .bg-purple-500\\/8 {\n    background-color: #ac4bff14;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-purple-500\\/8 {\n      background-color: color-mix(in oklab, var(--color-purple-500) 8%, transparent);\n    }\n  }\n\n  .bg-purple-500\\/20 {\n    background-color: #ac4bff33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-purple-500\\/20 {\n      background-color: color-mix(in oklab, var(--color-purple-500) 20%, transparent);\n    }\n  }\n\n  .bg-purple-600 {\n    background-color: var(--color-purple-600);\n  }\n\n  .bg-red-100 {\n    background-color: var(--color-red-100);\n  }\n\n  .bg-red-400 {\n    background-color: var(--color-red-400);\n  }\n\n  .bg-red-500 {\n    background-color: var(--color-red-500);\n  }\n\n  .bg-red-600 {\n    background-color: var(--color-red-600);\n  }\n\n  .bg-red-600\\/20 {\n    background-color: #e4001433;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-red-600) 20%, transparent);\n    }\n  }\n\n  .bg-red-900\\/20 {\n    background-color: #82181a33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-red-900) 20%, transparent);\n    }\n  }\n\n  .bg-red-950\\/30 {\n    background-color: #4608094d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-red-950) 30%, transparent);\n    }\n  }\n\n  .bg-red-950\\/90 {\n    background-color: #460809e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-red-950) 90%, transparent);\n    }\n  }\n\n  .bg-secondary {\n    background-color: var(--secondary);\n  }\n\n  .bg-sidebar {\n    background-color: var(--sidebar);\n  }\n\n  .bg-sidebar-border {\n    background-color: var(--sidebar-border);\n  }\n\n  .bg-transparent {\n    background-color: #0000;\n  }\n\n  .bg-white\\/80 {\n    background-color: #fffc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-white\\/80 {\n      background-color: color-mix(in oklab, var(--color-white) 80%, transparent);\n    }\n  }\n\n  .bg-yellow-400 {\n    background-color: var(--color-yellow-400);\n  }\n\n  .bg-yellow-500 {\n    background-color: var(--color-yellow-500);\n  }\n\n  .bg-yellow-600\\/10 {\n    background-color: #cd89001a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-yellow-600) 10%, transparent);\n    }\n  }\n\n  .bg-yellow-600\\/20 {\n    background-color: #cd890033;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-yellow-600) 20%, transparent);\n    }\n  }\n\n  .bg-yellow-950\\/30 {\n    background-color: #4320044d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-yellow-950) 30%, transparent);\n    }\n  }\n\n  .bg-gradient-to-br {\n    --tw-gradient-position: to bottom right in oklab;\n    background-image: linear-gradient(var(--tw-gradient-stops));\n  }\n\n  .from-purple-500\\/28 {\n    --tw-gradient-from: #ac4bff47;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .from-purple-500\\/28 {\n      --tw-gradient-from: color-mix(in oklab, var(--color-purple-500) 28%, transparent);\n    }\n  }\n\n  .from-purple-500\\/28 {\n    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));\n  }\n\n  .via-purple-600\\/22 {\n    --tw-gradient-via: #9810fa38;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .via-purple-600\\/22 {\n      --tw-gradient-via: color-mix(in oklab, var(--color-purple-600) 22%, transparent);\n    }\n  }\n\n  .via-purple-600\\/22 {\n    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);\n    --tw-gradient-stops: var(--tw-gradient-via-stops);\n  }\n\n  .to-purple-700\\/25 {\n    --tw-gradient-to: #8200da40;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .to-purple-700\\/25 {\n      --tw-gradient-to: color-mix(in oklab, var(--color-purple-700) 25%, transparent);\n    }\n  }\n\n  .to-purple-700\\/25 {\n    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));\n  }\n\n  .fill-current {\n    fill: currentColor;\n  }\n\n  .fill-primary {\n    fill: var(--primary);\n  }\n\n  .object-contain {\n    object-fit: contain;\n  }\n\n  .object-cover {\n    object-fit: cover;\n  }\n\n  .p-0 {\n    padding: calc(var(--spacing) * 0);\n  }\n\n  .p-0\\.5 {\n    padding: calc(var(--spacing) * .5);\n  }\n\n  .p-1 {\n    padding: calc(var(--spacing) * 1);\n  }\n\n  .p-1\\.5 {\n    padding: calc(var(--spacing) * 1.5);\n  }\n\n  .p-2 {\n    padding: calc(var(--spacing) * 2);\n  }\n\n  .p-2\\.5 {\n    padding: calc(var(--spacing) * 2.5);\n  }\n\n  .p-3 {\n    padding: calc(var(--spacing) * 3);\n  }\n\n  .p-4 {\n    padding: calc(var(--spacing) * 4);\n  }\n\n  .p-6 {\n    padding: calc(var(--spacing) * 6);\n  }\n\n  .p-8 {\n    padding: calc(var(--spacing) * 8);\n  }\n\n  .p-12 {\n    padding: calc(var(--spacing) * 12);\n  }\n\n  .p-\\[3px\\] {\n    padding: 3px;\n  }\n\n  .p-px {\n    padding: 1px;\n  }\n\n  .px-\\(--cell-size\\) {\n    padding-inline: var(--cell-size);\n  }\n\n  .px-1 {\n    padding-inline: calc(var(--spacing) * 1);\n  }\n\n  .px-1\\.5 {\n    padding-inline: calc(var(--spacing) * 1.5);\n  }\n\n  .px-2 {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .px-2\\.5 {\n    padding-inline: calc(var(--spacing) * 2.5);\n  }\n\n  .px-3 {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n\n  .px-4 {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n\n  .px-5 {\n    padding-inline: calc(var(--spacing) * 5);\n  }\n\n  .px-6 {\n    padding-inline: calc(var(--spacing) * 6);\n  }\n\n  .px-8 {\n    padding-inline: calc(var(--spacing) * 8);\n  }\n\n  .py-0\\.5 {\n    padding-block: calc(var(--spacing) * .5);\n  }\n\n  .py-1 {\n    padding-block: calc(var(--spacing) * 1);\n  }\n\n  .py-1\\.5 {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n\n  .py-2 {\n    padding-block: calc(var(--spacing) * 2);\n  }\n\n  .py-2\\.5 {\n    padding-block: calc(var(--spacing) * 2.5);\n  }\n\n  .py-3 {\n    padding-block: calc(var(--spacing) * 3);\n  }\n\n  .py-4 {\n    padding-block: calc(var(--spacing) * 4);\n  }\n\n  .py-6 {\n    padding-block: calc(var(--spacing) * 6);\n  }\n\n  .pt-0 {\n    padding-top: calc(var(--spacing) * 0);\n  }\n\n  .pt-1 {\n    padding-top: calc(var(--spacing) * 1);\n  }\n\n  .pt-2 {\n    padding-top: calc(var(--spacing) * 2);\n  }\n\n  .pt-3 {\n    padding-top: calc(var(--spacing) * 3);\n  }\n\n  .pt-4 {\n    padding-top: calc(var(--spacing) * 4);\n  }\n\n  .pr-1 {\n    padding-right: calc(var(--spacing) * 1);\n  }\n\n  .pr-2 {\n    padding-right: calc(var(--spacing) * 2);\n  }\n\n  .pr-2\\.5 {\n    padding-right: calc(var(--spacing) * 2.5);\n  }\n\n  .pr-3 {\n    padding-right: calc(var(--spacing) * 3);\n  }\n\n  .pr-8 {\n    padding-right: calc(var(--spacing) * 8);\n  }\n\n  .pb-1 {\n    padding-bottom: calc(var(--spacing) * 1);\n  }\n\n  .pb-2 {\n    padding-bottom: calc(var(--spacing) * 2);\n  }\n\n  .pb-3 {\n    padding-bottom: calc(var(--spacing) * 3);\n  }\n\n  .pb-4 {\n    padding-bottom: calc(var(--spacing) * 4);\n  }\n\n  .pl-2 {\n    padding-left: calc(var(--spacing) * 2);\n  }\n\n  .pl-3 {\n    padding-left: calc(var(--spacing) * 3);\n  }\n\n  .pl-4 {\n    padding-left: calc(var(--spacing) * 4);\n  }\n\n  .pl-6 {\n    padding-left: calc(var(--spacing) * 6);\n  }\n\n  .pl-8 {\n    padding-left: calc(var(--spacing) * 8);\n  }\n\n  .pl-\\[252px\\] {\n    padding-left: 252px;\n  }\n\n  .text-center {\n    text-align: center;\n  }\n\n  .text-left {\n    text-align: left;\n  }\n\n  .text-right {\n    text-align: right;\n  }\n\n  .align-middle {\n    vertical-align: middle;\n  }\n\n  .font-mono {\n    font-family: var(--font-mono);\n  }\n\n  .text-2xl {\n    font-size: var(--text-2xl);\n    line-height: var(--tw-leading, var(--text-2xl--line-height));\n  }\n\n  .text-base {\n    font-size: var(--text-base);\n    line-height: var(--tw-leading, var(--text-base--line-height));\n  }\n\n  .text-lg {\n    font-size: var(--text-lg);\n    line-height: var(--tw-leading, var(--text-lg--line-height));\n  }\n\n  .text-sm {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n\n  .text-xl {\n    font-size: var(--text-xl);\n    line-height: var(--tw-leading, var(--text-xl--line-height));\n  }\n\n  .text-xs {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .text-\\[0\\.8rem\\] {\n    font-size: .8rem;\n  }\n\n  .leading-none {\n    --tw-leading: 1;\n    line-height: 1;\n  }\n\n  .leading-tight {\n    --tw-leading: var(--leading-tight);\n    line-height: var(--leading-tight);\n  }\n\n  .font-bold {\n    --tw-font-weight: var(--font-weight-bold);\n    font-weight: var(--font-weight-bold);\n  }\n\n  .font-medium {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .font-normal {\n    --tw-font-weight: var(--font-weight-normal);\n    font-weight: var(--font-weight-normal);\n  }\n\n  .font-semibold {\n    --tw-font-weight: var(--font-weight-semibold);\n    font-weight: var(--font-weight-semibold);\n  }\n\n  .tracking-tight {\n    --tw-tracking: var(--tracking-tight);\n    letter-spacing: var(--tracking-tight);\n  }\n\n  .tracking-widest {\n    --tw-tracking: var(--tracking-widest);\n    letter-spacing: var(--tracking-widest);\n  }\n\n  .text-balance {\n    text-wrap: balance;\n  }\n\n  .break-words {\n    overflow-wrap: break-word;\n  }\n\n  .break-all {\n    word-break: break-all;\n  }\n\n  .whitespace-nowrap {\n    white-space: nowrap;\n  }\n\n  .whitespace-pre-wrap {\n    white-space: pre-wrap;\n  }\n\n  .text-accent-foreground {\n    color: var(--accent-foreground);\n  }\n\n  .text-amber-300 {\n    color: var(--color-amber-300);\n  }\n\n  .text-amber-400 {\n    color: var(--color-amber-400);\n  }\n\n  .text-amber-500 {\n    color: var(--color-amber-500);\n  }\n\n  .text-amber-800 {\n    color: var(--color-amber-800);\n  }\n\n  .text-blue-200 {\n    color: var(--color-blue-200);\n  }\n\n  .text-blue-300 {\n    color: var(--color-blue-300);\n  }\n\n  .text-blue-400 {\n    color: var(--color-blue-400);\n  }\n\n  .text-blue-500 {\n    color: var(--color-blue-500);\n  }\n\n  .text-blue-800 {\n    color: var(--color-blue-800);\n  }\n\n  .text-card-foreground {\n    color: var(--card-foreground);\n  }\n\n  .text-current {\n    color: currentColor;\n  }\n\n  .text-cyan-500 {\n    color: var(--color-cyan-500);\n  }\n\n  .text-destructive {\n    color: var(--destructive);\n  }\n\n  .text-foreground {\n    color: var(--foreground);\n  }\n\n  .text-gray-200 {\n    color: var(--color-gray-200);\n  }\n\n  .text-gray-300 {\n    color: var(--color-gray-300);\n  }\n\n  .text-gray-400 {\n    color: var(--color-gray-400);\n  }\n\n  .text-gray-500 {\n    color: var(--color-gray-500);\n  }\n\n  .text-gray-600 {\n    color: var(--color-gray-600);\n  }\n\n  .text-gray-800 {\n    color: var(--color-gray-800);\n  }\n\n  .text-green-200 {\n    color: var(--color-green-200);\n  }\n\n  .text-green-300 {\n    color: var(--color-green-300);\n  }\n\n  .text-green-400 {\n    color: var(--color-green-400);\n  }\n\n  .text-green-400\\/70 {\n    color: #05df72b3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-green-400\\/70 {\n      color: color-mix(in oklab, var(--color-green-400) 70%, transparent);\n    }\n  }\n\n  .text-green-500 {\n    color: var(--color-green-500);\n  }\n\n  .text-green-800 {\n    color: var(--color-green-800);\n  }\n\n  .text-indigo-500 {\n    color: var(--color-indigo-500);\n  }\n\n  .text-muted-foreground {\n    color: var(--muted-foreground);\n  }\n\n  .text-orange-200 {\n    color: var(--color-orange-200);\n  }\n\n  .text-orange-300 {\n    color: var(--color-orange-300);\n  }\n\n  .text-orange-300\\/70 {\n    color: #ffb96db3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-orange-300\\/70 {\n      color: color-mix(in oklab, var(--color-orange-300) 70%, transparent);\n    }\n  }\n\n  .text-orange-400 {\n    color: var(--color-orange-400);\n  }\n\n  .text-orange-500 {\n    color: var(--color-orange-500);\n  }\n\n  .text-pink-500 {\n    color: var(--color-pink-500);\n  }\n\n  .text-popover-foreground {\n    color: var(--popover-foreground);\n  }\n\n  .text-primary {\n    color: var(--primary);\n  }\n\n  .text-primary-foreground {\n    color: var(--primary-foreground);\n  }\n\n  .text-purple-400 {\n    color: var(--color-purple-400);\n  }\n\n  .text-purple-400\\/70 {\n    color: #c07effb3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-purple-400\\/70 {\n      color: color-mix(in oklab, var(--color-purple-400) 70%, transparent);\n    }\n  }\n\n  .text-purple-500 {\n    color: var(--color-purple-500);\n  }\n\n  .text-red-200 {\n    color: var(--color-red-200);\n  }\n\n  .text-red-300 {\n    color: var(--color-red-300);\n  }\n\n  .text-red-400 {\n    color: var(--color-red-400);\n  }\n\n  .text-red-400\\/70 {\n    color: #ff6568b3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-red-400\\/70 {\n      color: color-mix(in oklab, var(--color-red-400) 70%, transparent);\n    }\n  }\n\n  .text-red-500 {\n    color: var(--color-red-500);\n  }\n\n  .text-red-800 {\n    color: var(--color-red-800);\n  }\n\n  .text-secondary-foreground {\n    color: var(--secondary-foreground);\n  }\n\n  .text-sidebar-foreground, .text-sidebar-foreground\\/70 {\n    color: var(--sidebar-foreground);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-sidebar-foreground\\/70 {\n      color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);\n    }\n  }\n\n  .text-white {\n    color: var(--color-white);\n  }\n\n  .text-yellow-200 {\n    color: var(--color-yellow-200);\n  }\n\n  .text-yellow-300 {\n    color: var(--color-yellow-300);\n  }\n\n  .text-yellow-400 {\n    color: var(--color-yellow-400);\n  }\n\n  .text-yellow-500 {\n    color: var(--color-yellow-500);\n  }\n\n  .capitalize {\n    text-transform: capitalize;\n  }\n\n  .italic {\n    font-style: italic;\n  }\n\n  .tabular-nums {\n    --tw-numeric-spacing: tabular-nums;\n    font-variant-numeric: var(--tw-ordinal, ) var(--tw-slashed-zero, ) var(--tw-numeric-figure, ) var(--tw-numeric-spacing, ) var(--tw-numeric-fraction, );\n  }\n\n  .underline-offset-4 {\n    text-underline-offset: 4px;\n  }\n\n  .placeholder-gray-400::placeholder {\n    color: var(--color-gray-400);\n  }\n\n  .placeholder-gray-600::placeholder {\n    color: var(--color-gray-600);\n  }\n\n  .opacity-0 {\n    opacity: 0;\n  }\n\n  .opacity-40 {\n    opacity: .4;\n  }\n\n  .opacity-50 {\n    opacity: .5;\n  }\n\n  .opacity-70 {\n    opacity: .7;\n  }\n\n  .shadow {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-\\[0_0_0_1px_hsl\\(var\\(--sidebar-border\\)\\)\\] {\n    --tw-shadow: 0 0 0 1px var(--tw-shadow-color, hsl(var(--sidebar-border)));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-lg {\n    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, #0000001a), 0 4px 6px -4px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-md {\n    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, #0000001a), 0 2px 4px -2px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-none {\n    --tw-shadow: 0 0 #0000;\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-sm {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-xl {\n    --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, #0000001a), 0 8px 10px -6px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-xs {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, #0000000d);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring-0 {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring-1 {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-black\\/15 {\n    --tw-shadow-color: #00000026;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-black\\/15 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 15%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .shadow-black\\/20 {\n    --tw-shadow-color: #0003;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-black\\/20 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 20%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .shadow-green-500\\/20 {\n    --tw-shadow-color: #00c75833;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-green-500\\/20 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-green-500) 20%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .ring-gray-500 {\n    --tw-ring-color: var(--color-gray-500);\n  }\n\n  .ring-ring\\/50 {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .ring-ring\\/50 {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .ring-sidebar-ring {\n    --tw-ring-color: var(--sidebar-ring);\n  }\n\n  .ring-offset-background {\n    --tw-ring-offset-color: var(--background);\n  }\n\n  .outline-hidden {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .outline-hidden {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .outline {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n\n  .filter {\n    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );\n  }\n\n  .backdrop-blur-sm {\n    --tw-backdrop-blur: blur(var(--blur-sm));\n    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n  }\n\n  .backdrop-blur-xl {\n    --tw-backdrop-blur: blur(var(--blur-xl));\n    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n  }\n\n  .transition {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, visibility, content-visibility, overlay, pointer-events;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[color\\,box-shadow\\] {\n    transition-property: color, box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[left\\,right\\,width\\] {\n    transition-property: left, right, width;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[margin\\,opacity\\] {\n    transition-property: margin, opacity;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[width\\,height\\,padding\\] {\n    transition-property: width, height, padding;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[width\\] {\n    transition-property: width;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-all {\n    transition-property: all;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-colors {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-opacity {\n    transition-property: opacity;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-shadow {\n    transition-property: box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-transform {\n    transition-property: transform, translate, scale, rotate;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-none {\n    transition-property: none;\n  }\n\n  .duration-150 {\n    --tw-duration: .15s;\n    transition-duration: .15s;\n  }\n\n  .duration-200 {\n    --tw-duration: .2s;\n    transition-duration: .2s;\n  }\n\n  .duration-300 {\n    --tw-duration: .3s;\n    transition-duration: .3s;\n  }\n\n  .duration-1000 {\n    --tw-duration: 1s;\n    transition-duration: 1s;\n  }\n\n  .ease-in-out {\n    --tw-ease: var(--ease-in-out);\n    transition-timing-function: var(--ease-in-out);\n  }\n\n  .ease-linear {\n    --tw-ease: linear;\n    transition-timing-function: linear;\n  }\n\n  .ease-out {\n    --tw-ease: var(--ease-out);\n    transition-timing-function: var(--ease-out);\n  }\n\n  .fade-in-0 {\n    --tw-enter-opacity: 0;\n  }\n\n  .outline-none {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  .select-none {\n    -webkit-user-select: none;\n    user-select: none;\n  }\n\n  .zoom-in-95 {\n    --tw-enter-scale: .95;\n  }\n\n  .\\[--cell-size\\:--spacing\\(8\\)\\] {\n    --cell-size: calc(var(--spacing) * 8);\n  }\n\n  .running {\n    animation-play-state: running;\n  }\n\n  .group-focus-within\\/menu-item\\:opacity-100:is(:where(.group\\/menu-item):focus-within *) {\n    opacity: 1;\n  }\n\n  @media (hover: hover) {\n    .group-hover\\:scale-110:is(:where(.group):hover *) {\n      --tw-scale-x: 110%;\n      --tw-scale-y: 110%;\n      --tw-scale-z: 110%;\n      scale: var(--tw-scale-x) var(--tw-scale-y);\n    }\n\n    .group-hover\\:text-gray-400:is(:where(.group):hover *) {\n      color: var(--color-gray-400);\n    }\n\n    .group-hover\\:opacity-25:is(:where(.group):hover *) {\n      opacity: .25;\n    }\n\n    .group-hover\\:opacity-100:is(:where(.group):hover *), .group-hover\\/menu-item\\:opacity-100:is(:where(.group\\/menu-item):hover *) {\n      opacity: 1;\n    }\n  }\n\n  .group-has-data-\\[sidebar\\=menu-action\\]\\/menu-item\\:pr-8:is(:where(.group\\/menu-item):has([data-sidebar="menu-action"]) *) {\n    padding-right: calc(var(--spacing) * 8);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:-mt-8:is(:where(.group)[data-collapsible="icon"] *) {\n    margin-top: calc(var(--spacing) * -8);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:hidden:is(:where(.group)[data-collapsible="icon"] *) {\n    display: none;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:size-8\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--spacing) * 8) !important;\n    height: calc(var(--spacing) * 8) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\(--sidebar-width-icon\\):is(:where(.group)[data-collapsible="icon"] *) {\n    width: var(--sidebar-width-icon);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\[calc\\(var\\(--sidebar-width-icon\\)\\+\\(--spacing\\(4\\)\\)\\)\\]:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--sidebar-width-icon)  + (calc(var(--spacing) * 4)));\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\[calc\\(var\\(--sidebar-width-icon\\)\\+\\(--spacing\\(4\\)\\)\\+2px\\)\\]:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--sidebar-width-icon)  + (calc(var(--spacing) * 4))  + 2px);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:overflow-hidden:is(:where(.group)[data-collapsible="icon"] *) {\n    overflow: hidden;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:p-0\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    padding: calc(var(--spacing) * 0) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:p-2\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    padding: calc(var(--spacing) * 2) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:opacity-0:is(:where(.group)[data-collapsible="icon"] *) {\n    opacity: 0;\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:right-\\[calc\\(var\\(--sidebar-width\\)\\*-1\\)\\]:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    right: calc(var(--sidebar-width) * -1);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:left-\\[calc\\(var\\(--sidebar-width\\)\\*-1\\)\\]:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    left: calc(var(--sidebar-width) * -1);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:w-0:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    width: calc(var(--spacing) * 0);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:translate-x-0:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .group-data-\\[disabled\\=true\\]\\:pointer-events-none:is(:where(.group)[data-disabled="true"] *) {\n    pointer-events: none;\n  }\n\n  .group-data-\\[disabled\\=true\\]\\:opacity-50:is(:where(.group)[data-disabled="true"] *) {\n    opacity: .5;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:relative:is(:where(.group\\/day)[data-focused="true"] *) {\n    position: relative;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:z-10:is(:where(.group\\/day)[data-focused="true"] *) {\n    z-index: 10;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:border-ring:is(:where(.group\\/day)[data-focused="true"] *) {\n    border-color: var(--ring);\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:ring-\\[3px\\]:is(:where(.group\\/day)[data-focused="true"] *) {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:ring-ring\\/50:is(:where(.group\\/day)[data-focused="true"] *) {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .group-data-\\[focused\\=true\\]\\/day\\:ring-ring\\/50:is(:where(.group\\/day)[data-focused="true"] *) {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .group-data-\\[side\\=left\\]\\:-right-4:is(:where(.group)[data-side="left"] *) {\n    right: calc(var(--spacing) * -4);\n  }\n\n  .group-data-\\[side\\=left\\]\\:border-r:is(:where(.group)[data-side="left"] *) {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .group-data-\\[side\\=right\\]\\:left-0:is(:where(.group)[data-side="right"] *) {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .group-data-\\[side\\=right\\]\\:rotate-180:is(:where(.group)[data-side="right"] *) {\n    rotate: 180deg;\n  }\n\n  .group-data-\\[side\\=right\\]\\:border-l:is(:where(.group)[data-side="right"] *) {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .group-data-\\[state\\=open\\]\\:rotate-180:is(:where(.group)[data-state="open"] *) {\n    rotate: 180deg;\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:rounded-lg:is(:where(.group)[data-variant="floating"] *) {\n    border-radius: var(--radius);\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:border:is(:where(.group)[data-variant="floating"] *) {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:border-sidebar-border:is(:where(.group)[data-variant="floating"] *) {\n    border-color: var(--sidebar-border);\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:shadow-sm:is(:where(.group)[data-variant="floating"] *) {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[vaul-drawer-direction\\=bottom\\]\\/drawer-content\\:block:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="bottom"] *) {\n    display: block;\n  }\n\n  .group-data-\\[vaul-drawer-direction\\=bottom\\]\\/drawer-content\\:text-center:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="bottom"] *), .group-data-\\[vaul-drawer-direction\\=top\\]\\/drawer-content\\:text-center:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="top"] *) {\n    text-align: center;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:top-full:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    top: 100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:mt-1\\.5:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    margin-top: calc(var(--spacing) * 1.5);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:overflow-hidden:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    overflow: hidden;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:rounded-md:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:border:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:bg-popover:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    background-color: var(--popover);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:text-popover-foreground:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    color: var(--popover-foreground);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:shadow:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:duration-200:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    --tw-duration: .2s;\n    transition-duration: .2s;\n  }\n\n  @media (hover: hover) {\n    .peer-hover\\/menu-button\\:text-sidebar-accent-foreground:is(:where(.peer\\/menu-button):hover ~ *) {\n      color: var(--sidebar-accent-foreground);\n    }\n  }\n\n  .peer-disabled\\:cursor-not-allowed:is(:where(.peer):disabled ~ *) {\n    cursor: not-allowed;\n  }\n\n  .peer-disabled\\:opacity-50:is(:where(.peer):disabled ~ *) {\n    opacity: .5;\n  }\n\n  .peer-data-\\[active\\=true\\]\\/menu-button\\:text-sidebar-accent-foreground:is(:where(.peer\\/menu-button)[data-active="true"] ~ *) {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .peer-data-\\[size\\=default\\]\\/menu-button\\:top-1\\.5:is(:where(.peer\\/menu-button)[data-size="default"] ~ *) {\n    top: calc(var(--spacing) * 1.5);\n  }\n\n  .peer-data-\\[size\\=lg\\]\\/menu-button\\:top-2\\.5:is(:where(.peer\\/menu-button)[data-size="lg"] ~ *) {\n    top: calc(var(--spacing) * 2.5);\n  }\n\n  .peer-data-\\[size\\=sm\\]\\/menu-button\\:top-1:is(:where(.peer\\/menu-button)[data-size="sm"] ~ *) {\n    top: calc(var(--spacing) * 1);\n  }\n\n  .selection\\:bg-primary ::selection {\n    background-color: var(--primary);\n  }\n\n  .selection\\:bg-primary::selection {\n    background-color: var(--primary);\n  }\n\n  .selection\\:text-primary-foreground ::selection {\n    color: var(--primary-foreground);\n  }\n\n  .selection\\:text-primary-foreground::selection {\n    color: var(--primary-foreground);\n  }\n\n  .file\\:inline-flex::file-selector-button {\n    display: inline-flex;\n  }\n\n  .file\\:h-7::file-selector-button {\n    height: calc(var(--spacing) * 7);\n  }\n\n  .file\\:border-0::file-selector-button {\n    border-style: var(--tw-border-style);\n    border-width: 0;\n  }\n\n  .file\\:bg-transparent::file-selector-button {\n    background-color: #0000;\n  }\n\n  .file\\:text-sm::file-selector-button {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n\n  .file\\:font-medium::file-selector-button {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .file\\:text-foreground::file-selector-button {\n    color: var(--foreground);\n  }\n\n  .placeholder\\:text-gray-500::placeholder {\n    color: var(--color-gray-500);\n  }\n\n  .placeholder\\:text-muted-foreground::placeholder {\n    color: var(--muted-foreground);\n  }\n\n  .after\\:absolute:after {\n    content: var(--tw-content);\n    position: absolute;\n  }\n\n  .after\\:-inset-2:after {\n    content: var(--tw-content);\n    inset: calc(var(--spacing) * -2);\n  }\n\n  .after\\:inset-y-0:after {\n    content: var(--tw-content);\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .after\\:left-1\\/2:after {\n    content: var(--tw-content);\n    left: 50%;\n  }\n\n  .after\\:w-1:after {\n    content: var(--tw-content);\n    width: calc(var(--spacing) * 1);\n  }\n\n  .after\\:w-\\[2px\\]:after {\n    content: var(--tw-content);\n    width: 2px;\n  }\n\n  .after\\:-translate-x-1\\/2:after {\n    content: var(--tw-content);\n    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:after\\:left-full:is(:where(.group)[data-collapsible="offcanvas"] *):after {\n    content: var(--tw-content);\n    left: 100%;\n  }\n\n  .first\\:rounded-l-md:first-child {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .first\\:border-l:first-child {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .last\\:rounded-r-md:last-child {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .last\\:border-b-0:last-child {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 0;\n  }\n\n  @media (hover: hover) {\n    .hover\\:border-blue-400:hover {\n      border-color: var(--color-blue-400);\n    }\n\n    .hover\\:border-blue-700:hover {\n      border-color: var(--color-blue-700);\n    }\n\n    .hover\\:border-gray-400:hover {\n      border-color: var(--color-gray-400);\n    }\n\n    .hover\\:border-gray-500:hover {\n      border-color: var(--color-gray-500);\n    }\n\n    .hover\\:border-green-400:hover {\n      border-color: var(--color-green-400);\n    }\n\n    .hover\\:border-orange-400:hover {\n      border-color: var(--color-orange-400);\n    }\n\n    .hover\\:border-red-400:hover {\n      border-color: var(--color-red-400);\n    }\n\n    .hover\\:border-red-500:hover {\n      border-color: var(--color-red-500);\n    }\n\n    .hover\\:border-yellow-400:hover {\n      border-color: var(--color-yellow-400);\n    }\n\n    .hover\\:bg-accent:hover {\n      background-color: var(--accent);\n    }\n\n    .hover\\:bg-blue-500:hover {\n      background-color: var(--color-blue-500);\n    }\n\n    .hover\\:bg-blue-600:hover {\n      background-color: var(--color-blue-600);\n    }\n\n    .hover\\:bg-blue-700:hover {\n      background-color: var(--color-blue-700);\n    }\n\n    .hover\\:bg-blue-800\\/30:hover {\n      background-color: #193cb84d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-800\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-blue-800) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-blue-900\\/20:hover {\n      background-color: #1c398e33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-blue-900\\/60:hover {\n      background-color: #1c398e99;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-900\\/60:hover {\n        background-color: color-mix(in oklab, var(--color-blue-900) 60%, transparent);\n      }\n    }\n\n    .hover\\:bg-destructive\\/90:hover {\n      background-color: var(--destructive);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-destructive\\/90:hover {\n        background-color: color-mix(in oklab, var(--destructive) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-500:hover {\n      background-color: var(--color-gray-500);\n    }\n\n    .hover\\:bg-gray-600:hover {\n      background-color: var(--color-gray-600);\n    }\n\n    .hover\\:bg-gray-700:hover {\n      background-color: var(--color-gray-700);\n    }\n\n    .hover\\:bg-gray-700\\/20:hover {\n      background-color: #36415333;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/30:hover {\n      background-color: #3641534d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/50:hover {\n      background-color: #36415380;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/90:hover {\n      background-color: #364153e6;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/90:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-800:hover {\n      background-color: var(--color-gray-800);\n    }\n\n    .hover\\:bg-gray-800\\/50:hover {\n      background-color: #1e293980;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-800\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-800\\/60:hover {\n      background-color: #1e293999;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-800\\/60:hover {\n        background-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-500\\/25:hover {\n      background-color: #00c75840;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-green-500\\/25:hover {\n        background-color: color-mix(in oklab, var(--color-green-500) 25%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-600\\/20:hover {\n      background-color: #00a54433;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-green-600\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-green-600) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-700:hover {\n      background-color: var(--color-green-700);\n    }\n\n    .hover\\:bg-muted:hover, .hover\\:bg-muted\\/50:hover {\n      background-color: var(--muted);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-muted\\/50:hover {\n        background-color: color-mix(in oklab, var(--muted) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-orange-600\\/30:hover {\n      background-color: #f051004d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-orange-600\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-orange-600) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-orange-900\\/20:hover {\n      background-color: #7e2a0c33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-orange-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-orange-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-primary\\/90:hover {\n      background-color: var(--primary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-primary\\/90:hover {\n        background-color: color-mix(in oklab, var(--primary) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-purple-500\\/12:hover {\n      background-color: #ac4bff1f;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-purple-500\\/12:hover {\n        background-color: color-mix(in oklab, var(--color-purple-500) 12%, transparent);\n      }\n    }\n\n    .hover\\:bg-purple-500\\/25:hover {\n      background-color: #ac4bff40;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-purple-500\\/25:hover {\n        background-color: color-mix(in oklab, var(--color-purple-500) 25%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-600:hover {\n      background-color: var(--color-red-600);\n    }\n\n    .hover\\:bg-red-800\\/30:hover {\n      background-color: #9f07124d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-800\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-red-800) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-900\\/15:hover {\n      background-color: #82181a26;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-900\\/15:hover {\n        background-color: color-mix(in oklab, var(--color-red-900) 15%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-900\\/20:hover {\n      background-color: #82181a33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-red-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-950\\/50:hover {\n      background-color: #46080980;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-950\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-red-950) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-secondary\\/80:hover {\n      background-color: var(--secondary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-secondary\\/80:hover {\n        background-color: color-mix(in oklab, var(--secondary) 80%, transparent);\n      }\n    }\n\n    .hover\\:bg-sidebar-accent:hover {\n      background-color: var(--sidebar-accent);\n    }\n\n    .hover\\:bg-yellow-600\\/30:hover {\n      background-color: #cd89004d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-yellow-600\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-yellow-600) 30%, transparent);\n      }\n    }\n\n    .hover\\:text-accent-foreground:hover {\n      color: var(--accent-foreground);\n    }\n\n    .hover\\:text-blue-300:hover {\n      color: var(--color-blue-300);\n    }\n\n    .hover\\:text-foreground:hover {\n      color: var(--foreground);\n    }\n\n    .hover\\:text-gray-200:hover {\n      color: var(--color-gray-200);\n    }\n\n    .hover\\:text-gray-300:hover {\n      color: var(--color-gray-300);\n    }\n\n    .hover\\:text-gray-400:hover {\n      color: var(--color-gray-400);\n    }\n\n    .hover\\:text-green-200:hover {\n      color: var(--color-green-200);\n    }\n\n    .hover\\:text-muted-foreground:hover {\n      color: var(--muted-foreground);\n    }\n\n    .hover\\:text-orange-200:hover {\n      color: var(--color-orange-200);\n    }\n\n    .hover\\:text-orange-300:hover {\n      color: var(--color-orange-300);\n    }\n\n    .hover\\:text-purple-300:hover {\n      color: var(--color-purple-300);\n    }\n\n    .hover\\:text-red-300:hover {\n      color: var(--color-red-300);\n    }\n\n    .hover\\:text-red-400:hover {\n      color: var(--color-red-400);\n    }\n\n    .hover\\:text-sidebar-accent-foreground:hover {\n      color: var(--sidebar-accent-foreground);\n    }\n\n    .hover\\:text-white:hover {\n      color: var(--color-white);\n    }\n\n    .hover\\:text-yellow-200:hover {\n      color: var(--color-yellow-200);\n    }\n\n    .hover\\:underline:hover {\n      text-decoration-line: underline;\n    }\n\n    .hover\\:opacity-100:hover {\n      opacity: 1;\n    }\n\n    .hover\\:shadow-\\[0_0_0_1px_hsl\\(var\\(--sidebar-accent\\)\\)\\]:hover {\n      --tw-shadow: 0 0 0 1px var(--tw-shadow-color, hsl(var(--sidebar-accent)));\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .hover\\:ring-4:hover {\n      --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .hover\\:group-data-\\[collapsible\\=offcanvas\\]\\:bg-sidebar:hover:is(:where(.group)[data-collapsible="offcanvas"] *) {\n      background-color: var(--sidebar);\n    }\n\n    .hover\\:after\\:bg-sidebar-border:hover:after {\n      content: var(--tw-content);\n      background-color: var(--sidebar-border);\n    }\n  }\n\n  .focus\\:z-10:focus {\n    z-index: 10;\n  }\n\n  .focus\\:bg-accent:focus {\n    background-color: var(--accent);\n  }\n\n  .focus\\:text-accent-foreground:focus {\n    color: var(--accent-foreground);\n  }\n\n  .focus\\:ring-2:focus {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus\\:ring-blue-500\\/60:focus {\n    --tw-ring-color: #3080ff99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus\\:ring-blue-500\\/60:focus {\n      --tw-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent);\n    }\n  }\n\n  .focus\\:ring-ring:focus {\n    --tw-ring-color: var(--ring);\n  }\n\n  .focus\\:ring-offset-2:focus {\n    --tw-ring-offset-width: 2px;\n    --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n  }\n\n  .focus\\:outline-hidden:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .focus\\:outline-hidden:focus {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .focus\\:outline-none:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  .focus-visible\\:z-10:focus-visible {\n    z-index: 10;\n  }\n\n  .focus-visible\\:border-ring:focus-visible {\n    border-color: var(--ring);\n  }\n\n  .focus-visible\\:ring-1:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-2:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-4:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-\\[3px\\]:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-destructive\\/20:focus-visible {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus-visible\\:ring-destructive\\/20:focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .focus-visible\\:ring-ring:focus-visible, .focus-visible\\:ring-ring\\/50:focus-visible {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus-visible\\:ring-ring\\/50:focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .focus-visible\\:ring-offset-1:focus-visible {\n    --tw-ring-offset-width: 1px;\n    --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n  }\n\n  .focus-visible\\:outline-hidden:focus-visible {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .focus-visible\\:outline-hidden:focus-visible {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .focus-visible\\:outline-1:focus-visible {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n\n  .focus-visible\\:outline-ring:focus-visible {\n    outline-color: var(--ring);\n  }\n\n  .active\\:cursor-grabbing:active {\n    cursor: grabbing;\n  }\n\n  .active\\:bg-sidebar-accent:active {\n    background-color: var(--sidebar-accent);\n  }\n\n  .active\\:text-sidebar-accent-foreground:active {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .disabled\\:pointer-events-none:disabled {\n    pointer-events: none;\n  }\n\n  .disabled\\:cursor-not-allowed:disabled {\n    cursor: not-allowed;\n  }\n\n  .disabled\\:bg-gray-600:disabled {\n    background-color: var(--color-gray-600);\n  }\n\n  .disabled\\:opacity-40:disabled {\n    opacity: .4;\n  }\n\n  .disabled\\:opacity-50:disabled {\n    opacity: .5;\n  }\n\n  :where([data-side="left"]) .in-data-\\[side\\=left\\]\\:cursor-w-resize {\n    cursor: w-resize;\n  }\n\n  :where([data-side="right"]) .in-data-\\[side\\=right\\]\\:cursor-e-resize {\n    cursor: e-resize;\n  }\n\n  .has-focus\\:border-ring:has(:focus) {\n    border-color: var(--ring);\n  }\n\n  .has-focus\\:ring-\\[3px\\]:has(:focus) {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .has-focus\\:ring-ring\\/50:has(:focus) {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .has-focus\\:ring-ring\\/50:has(:focus) {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .has-disabled\\:opacity-50:has(:disabled) {\n    opacity: .5;\n  }\n\n  .has-data-\\[slot\\=card-action\\]\\:grid-cols-\\[1fr_auto\\]:has([data-slot="card-action"]) {\n    grid-template-columns: 1fr auto;\n  }\n\n  .has-data-\\[variant\\=inset\\]\\:bg-sidebar:has([data-variant="inset"]) {\n    background-color: var(--sidebar);\n  }\n\n  .has-\\[\\>svg\\]\\:grid-cols-\\[calc\\(var\\(--spacing\\)\\*4\\)_1fr\\]:has( > svg) {\n    grid-template-columns: calc(var(--spacing) * 4) 1fr;\n  }\n\n  .has-\\[\\>svg\\]\\:gap-x-3:has( > svg) {\n    column-gap: calc(var(--spacing) * 3);\n  }\n\n  .has-\\[\\>svg\\]\\:px-2\\.5:has( > svg) {\n    padding-inline: calc(var(--spacing) * 2.5);\n  }\n\n  .has-\\[\\>svg\\]\\:px-3:has( > svg) {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n\n  .has-\\[\\>svg\\]\\:px-4:has( > svg) {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n\n  .aria-disabled\\:pointer-events-none[aria-disabled="true"] {\n    pointer-events: none;\n  }\n\n  .aria-disabled\\:opacity-50[aria-disabled="true"] {\n    opacity: .5;\n  }\n\n  .aria-invalid\\:border-destructive[aria-invalid="true"] {\n    border-color: var(--destructive);\n  }\n\n  .aria-invalid\\:ring-destructive\\/20[aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .aria-invalid\\:ring-destructive\\/20[aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .aria-selected\\:text-muted-foreground[aria-selected="true"] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:z-10[data-active="true"] {\n    z-index: 10;\n  }\n\n  .data-\\[active\\=true\\]\\:border-ring[data-active="true"] {\n    border-color: var(--ring);\n  }\n\n  .data-\\[active\\=true\\]\\:bg-accent\\/50[data-active="true"] {\n    background-color: var(--accent);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:bg-accent\\/50[data-active="true"] {\n      background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n    }\n  }\n\n  .data-\\[active\\=true\\]\\:bg-sidebar-accent[data-active="true"] {\n    background-color: var(--sidebar-accent);\n  }\n\n  .data-\\[active\\=true\\]\\:font-medium[data-active="true"] {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .data-\\[active\\=true\\]\\:text-accent-foreground[data-active="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:text-sidebar-accent-foreground[data-active="true"] {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:ring-\\[3px\\][data-active="true"] {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[active\\=true\\]\\:ring-ring\\/50[data-active="true"] {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:ring-ring\\/50[data-active="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  @media (hover: hover) {\n    .data-\\[active\\=true\\]\\:hover\\:bg-accent[data-active="true"]:hover {\n      background-color: var(--accent);\n    }\n  }\n\n  .data-\\[active\\=true\\]\\:focus\\:bg-accent[data-active="true"]:focus {\n    background-color: var(--accent);\n  }\n\n  .data-\\[active\\=true\\]\\:aria-invalid\\:border-destructive[data-active="true"][aria-invalid="true"] {\n    border-color: var(--destructive);\n  }\n\n  .data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/20[data-active="true"][aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/20[data-active="true"][aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .data-\\[disabled\\]\\:pointer-events-none[data-disabled] {\n    pointer-events: none;\n  }\n\n  .data-\\[disabled\\]\\:opacity-50[data-disabled] {\n    opacity: .5;\n  }\n\n  .data-\\[disabled\\=true\\]\\:pointer-events-none[data-disabled="true"] {\n    pointer-events: none;\n  }\n\n  .data-\\[disabled\\=true\\]\\:opacity-50[data-disabled="true"] {\n    opacity: .5;\n  }\n\n  .data-\\[error\\=true\\]\\:text-destructive[data-error="true"] {\n    color: var(--destructive);\n  }\n\n  .data-\\[inset\\]\\:pl-8[data-inset] {\n    padding-left: calc(var(--spacing) * 8);\n  }\n\n  .data-\\[motion\\=from-end\\]\\:slide-in-from-right-52[data-motion="from-end"] {\n    --tw-enter-translate-x: calc(52 * var(--spacing));\n  }\n\n  .data-\\[motion\\=from-start\\]\\:slide-in-from-left-52[data-motion="from-start"] {\n    --tw-enter-translate-x: calc(52 * var(--spacing) * -1);\n  }\n\n  .data-\\[motion\\=to-end\\]\\:slide-out-to-right-52[data-motion="to-end"] {\n    --tw-exit-translate-x: calc(52 * var(--spacing));\n  }\n\n  .data-\\[motion\\=to-start\\]\\:slide-out-to-left-52[data-motion="to-start"] {\n    --tw-exit-translate-x: calc(52 * var(--spacing) * -1);\n  }\n\n  .data-\\[motion\\^\\=from-\\]\\:animate-in[data-motion^="from-"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[motion\\^\\=from-\\]\\:fade-in[data-motion^="from-"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[motion\\^\\=to-\\]\\:animate-out[data-motion^="to-"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[motion\\^\\=to-\\]\\:fade-out[data-motion^="to-"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-1\\.5[data-orientation="horizontal"] {\n    height: calc(var(--spacing) * 1.5);\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-full[data-orientation="horizontal"] {\n    height: 100%;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-px[data-orientation="horizontal"] {\n    height: 1px;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:w-full[data-orientation="horizontal"] {\n    width: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:h-full[data-orientation="vertical"] {\n    height: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:min-h-44[data-orientation="vertical"] {\n    min-height: calc(var(--spacing) * 44);\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-1\\.5[data-orientation="vertical"] {\n    width: calc(var(--spacing) * 1.5);\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-auto[data-orientation="vertical"] {\n    width: auto;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-full[data-orientation="vertical"] {\n    width: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-px[data-orientation="vertical"] {\n    width: 1px;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:flex-col[data-orientation="vertical"] {\n    flex-direction: column;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:h-px[data-panel-group-direction="vertical"] {\n    height: 1px;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:w-full[data-panel-group-direction="vertical"] {\n    width: 100%;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:flex-col[data-panel-group-direction="vertical"] {\n    flex-direction: column;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:left-0[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    left: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:h-1[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    height: calc(var(--spacing) * 1);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:w-full[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    width: 100%;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:translate-x-0[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:-translate-y-1\\/2[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[placeholder\\]\\:text-muted-foreground[data-placeholder] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[range-end\\=true\\]\\:rounded-md[data-range-end="true"] {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-end\\=true\\]\\:rounded-r-md[data-range-end="true"] {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-end\\=true\\]\\:bg-primary[data-range-end="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[range-end\\=true\\]\\:text-primary-foreground[data-range-end="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[range-middle\\=true\\]\\:rounded-none[data-range-middle="true"] {\n    border-radius: 0;\n  }\n\n  .data-\\[range-middle\\=true\\]\\:bg-accent[data-range-middle="true"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[range-middle\\=true\\]\\:text-accent-foreground[data-range-middle="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[range-start\\=true\\]\\:rounded-md[data-range-start="true"] {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-start\\=true\\]\\:rounded-l-md[data-range-start="true"] {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-start\\=true\\]\\:bg-primary[data-range-start="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[range-start\\=true\\]\\:text-primary-foreground[data-range-start="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[selected-single\\=true\\]\\:bg-primary[data-selected-single="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[selected-single\\=true\\]\\:text-primary-foreground[data-selected-single="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[selected\\=true\\]\\:rounded-none[data-selected="true"] {\n    border-radius: 0;\n  }\n\n  .data-\\[selected\\=true\\]\\:bg-accent[data-selected="true"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[selected\\=true\\]\\:text-accent-foreground[data-selected="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[side\\=bottom\\]\\:translate-y-1[data-side="bottom"] {\n    --tw-translate-y: calc(var(--spacing) * 1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=bottom\\]\\:slide-in-from-top-2[data-side="bottom"] {\n    --tw-enter-translate-y: calc(2 * var(--spacing) * -1);\n  }\n\n  .data-\\[side\\=left\\]\\:-translate-x-1[data-side="left"] {\n    --tw-translate-x: calc(var(--spacing) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=left\\]\\:slide-in-from-right-2[data-side="left"] {\n    --tw-enter-translate-x: calc(2 * var(--spacing));\n  }\n\n  .data-\\[side\\=right\\]\\:translate-x-1[data-side="right"] {\n    --tw-translate-x: calc(var(--spacing) * 1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=right\\]\\:slide-in-from-left-2[data-side="right"] {\n    --tw-enter-translate-x: calc(2 * var(--spacing) * -1);\n  }\n\n  .data-\\[side\\=top\\]\\:-translate-y-1[data-side="top"] {\n    --tw-translate-y: calc(var(--spacing) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=top\\]\\:slide-in-from-bottom-2[data-side="top"] {\n    --tw-enter-translate-y: calc(2 * var(--spacing));\n  }\n\n  .data-\\[size\\=default\\]\\:h-9[data-size="default"] {\n    height: calc(var(--spacing) * 9);\n  }\n\n  .data-\\[size\\=sm\\]\\:h-8[data-size="sm"] {\n    height: calc(var(--spacing) * 8);\n  }\n\n  :is(.\\*\\:data-\\[slot\\=alert-description\\]\\:text-destructive\\/90 > *)[data-slot="alert-description"] {\n    color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    :is(.\\*\\:data-\\[slot\\=alert-description\\]\\:text-destructive\\/90 > *)[data-slot="alert-description"] {\n      color: color-mix(in oklab, var(--destructive) 90%, transparent);\n    }\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=command-input-wrapper\\]\\:h-12 *)[data-slot="command-input-wrapper"] {\n    height: calc(var(--spacing) * 12);\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=navigation-menu-link\\]\\:focus\\:ring-0 *)[data-slot="navigation-menu-link"]:focus {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=navigation-menu-link\\]\\:focus\\:outline-none *)[data-slot="navigation-menu-link"]:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:line-clamp-1 > *)[data-slot="select-value"] {\n    -webkit-line-clamp: 1;\n    -webkit-box-orient: vertical;\n    display: -webkit-box;\n    overflow: hidden;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:flex > *)[data-slot="select-value"] {\n    display: flex;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:items-center > *)[data-slot="select-value"] {\n    align-items: center;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:gap-2 > *)[data-slot="select-value"] {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  .data-\\[state\\=active\\]\\:bg-background[data-state="active"] {\n    background-color: var(--background);\n  }\n\n  .data-\\[state\\=active\\]\\:shadow-sm[data-state="active"] {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[state\\=checked\\]\\:translate-x-\\[calc\\(100\\%-2px\\)\\][data-state="checked"] {\n    --tw-translate-x: calc(100% - 2px);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[state\\=checked\\]\\:border-primary[data-state="checked"] {\n    border-color: var(--primary);\n  }\n\n  .data-\\[state\\=checked\\]\\:bg-primary[data-state="checked"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[state\\=checked\\]\\:text-primary-foreground[data-state="checked"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[state\\=closed\\]\\:animate-accordion-up[data-state="closed"] {\n    animation: accordion-up var(--tw-animation-duration, var(--tw-duration, .2s)) ease-out;\n  }\n\n  .data-\\[state\\=closed\\]\\:animate-out[data-state="closed"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=closed\\]\\:duration-300[data-state="closed"] {\n    --tw-duration: .3s;\n    transition-duration: .3s;\n  }\n\n  .data-\\[state\\=closed\\]\\:fade-out-0[data-state="closed"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[state\\=closed\\]\\:zoom-out-95[data-state="closed"] {\n    --tw-exit-scale: .95;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-bottom[data-state="closed"] {\n    --tw-exit-translate-y: 100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-left[data-state="closed"] {\n    --tw-exit-translate-x: -100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-right[data-state="closed"] {\n    --tw-exit-translate-x: 100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-top[data-state="closed"] {\n    --tw-exit-translate-y: -100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:animate-out:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:fade-out-0:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:zoom-out-95:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    --tw-exit-scale: .95;\n  }\n\n  .data-\\[state\\=hidden\\]\\:animate-out[data-state="hidden"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=hidden\\]\\:fade-out[data-state="hidden"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[state\\=on\\]\\:bg-accent[data-state="on"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[state\\=on\\]\\:text-accent-foreground[data-state="on"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:animate-accordion-down[data-state="open"] {\n    animation: accordion-down var(--tw-animation-duration, var(--tw-duration, .2s)) ease-out;\n  }\n\n  .data-\\[state\\=open\\]\\:animate-in[data-state="open"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=open\\]\\:bg-accent[data-state="open"], .data-\\[state\\=open\\]\\:bg-accent\\/50[data-state="open"] {\n    background-color: var(--accent);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[state\\=open\\]\\:bg-accent\\/50[data-state="open"] {\n      background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n    }\n  }\n\n  .data-\\[state\\=open\\]\\:bg-secondary[data-state="open"] {\n    background-color: var(--secondary);\n  }\n\n  .data-\\[state\\=open\\]\\:text-accent-foreground[data-state="open"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:text-muted-foreground[data-state="open"] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:opacity-100[data-state="open"] {\n    opacity: 1;\n  }\n\n  .data-\\[state\\=open\\]\\:duration-500[data-state="open"] {\n    --tw-duration: .5s;\n    transition-duration: .5s;\n  }\n\n  .data-\\[state\\=open\\]\\:fade-in-0[data-state="open"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[state\\=open\\]\\:zoom-in-90[data-state="open"] {\n    --tw-enter-scale: .9;\n  }\n\n  .data-\\[state\\=open\\]\\:zoom-in-95[data-state="open"] {\n    --tw-enter-scale: .95;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-bottom[data-state="open"] {\n    --tw-enter-translate-y: 100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-left[data-state="open"] {\n    --tw-enter-translate-x: -100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-right[data-state="open"] {\n    --tw-enter-translate-x: 100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-top[data-state="open"] {\n    --tw-enter-translate-y: -100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:animate-in:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:fade-in-0:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:zoom-in-95:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    --tw-enter-scale: .95;\n  }\n\n  @media (hover: hover) {\n    .data-\\[state\\=open\\]\\:hover\\:bg-accent[data-state="open"]:hover {\n      background-color: var(--accent);\n    }\n\n    .data-\\[state\\=open\\]\\:hover\\:bg-sidebar-accent[data-state="open"]:hover {\n      background-color: var(--sidebar-accent);\n    }\n\n    .data-\\[state\\=open\\]\\:hover\\:text-sidebar-accent-foreground[data-state="open"]:hover {\n      color: var(--sidebar-accent-foreground);\n    }\n  }\n\n  .data-\\[state\\=open\\]\\:focus\\:bg-accent[data-state="open"]:focus {\n    background-color: var(--accent);\n  }\n\n  .data-\\[state\\=selected\\]\\:bg-muted[data-state="selected"] {\n    background-color: var(--muted);\n  }\n\n  .data-\\[state\\=unchecked\\]\\:translate-x-0[data-state="unchecked"] {\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[state\\=unchecked\\]\\:bg-input[data-state="unchecked"] {\n    background-color: var(--input);\n  }\n\n  .data-\\[state\\=visible\\]\\:animate-in[data-state="visible"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=visible\\]\\:fade-in[data-state="visible"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[variant\\=destructive\\]\\:text-destructive[data-variant="destructive"] {\n    color: var(--destructive);\n  }\n\n  .data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/10[data-variant="destructive"]:focus {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/10[data-variant="destructive"]:focus {\n      background-color: color-mix(in oklab, var(--destructive) 10%, transparent);\n    }\n  }\n\n  .data-\\[variant\\=destructive\\]\\:focus\\:text-destructive[data-variant="destructive"]:focus {\n    color: var(--destructive);\n  }\n\n  .data-\\[variant\\=outline\\]\\:border-l-0[data-variant="outline"] {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 0;\n  }\n\n  .data-\\[variant\\=outline\\]\\:shadow-xs[data-variant="outline"] {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, #0000000d);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[variant\\=outline\\]\\:first\\:border-l[data-variant="outline"]:first-child {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:inset-x-0[data-vaul-drawer-direction="bottom"] {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:bottom-0[data-vaul-drawer-direction="bottom"] {\n    bottom: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:mt-24[data-vaul-drawer-direction="bottom"] {\n    margin-top: calc(var(--spacing) * 24);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:max-h-\\[80vh\\][data-vaul-drawer-direction="bottom"] {\n    max-height: 80vh;\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:rounded-t-lg[data-vaul-drawer-direction="bottom"] {\n    border-top-left-radius: var(--radius);\n    border-top-right-radius: var(--radius);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:border-t[data-vaul-drawer-direction="bottom"] {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:inset-y-0[data-vaul-drawer-direction="left"] {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:left-0[data-vaul-drawer-direction="left"] {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:w-3\\/4[data-vaul-drawer-direction="left"] {\n    width: 75%;\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:border-r[data-vaul-drawer-direction="left"] {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:inset-y-0[data-vaul-drawer-direction="right"] {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:right-0[data-vaul-drawer-direction="right"] {\n    right: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:w-3\\/4[data-vaul-drawer-direction="right"] {\n    width: 75%;\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:border-l[data-vaul-drawer-direction="right"] {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:inset-x-0[data-vaul-drawer-direction="top"] {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:top-0[data-vaul-drawer-direction="top"] {\n    top: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:mb-24[data-vaul-drawer-direction="top"] {\n    margin-bottom: calc(var(--spacing) * 24);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:max-h-\\[80vh\\][data-vaul-drawer-direction="top"] {\n    max-height: 80vh;\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:rounded-b-lg[data-vaul-drawer-direction="top"] {\n    border-bottom-right-radius: var(--radius);\n    border-bottom-left-radius: var(--radius);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:border-b[data-vaul-drawer-direction="top"] {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  @media (min-width: 40rem) {\n    .sm\\:block {\n      display: block;\n    }\n\n    .sm\\:flex {\n      display: flex;\n    }\n\n    .sm\\:max-w-\\[600px\\] {\n      max-width: 600px;\n    }\n\n    .sm\\:max-w-lg {\n      max-width: var(--container-lg);\n    }\n\n    .sm\\:max-w-md {\n      max-width: var(--container-md);\n    }\n\n    .sm\\:max-w-sm {\n      max-width: var(--container-sm);\n    }\n\n    .sm\\:flex-row {\n      flex-direction: row;\n    }\n\n    .sm\\:justify-between {\n      justify-content: space-between;\n    }\n\n    .sm\\:justify-end {\n      justify-content: flex-end;\n    }\n\n    .sm\\:gap-2 {\n      gap: calc(var(--spacing) * 2);\n    }\n\n    .sm\\:gap-2\\.5 {\n      gap: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:pr-2\\.5 {\n      padding-right: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:pl-2\\.5 {\n      padding-left: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:text-left {\n      text-align: left;\n    }\n\n    .data-\\[vaul-drawer-direction\\=left\\]\\:sm\\:max-w-sm[data-vaul-drawer-direction="left"], .data-\\[vaul-drawer-direction\\=right\\]\\:sm\\:max-w-sm[data-vaul-drawer-direction="right"] {\n      max-width: var(--container-sm);\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .md\\:absolute {\n      position: absolute;\n    }\n\n    .md\\:block {\n      display: block;\n    }\n\n    .md\\:flex {\n      display: flex;\n    }\n\n    .md\\:w-\\[var\\(--radix-navigation-menu-viewport-width\\)\\] {\n      width: var(--radix-navigation-menu-viewport-width);\n    }\n\n    .md\\:w-auto {\n      width: auto;\n    }\n\n    .md\\:flex-row {\n      flex-direction: row;\n    }\n\n    .md\\:gap-1\\.5 {\n      gap: calc(var(--spacing) * 1.5);\n    }\n\n    .md\\:text-left {\n      text-align: left;\n    }\n\n    .md\\:text-sm {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n\n    .md\\:opacity-0 {\n      opacity: 0;\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:m-2:is(:where(.peer)[data-variant="inset"] ~ *) {\n      margin: calc(var(--spacing) * 2);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:ml-0:is(:where(.peer)[data-variant="inset"] ~ *) {\n      margin-left: calc(var(--spacing) * 0);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:rounded-xl:is(:where(.peer)[data-variant="inset"] ~ *) {\n      border-radius: calc(var(--radius)  + 4px);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:shadow-sm:is(:where(.peer)[data-variant="inset"] ~ *) {\n      --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:peer-data-\\[state\\=collapsed\\]\\:ml-2:is(:where(.peer)[data-variant="inset"] ~ *):is(:where(.peer)[data-state="collapsed"] ~ *) {\n      margin-left: calc(var(--spacing) * 2);\n    }\n\n    .md\\:after\\:hidden:after {\n      content: var(--tw-content);\n      display: none;\n    }\n  }\n\n  .dark\\:border-input:is(.dark *) {\n    border-color: var(--input);\n  }\n\n  .dark\\:bg-destructive\\/60:is(.dark *) {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:bg-destructive\\/60:is(.dark *) {\n      background-color: color-mix(in oklab, var(--destructive) 60%, transparent);\n    }\n  }\n\n  .dark\\:bg-input\\/30:is(.dark *) {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:bg-input\\/30:is(.dark *) {\n      background-color: color-mix(in oklab, var(--input) 30%, transparent);\n    }\n  }\n\n  .dark\\:text-muted-foreground:is(.dark *) {\n    color: var(--muted-foreground);\n  }\n\n  @media (hover: hover) {\n    .dark\\:hover\\:bg-accent\\/50:is(.dark *):hover {\n      background-color: var(--accent);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .dark\\:hover\\:bg-accent\\/50:is(.dark *):hover {\n        background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n      }\n    }\n\n    .dark\\:hover\\:bg-input\\/50:is(.dark *):hover {\n      background-color: var(--input);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .dark\\:hover\\:bg-input\\/50:is(.dark *):hover {\n        background-color: color-mix(in oklab, var(--input) 50%, transparent);\n      }\n    }\n\n    .dark\\:hover\\:text-accent-foreground:is(.dark *):hover {\n      color: var(--accent-foreground);\n    }\n  }\n\n  .dark\\:focus-visible\\:ring-destructive\\/40:is(.dark *):focus-visible {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:focus-visible\\:ring-destructive\\/40:is(.dark *):focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[data-active="true"][aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[data-active="true"][aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:border-input:is(.dark *)[data-state="active"] {\n    border-color: var(--input);\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:bg-input\\/30:is(.dark *)[data-state="active"] {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[state\\=active\\]\\:bg-input\\/30:is(.dark *)[data-state="active"] {\n      background-color: color-mix(in oklab, var(--input) 30%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:text-foreground:is(.dark *)[data-state="active"] {\n    color: var(--foreground);\n  }\n\n  .dark\\:data-\\[state\\=checked\\]\\:bg-primary:is(.dark *)[data-state="checked"] {\n    background-color: var(--primary);\n  }\n\n  .dark\\:data-\\[state\\=checked\\]\\:bg-primary-foreground:is(.dark *)[data-state="checked"] {\n    background-color: var(--primary-foreground);\n  }\n\n  .dark\\:data-\\[state\\=unchecked\\]\\:bg-foreground:is(.dark *)[data-state="unchecked"] {\n    background-color: var(--foreground);\n  }\n\n  .dark\\:data-\\[state\\=unchecked\\]\\:bg-input\\/80:is(.dark *)[data-state="unchecked"] {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[state\\=unchecked\\]\\:bg-input\\/80:is(.dark *)[data-state="unchecked"] {\n      background-color: color-mix(in oklab, var(--input) 80%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/20:is(.dark *)[data-variant="destructive"]:focus {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/20:is(.dark *)[data-variant="destructive"]:focus {\n      background-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:px-2 [cmdk-group-heading] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:py-1\\.5 [cmdk-group-heading] {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:text-xs [cmdk-group-heading] {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:font-medium [cmdk-group-heading] {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:text-muted-foreground [cmdk-group-heading] {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&_\\[cmdk-group\\]\\]\\:px-2 [cmdk-group] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-group\\]\\:not\\(\\[hidden\\]\\)_\\~\\[cmdk-group\\]\\]\\:pt-0 [cmdk-group]:not([hidden]) ~ [cmdk-group] {\n    padding-top: calc(var(--spacing) * 0);\n  }\n\n  .\\[\\&_\\[cmdk-input-wrapper\\]_svg\\]\\:h-5 [cmdk-input-wrapper] svg {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-input-wrapper\\]_svg\\]\\:w-5 [cmdk-input-wrapper] svg {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-input\\]\\]\\:h-12 [cmdk-input] {\n    height: calc(var(--spacing) * 12);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]\\]\\:px-2 [cmdk-item] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]\\]\\:py-3 [cmdk-item] {\n    padding-block: calc(var(--spacing) * 3);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]_svg\\]\\:h-5 [cmdk-item] svg {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]_svg\\]\\:w-5 [cmdk-item] svg {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_p\\]\\:leading-relaxed p {\n    --tw-leading: var(--leading-relaxed);\n    line-height: var(--leading-relaxed);\n  }\n\n  .\\[\\&_svg\\]\\:pointer-events-none svg {\n    pointer-events: none;\n  }\n\n  .\\[\\&_svg\\]\\:shrink-0 svg {\n    flex-shrink: 0;\n  }\n\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\\'size-\\\'\\]\\)\\]\\:size-4 svg:not([class*="size-"]) {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\\'text-\\\'\\]\\)\\]\\:text-muted-foreground svg:not([class*="text-"]) {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&_tr\\]\\:border-b tr {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  .\\[\\&_tr\\:last-child\\]\\:border-0 tr:last-child {\n    border-style: var(--tw-border-style);\n    border-width: 0;\n  }\n\n  .\\[\\&\\:first-child\\[data-selected\\=true\\]_button\\]\\:rounded-l-md:first-child[data-selected="true"] button {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .\\[\\&\\:has\\(\\[role\\=checkbox\\]\\)\\]\\:pr-0:has([role="checkbox"]) {\n    padding-right: calc(var(--spacing) * 0);\n  }\n\n  .\\[\\.border-b\\]\\:pb-6.border-b {\n    padding-bottom: calc(var(--spacing) * 6);\n  }\n\n  .\\[\\.border-t\\]\\:pt-6.border-t {\n    padding-top: calc(var(--spacing) * 6);\n  }\n\n  :is(.rtl\\:\\*\\*\\:\\[\\.rdp-button\\\\_next\\>svg\\]\\:rotate-180:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) *):is(.rdp-button_next > svg), :is(.rtl\\:\\*\\*\\:\\[\\.rdp-button\\\\_previous\\>svg\\]\\:rotate-180:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) *):is(.rdp-button_previous > svg) {\n    rotate: 180deg;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:flex > *):is(span):last-child {\n    display: flex;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:items-center > *):is(span):last-child {\n    align-items: center;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:gap-2 > *):is(span):last-child {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  :is(.data-\\[variant\\=destructive\\]\\:\\*\\:\\[svg\\]\\:\\!text-destructive[data-variant="destructive"] > *):is(svg) {\n    color: var(--destructive) !important;\n  }\n\n  .\\[\\&\\:last-child\\[data-selected\\=true\\]_button\\]\\:rounded-r-md:last-child[data-selected="true"] button {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .\\[\\&\\>\\[role\\=checkbox\\]\\]\\:translate-y-\\[2px\\] > [role="checkbox"] {\n    --tw-translate-y: 2px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .\\[\\&\\>button\\]\\:hidden > button {\n    display: none;\n  }\n\n  .\\[\\&\\>span\\]\\:text-xs > span {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .\\[\\&\\>span\\]\\:opacity-70 > span {\n    opacity: .7;\n  }\n\n  .\\[\\&\\>span\\:last-child\\]\\:truncate > span:last-child {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n  }\n\n  .\\[\\&\\>svg\\]\\:pointer-events-none > svg {\n    pointer-events: none;\n  }\n\n  .\\[\\&\\>svg\\]\\:size-3 > svg {\n    width: calc(var(--spacing) * 3);\n    height: calc(var(--spacing) * 3);\n  }\n\n  .\\[\\&\\>svg\\]\\:size-3\\.5 > svg {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .\\[\\&\\>svg\\]\\:size-4 > svg {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .\\[\\&\\>svg\\]\\:shrink-0 > svg {\n    flex-shrink: 0;\n  }\n\n  .\\[\\&\\>svg\\]\\:translate-y-0\\.5 > svg {\n    --tw-translate-y: calc(var(--spacing) * .5);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .\\[\\&\\>svg\\]\\:text-current > svg {\n    color: currentColor;\n  }\n\n  .\\[\\&\\>svg\\]\\:text-muted-foreground > svg {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&\\>svg\\]\\:text-sidebar-accent-foreground > svg {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .\\[\\&\\>tr\\]\\:last\\:border-b-0 > tr:last-child {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 0;\n  }\n\n  .\\[\\&\\[data-panel-group-direction\\=vertical\\]\\>div\\]\\:rotate-90[data-panel-group-direction="vertical"] > div {\n    rotate: 90deg;\n  }\n\n  .\\[\\&\\[data-state\\=open\\]\\>svg\\]\\:rotate-180[data-state="open"] > svg {\n    rotate: 180deg;\n  }\n\n  [data-side="left"][data-collapsible="offcanvas"] .\\[\\[data-side\\=left\\]\\[data-collapsible\\=offcanvas\\]_\\&\\]\\:-right-2 {\n    right: calc(var(--spacing) * -2);\n  }\n\n  [data-side="left"][data-state="collapsed"] .\\[\\[data-side\\=left\\]\\[data-state\\=collapsed\\]_\\&\\]\\:cursor-e-resize {\n    cursor: e-resize;\n  }\n\n  [data-side="right"][data-collapsible="offcanvas"] .\\[\\[data-side\\=right\\]\\[data-collapsible\\=offcanvas\\]_\\&\\]\\:-left-2 {\n    left: calc(var(--spacing) * -2);\n  }\n\n  [data-side="right"][data-state="collapsed"] .\\[\\[data-side\\=right\\]\\[data-state\\=collapsed\\]_\\&\\]\\:cursor-w-resize {\n    cursor: w-resize;\n  }\n\n  [data-slot="card-content"] .\\[\\[data-slot\\=card-content\\]_\\&\\]\\:bg-transparent, [data-slot="popover-content"] .\\[\\[data-slot\\=popover-content\\]_\\&\\]\\:bg-transparent {\n    background-color: #0000;\n  }\n\n  @media (hover: hover) {\n    a.\\[a\\&\\]\\:hover\\:bg-accent:hover {\n      background-color: var(--accent);\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-destructive\\/90:hover {\n      background-color: var(--destructive);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-destructive\\/90:hover {\n        background-color: color-mix(in oklab, var(--destructive) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-primary\\/90:hover {\n      background-color: var(--primary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-primary\\/90:hover {\n        background-color: color-mix(in oklab, var(--primary) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-secondary\\/90:hover {\n      background-color: var(--secondary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-secondary\\/90:hover {\n        background-color: color-mix(in oklab, var(--secondary) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:text-accent-foreground:hover {\n      color: var(--accent-foreground);\n    }\n  }\n}\n\n@property --tw-animation-delay {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0s;\n}\n\n@property --tw-animation-direction {\n  syntax: "*";\n  inherits: false;\n  initial-value: normal;\n}\n\n@property --tw-animation-duration {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-animation-fill-mode {\n  syntax: "*";\n  inherits: false;\n  initial-value: none;\n}\n\n@property --tw-animation-iteration-count {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-opacity {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-rotate {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-enter-scale {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-enter-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-opacity {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-exit-rotate {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-scale {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-exit-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n:root {\n  --shadow-card: 0 1px 3px 0 #0000004d, 0 1px 2px -1px #0000004d;\n  --shadow-elevated: 0 10px 15px -3px #0006, 0 4px 6px -4px #0006;\n  --radius: .625rem;\n  --background: oklch(100% 0 0);\n  --foreground: oklch(14.5% 0 0);\n  --card: oklch(100% 0 0);\n  --card-foreground: oklch(14.5% 0 0);\n  --popover: oklch(100% 0 0);\n  --popover-foreground: oklch(14.5% 0 0);\n  --primary: oklch(20.5% 0 0);\n  --primary-foreground: oklch(98.5% 0 0);\n  --secondary: oklch(97% 0 0);\n  --secondary-foreground: oklch(20.5% 0 0);\n  --muted: oklch(97% 0 0);\n  --muted-foreground: oklch(55.6% 0 0);\n  --accent: oklch(97% 0 0);\n  --accent-foreground: oklch(20.5% 0 0);\n  --destructive: oklch(57.7% .245 27.325);\n  --border: oklch(92.2% 0 0);\n  --input: oklch(92.2% 0 0);\n  --ring: oklch(70.8% 0 0);\n  --chart-1: oklch(64.6% .222 41.116);\n  --chart-2: oklch(60% .118 184.704);\n  --chart-3: oklch(39.8% .07 227.392);\n  --chart-4: oklch(82.8% .189 84.429);\n  --chart-5: oklch(76.9% .188 70.08);\n  --sidebar: oklch(98.5% 0 0);\n  --sidebar-foreground: oklch(14.5% 0 0);\n  --sidebar-primary: oklch(20.5% 0 0);\n  --sidebar-primary-foreground: oklch(98.5% 0 0);\n  --sidebar-accent: oklch(97% 0 0);\n  --sidebar-accent-foreground: oklch(20.5% 0 0);\n  --sidebar-border: oklch(92.2% 0 0);\n  --sidebar-ring: oklch(70.8% 0 0);\n}\n\n.dark {\n  --background: oklch(14.5% .005 250);\n  --foreground: oklch(98.5% .005 250);\n  --card: oklch(20.5% .005 250);\n  --card-foreground: oklch(98.5% .005 250);\n  --popover: oklch(20.5% .005 250);\n  --popover-foreground: oklch(98.5% .005 250);\n  --primary: oklch(92.2% .005 250);\n  --primary-foreground: oklch(20.5% .005 250);\n  --secondary: oklch(26.9% .005 250);\n  --secondary-foreground: oklch(98.5% .005 250);\n  --muted: oklch(26.9% .005 250);\n  --muted-foreground: oklch(70.8% .005 250);\n  --accent: oklch(26.9% .005 250);\n  --accent-foreground: oklch(98.5% .005 250);\n  --destructive: oklch(70.4% .191 22.216);\n  --border: oklch(100% .005 250 / .1);\n  --input: oklch(100% .005 250 / .15);\n  --ring: oklch(55.6% .005 250);\n  --chart-1: oklch(48.8% .243 264.376);\n  --chart-2: oklch(69.6% .17 162.48);\n  --chart-3: oklch(76.9% .188 70.08);\n  --chart-4: oklch(62.7% .265 303.9);\n  --chart-5: oklch(64.5% .246 16.439);\n  --sidebar: oklch(20.5% .005 250);\n  --sidebar-foreground: oklch(98.5% .005 250);\n  --sidebar-primary: oklch(48.8% .243 264.376);\n  --sidebar-primary-foreground: oklch(98.5% .005 250);\n  --sidebar-accent: oklch(26.9% .005 250);\n  --sidebar-accent-foreground: oklch(98.5% .005 250);\n  --sidebar-border: oklch(100% .005 250 / .1);\n  --sidebar-ring: oklch(55.6% .005 250);\n}\n\n::-webkit-scrollbar {\n  width: 6px;\n  height: 6px;\n}\n\n::-webkit-scrollbar-track {\n  background: none;\n}\n\n::-webkit-scrollbar-thumb {\n  background: oklch(37% .005 250);\n  border-radius: 9999px;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: oklch(45% .005 250);\n}\n\n@keyframes ripple-elegant {\n  0% {\n    opacity: .8;\n    transform: scale(.8);\n  }\n\n  100% {\n    opacity: 0;\n    transform: scale(2.5);\n  }\n}\n\n@keyframes ripple-dot {\n  0% {\n    opacity: 1;\n    transform: scale(1);\n  }\n\n  50% {\n    opacity: .6;\n    transform: scale(1.2);\n  }\n\n  100% {\n    opacity: 0;\n    transform: scale(.8);\n  }\n}\n\n@property --tw-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-translate-z {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-rotate-x {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-rotate-y {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-rotate-z {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-skew-x {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-skew-y {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-space-y-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-space-x-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-divide-y-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-border-style {\n  syntax: "*";\n  inherits: false;\n  initial-value: solid;\n}\n\n@property --tw-gradient-position {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-from {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-via {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-to {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-stops {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-via-stops {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-from-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 0%;\n}\n\n@property --tw-gradient-via-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 50%;\n}\n\n@property --tw-gradient-to-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-leading {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-font-weight {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-tracking {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ordinal {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-slashed-zero {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-figure {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-spacing {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-fraction {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-inset-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-inset-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-inset-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-ring-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ring-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-inset-ring-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-inset-ring-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-ring-inset {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ring-offset-width {\n  syntax: "<length>";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-ring-offset-color {\n  syntax: "*";\n  inherits: false;\n  initial-value: #fff;\n}\n\n@property --tw-ring-offset-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-outline-style {\n  syntax: "*";\n  inherits: false;\n  initial-value: solid;\n}\n\n@property --tw-blur {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-brightness {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-contrast {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-grayscale {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-hue-rotate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-invert {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-opacity {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-saturate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-sepia {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-drop-shadow-size {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-blur {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-brightness {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-contrast {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-grayscale {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-hue-rotate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-invert {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-opacity {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-saturate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-sepia {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-duration {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ease {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-scale-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-scale-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-scale-z {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-content {\n  syntax: "*";\n  inherits: false;\n  initial-value: "";\n}\n\n@keyframes spin {\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n@keyframes pulse {\n  50% {\n    opacity: .5;\n  }\n}\n\n@keyframes enter {\n  from {\n    opacity: var(--tw-enter-opacity, 1);\n    transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1)) rotate(var(--tw-enter-rotate, 0));\n  }\n}\n\n@keyframes exit {\n  to {\n    opacity: var(--tw-exit-opacity, 1);\n    transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));\n  }\n}\n\n@keyframes accordion-down {\n  from {\n    height: 0;\n  }\n\n  to {\n    height: var(--radix-accordion-content-height, var(--bits-accordion-content-height, var(--reka-accordion-content-height, var(--kb-accordion-content-height, auto))));\n  }\n}\n\n@keyframes accordion-up {\n  from {\n    height: var(--radix-accordion-content-height, var(--bits-accordion-content-height, var(--reka-accordion-content-height, var(--kb-accordion-content-height, auto))));\n  }\n\n  to {\n    height: 0;\n  }\n}\n\n@keyframes caret-blink {\n  0%, 70%, 100% {\n    opacity: 1;\n  }\n\n  20%, 50% {\n    opacity: 0;\n  }\n}\n/*$vite$:1*/';
+  __vite_style__.textContent = '@import "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";\n\n\n@layer components;\n\n/*! tailwindcss v4.1.11 | MIT License | https://tailwindcss.com */\n\n@layer properties {\n  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {\n    *, :before, :after, ::backdrop {\n      --tw-translate-x: 0;\n      --tw-translate-y: 0;\n      --tw-translate-z: 0;\n      --tw-rotate-x: initial;\n      --tw-rotate-y: initial;\n      --tw-rotate-z: initial;\n      --tw-skew-x: initial;\n      --tw-skew-y: initial;\n      --tw-space-y-reverse: 0;\n      --tw-space-x-reverse: 0;\n      --tw-divide-y-reverse: 0;\n      --tw-border-style: solid;\n      --tw-gradient-position: initial;\n      --tw-gradient-from: #0000;\n      --tw-gradient-via: #0000;\n      --tw-gradient-to: #0000;\n      --tw-gradient-stops: initial;\n      --tw-gradient-via-stops: initial;\n      --tw-gradient-from-position: 0%;\n      --tw-gradient-via-position: 50%;\n      --tw-gradient-to-position: 100%;\n      --tw-leading: initial;\n      --tw-font-weight: initial;\n      --tw-tracking: initial;\n      --tw-ordinal: initial;\n      --tw-slashed-zero: initial;\n      --tw-numeric-figure: initial;\n      --tw-numeric-spacing: initial;\n      --tw-numeric-fraction: initial;\n      --tw-shadow: 0 0 #0000;\n      --tw-shadow-color: initial;\n      --tw-shadow-alpha: 100%;\n      --tw-inset-shadow: 0 0 #0000;\n      --tw-inset-shadow-color: initial;\n      --tw-inset-shadow-alpha: 100%;\n      --tw-ring-color: initial;\n      --tw-ring-shadow: 0 0 #0000;\n      --tw-inset-ring-color: initial;\n      --tw-inset-ring-shadow: 0 0 #0000;\n      --tw-ring-inset: initial;\n      --tw-ring-offset-width: 0px;\n      --tw-ring-offset-color: #fff;\n      --tw-ring-offset-shadow: 0 0 #0000;\n      --tw-outline-style: solid;\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n      --tw-backdrop-blur: initial;\n      --tw-backdrop-brightness: initial;\n      --tw-backdrop-contrast: initial;\n      --tw-backdrop-grayscale: initial;\n      --tw-backdrop-hue-rotate: initial;\n      --tw-backdrop-invert: initial;\n      --tw-backdrop-opacity: initial;\n      --tw-backdrop-saturate: initial;\n      --tw-backdrop-sepia: initial;\n      --tw-duration: initial;\n      --tw-ease: initial;\n      --tw-scale-x: 1;\n      --tw-scale-y: 1;\n      --tw-scale-z: 1;\n      --tw-content: "";\n      --tw-animation-delay: 0s;\n      --tw-animation-direction: normal;\n      --tw-animation-duration: initial;\n      --tw-animation-fill-mode: none;\n      --tw-animation-iteration-count: 1;\n      --tw-enter-opacity: 1;\n      --tw-enter-rotate: 0;\n      --tw-enter-scale: 1;\n      --tw-enter-translate-x: 0;\n      --tw-enter-translate-y: 0;\n      --tw-exit-opacity: 1;\n      --tw-exit-rotate: 0;\n      --tw-exit-scale: 1;\n      --tw-exit-translate-x: 0;\n      --tw-exit-translate-y: 0;\n    }\n  }\n}\n\n@layer theme {\n  :root, :host {\n    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";\n    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;\n    --color-red-100: oklch(93.6% .032 17.717);\n    --color-red-300: oklch(80.8% .114 19.571);\n    --color-red-400: oklch(70.4% .191 22.216);\n    --color-red-500: oklch(63.7% .237 25.331);\n    --color-red-600: oklch(57.7% .245 27.325);\n    --color-red-800: oklch(44.4% .177 26.899);\n    --color-red-900: oklch(39.6% .141 25.723);\n    --color-red-950: oklch(25.8% .092 26.042);\n    --color-orange-200: oklch(90.1% .076 70.697);\n    --color-orange-300: oklch(83.7% .128 66.29);\n    --color-orange-400: oklch(75% .183 55.934);\n    --color-orange-500: oklch(70.5% .213 47.604);\n    --color-orange-600: oklch(64.6% .222 41.116);\n    --color-orange-800: oklch(47% .157 37.304);\n    --color-orange-900: oklch(40.8% .123 38.172);\n    --color-amber-100: oklch(96.2% .059 95.617);\n    --color-amber-300: oklch(87.9% .169 91.605);\n    --color-amber-400: oklch(82.8% .189 84.429);\n    --color-amber-500: oklch(76.9% .188 70.08);\n    --color-amber-800: oklch(47.3% .137 46.201);\n    --color-amber-900: oklch(41.4% .112 45.904);\n    --color-yellow-200: oklch(94.5% .129 101.54);\n    --color-yellow-300: oklch(90.5% .182 98.111);\n    --color-yellow-400: oklch(85.2% .199 91.936);\n    --color-yellow-500: oklch(79.5% .184 86.047);\n    --color-yellow-600: oklch(68.1% .162 75.834);\n    --color-yellow-900: oklch(42.1% .095 57.708);\n    --color-yellow-950: oklch(28.6% .066 53.813);\n    --color-green-100: oklch(96.2% .044 156.743);\n    --color-green-200: oklch(92.5% .084 155.995);\n    --color-green-300: oklch(87.1% .15 154.449);\n    --color-green-400: oklch(79.2% .209 151.711);\n    --color-green-500: oklch(72.3% .219 149.579);\n    --color-green-600: oklch(62.7% .194 149.214);\n    --color-green-700: oklch(52.7% .154 150.069);\n    --color-green-800: oklch(44.8% .119 151.328);\n    --color-green-900: oklch(39.3% .095 152.535);\n    --color-green-950: oklch(26.6% .065 152.934);\n    --color-emerald-300: oklch(84.5% .143 164.978);\n    --color-emerald-400: oklch(76.5% .177 163.223);\n    --color-emerald-600: oklch(59.6% .145 163.225);\n    --color-emerald-700: oklch(50.8% .118 165.612);\n    --color-emerald-900: oklch(37.8% .077 168.94);\n    --color-cyan-300: oklch(86.5% .127 207.078);\n    --color-cyan-400: oklch(78.9% .154 211.53);\n    --color-cyan-500: oklch(71.5% .143 215.221);\n    --color-blue-100: oklch(93.2% .032 255.585);\n    --color-blue-300: oklch(80.9% .105 251.813);\n    --color-blue-400: oklch(70.7% .165 254.624);\n    --color-blue-500: oklch(62.3% .214 259.815);\n    --color-blue-600: oklch(54.6% .245 262.881);\n    --color-blue-700: oklch(48.8% .243 264.376);\n    --color-blue-800: oklch(42.4% .199 265.638);\n    --color-blue-900: oklch(37.9% .146 265.522);\n    --color-blue-950: oklch(28.2% .091 267.935);\n    --color-indigo-500: oklch(58.5% .233 277.117);\n    --color-purple-300: oklch(82.7% .119 306.383);\n    --color-purple-400: oklch(71.4% .203 305.504);\n    --color-purple-500: oklch(62.7% .265 303.9);\n    --color-purple-600: oklch(55.8% .288 302.321);\n    --color-purple-700: oklch(49.6% .265 301.924);\n    --color-pink-500: oklch(65.6% .241 354.308);\n    --color-gray-100: oklch(96.7% .003 264.542);\n    --color-gray-200: oklch(92.8% .006 264.531);\n    --color-gray-300: oklch(87.2% .01 258.338);\n    --color-gray-400: oklch(70.7% .022 261.325);\n    --color-gray-500: oklch(55.1% .027 264.364);\n    --color-gray-600: oklch(44.6% .03 256.802);\n    --color-gray-700: oklch(37.3% .034 259.733);\n    --color-gray-800: oklch(27.8% .033 256.848);\n    --color-gray-900: oklch(21% .034 264.665);\n    --color-gray-950: oklch(13% .028 261.692);\n    --color-black: #000;\n    --color-white: #fff;\n    --spacing: .25rem;\n    --container-xs: 20rem;\n    --container-sm: 24rem;\n    --container-md: 28rem;\n    --container-lg: 32rem;\n    --container-2xl: 42rem;\n    --text-xs: .75rem;\n    --text-xs--line-height: calc(1 / .75);\n    --text-sm: .875rem;\n    --text-sm--line-height: calc(1.25 / .875);\n    --text-base: 1rem;\n    --text-base--line-height: calc(1.5 / 1);\n    --text-lg: 1.125rem;\n    --text-lg--line-height: calc(1.75 / 1.125);\n    --text-xl: 1.25rem;\n    --text-xl--line-height: calc(1.75 / 1.25);\n    --text-2xl: 1.5rem;\n    --text-2xl--line-height: calc(2 / 1.5);\n    --font-weight-normal: 400;\n    --font-weight-medium: 500;\n    --font-weight-semibold: 600;\n    --font-weight-bold: 700;\n    --tracking-tight: -.025em;\n    --tracking-widest: .1em;\n    --leading-tight: 1.25;\n    --leading-relaxed: 1.625;\n    --radius-xs: .125rem;\n    --ease-out: cubic-bezier(0, 0, .2, 1);\n    --ease-in-out: cubic-bezier(.4, 0, .2, 1);\n    --animate-spin: spin 1s linear infinite;\n    --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;\n    --blur-sm: 8px;\n    --blur-xl: 24px;\n    --aspect-video: 16 / 9;\n    --default-transition-duration: .15s;\n    --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);\n    --default-font-family: var(--font-sans);\n    --default-mono-font-family: var(--font-mono);\n  }\n}\n\n@layer base {\n  *, :after, :before, ::backdrop {\n    box-sizing: border-box;\n    border: 0 solid;\n    margin: 0;\n    padding: 0;\n  }\n\n  ::file-selector-button {\n    box-sizing: border-box;\n    border: 0 solid;\n    margin: 0;\n    padding: 0;\n  }\n\n  html, :host {\n    -webkit-text-size-adjust: 100%;\n    tab-size: 4;\n    line-height: 1.5;\n    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");\n    font-feature-settings: var(--default-font-feature-settings, normal);\n    font-variation-settings: var(--default-font-variation-settings, normal);\n    -webkit-tap-highlight-color: transparent;\n  }\n\n  hr {\n    height: 0;\n    color: inherit;\n    border-top-width: 1px;\n  }\n\n  abbr:where([title]) {\n    -webkit-text-decoration: underline dotted;\n    text-decoration: underline dotted;\n  }\n\n  h1, h2, h3, h4, h5, h6 {\n    font-size: inherit;\n    font-weight: inherit;\n  }\n\n  a {\n    color: inherit;\n    -webkit-text-decoration: inherit;\n    -webkit-text-decoration: inherit;\n    -webkit-text-decoration: inherit;\n    text-decoration: inherit;\n  }\n\n  b, strong {\n    font-weight: bolder;\n  }\n\n  code, kbd, samp, pre {\n    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);\n    font-feature-settings: var(--default-mono-font-feature-settings, normal);\n    font-variation-settings: var(--default-mono-font-variation-settings, normal);\n    font-size: 1em;\n  }\n\n  small {\n    font-size: 80%;\n  }\n\n  sub, sup {\n    vertical-align: baseline;\n    font-size: 75%;\n    line-height: 0;\n    position: relative;\n  }\n\n  sub {\n    bottom: -.25em;\n  }\n\n  sup {\n    top: -.5em;\n  }\n\n  table {\n    text-indent: 0;\n    border-color: inherit;\n    border-collapse: collapse;\n  }\n\n  :-moz-focusring {\n    outline: auto;\n  }\n\n  progress {\n    vertical-align: baseline;\n  }\n\n  summary {\n    display: list-item;\n  }\n\n  ol, ul, menu {\n    list-style: none;\n  }\n\n  img, svg, video, canvas, audio, iframe, embed, object {\n    vertical-align: middle;\n    display: block;\n  }\n\n  img, video {\n    max-width: 100%;\n    height: auto;\n  }\n\n  button, input, select, optgroup, textarea {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    opacity: 1;\n    background-color: #0000;\n    border-radius: 0;\n  }\n\n  ::file-selector-button {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    opacity: 1;\n    background-color: #0000;\n    border-radius: 0;\n  }\n\n  :where(select:is([multiple], [size])) optgroup {\n    font-weight: bolder;\n  }\n\n  :where(select:is([multiple], [size])) optgroup option {\n    padding-inline-start: 20px;\n  }\n\n  ::file-selector-button {\n    margin-inline-end: 4px;\n  }\n\n  ::placeholder {\n    opacity: 1;\n  }\n\n  @supports (not ((-webkit-appearance: -apple-pay-button))) or (contain-intrinsic-size: 1px) {\n    ::placeholder {\n      color: currentColor;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      ::placeholder {\n        color: color-mix(in oklab, currentcolor 50%, transparent);\n      }\n    }\n  }\n\n  textarea {\n    resize: vertical;\n  }\n\n  ::-webkit-search-decoration {\n    -webkit-appearance: none;\n  }\n\n  ::-webkit-date-and-time-value {\n    min-height: 1lh;\n    text-align: inherit;\n  }\n\n  ::-webkit-datetime-edit {\n    display: inline-flex;\n  }\n\n  ::-webkit-datetime-edit-fields-wrapper {\n    padding: 0;\n  }\n\n  ::-webkit-datetime-edit {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-year-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-month-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-day-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-hour-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-minute-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-second-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-millisecond-field {\n    padding-block: 0;\n  }\n\n  ::-webkit-datetime-edit-meridiem-field {\n    padding-block: 0;\n  }\n\n  :-moz-ui-invalid {\n    box-shadow: none;\n  }\n\n  button, input:where([type="button"], [type="reset"], [type="submit"]) {\n    appearance: button;\n  }\n\n  ::file-selector-button {\n    appearance: button;\n  }\n\n  ::-webkit-inner-spin-button {\n    height: auto;\n  }\n\n  ::-webkit-outer-spin-button {\n    height: auto;\n  }\n\n  [hidden]:where(:not([hidden="until-found"])) {\n    display: none !important;\n  }\n\n  * {\n    border-color: var(--border);\n    outline-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    * {\n      outline-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  body {\n    background-color: var(--background);\n    color: var(--foreground);\n    font-family: Inter, system-ui, sans-serif;\n  }\n}\n\n@layer utilities {\n  .\\@container\\/card-header {\n    container: card-header / inline-size;\n  }\n\n  .pointer-events-auto {\n    pointer-events: auto;\n  }\n\n  .pointer-events-none {\n    pointer-events: none;\n  }\n\n  .collapse {\n    visibility: collapse;\n  }\n\n  .invisible {\n    visibility: hidden;\n  }\n\n  .visible {\n    visibility: visible;\n  }\n\n  .sr-only {\n    clip: rect(0, 0, 0, 0);\n    white-space: nowrap;\n    border-width: 0;\n    width: 1px;\n    height: 1px;\n    margin: -1px;\n    padding: 0;\n    position: absolute;\n    overflow: hidden;\n  }\n\n  .absolute {\n    position: absolute;\n  }\n\n  .fixed {\n    position: fixed;\n  }\n\n  .relative {\n    position: relative;\n  }\n\n  .static {\n    position: static;\n  }\n\n  .inset-0 {\n    inset: calc(var(--spacing) * 0);\n  }\n\n  .inset-x-0 {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .inset-y-0 {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .-top-12 {\n    top: calc(var(--spacing) * -12);\n  }\n\n  .top-0 {\n    top: calc(var(--spacing) * 0);\n  }\n\n  .top-1\\.5 {\n    top: calc(var(--spacing) * 1.5);\n  }\n\n  .top-1\\/2 {\n    top: 50%;\n  }\n\n  .top-3 {\n    top: calc(var(--spacing) * 3);\n  }\n\n  .top-3\\.5 {\n    top: calc(var(--spacing) * 3.5);\n  }\n\n  .top-4 {\n    top: calc(var(--spacing) * 4);\n  }\n\n  .top-8 {\n    top: calc(var(--spacing) * 8);\n  }\n\n  .top-10 {\n    top: calc(var(--spacing) * 10);\n  }\n\n  .top-\\[1px\\] {\n    top: 1px;\n  }\n\n  .top-\\[50\\%\\] {\n    top: 50%;\n  }\n\n  .top-\\[60\\%\\] {\n    top: 60%;\n  }\n\n  .top-full {\n    top: 100%;\n  }\n\n  .-right-12 {\n    right: calc(var(--spacing) * -12);\n  }\n\n  .right-0 {\n    right: calc(var(--spacing) * 0);\n  }\n\n  .right-1 {\n    right: calc(var(--spacing) * 1);\n  }\n\n  .right-2 {\n    right: calc(var(--spacing) * 2);\n  }\n\n  .right-3 {\n    right: calc(var(--spacing) * 3);\n  }\n\n  .right-4 {\n    right: calc(var(--spacing) * 4);\n  }\n\n  .-bottom-12 {\n    bottom: calc(var(--spacing) * -12);\n  }\n\n  .bottom-0 {\n    bottom: calc(var(--spacing) * 0);\n  }\n\n  .bottom-2 {\n    bottom: calc(var(--spacing) * 2);\n  }\n\n  .bottom-3 {\n    bottom: calc(var(--spacing) * 3);\n  }\n\n  .bottom-4 {\n    bottom: calc(var(--spacing) * 4);\n  }\n\n  .-left-12 {\n    left: calc(var(--spacing) * -12);\n  }\n\n  .left-0 {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .left-1\\/2 {\n    left: 50%;\n  }\n\n  .left-2 {\n    left: calc(var(--spacing) * 2);\n  }\n\n  .left-3 {\n    left: calc(var(--spacing) * 3);\n  }\n\n  .left-4 {\n    left: calc(var(--spacing) * 4);\n  }\n\n  .left-\\[50\\%\\] {\n    left: 50%;\n  }\n\n  .isolate {\n    isolation: isolate;\n  }\n\n  .z-5 {\n    z-index: 5;\n  }\n\n  .z-10 {\n    z-index: 10;\n  }\n\n  .z-20 {\n    z-index: 20;\n  }\n\n  .z-30 {\n    z-index: 30;\n  }\n\n  .z-50 {\n    z-index: 50;\n  }\n\n  .z-\\[1\\] {\n    z-index: 1;\n  }\n\n  .col-start-2 {\n    grid-column-start: 2;\n  }\n\n  .row-span-2 {\n    grid-row: span 2 / span 2;\n  }\n\n  .row-start-1 {\n    grid-row-start: 1;\n  }\n\n  .\\!container {\n    width: 100% !important;\n  }\n\n  @media (min-width: 40rem) {\n    .\\!container {\n      max-width: 40rem !important;\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .\\!container {\n      max-width: 48rem !important;\n    }\n  }\n\n  @media (min-width: 64rem) {\n    .\\!container {\n      max-width: 64rem !important;\n    }\n  }\n\n  @media (min-width: 80rem) {\n    .\\!container {\n      max-width: 80rem !important;\n    }\n  }\n\n  @media (min-width: 96rem) {\n    .\\!container {\n      max-width: 96rem !important;\n    }\n  }\n\n  .container {\n    width: 100%;\n  }\n\n  @media (min-width: 40rem) {\n    .container {\n      max-width: 40rem;\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .container {\n      max-width: 48rem;\n    }\n  }\n\n  @media (min-width: 64rem) {\n    .container {\n      max-width: 64rem;\n    }\n  }\n\n  @media (min-width: 80rem) {\n    .container {\n      max-width: 80rem;\n    }\n  }\n\n  @media (min-width: 96rem) {\n    .container {\n      max-width: 96rem;\n    }\n  }\n\n  .-mx-1 {\n    margin-inline: calc(var(--spacing) * -1);\n  }\n\n  .mx-0\\.5 {\n    margin-inline: calc(var(--spacing) * .5);\n  }\n\n  .mx-1 {\n    margin-inline: calc(var(--spacing) * 1);\n  }\n\n  .mx-2 {\n    margin-inline: calc(var(--spacing) * 2);\n  }\n\n  .mx-3\\.5 {\n    margin-inline: calc(var(--spacing) * 3.5);\n  }\n\n  .mx-auto {\n    margin-inline: auto;\n  }\n\n  .my-1 {\n    margin-block: calc(var(--spacing) * 1);\n  }\n\n  .-mt-4 {\n    margin-top: calc(var(--spacing) * -4);\n  }\n\n  .mt-0\\.5 {\n    margin-top: calc(var(--spacing) * .5);\n  }\n\n  .mt-1 {\n    margin-top: calc(var(--spacing) * 1);\n  }\n\n  .mt-1\\.5 {\n    margin-top: calc(var(--spacing) * 1.5);\n  }\n\n  .mt-2 {\n    margin-top: calc(var(--spacing) * 2);\n  }\n\n  .mt-3 {\n    margin-top: calc(var(--spacing) * 3);\n  }\n\n  .mt-4 {\n    margin-top: calc(var(--spacing) * 4);\n  }\n\n  .mt-auto {\n    margin-top: auto;\n  }\n\n  .mr-0\\.5 {\n    margin-right: calc(var(--spacing) * .5);\n  }\n\n  .mr-1 {\n    margin-right: calc(var(--spacing) * 1);\n  }\n\n  .mr-1\\.5 {\n    margin-right: calc(var(--spacing) * 1.5);\n  }\n\n  .mr-2 {\n    margin-right: calc(var(--spacing) * 2);\n  }\n\n  .mb-1 {\n    margin-bottom: calc(var(--spacing) * 1);\n  }\n\n  .mb-1\\.5 {\n    margin-bottom: calc(var(--spacing) * 1.5);\n  }\n\n  .mb-2 {\n    margin-bottom: calc(var(--spacing) * 2);\n  }\n\n  .mb-2\\.5 {\n    margin-bottom: calc(var(--spacing) * 2.5);\n  }\n\n  .mb-3 {\n    margin-bottom: calc(var(--spacing) * 3);\n  }\n\n  .mb-4 {\n    margin-bottom: calc(var(--spacing) * 4);\n  }\n\n  .mb-5 {\n    margin-bottom: calc(var(--spacing) * 5);\n  }\n\n  .-ml-4 {\n    margin-left: calc(var(--spacing) * -4);\n  }\n\n  .ml-1 {\n    margin-left: calc(var(--spacing) * 1);\n  }\n\n  .ml-2 {\n    margin-left: calc(var(--spacing) * 2);\n  }\n\n  .ml-4 {\n    margin-left: calc(var(--spacing) * 4);\n  }\n\n  .ml-6 {\n    margin-left: calc(var(--spacing) * 6);\n  }\n\n  .ml-auto {\n    margin-left: auto;\n  }\n\n  .line-clamp-1 {\n    -webkit-line-clamp: 1;\n    -webkit-box-orient: vertical;\n    display: -webkit-box;\n    overflow: hidden;\n  }\n\n  .block {\n    display: block;\n  }\n\n  .contents {\n    display: contents;\n  }\n\n  .flex {\n    display: flex;\n  }\n\n  .grid {\n    display: grid;\n  }\n\n  .hidden {\n    display: none;\n  }\n\n  .inline {\n    display: inline;\n  }\n\n  .inline-flex {\n    display: inline-flex;\n  }\n\n  .table {\n    display: table;\n  }\n\n  .table-caption {\n    display: table-caption;\n  }\n\n  .table-cell {\n    display: table-cell;\n  }\n\n  .table-row {\n    display: table-row;\n  }\n\n  .field-sizing-content {\n    field-sizing: content;\n  }\n\n  .aspect-square {\n    aspect-ratio: 1;\n  }\n\n  .aspect-video {\n    aspect-ratio: var(--aspect-video);\n  }\n\n  .size-\\(--cell-size\\) {\n    width: var(--cell-size);\n    height: var(--cell-size);\n  }\n\n  .size-2 {\n    width: calc(var(--spacing) * 2);\n    height: calc(var(--spacing) * 2);\n  }\n\n  .size-2\\.5 {\n    width: calc(var(--spacing) * 2.5);\n    height: calc(var(--spacing) * 2.5);\n  }\n\n  .size-3 {\n    width: calc(var(--spacing) * 3);\n    height: calc(var(--spacing) * 3);\n  }\n\n  .size-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .size-4 {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .size-7 {\n    width: calc(var(--spacing) * 7);\n    height: calc(var(--spacing) * 7);\n  }\n\n  .size-8 {\n    width: calc(var(--spacing) * 8);\n    height: calc(var(--spacing) * 8);\n  }\n\n  .size-9 {\n    width: calc(var(--spacing) * 9);\n    height: calc(var(--spacing) * 9);\n  }\n\n  .size-auto {\n    width: auto;\n    height: auto;\n  }\n\n  .size-full {\n    width: 100%;\n    height: 100%;\n  }\n\n  .h-\\(--cell-size\\) {\n    height: var(--cell-size);\n  }\n\n  .h-0\\.5 {\n    height: calc(var(--spacing) * .5);\n  }\n\n  .h-1 {\n    height: calc(var(--spacing) * 1);\n  }\n\n  .h-1\\.5 {\n    height: calc(var(--spacing) * 1.5);\n  }\n\n  .h-2 {\n    height: calc(var(--spacing) * 2);\n  }\n\n  .h-2\\.5 {\n    height: calc(var(--spacing) * 2.5);\n  }\n\n  .h-3 {\n    height: calc(var(--spacing) * 3);\n  }\n\n  .h-3\\.5 {\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .h-4 {\n    height: calc(var(--spacing) * 4);\n  }\n\n  .h-5 {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .h-6 {\n    height: calc(var(--spacing) * 6);\n  }\n\n  .h-7 {\n    height: calc(var(--spacing) * 7);\n  }\n\n  .h-8 {\n    height: calc(var(--spacing) * 8);\n  }\n\n  .h-9 {\n    height: calc(var(--spacing) * 9);\n  }\n\n  .h-10 {\n    height: calc(var(--spacing) * 10);\n  }\n\n  .h-12 {\n    height: calc(var(--spacing) * 12);\n  }\n\n  .h-14 {\n    height: calc(var(--spacing) * 14);\n  }\n\n  .h-16 {\n    height: calc(var(--spacing) * 16);\n  }\n\n  .h-32 {\n    height: calc(var(--spacing) * 32);\n  }\n\n  .h-48 {\n    height: calc(var(--spacing) * 48);\n  }\n\n  .h-\\[1\\.15rem\\] {\n    height: 1.15rem;\n  }\n\n  .h-\\[98vh\\] {\n    height: 98vh;\n  }\n\n  .h-\\[800px\\] {\n    height: 800px;\n  }\n\n  .h-\\[calc\\(100\\%-1px\\)\\] {\n    height: calc(100% - 1px);\n  }\n\n  .h-\\[calc\\(100vh-57px\\)\\] {\n    height: calc(100vh - 57px);\n  }\n\n  .h-\\[var\\(--radix-navigation-menu-viewport-height\\)\\] {\n    height: var(--radix-navigation-menu-viewport-height);\n  }\n\n  .h-\\[var\\(--radix-select-trigger-height\\)\\] {\n    height: var(--radix-select-trigger-height);\n  }\n\n  .h-auto {\n    height: auto;\n  }\n\n  .h-full {\n    height: 100%;\n  }\n\n  .h-px {\n    height: 1px;\n  }\n\n  .h-screen {\n    height: 100vh;\n  }\n\n  .h-svh {\n    height: 100svh;\n  }\n\n  .max-h-\\(--radix-context-menu-content-available-height\\) {\n    max-height: var(--radix-context-menu-content-available-height);\n  }\n\n  .max-h-\\(--radix-dropdown-menu-content-available-height\\) {\n    max-height: var(--radix-dropdown-menu-content-available-height);\n  }\n\n  .max-h-\\(--radix-select-content-available-height\\) {\n    max-height: var(--radix-select-content-available-height);\n  }\n\n  .max-h-48 {\n    max-height: calc(var(--spacing) * 48);\n  }\n\n  .max-h-\\[300px\\] {\n    max-height: 300px;\n  }\n\n  .min-h-0 {\n    min-height: calc(var(--spacing) * 0);\n  }\n\n  .min-h-4 {\n    min-height: calc(var(--spacing) * 4);\n  }\n\n  .min-h-16 {\n    min-height: calc(var(--spacing) * 16);\n  }\n\n  .min-h-\\[60px\\] {\n    min-height: 60px;\n  }\n\n  .min-h-\\[100px\\] {\n    min-height: 100px;\n  }\n\n  .min-h-screen {\n    min-height: 100vh;\n  }\n\n  .min-h-svh {\n    min-height: 100svh;\n  }\n\n  .w-\\(--cell-size\\) {\n    width: var(--cell-size);\n  }\n\n  .w-\\(--sidebar-width\\) {\n    width: var(--sidebar-width);\n  }\n\n  .w-1 {\n    width: calc(var(--spacing) * 1);\n  }\n\n  .w-1\\.5 {\n    width: calc(var(--spacing) * 1.5);\n  }\n\n  .w-2 {\n    width: calc(var(--spacing) * 2);\n  }\n\n  .w-2\\.5 {\n    width: calc(var(--spacing) * 2.5);\n  }\n\n  .w-3 {\n    width: calc(var(--spacing) * 3);\n  }\n\n  .w-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n  }\n\n  .w-3\\/4 {\n    width: 75%;\n  }\n\n  .w-4 {\n    width: calc(var(--spacing) * 4);\n  }\n\n  .w-5 {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .w-6 {\n    width: calc(var(--spacing) * 6);\n  }\n\n  .w-7 {\n    width: calc(var(--spacing) * 7);\n  }\n\n  .w-8 {\n    width: calc(var(--spacing) * 8);\n  }\n\n  .w-9 {\n    width: calc(var(--spacing) * 9);\n  }\n\n  .w-12 {\n    width: calc(var(--spacing) * 12);\n  }\n\n  .w-14 {\n    width: calc(var(--spacing) * 14);\n  }\n\n  .w-16 {\n    width: calc(var(--spacing) * 16);\n  }\n\n  .w-60 {\n    width: calc(var(--spacing) * 60);\n  }\n\n  .w-64 {\n    width: calc(var(--spacing) * 64);\n  }\n\n  .w-72 {\n    width: calc(var(--spacing) * 72);\n  }\n\n  .w-\\[100px\\] {\n    width: 100px;\n  }\n\n  .w-auto {\n    width: auto;\n  }\n\n  .w-fit {\n    width: fit-content;\n  }\n\n  .w-full {\n    width: 100%;\n  }\n\n  .w-max {\n    width: max-content;\n  }\n\n  .w-px {\n    width: 1px;\n  }\n\n  .max-w-\\(--skeleton-width\\) {\n    max-width: var(--skeleton-width);\n  }\n\n  .max-w-2xl {\n    max-width: var(--container-2xl);\n  }\n\n  .max-w-80 {\n    max-width: calc(var(--spacing) * 80);\n  }\n\n  .max-w-\\[90vw\\] {\n    max-width: 90vw;\n  }\n\n  .max-w-\\[220px\\] {\n    max-width: 220px;\n  }\n\n  .max-w-\\[calc\\(100\\%-2rem\\)\\] {\n    max-width: calc(100% - 2rem);\n  }\n\n  .max-w-lg {\n    max-width: var(--container-lg);\n  }\n\n  .max-w-max {\n    max-width: max-content;\n  }\n\n  .max-w-md {\n    max-width: var(--container-md);\n  }\n\n  .max-w-xs {\n    max-width: var(--container-xs);\n  }\n\n  .min-w-\\(--cell-size\\) {\n    min-width: var(--cell-size);\n  }\n\n  .min-w-0 {\n    min-width: calc(var(--spacing) * 0);\n  }\n\n  .min-w-5 {\n    min-width: calc(var(--spacing) * 5);\n  }\n\n  .min-w-8 {\n    min-width: calc(var(--spacing) * 8);\n  }\n\n  .min-w-9 {\n    min-width: calc(var(--spacing) * 9);\n  }\n\n  .min-w-10 {\n    min-width: calc(var(--spacing) * 10);\n  }\n\n  .min-w-\\[8rem\\] {\n    min-width: 8rem;\n  }\n\n  .min-w-\\[12rem\\] {\n    min-width: 12rem;\n  }\n\n  .min-w-\\[180px\\] {\n    min-width: 180px;\n  }\n\n  .min-w-\\[var\\(--radix-select-trigger-width\\)\\] {\n    min-width: var(--radix-select-trigger-width);\n  }\n\n  .flex-1 {\n    flex: 1;\n  }\n\n  .flex-shrink-0, .shrink-0 {\n    flex-shrink: 0;\n  }\n\n  .grow {\n    flex-grow: 1;\n  }\n\n  .grow-0 {\n    flex-grow: 0;\n  }\n\n  .basis-full {\n    flex-basis: 100%;\n  }\n\n  .caption-bottom {\n    caption-side: bottom;\n  }\n\n  .border-collapse {\n    border-collapse: collapse;\n  }\n\n  .origin-\\(--radix-context-menu-content-transform-origin\\) {\n    transform-origin: var(--radix-context-menu-content-transform-origin);\n  }\n\n  .origin-\\(--radix-dropdown-menu-content-transform-origin\\) {\n    transform-origin: var(--radix-dropdown-menu-content-transform-origin);\n  }\n\n  .origin-\\(--radix-hover-card-content-transform-origin\\) {\n    transform-origin: var(--radix-hover-card-content-transform-origin);\n  }\n\n  .origin-\\(--radix-menubar-content-transform-origin\\) {\n    transform-origin: var(--radix-menubar-content-transform-origin);\n  }\n\n  .origin-\\(--radix-popover-content-transform-origin\\) {\n    transform-origin: var(--radix-popover-content-transform-origin);\n  }\n\n  .origin-\\(--radix-select-content-transform-origin\\) {\n    transform-origin: var(--radix-select-content-transform-origin);\n  }\n\n  .origin-\\(--radix-tooltip-content-transform-origin\\) {\n    transform-origin: var(--radix-tooltip-content-transform-origin);\n  }\n\n  .-translate-x-1\\/2 {\n    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .-translate-x-px {\n    --tw-translate-x: -1px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-x-\\[-50\\%\\] {\n    --tw-translate-x: -50%;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-x-px {\n    --tw-translate-x: 1px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .-translate-y-1\\/2 {\n    --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-0\\.5 {\n    --tw-translate-y: calc(var(--spacing) * .5);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-\\[-50\\%\\] {\n    --tw-translate-y: -50%;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .translate-y-\\[calc\\(-50\\%_-_2px\\)\\] {\n    --tw-translate-y: calc(-50% - 2px);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .rotate-45 {\n    rotate: 45deg;\n  }\n\n  .rotate-90 {\n    rotate: 90deg;\n  }\n\n  .transform {\n    transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );\n  }\n\n  .animate-caret-blink {\n    animation: 1.25s ease-out infinite caret-blink;\n  }\n\n  .animate-in {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .animate-pulse {\n    animation: var(--animate-pulse);\n  }\n\n  .animate-spin {\n    animation: var(--animate-spin);\n  }\n\n  .cursor-default {\n    cursor: default;\n  }\n\n  .cursor-grab {\n    cursor: grab;\n  }\n\n  .cursor-not-allowed {\n    cursor: not-allowed;\n  }\n\n  .cursor-pointer {\n    cursor: pointer;\n  }\n\n  .touch-none {\n    touch-action: none;\n  }\n\n  .resize {\n    resize: both;\n  }\n\n  .resize-none {\n    resize: none;\n  }\n\n  .scroll-my-1 {\n    scroll-margin-block: calc(var(--spacing) * 1);\n  }\n\n  .scroll-py-1 {\n    scroll-padding-block: calc(var(--spacing) * 1);\n  }\n\n  .list-inside {\n    list-style-position: inside;\n  }\n\n  .list-disc {\n    list-style-type: disc;\n  }\n\n  .list-none {\n    list-style-type: none;\n  }\n\n  .auto-rows-min {\n    grid-auto-rows: min-content;\n  }\n\n  .grid-cols-1 {\n    grid-template-columns: repeat(1, minmax(0, 1fr));\n  }\n\n  .grid-cols-2 {\n    grid-template-columns: repeat(2, minmax(0, 1fr));\n  }\n\n  .grid-cols-\\[0_1fr\\] {\n    grid-template-columns: 0 1fr;\n  }\n\n  .grid-rows-\\[auto_auto\\] {\n    grid-template-rows: auto auto;\n  }\n\n  .flex-col {\n    flex-direction: column;\n  }\n\n  .flex-col-reverse {\n    flex-direction: column-reverse;\n  }\n\n  .flex-row {\n    flex-direction: row;\n  }\n\n  .flex-wrap {\n    flex-wrap: wrap;\n  }\n\n  .items-center {\n    align-items: center;\n  }\n\n  .items-end {\n    align-items: flex-end;\n  }\n\n  .items-start {\n    align-items: flex-start;\n  }\n\n  .justify-between {\n    justify-content: space-between;\n  }\n\n  .justify-center {\n    justify-content: center;\n  }\n\n  .justify-end {\n    justify-content: flex-end;\n  }\n\n  .justify-start {\n    justify-content: flex-start;\n  }\n\n  .justify-items-start {\n    justify-items: start;\n  }\n\n  .gap-0\\.5 {\n    gap: calc(var(--spacing) * .5);\n  }\n\n  .gap-1 {\n    gap: calc(var(--spacing) * 1);\n  }\n\n  .gap-1\\.5 {\n    gap: calc(var(--spacing) * 1.5);\n  }\n\n  .gap-2 {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  .gap-2\\.5 {\n    gap: calc(var(--spacing) * 2.5);\n  }\n\n  .gap-3 {\n    gap: calc(var(--spacing) * 3);\n  }\n\n  .gap-4 {\n    gap: calc(var(--spacing) * 4);\n  }\n\n  .gap-6 {\n    gap: calc(var(--spacing) * 6);\n  }\n\n  :where(.space-y-0 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 0) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 0) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-0\\.5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * .5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * .5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-1 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 1) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-2 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-2\\.5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 2.5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 2.5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-3 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-4 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-5 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-6 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 6) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-y-8 > :not(:last-child)) {\n    --tw-space-y-reverse: 0;\n    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));\n    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));\n  }\n\n  :where(.space-x-2 > :not(:last-child)) {\n    --tw-space-x-reverse: 0;\n    margin-inline-start: calc(calc(var(--spacing) * 2) * var(--tw-space-x-reverse));\n    margin-inline-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-x-reverse)));\n  }\n\n  :where(.space-x-3 > :not(:last-child)) {\n    --tw-space-x-reverse: 0;\n    margin-inline-start: calc(calc(var(--spacing) * 3) * var(--tw-space-x-reverse));\n    margin-inline-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-x-reverse)));\n  }\n\n  .gap-y-0\\.5 {\n    row-gap: calc(var(--spacing) * .5);\n  }\n\n  :where(.divide-y > :not(:last-child)) {\n    --tw-divide-y-reverse: 0;\n    border-bottom-style: var(--tw-border-style);\n    border-top-style: var(--tw-border-style);\n    border-top-width: calc(1px * var(--tw-divide-y-reverse));\n    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));\n  }\n\n  :where(.divide-gray-800\\/30 > :not(:last-child)) {\n    border-color: #1e29394d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    :where(.divide-gray-800\\/30 > :not(:last-child)) {\n      border-color: color-mix(in oklab, var(--color-gray-800) 30%, transparent);\n    }\n  }\n\n  .self-start {\n    align-self: flex-start;\n  }\n\n  .justify-self-end {\n    justify-self: flex-end;\n  }\n\n  .truncate {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n  }\n\n  .overflow-auto {\n    overflow: auto;\n  }\n\n  .overflow-hidden {\n    overflow: hidden;\n  }\n\n  .overflow-x-auto {\n    overflow-x: auto;\n  }\n\n  .overflow-x-hidden {\n    overflow-x: hidden;\n  }\n\n  .overflow-y-auto {\n    overflow-y: auto;\n  }\n\n  .rounded {\n    border-radius: .25rem;\n  }\n\n  .rounded-\\[2px\\] {\n    border-radius: 2px;\n  }\n\n  .rounded-\\[4px\\] {\n    border-radius: 4px;\n  }\n\n  .rounded-\\[inherit\\] {\n    border-radius: inherit;\n  }\n\n  .rounded-full {\n    border-radius: 3.40282e38px;\n  }\n\n  .rounded-lg {\n    border-radius: var(--radius);\n  }\n\n  .rounded-md {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .rounded-none {\n    border-radius: 0;\n  }\n\n  .rounded-sm {\n    border-radius: calc(var(--radius)  - 4px);\n  }\n\n  .rounded-xl {\n    border-radius: calc(var(--radius)  + 4px);\n  }\n\n  .rounded-xs {\n    border-radius: var(--radius-xs);\n  }\n\n  .rounded-t-lg {\n    border-top-left-radius: var(--radius);\n    border-top-right-radius: var(--radius);\n  }\n\n  .rounded-l-md {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .rounded-tl-sm {\n    border-top-left-radius: calc(var(--radius)  - 4px);\n  }\n\n  .rounded-r-md {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .border {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .border-2 {\n    border-style: var(--tw-border-style);\n    border-width: 2px;\n  }\n\n  .border-4 {\n    border-style: var(--tw-border-style);\n    border-width: 4px;\n  }\n\n  .border-y {\n    border-block-style: var(--tw-border-style);\n    border-block-width: 1px;\n  }\n\n  .border-t {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n\n  .border-r {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .border-b {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  .border-l {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .border-l-2 {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 2px;\n  }\n\n  .border-dashed {\n    --tw-border-style: dashed;\n    border-style: dashed;\n  }\n\n  .border-amber-500 {\n    border-color: var(--color-amber-500);\n  }\n\n  .border-amber-800\\/50 {\n    border-color: #953d0080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-amber-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-amber-800) 50%, transparent);\n    }\n  }\n\n  .border-blue-400 {\n    border-color: var(--color-blue-400);\n  }\n\n  .border-blue-400\\/60 {\n    border-color: #54a2ff99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-400\\/60 {\n      border-color: color-mix(in oklab, var(--color-blue-400) 60%, transparent);\n    }\n  }\n\n  .border-blue-500 {\n    border-color: var(--color-blue-500);\n  }\n\n  .border-blue-600 {\n    border-color: var(--color-blue-600);\n  }\n\n  .border-blue-600\\/50 {\n    border-color: #155dfc80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-600) 50%, transparent);\n    }\n  }\n\n  .border-blue-600\\/60 {\n    border-color: #155dfc99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-600\\/60 {\n      border-color: color-mix(in oklab, var(--color-blue-600) 60%, transparent);\n    }\n  }\n\n  .border-blue-800\\/50 {\n    border-color: #193cb880;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-800) 50%, transparent);\n    }\n  }\n\n  .border-blue-900\\/50 {\n    border-color: #1c398e80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-blue-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-blue-900) 50%, transparent);\n    }\n  }\n\n  .border-cyan-400 {\n    border-color: var(--color-cyan-400);\n  }\n\n  .border-emerald-600\\/60 {\n    border-color: #00976799;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-emerald-600\\/60 {\n      border-color: color-mix(in oklab, var(--color-emerald-600) 60%, transparent);\n    }\n  }\n\n  .border-emerald-700\\/50 {\n    border-color: #00795680;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-emerald-700\\/50 {\n      border-color: color-mix(in oklab, var(--color-emerald-700) 50%, transparent);\n    }\n  }\n\n  .border-gray-500 {\n    border-color: var(--color-gray-500);\n  }\n\n  .border-gray-600 {\n    border-color: var(--color-gray-600);\n  }\n\n  .border-gray-600\\/50 {\n    border-color: #4a556580;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-600) 50%, transparent);\n    }\n  }\n\n  .border-gray-700 {\n    border-color: var(--color-gray-700);\n  }\n\n  .border-gray-700\\/30 {\n    border-color: #3641534d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/30 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n    }\n  }\n\n  .border-gray-700\\/40 {\n    border-color: #36415366;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/40 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 40%, transparent);\n    }\n  }\n\n  .border-gray-700\\/50 {\n    border-color: #36415380;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n    }\n  }\n\n  .border-gray-700\\/60 {\n    border-color: #36415399;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-700\\/60 {\n      border-color: color-mix(in oklab, var(--color-gray-700) 60%, transparent);\n    }\n  }\n\n  .border-gray-800 {\n    border-color: var(--color-gray-800);\n  }\n\n  .border-gray-800\\/50 {\n    border-color: #1e293980;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n    }\n  }\n\n  .border-gray-800\\/60 {\n    border-color: #1e293999;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-gray-800\\/60 {\n      border-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n    }\n  }\n\n  .border-green-400 {\n    border-color: var(--color-green-400);\n  }\n\n  .border-green-500 {\n    border-color: var(--color-green-500);\n  }\n\n  .border-green-600 {\n    border-color: var(--color-green-600);\n  }\n\n  .border-green-800\\/50 {\n    border-color: #01663080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-green-800\\/50 {\n      border-color: color-mix(in oklab, var(--color-green-800) 50%, transparent);\n    }\n  }\n\n  .border-green-900\\/50 {\n    border-color: #0d542b80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-green-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-green-900) 50%, transparent);\n    }\n  }\n\n  .border-input {\n    border-color: var(--input);\n  }\n\n  .border-orange-500 {\n    border-color: var(--color-orange-500);\n  }\n\n  .border-orange-600 {\n    border-color: var(--color-orange-600);\n  }\n\n  .border-orange-600\\/50 {\n    border-color: #f0510080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-orange-600\\/50 {\n      border-color: color-mix(in oklab, var(--color-orange-600) 50%, transparent);\n    }\n  }\n\n  .border-orange-800\\/30 {\n    border-color: #9f2d004d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-orange-800\\/30 {\n      border-color: color-mix(in oklab, var(--color-orange-800) 30%, transparent);\n    }\n  }\n\n  .border-primary {\n    border-color: var(--primary);\n  }\n\n  .border-purple-500 {\n    border-color: var(--color-purple-500);\n  }\n\n  .border-purple-500\\/20 {\n    border-color: #ac4bff33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-purple-500\\/20 {\n      border-color: color-mix(in oklab, var(--color-purple-500) 20%, transparent);\n    }\n  }\n\n  .border-red-500 {\n    border-color: var(--color-red-500);\n  }\n\n  .border-red-600 {\n    border-color: var(--color-red-600);\n  }\n\n  .border-red-900\\/50 {\n    border-color: #82181a80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-red-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-red-900) 50%, transparent);\n    }\n  }\n\n  .border-sidebar-border {\n    border-color: var(--sidebar-border);\n  }\n\n  .border-transparent {\n    border-color: #0000;\n  }\n\n  .border-yellow-300 {\n    border-color: var(--color-yellow-300);\n  }\n\n  .border-yellow-500 {\n    border-color: var(--color-yellow-500);\n  }\n\n  .border-yellow-600 {\n    border-color: var(--color-yellow-600);\n  }\n\n  .border-yellow-900\\/50 {\n    border-color: #733e0a80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .border-yellow-900\\/50 {\n      border-color: color-mix(in oklab, var(--color-yellow-900) 50%, transparent);\n    }\n  }\n\n  .border-t-transparent {\n    border-top-color: #0000;\n  }\n\n  .border-l-transparent {\n    border-left-color: #0000;\n  }\n\n  .bg-accent {\n    background-color: var(--accent);\n  }\n\n  .bg-amber-100 {\n    background-color: var(--color-amber-100);\n  }\n\n  .bg-amber-900\\/20 {\n    background-color: #7b330633;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-amber-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-amber-900) 20%, transparent);\n    }\n  }\n\n  .bg-amber-900\\/30 {\n    background-color: #7b33064d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-amber-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-amber-900) 30%, transparent);\n    }\n  }\n\n  .bg-background {\n    background-color: var(--background);\n  }\n\n  .bg-black {\n    background-color: var(--color-black);\n  }\n\n  .bg-black\\/50 {\n    background-color: #00000080;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-black\\/50 {\n      background-color: color-mix(in oklab, var(--color-black) 50%, transparent);\n    }\n  }\n\n  .bg-blue-100 {\n    background-color: var(--color-blue-100);\n  }\n\n  .bg-blue-500 {\n    background-color: var(--color-blue-500);\n  }\n\n  .bg-blue-500\\/10 {\n    background-color: #3080ff1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-500\\/10 {\n      background-color: color-mix(in oklab, var(--color-blue-500) 10%, transparent);\n    }\n  }\n\n  .bg-blue-500\\/50 {\n    background-color: #3080ff80;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-500\\/50 {\n      background-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent);\n    }\n  }\n\n  .bg-blue-600 {\n    background-color: var(--color-blue-600);\n  }\n\n  .bg-blue-600\\/20 {\n    background-color: #155dfc33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-blue-600) 20%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/10 {\n    background-color: #1c398e1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/10 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 10%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/20 {\n    background-color: #1c398e33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/30 {\n    background-color: #1c398e4d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 30%, transparent);\n    }\n  }\n\n  .bg-blue-900\\/40 {\n    background-color: #1c398e66;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-900\\/40 {\n      background-color: color-mix(in oklab, var(--color-blue-900) 40%, transparent);\n    }\n  }\n\n  .bg-blue-950\\/30 {\n    background-color: #1624564d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-blue-950) 30%, transparent);\n    }\n  }\n\n  .bg-blue-950\\/90 {\n    background-color: #162456e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-blue-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-blue-950) 90%, transparent);\n    }\n  }\n\n  .bg-border {\n    background-color: var(--border);\n  }\n\n  .bg-card {\n    background-color: var(--card);\n  }\n\n  .bg-cyan-400 {\n    background-color: var(--color-cyan-400);\n  }\n\n  .bg-cyan-500\\/15 {\n    background-color: #00b7d726;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-cyan-500\\/15 {\n      background-color: color-mix(in oklab, var(--color-cyan-500) 15%, transparent);\n    }\n  }\n\n  .bg-destructive {\n    background-color: var(--destructive);\n  }\n\n  .bg-emerald-900\\/40 {\n    background-color: #004e3b66;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-emerald-900\\/40 {\n      background-color: color-mix(in oklab, var(--color-emerald-900) 40%, transparent);\n    }\n  }\n\n  .bg-foreground {\n    background-color: var(--foreground);\n  }\n\n  .bg-gray-100 {\n    background-color: var(--color-gray-100);\n  }\n\n  .bg-gray-400 {\n    background-color: var(--color-gray-400);\n  }\n\n  .bg-gray-600 {\n    background-color: var(--color-gray-600);\n  }\n\n  .bg-gray-700 {\n    background-color: var(--color-gray-700);\n  }\n\n  .bg-gray-700\\/30 {\n    background-color: #3641534d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-700\\/30 {\n      background-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n    }\n  }\n\n  .bg-gray-700\\/50 {\n    background-color: #36415380;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-700\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n    }\n  }\n\n  .bg-gray-800 {\n    background-color: var(--color-gray-800);\n  }\n\n  .bg-gray-800\\/15 {\n    background-color: #1e293926;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/15 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 15%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/30 {\n    background-color: #1e29394d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/30 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 30%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/40 {\n    background-color: #1e293966;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/40 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 40%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/50 {\n    background-color: #1e293980;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/60 {\n    background-color: #1e293999;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/60 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/80 {\n    background-color: #1e2939cc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/80 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 80%, transparent);\n    }\n  }\n\n  .bg-gray-800\\/90 {\n    background-color: #1e2939e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-800\\/90 {\n      background-color: color-mix(in oklab, var(--color-gray-800) 90%, transparent);\n    }\n  }\n\n  .bg-gray-900 {\n    background-color: var(--color-gray-900);\n  }\n\n  .bg-gray-900\\/50 {\n    background-color: #10182880;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/50 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 50%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/60 {\n    background-color: #10182899;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/60 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 60%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/80 {\n    background-color: #101828cc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/80 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 80%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/90 {\n    background-color: #101828e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/90 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 90%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/95 {\n    background-color: #101828f2;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/95 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 95%, transparent);\n    }\n  }\n\n  .bg-gray-900\\/98 {\n    background-color: #101828fa;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-gray-900\\/98 {\n      background-color: color-mix(in oklab, var(--color-gray-900) 98%, transparent);\n    }\n  }\n\n  .bg-gray-950 {\n    background-color: var(--color-gray-950);\n  }\n\n  .bg-green-100 {\n    background-color: var(--color-green-100);\n  }\n\n  .bg-green-200\\/20 {\n    background-color: #b9f8cf33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-200\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-200) 20%, transparent);\n    }\n  }\n\n  .bg-green-400 {\n    background-color: var(--color-green-400);\n  }\n\n  .bg-green-400\\/20 {\n    background-color: #05df7233;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-400\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-400) 20%, transparent);\n    }\n  }\n\n  .bg-green-500\\/10 {\n    background-color: #00c7581a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-500\\/10 {\n      background-color: color-mix(in oklab, var(--color-green-500) 10%, transparent);\n    }\n  }\n\n  .bg-green-500\\/15 {\n    background-color: #00c75826;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-500\\/15 {\n      background-color: color-mix(in oklab, var(--color-green-500) 15%, transparent);\n    }\n  }\n\n  .bg-green-600 {\n    background-color: var(--color-green-600);\n  }\n\n  .bg-green-600\\/10 {\n    background-color: #00a5441a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-green-600) 10%, transparent);\n    }\n  }\n\n  .bg-green-600\\/20 {\n    background-color: #00a54433;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-600) 20%, transparent);\n    }\n  }\n\n  .bg-green-900\\/20 {\n    background-color: #0d542b33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-green-900) 20%, transparent);\n    }\n  }\n\n  .bg-green-900\\/30 {\n    background-color: #0d542b4d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-900\\/30 {\n      background-color: color-mix(in oklab, var(--color-green-900) 30%, transparent);\n    }\n  }\n\n  .bg-green-950\\/30 {\n    background-color: #032e154d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-green-950) 30%, transparent);\n    }\n  }\n\n  .bg-green-950\\/90 {\n    background-color: #032e15e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-green-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-green-950) 90%, transparent);\n    }\n  }\n\n  .bg-muted, .bg-muted\\/50 {\n    background-color: var(--muted);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-muted\\/50 {\n      background-color: color-mix(in oklab, var(--muted) 50%, transparent);\n    }\n  }\n\n  .bg-orange-500 {\n    background-color: var(--color-orange-500);\n  }\n\n  .bg-orange-600\\/10 {\n    background-color: #f051001a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-orange-600) 10%, transparent);\n    }\n  }\n\n  .bg-orange-600\\/20 {\n    background-color: #f0510033;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-orange-600) 20%, transparent);\n    }\n  }\n\n  .bg-orange-900\\/10 {\n    background-color: #7e2a0c1a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-900\\/10 {\n      background-color: color-mix(in oklab, var(--color-orange-900) 10%, transparent);\n    }\n  }\n\n  .bg-orange-900\\/20 {\n    background-color: #7e2a0c33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-orange-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-orange-900) 20%, transparent);\n    }\n  }\n\n  .bg-popover {\n    background-color: var(--popover);\n  }\n\n  .bg-primary, .bg-primary\\/20 {\n    background-color: var(--primary);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-primary\\/20 {\n      background-color: color-mix(in oklab, var(--primary) 20%, transparent);\n    }\n  }\n\n  .bg-purple-500\\/8 {\n    background-color: #ac4bff14;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-purple-500\\/8 {\n      background-color: color-mix(in oklab, var(--color-purple-500) 8%, transparent);\n    }\n  }\n\n  .bg-purple-500\\/20 {\n    background-color: #ac4bff33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-purple-500\\/20 {\n      background-color: color-mix(in oklab, var(--color-purple-500) 20%, transparent);\n    }\n  }\n\n  .bg-purple-600 {\n    background-color: var(--color-purple-600);\n  }\n\n  .bg-red-100 {\n    background-color: var(--color-red-100);\n  }\n\n  .bg-red-400 {\n    background-color: var(--color-red-400);\n  }\n\n  .bg-red-500 {\n    background-color: var(--color-red-500);\n  }\n\n  .bg-red-600 {\n    background-color: var(--color-red-600);\n  }\n\n  .bg-red-600\\/20 {\n    background-color: #e4001433;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-red-600) 20%, transparent);\n    }\n  }\n\n  .bg-red-900\\/20 {\n    background-color: #82181a33;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-900\\/20 {\n      background-color: color-mix(in oklab, var(--color-red-900) 20%, transparent);\n    }\n  }\n\n  .bg-red-950\\/30 {\n    background-color: #4608094d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-red-950) 30%, transparent);\n    }\n  }\n\n  .bg-red-950\\/90 {\n    background-color: #460809e6;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-red-950\\/90 {\n      background-color: color-mix(in oklab, var(--color-red-950) 90%, transparent);\n    }\n  }\n\n  .bg-secondary {\n    background-color: var(--secondary);\n  }\n\n  .bg-sidebar {\n    background-color: var(--sidebar);\n  }\n\n  .bg-sidebar-border {\n    background-color: var(--sidebar-border);\n  }\n\n  .bg-transparent {\n    background-color: #0000;\n  }\n\n  .bg-white\\/80 {\n    background-color: #fffc;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-white\\/80 {\n      background-color: color-mix(in oklab, var(--color-white) 80%, transparent);\n    }\n  }\n\n  .bg-yellow-400 {\n    background-color: var(--color-yellow-400);\n  }\n\n  .bg-yellow-500 {\n    background-color: var(--color-yellow-500);\n  }\n\n  .bg-yellow-600\\/10 {\n    background-color: #cd89001a;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-600\\/10 {\n      background-color: color-mix(in oklab, var(--color-yellow-600) 10%, transparent);\n    }\n  }\n\n  .bg-yellow-600\\/20 {\n    background-color: #cd890033;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-600\\/20 {\n      background-color: color-mix(in oklab, var(--color-yellow-600) 20%, transparent);\n    }\n  }\n\n  .bg-yellow-950\\/30 {\n    background-color: #4320044d;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .bg-yellow-950\\/30 {\n      background-color: color-mix(in oklab, var(--color-yellow-950) 30%, transparent);\n    }\n  }\n\n  .bg-gradient-to-br {\n    --tw-gradient-position: to bottom right in oklab;\n    background-image: linear-gradient(var(--tw-gradient-stops));\n  }\n\n  .from-purple-500\\/28 {\n    --tw-gradient-from: #ac4bff47;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .from-purple-500\\/28 {\n      --tw-gradient-from: color-mix(in oklab, var(--color-purple-500) 28%, transparent);\n    }\n  }\n\n  .from-purple-500\\/28 {\n    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));\n  }\n\n  .via-purple-600\\/22 {\n    --tw-gradient-via: #9810fa38;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .via-purple-600\\/22 {\n      --tw-gradient-via: color-mix(in oklab, var(--color-purple-600) 22%, transparent);\n    }\n  }\n\n  .via-purple-600\\/22 {\n    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);\n    --tw-gradient-stops: var(--tw-gradient-via-stops);\n  }\n\n  .to-purple-700\\/25 {\n    --tw-gradient-to: #8200da40;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .to-purple-700\\/25 {\n      --tw-gradient-to: color-mix(in oklab, var(--color-purple-700) 25%, transparent);\n    }\n  }\n\n  .to-purple-700\\/25 {\n    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));\n  }\n\n  .fill-current {\n    fill: currentColor;\n  }\n\n  .fill-primary {\n    fill: var(--primary);\n  }\n\n  .object-contain {\n    object-fit: contain;\n  }\n\n  .object-cover {\n    object-fit: cover;\n  }\n\n  .p-0 {\n    padding: calc(var(--spacing) * 0);\n  }\n\n  .p-0\\.5 {\n    padding: calc(var(--spacing) * .5);\n  }\n\n  .p-1 {\n    padding: calc(var(--spacing) * 1);\n  }\n\n  .p-1\\.5 {\n    padding: calc(var(--spacing) * 1.5);\n  }\n\n  .p-2 {\n    padding: calc(var(--spacing) * 2);\n  }\n\n  .p-2\\.5 {\n    padding: calc(var(--spacing) * 2.5);\n  }\n\n  .p-3 {\n    padding: calc(var(--spacing) * 3);\n  }\n\n  .p-4 {\n    padding: calc(var(--spacing) * 4);\n  }\n\n  .p-6 {\n    padding: calc(var(--spacing) * 6);\n  }\n\n  .p-8 {\n    padding: calc(var(--spacing) * 8);\n  }\n\n  .p-12 {\n    padding: calc(var(--spacing) * 12);\n  }\n\n  .p-\\[3px\\] {\n    padding: 3px;\n  }\n\n  .p-px {\n    padding: 1px;\n  }\n\n  .px-\\(--cell-size\\) {\n    padding-inline: var(--cell-size);\n  }\n\n  .px-0\\.5 {\n    padding-inline: calc(var(--spacing) * .5);\n  }\n\n  .px-1 {\n    padding-inline: calc(var(--spacing) * 1);\n  }\n\n  .px-1\\.5 {\n    padding-inline: calc(var(--spacing) * 1.5);\n  }\n\n  .px-2 {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .px-2\\.5 {\n    padding-inline: calc(var(--spacing) * 2.5);\n  }\n\n  .px-3 {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n\n  .px-4 {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n\n  .px-5 {\n    padding-inline: calc(var(--spacing) * 5);\n  }\n\n  .px-6 {\n    padding-inline: calc(var(--spacing) * 6);\n  }\n\n  .px-8 {\n    padding-inline: calc(var(--spacing) * 8);\n  }\n\n  .py-0\\.5 {\n    padding-block: calc(var(--spacing) * .5);\n  }\n\n  .py-1 {\n    padding-block: calc(var(--spacing) * 1);\n  }\n\n  .py-1\\.5 {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n\n  .py-2 {\n    padding-block: calc(var(--spacing) * 2);\n  }\n\n  .py-2\\.5 {\n    padding-block: calc(var(--spacing) * 2.5);\n  }\n\n  .py-3 {\n    padding-block: calc(var(--spacing) * 3);\n  }\n\n  .py-4 {\n    padding-block: calc(var(--spacing) * 4);\n  }\n\n  .py-6 {\n    padding-block: calc(var(--spacing) * 6);\n  }\n\n  .pt-0 {\n    padding-top: calc(var(--spacing) * 0);\n  }\n\n  .pt-1 {\n    padding-top: calc(var(--spacing) * 1);\n  }\n\n  .pt-2 {\n    padding-top: calc(var(--spacing) * 2);\n  }\n\n  .pt-3 {\n    padding-top: calc(var(--spacing) * 3);\n  }\n\n  .pt-4 {\n    padding-top: calc(var(--spacing) * 4);\n  }\n\n  .pr-1 {\n    padding-right: calc(var(--spacing) * 1);\n  }\n\n  .pr-2 {\n    padding-right: calc(var(--spacing) * 2);\n  }\n\n  .pr-2\\.5 {\n    padding-right: calc(var(--spacing) * 2.5);\n  }\n\n  .pr-3 {\n    padding-right: calc(var(--spacing) * 3);\n  }\n\n  .pr-8 {\n    padding-right: calc(var(--spacing) * 8);\n  }\n\n  .pb-1 {\n    padding-bottom: calc(var(--spacing) * 1);\n  }\n\n  .pb-2 {\n    padding-bottom: calc(var(--spacing) * 2);\n  }\n\n  .pb-3 {\n    padding-bottom: calc(var(--spacing) * 3);\n  }\n\n  .pb-4 {\n    padding-bottom: calc(var(--spacing) * 4);\n  }\n\n  .pl-2 {\n    padding-left: calc(var(--spacing) * 2);\n  }\n\n  .pl-3 {\n    padding-left: calc(var(--spacing) * 3);\n  }\n\n  .pl-4 {\n    padding-left: calc(var(--spacing) * 4);\n  }\n\n  .pl-6 {\n    padding-left: calc(var(--spacing) * 6);\n  }\n\n  .pl-8 {\n    padding-left: calc(var(--spacing) * 8);\n  }\n\n  .pl-\\[252px\\] {\n    padding-left: 252px;\n  }\n\n  .text-center {\n    text-align: center;\n  }\n\n  .text-left {\n    text-align: left;\n  }\n\n  .text-right {\n    text-align: right;\n  }\n\n  .align-middle {\n    vertical-align: middle;\n  }\n\n  .font-mono {\n    font-family: var(--font-mono);\n  }\n\n  .text-2xl {\n    font-size: var(--text-2xl);\n    line-height: var(--tw-leading, var(--text-2xl--line-height));\n  }\n\n  .text-base {\n    font-size: var(--text-base);\n    line-height: var(--tw-leading, var(--text-base--line-height));\n  }\n\n  .text-lg {\n    font-size: var(--text-lg);\n    line-height: var(--tw-leading, var(--text-lg--line-height));\n  }\n\n  .text-sm {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n\n  .text-xl {\n    font-size: var(--text-xl);\n    line-height: var(--tw-leading, var(--text-xl--line-height));\n  }\n\n  .text-xs {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .text-\\[0\\.8rem\\] {\n    font-size: .8rem;\n  }\n\n  .leading-none {\n    --tw-leading: 1;\n    line-height: 1;\n  }\n\n  .leading-tight {\n    --tw-leading: var(--leading-tight);\n    line-height: var(--leading-tight);\n  }\n\n  .font-bold {\n    --tw-font-weight: var(--font-weight-bold);\n    font-weight: var(--font-weight-bold);\n  }\n\n  .font-medium {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .font-normal {\n    --tw-font-weight: var(--font-weight-normal);\n    font-weight: var(--font-weight-normal);\n  }\n\n  .font-semibold {\n    --tw-font-weight: var(--font-weight-semibold);\n    font-weight: var(--font-weight-semibold);\n  }\n\n  .tracking-tight {\n    --tw-tracking: var(--tracking-tight);\n    letter-spacing: var(--tracking-tight);\n  }\n\n  .tracking-widest {\n    --tw-tracking: var(--tracking-widest);\n    letter-spacing: var(--tracking-widest);\n  }\n\n  .text-balance {\n    text-wrap: balance;\n  }\n\n  .break-words {\n    overflow-wrap: break-word;\n  }\n\n  .break-all {\n    word-break: break-all;\n  }\n\n  .whitespace-nowrap {\n    white-space: nowrap;\n  }\n\n  .whitespace-pre-wrap {\n    white-space: pre-wrap;\n  }\n\n  .text-accent-foreground {\n    color: var(--accent-foreground);\n  }\n\n  .text-amber-300 {\n    color: var(--color-amber-300);\n  }\n\n  .text-amber-400 {\n    color: var(--color-amber-400);\n  }\n\n  .text-amber-500 {\n    color: var(--color-amber-500);\n  }\n\n  .text-amber-800 {\n    color: var(--color-amber-800);\n  }\n\n  .text-blue-300 {\n    color: var(--color-blue-300);\n  }\n\n  .text-blue-400 {\n    color: var(--color-blue-400);\n  }\n\n  .text-blue-500 {\n    color: var(--color-blue-500);\n  }\n\n  .text-blue-800 {\n    color: var(--color-blue-800);\n  }\n\n  .text-card-foreground {\n    color: var(--card-foreground);\n  }\n\n  .text-current {\n    color: currentColor;\n  }\n\n  .text-cyan-300 {\n    color: var(--color-cyan-300);\n  }\n\n  .text-cyan-500 {\n    color: var(--color-cyan-500);\n  }\n\n  .text-destructive {\n    color: var(--destructive);\n  }\n\n  .text-emerald-300 {\n    color: var(--color-emerald-300);\n  }\n\n  .text-emerald-400 {\n    color: var(--color-emerald-400);\n  }\n\n  .text-foreground {\n    color: var(--foreground);\n  }\n\n  .text-gray-200 {\n    color: var(--color-gray-200);\n  }\n\n  .text-gray-300 {\n    color: var(--color-gray-300);\n  }\n\n  .text-gray-400 {\n    color: var(--color-gray-400);\n  }\n\n  .text-gray-500 {\n    color: var(--color-gray-500);\n  }\n\n  .text-gray-600 {\n    color: var(--color-gray-600);\n  }\n\n  .text-gray-800 {\n    color: var(--color-gray-800);\n  }\n\n  .text-green-200 {\n    color: var(--color-green-200);\n  }\n\n  .text-green-300 {\n    color: var(--color-green-300);\n  }\n\n  .text-green-400 {\n    color: var(--color-green-400);\n  }\n\n  .text-green-400\\/70 {\n    color: #05df72b3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-green-400\\/70 {\n      color: color-mix(in oklab, var(--color-green-400) 70%, transparent);\n    }\n  }\n\n  .text-green-500 {\n    color: var(--color-green-500);\n  }\n\n  .text-green-800 {\n    color: var(--color-green-800);\n  }\n\n  .text-indigo-500 {\n    color: var(--color-indigo-500);\n  }\n\n  .text-muted-foreground {\n    color: var(--muted-foreground);\n  }\n\n  .text-orange-200 {\n    color: var(--color-orange-200);\n  }\n\n  .text-orange-300 {\n    color: var(--color-orange-300);\n  }\n\n  .text-orange-300\\/70 {\n    color: #ffb96db3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-orange-300\\/70 {\n      color: color-mix(in oklab, var(--color-orange-300) 70%, transparent);\n    }\n  }\n\n  .text-orange-400 {\n    color: var(--color-orange-400);\n  }\n\n  .text-orange-500 {\n    color: var(--color-orange-500);\n  }\n\n  .text-pink-500 {\n    color: var(--color-pink-500);\n  }\n\n  .text-popover-foreground {\n    color: var(--popover-foreground);\n  }\n\n  .text-primary {\n    color: var(--primary);\n  }\n\n  .text-primary-foreground {\n    color: var(--primary-foreground);\n  }\n\n  .text-purple-400 {\n    color: var(--color-purple-400);\n  }\n\n  .text-purple-400\\/70 {\n    color: #c07effb3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-purple-400\\/70 {\n      color: color-mix(in oklab, var(--color-purple-400) 70%, transparent);\n    }\n  }\n\n  .text-purple-500 {\n    color: var(--color-purple-500);\n  }\n\n  .text-red-300 {\n    color: var(--color-red-300);\n  }\n\n  .text-red-400 {\n    color: var(--color-red-400);\n  }\n\n  .text-red-400\\/70 {\n    color: #ff6568b3;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-red-400\\/70 {\n      color: color-mix(in oklab, var(--color-red-400) 70%, transparent);\n    }\n  }\n\n  .text-red-500 {\n    color: var(--color-red-500);\n  }\n\n  .text-red-800 {\n    color: var(--color-red-800);\n  }\n\n  .text-secondary-foreground {\n    color: var(--secondary-foreground);\n  }\n\n  .text-sidebar-foreground, .text-sidebar-foreground\\/70 {\n    color: var(--sidebar-foreground);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .text-sidebar-foreground\\/70 {\n      color: color-mix(in oklab, var(--sidebar-foreground) 70%, transparent);\n    }\n  }\n\n  .text-white {\n    color: var(--color-white);\n  }\n\n  .text-yellow-200 {\n    color: var(--color-yellow-200);\n  }\n\n  .text-yellow-300 {\n    color: var(--color-yellow-300);\n  }\n\n  .text-yellow-400 {\n    color: var(--color-yellow-400);\n  }\n\n  .text-yellow-500 {\n    color: var(--color-yellow-500);\n  }\n\n  .capitalize {\n    text-transform: capitalize;\n  }\n\n  .italic {\n    font-style: italic;\n  }\n\n  .tabular-nums {\n    --tw-numeric-spacing: tabular-nums;\n    font-variant-numeric: var(--tw-ordinal, ) var(--tw-slashed-zero, ) var(--tw-numeric-figure, ) var(--tw-numeric-spacing, ) var(--tw-numeric-fraction, );\n  }\n\n  .underline-offset-4 {\n    text-underline-offset: 4px;\n  }\n\n  .placeholder-gray-400::placeholder {\n    color: var(--color-gray-400);\n  }\n\n  .placeholder-gray-600::placeholder {\n    color: var(--color-gray-600);\n  }\n\n  .opacity-0 {\n    opacity: 0;\n  }\n\n  .opacity-40 {\n    opacity: .4;\n  }\n\n  .opacity-50 {\n    opacity: .5;\n  }\n\n  .opacity-70 {\n    opacity: .7;\n  }\n\n  .shadow {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-\\[0_0_0_1px_hsl\\(var\\(--sidebar-border\\)\\)\\] {\n    --tw-shadow: 0 0 0 1px var(--tw-shadow-color, hsl(var(--sidebar-border)));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-lg {\n    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, #0000001a), 0 4px 6px -4px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-md {\n    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, #0000001a), 0 2px 4px -2px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-none {\n    --tw-shadow: 0 0 #0000;\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-sm {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-xl {\n    --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, #0000001a), 0 8px 10px -6px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-xs {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, #0000000d);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring-0 {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .ring-1 {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .shadow-black\\/15 {\n    --tw-shadow-color: #00000026;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-black\\/15 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 15%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .shadow-black\\/20 {\n    --tw-shadow-color: #0003;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-black\\/20 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 20%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .shadow-green-500\\/20 {\n    --tw-shadow-color: #00c75833;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .shadow-green-500\\/20 {\n      --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-green-500) 20%, transparent) var(--tw-shadow-alpha), transparent);\n    }\n  }\n\n  .ring-gray-500 {\n    --tw-ring-color: var(--color-gray-500);\n  }\n\n  .ring-ring\\/50 {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .ring-ring\\/50 {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .ring-sidebar-ring {\n    --tw-ring-color: var(--sidebar-ring);\n  }\n\n  .ring-offset-background {\n    --tw-ring-offset-color: var(--background);\n  }\n\n  .outline-hidden {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .outline-hidden {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .outline {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n\n  .filter {\n    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );\n  }\n\n  .backdrop-blur-sm {\n    --tw-backdrop-blur: blur(var(--blur-sm));\n    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n  }\n\n  .backdrop-blur-xl {\n    --tw-backdrop-blur: blur(var(--blur-xl));\n    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );\n  }\n\n  .transition {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, visibility, content-visibility, overlay, pointer-events;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[color\\,box-shadow\\] {\n    transition-property: color, box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[left\\,right\\,width\\] {\n    transition-property: left, right, width;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[margin\\,opacity\\] {\n    transition-property: margin, opacity;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[width\\,height\\,padding\\] {\n    transition-property: width, height, padding;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-\\[width\\] {\n    transition-property: width;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-all {\n    transition-property: all;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-colors {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-opacity {\n    transition-property: opacity;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-shadow {\n    transition-property: box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-transform {\n    transition-property: transform, translate, scale, rotate;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n\n  .transition-none {\n    transition-property: none;\n  }\n\n  .duration-150 {\n    --tw-duration: .15s;\n    transition-duration: .15s;\n  }\n\n  .duration-200 {\n    --tw-duration: .2s;\n    transition-duration: .2s;\n  }\n\n  .duration-300 {\n    --tw-duration: .3s;\n    transition-duration: .3s;\n  }\n\n  .duration-1000 {\n    --tw-duration: 1s;\n    transition-duration: 1s;\n  }\n\n  .ease-in-out {\n    --tw-ease: var(--ease-in-out);\n    transition-timing-function: var(--ease-in-out);\n  }\n\n  .ease-linear {\n    --tw-ease: linear;\n    transition-timing-function: linear;\n  }\n\n  .ease-out {\n    --tw-ease: var(--ease-out);\n    transition-timing-function: var(--ease-out);\n  }\n\n  .fade-in-0 {\n    --tw-enter-opacity: 0;\n  }\n\n  .outline-none {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  .select-none {\n    -webkit-user-select: none;\n    user-select: none;\n  }\n\n  .zoom-in-95 {\n    --tw-enter-scale: .95;\n  }\n\n  .\\[--cell-size\\:--spacing\\(8\\)\\] {\n    --cell-size: calc(var(--spacing) * 8);\n  }\n\n  .paused {\n    animation-play-state: paused;\n  }\n\n  .running {\n    animation-play-state: running;\n  }\n\n  .group-focus-within\\/menu-item\\:opacity-100:is(:where(.group\\/menu-item):focus-within *) {\n    opacity: 1;\n  }\n\n  @media (hover: hover) {\n    .group-hover\\:scale-110:is(:where(.group):hover *) {\n      --tw-scale-x: 110%;\n      --tw-scale-y: 110%;\n      --tw-scale-z: 110%;\n      scale: var(--tw-scale-x) var(--tw-scale-y);\n    }\n\n    .group-hover\\:text-gray-400:is(:where(.group):hover *) {\n      color: var(--color-gray-400);\n    }\n\n    .group-hover\\:opacity-25:is(:where(.group):hover *) {\n      opacity: .25;\n    }\n\n    .group-hover\\:opacity-100:is(:where(.group):hover *), .group-hover\\/menu-item\\:opacity-100:is(:where(.group\\/menu-item):hover *) {\n      opacity: 1;\n    }\n  }\n\n  .group-has-data-\\[sidebar\\=menu-action\\]\\/menu-item\\:pr-8:is(:where(.group\\/menu-item):has([data-sidebar="menu-action"]) *) {\n    padding-right: calc(var(--spacing) * 8);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:-mt-8:is(:where(.group)[data-collapsible="icon"] *) {\n    margin-top: calc(var(--spacing) * -8);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:hidden:is(:where(.group)[data-collapsible="icon"] *) {\n    display: none;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:size-8\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--spacing) * 8) !important;\n    height: calc(var(--spacing) * 8) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\(--sidebar-width-icon\\):is(:where(.group)[data-collapsible="icon"] *) {\n    width: var(--sidebar-width-icon);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\[calc\\(var\\(--sidebar-width-icon\\)\\+\\(--spacing\\(4\\)\\)\\)\\]:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--sidebar-width-icon)  + (calc(var(--spacing) * 4)));\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:w-\\[calc\\(var\\(--sidebar-width-icon\\)\\+\\(--spacing\\(4\\)\\)\\+2px\\)\\]:is(:where(.group)[data-collapsible="icon"] *) {\n    width: calc(var(--sidebar-width-icon)  + (calc(var(--spacing) * 4))  + 2px);\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:overflow-hidden:is(:where(.group)[data-collapsible="icon"] *) {\n    overflow: hidden;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:p-0\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    padding: calc(var(--spacing) * 0) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:p-2\\!:is(:where(.group)[data-collapsible="icon"] *) {\n    padding: calc(var(--spacing) * 2) !important;\n  }\n\n  .group-data-\\[collapsible\\=icon\\]\\:opacity-0:is(:where(.group)[data-collapsible="icon"] *) {\n    opacity: 0;\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:right-\\[calc\\(var\\(--sidebar-width\\)\\*-1\\)\\]:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    right: calc(var(--sidebar-width) * -1);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:left-\\[calc\\(var\\(--sidebar-width\\)\\*-1\\)\\]:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    left: calc(var(--sidebar-width) * -1);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:w-0:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    width: calc(var(--spacing) * 0);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:translate-x-0:is(:where(.group)[data-collapsible="offcanvas"] *) {\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .group-data-\\[disabled\\=true\\]\\:pointer-events-none:is(:where(.group)[data-disabled="true"] *) {\n    pointer-events: none;\n  }\n\n  .group-data-\\[disabled\\=true\\]\\:opacity-50:is(:where(.group)[data-disabled="true"] *) {\n    opacity: .5;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:relative:is(:where(.group\\/day)[data-focused="true"] *) {\n    position: relative;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:z-10:is(:where(.group\\/day)[data-focused="true"] *) {\n    z-index: 10;\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:border-ring:is(:where(.group\\/day)[data-focused="true"] *) {\n    border-color: var(--ring);\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:ring-\\[3px\\]:is(:where(.group\\/day)[data-focused="true"] *) {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[focused\\=true\\]\\/day\\:ring-ring\\/50:is(:where(.group\\/day)[data-focused="true"] *) {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .group-data-\\[focused\\=true\\]\\/day\\:ring-ring\\/50:is(:where(.group\\/day)[data-focused="true"] *) {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .group-data-\\[side\\=left\\]\\:-right-4:is(:where(.group)[data-side="left"] *) {\n    right: calc(var(--spacing) * -4);\n  }\n\n  .group-data-\\[side\\=left\\]\\:border-r:is(:where(.group)[data-side="left"] *) {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .group-data-\\[side\\=right\\]\\:left-0:is(:where(.group)[data-side="right"] *) {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .group-data-\\[side\\=right\\]\\:rotate-180:is(:where(.group)[data-side="right"] *) {\n    rotate: 180deg;\n  }\n\n  .group-data-\\[side\\=right\\]\\:border-l:is(:where(.group)[data-side="right"] *) {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .group-data-\\[state\\=open\\]\\:rotate-180:is(:where(.group)[data-state="open"] *) {\n    rotate: 180deg;\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:rounded-lg:is(:where(.group)[data-variant="floating"] *) {\n    border-radius: var(--radius);\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:border:is(:where(.group)[data-variant="floating"] *) {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:border-sidebar-border:is(:where(.group)[data-variant="floating"] *) {\n    border-color: var(--sidebar-border);\n  }\n\n  .group-data-\\[variant\\=floating\\]\\:shadow-sm:is(:where(.group)[data-variant="floating"] *) {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[vaul-drawer-direction\\=bottom\\]\\/drawer-content\\:block:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="bottom"] *) {\n    display: block;\n  }\n\n  .group-data-\\[vaul-drawer-direction\\=bottom\\]\\/drawer-content\\:text-center:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="bottom"] *), .group-data-\\[vaul-drawer-direction\\=top\\]\\/drawer-content\\:text-center:is(:where(.group\\/drawer-content)[data-vaul-drawer-direction="top"] *) {\n    text-align: center;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:top-full:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    top: 100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:mt-1\\.5:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    margin-top: calc(var(--spacing) * 1.5);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:overflow-hidden:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    overflow: hidden;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:rounded-md:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:border:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:bg-popover:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    background-color: var(--popover);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:text-popover-foreground:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    color: var(--popover-foreground);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:shadow:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:duration-200:is(:where(.group\\/navigation-menu)[data-viewport="false"] *) {\n    --tw-duration: .2s;\n    transition-duration: .2s;\n  }\n\n  @media (hover: hover) {\n    .peer-hover\\/menu-button\\:text-sidebar-accent-foreground:is(:where(.peer\\/menu-button):hover ~ *) {\n      color: var(--sidebar-accent-foreground);\n    }\n  }\n\n  .peer-disabled\\:cursor-not-allowed:is(:where(.peer):disabled ~ *) {\n    cursor: not-allowed;\n  }\n\n  .peer-disabled\\:opacity-50:is(:where(.peer):disabled ~ *) {\n    opacity: .5;\n  }\n\n  .peer-data-\\[active\\=true\\]\\/menu-button\\:text-sidebar-accent-foreground:is(:where(.peer\\/menu-button)[data-active="true"] ~ *) {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .peer-data-\\[size\\=default\\]\\/menu-button\\:top-1\\.5:is(:where(.peer\\/menu-button)[data-size="default"] ~ *) {\n    top: calc(var(--spacing) * 1.5);\n  }\n\n  .peer-data-\\[size\\=lg\\]\\/menu-button\\:top-2\\.5:is(:where(.peer\\/menu-button)[data-size="lg"] ~ *) {\n    top: calc(var(--spacing) * 2.5);\n  }\n\n  .peer-data-\\[size\\=sm\\]\\/menu-button\\:top-1:is(:where(.peer\\/menu-button)[data-size="sm"] ~ *) {\n    top: calc(var(--spacing) * 1);\n  }\n\n  .selection\\:bg-primary ::selection {\n    background-color: var(--primary);\n  }\n\n  .selection\\:bg-primary::selection {\n    background-color: var(--primary);\n  }\n\n  .selection\\:text-primary-foreground ::selection {\n    color: var(--primary-foreground);\n  }\n\n  .selection\\:text-primary-foreground::selection {\n    color: var(--primary-foreground);\n  }\n\n  .file\\:inline-flex::file-selector-button {\n    display: inline-flex;\n  }\n\n  .file\\:h-7::file-selector-button {\n    height: calc(var(--spacing) * 7);\n  }\n\n  .file\\:border-0::file-selector-button {\n    border-style: var(--tw-border-style);\n    border-width: 0;\n  }\n\n  .file\\:bg-transparent::file-selector-button {\n    background-color: #0000;\n  }\n\n  .file\\:text-sm::file-selector-button {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n\n  .file\\:font-medium::file-selector-button {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .file\\:text-foreground::file-selector-button {\n    color: var(--foreground);\n  }\n\n  .placeholder\\:text-gray-500::placeholder {\n    color: var(--color-gray-500);\n  }\n\n  .placeholder\\:text-muted-foreground::placeholder {\n    color: var(--muted-foreground);\n  }\n\n  .after\\:absolute:after {\n    content: var(--tw-content);\n    position: absolute;\n  }\n\n  .after\\:-inset-2:after {\n    content: var(--tw-content);\n    inset: calc(var(--spacing) * -2);\n  }\n\n  .after\\:inset-y-0:after {\n    content: var(--tw-content);\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .after\\:left-1\\/2:after {\n    content: var(--tw-content);\n    left: 50%;\n  }\n\n  .after\\:w-1:after {\n    content: var(--tw-content);\n    width: calc(var(--spacing) * 1);\n  }\n\n  .after\\:w-\\[2px\\]:after {\n    content: var(--tw-content);\n    width: 2px;\n  }\n\n  .after\\:-translate-x-1\\/2:after {\n    content: var(--tw-content);\n    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .group-data-\\[collapsible\\=offcanvas\\]\\:after\\:left-full:is(:where(.group)[data-collapsible="offcanvas"] *):after {\n    content: var(--tw-content);\n    left: 100%;\n  }\n\n  .first\\:rounded-l-md:first-child {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .first\\:border-l:first-child {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .last\\:rounded-r-md:last-child {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .last\\:border-b-0:last-child {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 0;\n  }\n\n  @media (hover: hover) {\n    .hover\\:border-blue-400:hover {\n      border-color: var(--color-blue-400);\n    }\n\n    .hover\\:border-blue-700:hover {\n      border-color: var(--color-blue-700);\n    }\n\n    .hover\\:border-gray-400:hover {\n      border-color: var(--color-gray-400);\n    }\n\n    .hover\\:border-gray-500:hover {\n      border-color: var(--color-gray-500);\n    }\n\n    .hover\\:border-green-400:hover {\n      border-color: var(--color-green-400);\n    }\n\n    .hover\\:border-orange-400:hover {\n      border-color: var(--color-orange-400);\n    }\n\n    .hover\\:border-red-400:hover {\n      border-color: var(--color-red-400);\n    }\n\n    .hover\\:border-red-500:hover {\n      border-color: var(--color-red-500);\n    }\n\n    .hover\\:border-yellow-400:hover {\n      border-color: var(--color-yellow-400);\n    }\n\n    .hover\\:bg-accent:hover {\n      background-color: var(--accent);\n    }\n\n    .hover\\:bg-blue-500:hover {\n      background-color: var(--color-blue-500);\n    }\n\n    .hover\\:bg-blue-600:hover {\n      background-color: var(--color-blue-600);\n    }\n\n    .hover\\:bg-blue-700:hover {\n      background-color: var(--color-blue-700);\n    }\n\n    .hover\\:bg-blue-800\\/30:hover {\n      background-color: #193cb84d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-800\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-blue-800) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-blue-900\\/20:hover {\n      background-color: #1c398e33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-blue-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-blue-900\\/60:hover {\n      background-color: #1c398e99;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-blue-900\\/60:hover {\n        background-color: color-mix(in oklab, var(--color-blue-900) 60%, transparent);\n      }\n    }\n\n    .hover\\:bg-cyan-500\\/20:hover {\n      background-color: #00b7d733;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-cyan-500\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-cyan-500) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-destructive\\/90:hover {\n      background-color: var(--destructive);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-destructive\\/90:hover {\n        background-color: color-mix(in oklab, var(--destructive) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-emerald-900\\/60:hover {\n      background-color: #004e3b99;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-emerald-900\\/60:hover {\n        background-color: color-mix(in oklab, var(--color-emerald-900) 60%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-500:hover {\n      background-color: var(--color-gray-500);\n    }\n\n    .hover\\:bg-gray-600:hover {\n      background-color: var(--color-gray-600);\n    }\n\n    .hover\\:bg-gray-700:hover {\n      background-color: var(--color-gray-700);\n    }\n\n    .hover\\:bg-gray-700\\/20:hover {\n      background-color: #36415333;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/30:hover {\n      background-color: #3641534d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/50:hover {\n      background-color: #36415380;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-700\\/90:hover {\n      background-color: #364153e6;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-700\\/90:hover {\n        background-color: color-mix(in oklab, var(--color-gray-700) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-800:hover {\n      background-color: var(--color-gray-800);\n    }\n\n    .hover\\:bg-gray-800\\/50:hover {\n      background-color: #1e293980;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-800\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-gray-800) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-gray-800\\/60:hover {\n      background-color: #1e293999;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-gray-800\\/60:hover {\n        background-color: color-mix(in oklab, var(--color-gray-800) 60%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-500\\/25:hover {\n      background-color: #00c75840;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-green-500\\/25:hover {\n        background-color: color-mix(in oklab, var(--color-green-500) 25%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-600\\/20:hover {\n      background-color: #00a54433;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-green-600\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-green-600) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-green-700:hover {\n      background-color: var(--color-green-700);\n    }\n\n    .hover\\:bg-muted:hover, .hover\\:bg-muted\\/50:hover {\n      background-color: var(--muted);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-muted\\/50:hover {\n        background-color: color-mix(in oklab, var(--muted) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-orange-600\\/30:hover {\n      background-color: #f051004d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-orange-600\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-orange-600) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-orange-900\\/20:hover {\n      background-color: #7e2a0c33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-orange-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-orange-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-primary\\/90:hover {\n      background-color: var(--primary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-primary\\/90:hover {\n        background-color: color-mix(in oklab, var(--primary) 90%, transparent);\n      }\n    }\n\n    .hover\\:bg-purple-500\\/12:hover {\n      background-color: #ac4bff1f;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-purple-500\\/12:hover {\n        background-color: color-mix(in oklab, var(--color-purple-500) 12%, transparent);\n      }\n    }\n\n    .hover\\:bg-purple-500\\/25:hover {\n      background-color: #ac4bff40;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-purple-500\\/25:hover {\n        background-color: color-mix(in oklab, var(--color-purple-500) 25%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-600:hover {\n      background-color: var(--color-red-600);\n    }\n\n    .hover\\:bg-red-800\\/30:hover {\n      background-color: #9f07124d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-800\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-red-800) 30%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-900\\/15:hover {\n      background-color: #82181a26;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-900\\/15:hover {\n        background-color: color-mix(in oklab, var(--color-red-900) 15%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-900\\/20:hover {\n      background-color: #82181a33;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-900\\/20:hover {\n        background-color: color-mix(in oklab, var(--color-red-900) 20%, transparent);\n      }\n    }\n\n    .hover\\:bg-red-950\\/50:hover {\n      background-color: #46080980;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-red-950\\/50:hover {\n        background-color: color-mix(in oklab, var(--color-red-950) 50%, transparent);\n      }\n    }\n\n    .hover\\:bg-secondary\\/80:hover {\n      background-color: var(--secondary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-secondary\\/80:hover {\n        background-color: color-mix(in oklab, var(--secondary) 80%, transparent);\n      }\n    }\n\n    .hover\\:bg-sidebar-accent:hover {\n      background-color: var(--sidebar-accent);\n    }\n\n    .hover\\:bg-white\\/10:hover {\n      background-color: #ffffff1a;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-white\\/10:hover {\n        background-color: color-mix(in oklab, var(--color-white) 10%, transparent);\n      }\n    }\n\n    .hover\\:bg-yellow-600\\/30:hover {\n      background-color: #cd89004d;\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .hover\\:bg-yellow-600\\/30:hover {\n        background-color: color-mix(in oklab, var(--color-yellow-600) 30%, transparent);\n      }\n    }\n\n    .hover\\:text-accent-foreground:hover {\n      color: var(--accent-foreground);\n    }\n\n    .hover\\:text-blue-300:hover {\n      color: var(--color-blue-300);\n    }\n\n    .hover\\:text-foreground:hover {\n      color: var(--foreground);\n    }\n\n    .hover\\:text-gray-200:hover {\n      color: var(--color-gray-200);\n    }\n\n    .hover\\:text-gray-300:hover {\n      color: var(--color-gray-300);\n    }\n\n    .hover\\:text-gray-400:hover {\n      color: var(--color-gray-400);\n    }\n\n    .hover\\:text-green-200:hover {\n      color: var(--color-green-200);\n    }\n\n    .hover\\:text-muted-foreground:hover {\n      color: var(--muted-foreground);\n    }\n\n    .hover\\:text-orange-200:hover {\n      color: var(--color-orange-200);\n    }\n\n    .hover\\:text-orange-300:hover {\n      color: var(--color-orange-300);\n    }\n\n    .hover\\:text-purple-300:hover {\n      color: var(--color-purple-300);\n    }\n\n    .hover\\:text-red-300:hover {\n      color: var(--color-red-300);\n    }\n\n    .hover\\:text-red-400:hover {\n      color: var(--color-red-400);\n    }\n\n    .hover\\:text-sidebar-accent-foreground:hover {\n      color: var(--sidebar-accent-foreground);\n    }\n\n    .hover\\:text-white:hover {\n      color: var(--color-white);\n    }\n\n    .hover\\:text-yellow-200:hover {\n      color: var(--color-yellow-200);\n    }\n\n    .hover\\:underline:hover {\n      text-decoration-line: underline;\n    }\n\n    .hover\\:opacity-100:hover {\n      opacity: 1;\n    }\n\n    .hover\\:shadow-\\[0_0_0_1px_hsl\\(var\\(--sidebar-accent\\)\\)\\]:hover {\n      --tw-shadow: 0 0 0 1px var(--tw-shadow-color, hsl(var(--sidebar-accent)));\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .hover\\:ring-4:hover {\n      --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .hover\\:group-data-\\[collapsible\\=offcanvas\\]\\:bg-sidebar:hover:is(:where(.group)[data-collapsible="offcanvas"] *) {\n      background-color: var(--sidebar);\n    }\n\n    .hover\\:after\\:bg-sidebar-border:hover:after {\n      content: var(--tw-content);\n      background-color: var(--sidebar-border);\n    }\n  }\n\n  .focus\\:z-10:focus {\n    z-index: 10;\n  }\n\n  .focus\\:bg-accent:focus {\n    background-color: var(--accent);\n  }\n\n  .focus\\:text-accent-foreground:focus {\n    color: var(--accent-foreground);\n  }\n\n  .focus\\:ring-2:focus {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus\\:ring-blue-500\\/60:focus {\n    --tw-ring-color: #3080ff99;\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus\\:ring-blue-500\\/60:focus {\n      --tw-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent);\n    }\n  }\n\n  .focus\\:ring-ring:focus {\n    --tw-ring-color: var(--ring);\n  }\n\n  .focus\\:ring-offset-2:focus {\n    --tw-ring-offset-width: 2px;\n    --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n  }\n\n  .focus\\:outline-hidden:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .focus\\:outline-hidden:focus {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .focus\\:outline-none:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  .focus-visible\\:z-10:focus-visible {\n    z-index: 10;\n  }\n\n  .focus-visible\\:border-ring:focus-visible {\n    border-color: var(--ring);\n  }\n\n  .focus-visible\\:ring-1:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-2:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-4:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-\\[3px\\]:focus-visible {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .focus-visible\\:ring-destructive\\/20:focus-visible {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus-visible\\:ring-destructive\\/20:focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .focus-visible\\:ring-ring:focus-visible, .focus-visible\\:ring-ring\\/50:focus-visible {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .focus-visible\\:ring-ring\\/50:focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .focus-visible\\:ring-offset-1:focus-visible {\n    --tw-ring-offset-width: 1px;\n    --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n  }\n\n  .focus-visible\\:outline-hidden:focus-visible {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  @media (forced-colors: active) {\n    .focus-visible\\:outline-hidden:focus-visible {\n      outline-offset: 2px;\n      outline: 2px solid #0000;\n    }\n  }\n\n  .focus-visible\\:outline-1:focus-visible {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n\n  .focus-visible\\:outline-ring:focus-visible {\n    outline-color: var(--ring);\n  }\n\n  .active\\:cursor-grabbing:active {\n    cursor: grabbing;\n  }\n\n  .active\\:bg-sidebar-accent:active {\n    background-color: var(--sidebar-accent);\n  }\n\n  .active\\:text-sidebar-accent-foreground:active {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .disabled\\:pointer-events-none:disabled {\n    pointer-events: none;\n  }\n\n  .disabled\\:cursor-not-allowed:disabled {\n    cursor: not-allowed;\n  }\n\n  .disabled\\:bg-gray-600:disabled {\n    background-color: var(--color-gray-600);\n  }\n\n  .disabled\\:opacity-40:disabled {\n    opacity: .4;\n  }\n\n  .disabled\\:opacity-50:disabled {\n    opacity: .5;\n  }\n\n  :where([data-side="left"]) .in-data-\\[side\\=left\\]\\:cursor-w-resize {\n    cursor: w-resize;\n  }\n\n  :where([data-side="right"]) .in-data-\\[side\\=right\\]\\:cursor-e-resize {\n    cursor: e-resize;\n  }\n\n  .has-focus\\:border-ring:has(:focus) {\n    border-color: var(--ring);\n  }\n\n  .has-focus\\:ring-\\[3px\\]:has(:focus) {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .has-focus\\:ring-ring\\/50:has(:focus) {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .has-focus\\:ring-ring\\/50:has(:focus) {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  .has-disabled\\:opacity-50:has(:disabled) {\n    opacity: .5;\n  }\n\n  .has-data-\\[slot\\=card-action\\]\\:grid-cols-\\[1fr_auto\\]:has([data-slot="card-action"]) {\n    grid-template-columns: 1fr auto;\n  }\n\n  .has-data-\\[variant\\=inset\\]\\:bg-sidebar:has([data-variant="inset"]) {\n    background-color: var(--sidebar);\n  }\n\n  .has-\\[\\>svg\\]\\:grid-cols-\\[calc\\(var\\(--spacing\\)\\*4\\)_1fr\\]:has( > svg) {\n    grid-template-columns: calc(var(--spacing) * 4) 1fr;\n  }\n\n  .has-\\[\\>svg\\]\\:gap-x-3:has( > svg) {\n    column-gap: calc(var(--spacing) * 3);\n  }\n\n  .has-\\[\\>svg\\]\\:px-2\\.5:has( > svg) {\n    padding-inline: calc(var(--spacing) * 2.5);\n  }\n\n  .has-\\[\\>svg\\]\\:px-3:has( > svg) {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n\n  .has-\\[\\>svg\\]\\:px-4:has( > svg) {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n\n  .aria-disabled\\:pointer-events-none[aria-disabled="true"] {\n    pointer-events: none;\n  }\n\n  .aria-disabled\\:opacity-50[aria-disabled="true"] {\n    opacity: .5;\n  }\n\n  .aria-invalid\\:border-destructive[aria-invalid="true"] {\n    border-color: var(--destructive);\n  }\n\n  .aria-invalid\\:ring-destructive\\/20[aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .aria-invalid\\:ring-destructive\\/20[aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .aria-selected\\:text-muted-foreground[aria-selected="true"] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:z-10[data-active="true"] {\n    z-index: 10;\n  }\n\n  .data-\\[active\\=true\\]\\:border-ring[data-active="true"] {\n    border-color: var(--ring);\n  }\n\n  .data-\\[active\\=true\\]\\:bg-accent\\/50[data-active="true"] {\n    background-color: var(--accent);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:bg-accent\\/50[data-active="true"] {\n      background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n    }\n  }\n\n  .data-\\[active\\=true\\]\\:bg-sidebar-accent[data-active="true"] {\n    background-color: var(--sidebar-accent);\n  }\n\n  .data-\\[active\\=true\\]\\:font-medium[data-active="true"] {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .data-\\[active\\=true\\]\\:text-accent-foreground[data-active="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:text-sidebar-accent-foreground[data-active="true"] {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .data-\\[active\\=true\\]\\:ring-\\[3px\\][data-active="true"] {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[active\\=true\\]\\:ring-ring\\/50[data-active="true"] {\n    --tw-ring-color: var(--ring);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:ring-ring\\/50[data-active="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);\n    }\n  }\n\n  @media (hover: hover) {\n    .data-\\[active\\=true\\]\\:hover\\:bg-accent[data-active="true"]:hover {\n      background-color: var(--accent);\n    }\n  }\n\n  .data-\\[active\\=true\\]\\:focus\\:bg-accent[data-active="true"]:focus {\n    background-color: var(--accent);\n  }\n\n  .data-\\[active\\=true\\]\\:aria-invalid\\:border-destructive[data-active="true"][aria-invalid="true"] {\n    border-color: var(--destructive);\n  }\n\n  .data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/20[data-active="true"][aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/20[data-active="true"][aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .data-\\[disabled\\]\\:pointer-events-none[data-disabled] {\n    pointer-events: none;\n  }\n\n  .data-\\[disabled\\]\\:opacity-50[data-disabled] {\n    opacity: .5;\n  }\n\n  .data-\\[disabled\\=true\\]\\:pointer-events-none[data-disabled="true"] {\n    pointer-events: none;\n  }\n\n  .data-\\[disabled\\=true\\]\\:opacity-50[data-disabled="true"] {\n    opacity: .5;\n  }\n\n  .data-\\[error\\=true\\]\\:text-destructive[data-error="true"] {\n    color: var(--destructive);\n  }\n\n  .data-\\[inset\\]\\:pl-8[data-inset] {\n    padding-left: calc(var(--spacing) * 8);\n  }\n\n  .data-\\[motion\\=from-end\\]\\:slide-in-from-right-52[data-motion="from-end"] {\n    --tw-enter-translate-x: calc(52 * var(--spacing));\n  }\n\n  .data-\\[motion\\=from-start\\]\\:slide-in-from-left-52[data-motion="from-start"] {\n    --tw-enter-translate-x: calc(52 * var(--spacing) * -1);\n  }\n\n  .data-\\[motion\\=to-end\\]\\:slide-out-to-right-52[data-motion="to-end"] {\n    --tw-exit-translate-x: calc(52 * var(--spacing));\n  }\n\n  .data-\\[motion\\=to-start\\]\\:slide-out-to-left-52[data-motion="to-start"] {\n    --tw-exit-translate-x: calc(52 * var(--spacing) * -1);\n  }\n\n  .data-\\[motion\\^\\=from-\\]\\:animate-in[data-motion^="from-"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[motion\\^\\=from-\\]\\:fade-in[data-motion^="from-"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[motion\\^\\=to-\\]\\:animate-out[data-motion^="to-"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[motion\\^\\=to-\\]\\:fade-out[data-motion^="to-"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-1\\.5[data-orientation="horizontal"] {\n    height: calc(var(--spacing) * 1.5);\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-full[data-orientation="horizontal"] {\n    height: 100%;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:h-px[data-orientation="horizontal"] {\n    height: 1px;\n  }\n\n  .data-\\[orientation\\=horizontal\\]\\:w-full[data-orientation="horizontal"] {\n    width: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:h-full[data-orientation="vertical"] {\n    height: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:min-h-44[data-orientation="vertical"] {\n    min-height: calc(var(--spacing) * 44);\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-1\\.5[data-orientation="vertical"] {\n    width: calc(var(--spacing) * 1.5);\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-auto[data-orientation="vertical"] {\n    width: auto;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-full[data-orientation="vertical"] {\n    width: 100%;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:w-px[data-orientation="vertical"] {\n    width: 1px;\n  }\n\n  .data-\\[orientation\\=vertical\\]\\:flex-col[data-orientation="vertical"] {\n    flex-direction: column;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:h-px[data-panel-group-direction="vertical"] {\n    height: 1px;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:w-full[data-panel-group-direction="vertical"] {\n    width: 100%;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:flex-col[data-panel-group-direction="vertical"] {\n    flex-direction: column;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:left-0[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    left: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:h-1[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    height: calc(var(--spacing) * 1);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:w-full[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    width: 100%;\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:translate-x-0[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[panel-group-direction\\=vertical\\]\\:after\\:-translate-y-1\\/2[data-panel-group-direction="vertical"]:after {\n    content: var(--tw-content);\n    --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[placeholder\\]\\:text-muted-foreground[data-placeholder] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[range-end\\=true\\]\\:rounded-md[data-range-end="true"] {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-end\\=true\\]\\:rounded-r-md[data-range-end="true"] {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-end\\=true\\]\\:bg-primary[data-range-end="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[range-end\\=true\\]\\:text-primary-foreground[data-range-end="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[range-middle\\=true\\]\\:rounded-none[data-range-middle="true"] {\n    border-radius: 0;\n  }\n\n  .data-\\[range-middle\\=true\\]\\:bg-accent[data-range-middle="true"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[range-middle\\=true\\]\\:text-accent-foreground[data-range-middle="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[range-start\\=true\\]\\:rounded-md[data-range-start="true"] {\n    border-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-start\\=true\\]\\:rounded-l-md[data-range-start="true"] {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .data-\\[range-start\\=true\\]\\:bg-primary[data-range-start="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[range-start\\=true\\]\\:text-primary-foreground[data-range-start="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[selected-single\\=true\\]\\:bg-primary[data-selected-single="true"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[selected-single\\=true\\]\\:text-primary-foreground[data-selected-single="true"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[selected\\=true\\]\\:rounded-none[data-selected="true"] {\n    border-radius: 0;\n  }\n\n  .data-\\[selected\\=true\\]\\:bg-accent[data-selected="true"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[selected\\=true\\]\\:text-accent-foreground[data-selected="true"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[side\\=bottom\\]\\:translate-y-1[data-side="bottom"] {\n    --tw-translate-y: calc(var(--spacing) * 1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=bottom\\]\\:slide-in-from-top-2[data-side="bottom"] {\n    --tw-enter-translate-y: calc(2 * var(--spacing) * -1);\n  }\n\n  .data-\\[side\\=left\\]\\:-translate-x-1[data-side="left"] {\n    --tw-translate-x: calc(var(--spacing) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=left\\]\\:slide-in-from-right-2[data-side="left"] {\n    --tw-enter-translate-x: calc(2 * var(--spacing));\n  }\n\n  .data-\\[side\\=right\\]\\:translate-x-1[data-side="right"] {\n    --tw-translate-x: calc(var(--spacing) * 1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=right\\]\\:slide-in-from-left-2[data-side="right"] {\n    --tw-enter-translate-x: calc(2 * var(--spacing) * -1);\n  }\n\n  .data-\\[side\\=top\\]\\:-translate-y-1[data-side="top"] {\n    --tw-translate-y: calc(var(--spacing) * -1);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[side\\=top\\]\\:slide-in-from-bottom-2[data-side="top"] {\n    --tw-enter-translate-y: calc(2 * var(--spacing));\n  }\n\n  .data-\\[size\\=default\\]\\:h-9[data-size="default"] {\n    height: calc(var(--spacing) * 9);\n  }\n\n  .data-\\[size\\=sm\\]\\:h-8[data-size="sm"] {\n    height: calc(var(--spacing) * 8);\n  }\n\n  :is(.\\*\\:data-\\[slot\\=alert-description\\]\\:text-destructive\\/90 > *)[data-slot="alert-description"] {\n    color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    :is(.\\*\\:data-\\[slot\\=alert-description\\]\\:text-destructive\\/90 > *)[data-slot="alert-description"] {\n      color: color-mix(in oklab, var(--destructive) 90%, transparent);\n    }\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=command-input-wrapper\\]\\:h-12 *)[data-slot="command-input-wrapper"] {\n    height: calc(var(--spacing) * 12);\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=navigation-menu-link\\]\\:focus\\:ring-0 *)[data-slot="navigation-menu-link"]:focus {\n    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  :is(.\\*\\*\\:data-\\[slot\\=navigation-menu-link\\]\\:focus\\:outline-none *)[data-slot="navigation-menu-link"]:focus {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:line-clamp-1 > *)[data-slot="select-value"] {\n    -webkit-line-clamp: 1;\n    -webkit-box-orient: vertical;\n    display: -webkit-box;\n    overflow: hidden;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:flex > *)[data-slot="select-value"] {\n    display: flex;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:items-center > *)[data-slot="select-value"] {\n    align-items: center;\n  }\n\n  :is(.\\*\\:data-\\[slot\\=select-value\\]\\:gap-2 > *)[data-slot="select-value"] {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  .data-\\[state\\=active\\]\\:bg-background[data-state="active"] {\n    background-color: var(--background);\n  }\n\n  .data-\\[state\\=active\\]\\:shadow-sm[data-state="active"] {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[state\\=checked\\]\\:translate-x-\\[calc\\(100\\%-2px\\)\\][data-state="checked"] {\n    --tw-translate-x: calc(100% - 2px);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[state\\=checked\\]\\:border-primary[data-state="checked"] {\n    border-color: var(--primary);\n  }\n\n  .data-\\[state\\=checked\\]\\:bg-primary[data-state="checked"] {\n    background-color: var(--primary);\n  }\n\n  .data-\\[state\\=checked\\]\\:text-primary-foreground[data-state="checked"] {\n    color: var(--primary-foreground);\n  }\n\n  .data-\\[state\\=closed\\]\\:animate-accordion-up[data-state="closed"] {\n    animation: accordion-up var(--tw-animation-duration, var(--tw-duration, .2s)) ease-out;\n  }\n\n  .data-\\[state\\=closed\\]\\:animate-out[data-state="closed"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=closed\\]\\:duration-300[data-state="closed"] {\n    --tw-duration: .3s;\n    transition-duration: .3s;\n  }\n\n  .data-\\[state\\=closed\\]\\:fade-out-0[data-state="closed"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[state\\=closed\\]\\:zoom-out-95[data-state="closed"] {\n    --tw-exit-scale: .95;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-bottom[data-state="closed"] {\n    --tw-exit-translate-y: 100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-left[data-state="closed"] {\n    --tw-exit-translate-x: -100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-right[data-state="closed"] {\n    --tw-exit-translate-x: 100%;\n  }\n\n  .data-\\[state\\=closed\\]\\:slide-out-to-top[data-state="closed"] {\n    --tw-exit-translate-y: -100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:animate-out:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:fade-out-0:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=closed\\]\\:zoom-out-95:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="closed"] {\n    --tw-exit-scale: .95;\n  }\n\n  .data-\\[state\\=hidden\\]\\:animate-out[data-state="hidden"] {\n    animation: exit var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=hidden\\]\\:fade-out[data-state="hidden"] {\n    --tw-exit-opacity: 0;\n  }\n\n  .data-\\[state\\=on\\]\\:bg-accent[data-state="on"] {\n    background-color: var(--accent);\n  }\n\n  .data-\\[state\\=on\\]\\:text-accent-foreground[data-state="on"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:animate-accordion-down[data-state="open"] {\n    animation: accordion-down var(--tw-animation-duration, var(--tw-duration, .2s)) ease-out;\n  }\n\n  .data-\\[state\\=open\\]\\:animate-in[data-state="open"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=open\\]\\:bg-accent[data-state="open"], .data-\\[state\\=open\\]\\:bg-accent\\/50[data-state="open"] {\n    background-color: var(--accent);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[state\\=open\\]\\:bg-accent\\/50[data-state="open"] {\n      background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n    }\n  }\n\n  .data-\\[state\\=open\\]\\:bg-secondary[data-state="open"] {\n    background-color: var(--secondary);\n  }\n\n  .data-\\[state\\=open\\]\\:text-accent-foreground[data-state="open"] {\n    color: var(--accent-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:text-muted-foreground[data-state="open"] {\n    color: var(--muted-foreground);\n  }\n\n  .data-\\[state\\=open\\]\\:opacity-100[data-state="open"] {\n    opacity: 1;\n  }\n\n  .data-\\[state\\=open\\]\\:duration-500[data-state="open"] {\n    --tw-duration: .5s;\n    transition-duration: .5s;\n  }\n\n  .data-\\[state\\=open\\]\\:fade-in-0[data-state="open"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[state\\=open\\]\\:zoom-in-90[data-state="open"] {\n    --tw-enter-scale: .9;\n  }\n\n  .data-\\[state\\=open\\]\\:zoom-in-95[data-state="open"] {\n    --tw-enter-scale: .95;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-bottom[data-state="open"] {\n    --tw-enter-translate-y: 100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-left[data-state="open"] {\n    --tw-enter-translate-x: -100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-right[data-state="open"] {\n    --tw-enter-translate-x: 100%;\n  }\n\n  .data-\\[state\\=open\\]\\:slide-in-from-top[data-state="open"] {\n    --tw-enter-translate-y: -100%;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:animate-in:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:fade-in-0:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .group-data-\\[viewport\\=false\\]\\/navigation-menu\\:data-\\[state\\=open\\]\\:zoom-in-95:is(:where(.group\\/navigation-menu)[data-viewport="false"] *)[data-state="open"] {\n    --tw-enter-scale: .95;\n  }\n\n  @media (hover: hover) {\n    .data-\\[state\\=open\\]\\:hover\\:bg-accent[data-state="open"]:hover {\n      background-color: var(--accent);\n    }\n\n    .data-\\[state\\=open\\]\\:hover\\:bg-sidebar-accent[data-state="open"]:hover {\n      background-color: var(--sidebar-accent);\n    }\n\n    .data-\\[state\\=open\\]\\:hover\\:text-sidebar-accent-foreground[data-state="open"]:hover {\n      color: var(--sidebar-accent-foreground);\n    }\n  }\n\n  .data-\\[state\\=open\\]\\:focus\\:bg-accent[data-state="open"]:focus {\n    background-color: var(--accent);\n  }\n\n  .data-\\[state\\=selected\\]\\:bg-muted[data-state="selected"] {\n    background-color: var(--muted);\n  }\n\n  .data-\\[state\\=unchecked\\]\\:translate-x-0[data-state="unchecked"] {\n    --tw-translate-x: calc(var(--spacing) * 0);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .data-\\[state\\=unchecked\\]\\:bg-input[data-state="unchecked"] {\n    background-color: var(--input);\n  }\n\n  .data-\\[state\\=visible\\]\\:animate-in[data-state="visible"] {\n    animation: enter var(--tw-animation-duration, var(--tw-duration, .15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);\n  }\n\n  .data-\\[state\\=visible\\]\\:fade-in[data-state="visible"] {\n    --tw-enter-opacity: 0;\n  }\n\n  .data-\\[variant\\=destructive\\]\\:text-destructive[data-variant="destructive"] {\n    color: var(--destructive);\n  }\n\n  .data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/10[data-variant="destructive"]:focus {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/10[data-variant="destructive"]:focus {\n      background-color: color-mix(in oklab, var(--destructive) 10%, transparent);\n    }\n  }\n\n  .data-\\[variant\\=destructive\\]\\:focus\\:text-destructive[data-variant="destructive"]:focus {\n    color: var(--destructive);\n  }\n\n  .data-\\[variant\\=outline\\]\\:border-l-0[data-variant="outline"] {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 0;\n  }\n\n  .data-\\[variant\\=outline\\]\\:shadow-xs[data-variant="outline"] {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, #0000000d);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n\n  .data-\\[variant\\=outline\\]\\:first\\:border-l[data-variant="outline"]:first-child {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:inset-x-0[data-vaul-drawer-direction="bottom"] {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:bottom-0[data-vaul-drawer-direction="bottom"] {\n    bottom: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:mt-24[data-vaul-drawer-direction="bottom"] {\n    margin-top: calc(var(--spacing) * 24);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:max-h-\\[80vh\\][data-vaul-drawer-direction="bottom"] {\n    max-height: 80vh;\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:rounded-t-lg[data-vaul-drawer-direction="bottom"] {\n    border-top-left-radius: var(--radius);\n    border-top-right-radius: var(--radius);\n  }\n\n  .data-\\[vaul-drawer-direction\\=bottom\\]\\:border-t[data-vaul-drawer-direction="bottom"] {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:inset-y-0[data-vaul-drawer-direction="left"] {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:left-0[data-vaul-drawer-direction="left"] {\n    left: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:w-3\\/4[data-vaul-drawer-direction="left"] {\n    width: 75%;\n  }\n\n  .data-\\[vaul-drawer-direction\\=left\\]\\:border-r[data-vaul-drawer-direction="left"] {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:inset-y-0[data-vaul-drawer-direction="right"] {\n    inset-block: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:right-0[data-vaul-drawer-direction="right"] {\n    right: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:w-3\\/4[data-vaul-drawer-direction="right"] {\n    width: 75%;\n  }\n\n  .data-\\[vaul-drawer-direction\\=right\\]\\:border-l[data-vaul-drawer-direction="right"] {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:inset-x-0[data-vaul-drawer-direction="top"] {\n    inset-inline: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:top-0[data-vaul-drawer-direction="top"] {\n    top: calc(var(--spacing) * 0);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:mb-24[data-vaul-drawer-direction="top"] {\n    margin-bottom: calc(var(--spacing) * 24);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:max-h-\\[80vh\\][data-vaul-drawer-direction="top"] {\n    max-height: 80vh;\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:rounded-b-lg[data-vaul-drawer-direction="top"] {\n    border-bottom-right-radius: var(--radius);\n    border-bottom-left-radius: var(--radius);\n  }\n\n  .data-\\[vaul-drawer-direction\\=top\\]\\:border-b[data-vaul-drawer-direction="top"] {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  @media (min-width: 40rem) {\n    .sm\\:block {\n      display: block;\n    }\n\n    .sm\\:flex {\n      display: flex;\n    }\n\n    .sm\\:max-w-\\[600px\\] {\n      max-width: 600px;\n    }\n\n    .sm\\:max-w-lg {\n      max-width: var(--container-lg);\n    }\n\n    .sm\\:max-w-md {\n      max-width: var(--container-md);\n    }\n\n    .sm\\:max-w-sm {\n      max-width: var(--container-sm);\n    }\n\n    .sm\\:flex-row {\n      flex-direction: row;\n    }\n\n    .sm\\:justify-between {\n      justify-content: space-between;\n    }\n\n    .sm\\:justify-end {\n      justify-content: flex-end;\n    }\n\n    .sm\\:gap-2 {\n      gap: calc(var(--spacing) * 2);\n    }\n\n    .sm\\:gap-2\\.5 {\n      gap: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:pr-2\\.5 {\n      padding-right: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:pl-2\\.5 {\n      padding-left: calc(var(--spacing) * 2.5);\n    }\n\n    .sm\\:text-left {\n      text-align: left;\n    }\n\n    .data-\\[vaul-drawer-direction\\=left\\]\\:sm\\:max-w-sm[data-vaul-drawer-direction="left"], .data-\\[vaul-drawer-direction\\=right\\]\\:sm\\:max-w-sm[data-vaul-drawer-direction="right"] {\n      max-width: var(--container-sm);\n    }\n  }\n\n  @media (min-width: 48rem) {\n    .md\\:absolute {\n      position: absolute;\n    }\n\n    .md\\:block {\n      display: block;\n    }\n\n    .md\\:flex {\n      display: flex;\n    }\n\n    .md\\:w-\\[var\\(--radix-navigation-menu-viewport-width\\)\\] {\n      width: var(--radix-navigation-menu-viewport-width);\n    }\n\n    .md\\:w-auto {\n      width: auto;\n    }\n\n    .md\\:flex-row {\n      flex-direction: row;\n    }\n\n    .md\\:gap-1\\.5 {\n      gap: calc(var(--spacing) * 1.5);\n    }\n\n    .md\\:text-left {\n      text-align: left;\n    }\n\n    .md\\:text-sm {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n\n    .md\\:opacity-0 {\n      opacity: 0;\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:m-2:is(:where(.peer)[data-variant="inset"] ~ *) {\n      margin: calc(var(--spacing) * 2);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:ml-0:is(:where(.peer)[data-variant="inset"] ~ *) {\n      margin-left: calc(var(--spacing) * 0);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:rounded-xl:is(:where(.peer)[data-variant="inset"] ~ *) {\n      border-radius: calc(var(--radius)  + 4px);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:shadow-sm:is(:where(.peer)[data-variant="inset"] ~ *) {\n      --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, #0000001a), 0 1px 2px -1px var(--tw-shadow-color, #0000001a);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n\n    .md\\:peer-data-\\[variant\\=inset\\]\\:peer-data-\\[state\\=collapsed\\]\\:ml-2:is(:where(.peer)[data-variant="inset"] ~ *):is(:where(.peer)[data-state="collapsed"] ~ *) {\n      margin-left: calc(var(--spacing) * 2);\n    }\n\n    .md\\:after\\:hidden:after {\n      content: var(--tw-content);\n      display: none;\n    }\n  }\n\n  @media (min-width: 64rem) {\n    .lg\\:grid-cols-2 {\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n    }\n  }\n\n  @media (min-width: 80rem) {\n    .xl\\:grid-cols-3 {\n      grid-template-columns: repeat(3, minmax(0, 1fr));\n    }\n  }\n\n  .dark\\:border-input:is(.dark *) {\n    border-color: var(--input);\n  }\n\n  .dark\\:bg-destructive\\/60:is(.dark *) {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:bg-destructive\\/60:is(.dark *) {\n      background-color: color-mix(in oklab, var(--destructive) 60%, transparent);\n    }\n  }\n\n  .dark\\:bg-input\\/30:is(.dark *) {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:bg-input\\/30:is(.dark *) {\n      background-color: color-mix(in oklab, var(--input) 30%, transparent);\n    }\n  }\n\n  .dark\\:text-muted-foreground:is(.dark *) {\n    color: var(--muted-foreground);\n  }\n\n  @media (hover: hover) {\n    .dark\\:hover\\:bg-accent\\/50:is(.dark *):hover {\n      background-color: var(--accent);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .dark\\:hover\\:bg-accent\\/50:is(.dark *):hover {\n        background-color: color-mix(in oklab, var(--accent) 50%, transparent);\n      }\n    }\n\n    .dark\\:hover\\:bg-input\\/50:is(.dark *):hover {\n      background-color: var(--input);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      .dark\\:hover\\:bg-input\\/50:is(.dark *):hover {\n        background-color: color-mix(in oklab, var(--input) 50%, transparent);\n      }\n    }\n\n    .dark\\:hover\\:text-accent-foreground:is(.dark *):hover {\n      color: var(--accent-foreground);\n    }\n  }\n\n  .dark\\:focus-visible\\:ring-destructive\\/40:is(.dark *):focus-visible {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:focus-visible\\:ring-destructive\\/40:is(.dark *):focus-visible {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[data-active="true"][aria-invalid="true"] {\n    --tw-ring-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[active\\=true\\]\\:aria-invalid\\:ring-destructive\\/40:is(.dark *)[data-active="true"][aria-invalid="true"] {\n      --tw-ring-color: color-mix(in oklab, var(--destructive) 40%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:border-input:is(.dark *)[data-state="active"] {\n    border-color: var(--input);\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:bg-input\\/30:is(.dark *)[data-state="active"] {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[state\\=active\\]\\:bg-input\\/30:is(.dark *)[data-state="active"] {\n      background-color: color-mix(in oklab, var(--input) 30%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[state\\=active\\]\\:text-foreground:is(.dark *)[data-state="active"] {\n    color: var(--foreground);\n  }\n\n  .dark\\:data-\\[state\\=checked\\]\\:bg-primary:is(.dark *)[data-state="checked"] {\n    background-color: var(--primary);\n  }\n\n  .dark\\:data-\\[state\\=checked\\]\\:bg-primary-foreground:is(.dark *)[data-state="checked"] {\n    background-color: var(--primary-foreground);\n  }\n\n  .dark\\:data-\\[state\\=unchecked\\]\\:bg-foreground:is(.dark *)[data-state="unchecked"] {\n    background-color: var(--foreground);\n  }\n\n  .dark\\:data-\\[state\\=unchecked\\]\\:bg-input\\/80:is(.dark *)[data-state="unchecked"] {\n    background-color: var(--input);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[state\\=unchecked\\]\\:bg-input\\/80:is(.dark *)[data-state="unchecked"] {\n      background-color: color-mix(in oklab, var(--input) 80%, transparent);\n    }\n  }\n\n  .dark\\:data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/20:is(.dark *)[data-variant="destructive"]:focus {\n    background-color: var(--destructive);\n  }\n\n  @supports (color: color-mix(in lab, red, red)) {\n    .dark\\:data-\\[variant\\=destructive\\]\\:focus\\:bg-destructive\\/20:is(.dark *)[data-variant="destructive"]:focus {\n      background-color: color-mix(in oklab, var(--destructive) 20%, transparent);\n    }\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:px-2 [cmdk-group-heading] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:py-1\\.5 [cmdk-group-heading] {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:text-xs [cmdk-group-heading] {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:font-medium [cmdk-group-heading] {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n\n  .\\[\\&_\\[cmdk-group-heading\\]\\]\\:text-muted-foreground [cmdk-group-heading] {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&_\\[cmdk-group\\]\\]\\:px-2 [cmdk-group] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-group\\]\\:not\\(\\[hidden\\]\\)_\\~\\[cmdk-group\\]\\]\\:pt-0 [cmdk-group]:not([hidden]) ~ [cmdk-group] {\n    padding-top: calc(var(--spacing) * 0);\n  }\n\n  .\\[\\&_\\[cmdk-input-wrapper\\]_svg\\]\\:h-5 [cmdk-input-wrapper] svg {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-input-wrapper\\]_svg\\]\\:w-5 [cmdk-input-wrapper] svg {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-input\\]\\]\\:h-12 [cmdk-input] {\n    height: calc(var(--spacing) * 12);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]\\]\\:px-2 [cmdk-item] {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]\\]\\:py-3 [cmdk-item] {\n    padding-block: calc(var(--spacing) * 3);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]_svg\\]\\:h-5 [cmdk-item] svg {\n    height: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_\\[cmdk-item\\]_svg\\]\\:w-5 [cmdk-item] svg {\n    width: calc(var(--spacing) * 5);\n  }\n\n  .\\[\\&_p\\]\\:leading-relaxed p {\n    --tw-leading: var(--leading-relaxed);\n    line-height: var(--leading-relaxed);\n  }\n\n  .\\[\\&_svg\\]\\:pointer-events-none svg {\n    pointer-events: none;\n  }\n\n  .\\[\\&_svg\\]\\:shrink-0 svg {\n    flex-shrink: 0;\n  }\n\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\\'size-\\\'\\]\\)\\]\\:size-4 svg:not([class*="size-"]) {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\\'text-\\\'\\]\\)\\]\\:text-muted-foreground svg:not([class*="text-"]) {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&_tr\\]\\:border-b tr {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n\n  .\\[\\&_tr\\:last-child\\]\\:border-0 tr:last-child {\n    border-style: var(--tw-border-style);\n    border-width: 0;\n  }\n\n  .\\[\\&\\:first-child\\[data-selected\\=true\\]_button\\]\\:rounded-l-md:first-child[data-selected="true"] button {\n    border-top-left-radius: calc(var(--radius)  - 2px);\n    border-bottom-left-radius: calc(var(--radius)  - 2px);\n  }\n\n  .\\[\\&\\:has\\(\\[role\\=checkbox\\]\\)\\]\\:pr-0:has([role="checkbox"]) {\n    padding-right: calc(var(--spacing) * 0);\n  }\n\n  .\\[\\.border-b\\]\\:pb-6.border-b {\n    padding-bottom: calc(var(--spacing) * 6);\n  }\n\n  .\\[\\.border-t\\]\\:pt-6.border-t {\n    padding-top: calc(var(--spacing) * 6);\n  }\n\n  :is(.rtl\\:\\*\\*\\:\\[\\.rdp-button\\\\_next\\>svg\\]\\:rotate-180:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) *):is(.rdp-button_next > svg), :is(.rtl\\:\\*\\*\\:\\[\\.rdp-button\\\\_previous\\>svg\\]\\:rotate-180:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) *):is(.rdp-button_previous > svg) {\n    rotate: 180deg;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:flex > *):is(span):last-child {\n    display: flex;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:items-center > *):is(span):last-child {\n    align-items: center;\n  }\n\n  :is(.\\*\\:\\[span\\]\\:last\\:gap-2 > *):is(span):last-child {\n    gap: calc(var(--spacing) * 2);\n  }\n\n  :is(.data-\\[variant\\=destructive\\]\\:\\*\\:\\[svg\\]\\:\\!text-destructive[data-variant="destructive"] > *):is(svg) {\n    color: var(--destructive) !important;\n  }\n\n  .\\[\\&\\:last-child\\[data-selected\\=true\\]_button\\]\\:rounded-r-md:last-child[data-selected="true"] button {\n    border-top-right-radius: calc(var(--radius)  - 2px);\n    border-bottom-right-radius: calc(var(--radius)  - 2px);\n  }\n\n  .\\[\\&\\>\\[role\\=checkbox\\]\\]\\:translate-y-\\[2px\\] > [role="checkbox"] {\n    --tw-translate-y: 2px;\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .\\[\\&\\>button\\]\\:hidden > button {\n    display: none;\n  }\n\n  .\\[\\&\\>span\\]\\:text-xs > span {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n\n  .\\[\\&\\>span\\]\\:opacity-70 > span {\n    opacity: .7;\n  }\n\n  .\\[\\&\\>span\\:last-child\\]\\:truncate > span:last-child {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden;\n  }\n\n  .\\[\\&\\>svg\\]\\:pointer-events-none > svg {\n    pointer-events: none;\n  }\n\n  .\\[\\&\\>svg\\]\\:size-3 > svg {\n    width: calc(var(--spacing) * 3);\n    height: calc(var(--spacing) * 3);\n  }\n\n  .\\[\\&\\>svg\\]\\:size-3\\.5 > svg {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n\n  .\\[\\&\\>svg\\]\\:size-4 > svg {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n\n  .\\[\\&\\>svg\\]\\:shrink-0 > svg {\n    flex-shrink: 0;\n  }\n\n  .\\[\\&\\>svg\\]\\:translate-y-0\\.5 > svg {\n    --tw-translate-y: calc(var(--spacing) * .5);\n    translate: var(--tw-translate-x) var(--tw-translate-y);\n  }\n\n  .\\[\\&\\>svg\\]\\:text-current > svg {\n    color: currentColor;\n  }\n\n  .\\[\\&\\>svg\\]\\:text-muted-foreground > svg {\n    color: var(--muted-foreground);\n  }\n\n  .\\[\\&\\>svg\\]\\:text-sidebar-accent-foreground > svg {\n    color: var(--sidebar-accent-foreground);\n  }\n\n  .\\[\\&\\>tr\\]\\:last\\:border-b-0 > tr:last-child {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 0;\n  }\n\n  .\\[\\&\\[data-panel-group-direction\\=vertical\\]\\>div\\]\\:rotate-90[data-panel-group-direction="vertical"] > div {\n    rotate: 90deg;\n  }\n\n  .\\[\\&\\[data-state\\=open\\]\\>svg\\]\\:rotate-180[data-state="open"] > svg {\n    rotate: 180deg;\n  }\n\n  [data-side="left"][data-collapsible="offcanvas"] .\\[\\[data-side\\=left\\]\\[data-collapsible\\=offcanvas\\]_\\&\\]\\:-right-2 {\n    right: calc(var(--spacing) * -2);\n  }\n\n  [data-side="left"][data-state="collapsed"] .\\[\\[data-side\\=left\\]\\[data-state\\=collapsed\\]_\\&\\]\\:cursor-e-resize {\n    cursor: e-resize;\n  }\n\n  [data-side="right"][data-collapsible="offcanvas"] .\\[\\[data-side\\=right\\]\\[data-collapsible\\=offcanvas\\]_\\&\\]\\:-left-2 {\n    left: calc(var(--spacing) * -2);\n  }\n\n  [data-side="right"][data-state="collapsed"] .\\[\\[data-side\\=right\\]\\[data-state\\=collapsed\\]_\\&\\]\\:cursor-w-resize {\n    cursor: w-resize;\n  }\n\n  [data-slot="card-content"] .\\[\\[data-slot\\=card-content\\]_\\&\\]\\:bg-transparent, [data-slot="popover-content"] .\\[\\[data-slot\\=popover-content\\]_\\&\\]\\:bg-transparent {\n    background-color: #0000;\n  }\n\n  @media (hover: hover) {\n    a.\\[a\\&\\]\\:hover\\:bg-accent:hover {\n      background-color: var(--accent);\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-destructive\\/90:hover {\n      background-color: var(--destructive);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-destructive\\/90:hover {\n        background-color: color-mix(in oklab, var(--destructive) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-primary\\/90:hover {\n      background-color: var(--primary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-primary\\/90:hover {\n        background-color: color-mix(in oklab, var(--primary) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:bg-secondary\\/90:hover {\n      background-color: var(--secondary);\n    }\n\n    @supports (color: color-mix(in lab, red, red)) {\n      a.\\[a\\&\\]\\:hover\\:bg-secondary\\/90:hover {\n        background-color: color-mix(in oklab, var(--secondary) 90%, transparent);\n      }\n    }\n\n    a.\\[a\\&\\]\\:hover\\:text-accent-foreground:hover {\n      color: var(--accent-foreground);\n    }\n  }\n}\n\n@property --tw-animation-delay {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0s;\n}\n\n@property --tw-animation-direction {\n  syntax: "*";\n  inherits: false;\n  initial-value: normal;\n}\n\n@property --tw-animation-duration {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-animation-fill-mode {\n  syntax: "*";\n  inherits: false;\n  initial-value: none;\n}\n\n@property --tw-animation-iteration-count {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-opacity {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-rotate {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-enter-scale {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-enter-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-enter-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-opacity {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-exit-rotate {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-scale {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-exit-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-exit-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n:root {\n  --shadow-card: 0 1px 3px 0 #0000004d, 0 1px 2px -1px #0000004d;\n  --shadow-elevated: 0 10px 15px -3px #0006, 0 4px 6px -4px #0006;\n  --radius: .625rem;\n  --background: oklch(100% 0 0);\n  --foreground: oklch(14.5% 0 0);\n  --card: oklch(100% 0 0);\n  --card-foreground: oklch(14.5% 0 0);\n  --popover: oklch(100% 0 0);\n  --popover-foreground: oklch(14.5% 0 0);\n  --primary: oklch(20.5% 0 0);\n  --primary-foreground: oklch(98.5% 0 0);\n  --secondary: oklch(97% 0 0);\n  --secondary-foreground: oklch(20.5% 0 0);\n  --muted: oklch(97% 0 0);\n  --muted-foreground: oklch(55.6% 0 0);\n  --accent: oklch(97% 0 0);\n  --accent-foreground: oklch(20.5% 0 0);\n  --destructive: oklch(57.7% .245 27.325);\n  --border: oklch(92.2% 0 0);\n  --input: oklch(92.2% 0 0);\n  --ring: oklch(70.8% 0 0);\n  --chart-1: oklch(64.6% .222 41.116);\n  --chart-2: oklch(60% .118 184.704);\n  --chart-3: oklch(39.8% .07 227.392);\n  --chart-4: oklch(82.8% .189 84.429);\n  --chart-5: oklch(76.9% .188 70.08);\n  --sidebar: oklch(98.5% 0 0);\n  --sidebar-foreground: oklch(14.5% 0 0);\n  --sidebar-primary: oklch(20.5% 0 0);\n  --sidebar-primary-foreground: oklch(98.5% 0 0);\n  --sidebar-accent: oklch(97% 0 0);\n  --sidebar-accent-foreground: oklch(20.5% 0 0);\n  --sidebar-border: oklch(92.2% 0 0);\n  --sidebar-ring: oklch(70.8% 0 0);\n}\n\n.dark {\n  --background: oklch(14.5% .005 250);\n  --foreground: oklch(98.5% .005 250);\n  --card: oklch(20.5% .005 250);\n  --card-foreground: oklch(98.5% .005 250);\n  --popover: oklch(20.5% .005 250);\n  --popover-foreground: oklch(98.5% .005 250);\n  --primary: oklch(92.2% .005 250);\n  --primary-foreground: oklch(20.5% .005 250);\n  --secondary: oklch(26.9% .005 250);\n  --secondary-foreground: oklch(98.5% .005 250);\n  --muted: oklch(26.9% .005 250);\n  --muted-foreground: oklch(70.8% .005 250);\n  --accent: oklch(26.9% .005 250);\n  --accent-foreground: oklch(98.5% .005 250);\n  --destructive: oklch(70.4% .191 22.216);\n  --border: oklch(100% .005 250 / .1);\n  --input: oklch(100% .005 250 / .15);\n  --ring: oklch(55.6% .005 250);\n  --chart-1: oklch(48.8% .243 264.376);\n  --chart-2: oklch(69.6% .17 162.48);\n  --chart-3: oklch(76.9% .188 70.08);\n  --chart-4: oklch(62.7% .265 303.9);\n  --chart-5: oklch(64.5% .246 16.439);\n  --sidebar: oklch(20.5% .005 250);\n  --sidebar-foreground: oklch(98.5% .005 250);\n  --sidebar-primary: oklch(48.8% .243 264.376);\n  --sidebar-primary-foreground: oklch(98.5% .005 250);\n  --sidebar-accent: oklch(26.9% .005 250);\n  --sidebar-accent-foreground: oklch(98.5% .005 250);\n  --sidebar-border: oklch(100% .005 250 / .1);\n  --sidebar-ring: oklch(55.6% .005 250);\n}\n\n::-webkit-scrollbar {\n  width: 6px;\n  height: 6px;\n}\n\n::-webkit-scrollbar-track {\n  background: none;\n}\n\n::-webkit-scrollbar-thumb {\n  background: oklch(37% .005 250);\n  border-radius: 9999px;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: oklch(45% .005 250);\n}\n\n@keyframes ripple-elegant {\n  0% {\n    opacity: .8;\n    transform: scale(.8);\n  }\n\n  100% {\n    opacity: 0;\n    transform: scale(2.5);\n  }\n}\n\n@keyframes ripple-dot {\n  0% {\n    opacity: 1;\n    transform: scale(1);\n  }\n\n  50% {\n    opacity: .6;\n    transform: scale(1.2);\n  }\n\n  100% {\n    opacity: 0;\n    transform: scale(.8);\n  }\n}\n\n@property --tw-translate-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-translate-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-translate-z {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-rotate-x {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-rotate-y {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-rotate-z {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-skew-x {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-skew-y {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-space-y-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-space-x-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-divide-y-reverse {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-border-style {\n  syntax: "*";\n  inherits: false;\n  initial-value: solid;\n}\n\n@property --tw-gradient-position {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-from {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-via {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-to {\n  syntax: "<color>";\n  inherits: false;\n  initial-value: #0000;\n}\n\n@property --tw-gradient-stops {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-via-stops {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-gradient-from-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 0%;\n}\n\n@property --tw-gradient-via-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 50%;\n}\n\n@property --tw-gradient-to-position {\n  syntax: "<length-percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-leading {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-font-weight {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-tracking {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ordinal {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-slashed-zero {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-figure {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-spacing {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-numeric-fraction {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-inset-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-inset-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-inset-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-ring-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ring-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-inset-ring-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-inset-ring-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-ring-inset {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ring-offset-width {\n  syntax: "<length>";\n  inherits: false;\n  initial-value: 0;\n}\n\n@property --tw-ring-offset-color {\n  syntax: "*";\n  inherits: false;\n  initial-value: #fff;\n}\n\n@property --tw-ring-offset-shadow {\n  syntax: "*";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n\n@property --tw-outline-style {\n  syntax: "*";\n  inherits: false;\n  initial-value: solid;\n}\n\n@property --tw-blur {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-brightness {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-contrast {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-grayscale {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-hue-rotate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-invert {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-opacity {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-saturate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-sepia {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow-color {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-drop-shadow-alpha {\n  syntax: "<percentage>";\n  inherits: false;\n  initial-value: 100%;\n}\n\n@property --tw-drop-shadow-size {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-blur {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-brightness {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-contrast {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-grayscale {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-hue-rotate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-invert {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-opacity {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-saturate {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-backdrop-sepia {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-duration {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-ease {\n  syntax: "*";\n  inherits: false\n}\n\n@property --tw-scale-x {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-scale-y {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-scale-z {\n  syntax: "*";\n  inherits: false;\n  initial-value: 1;\n}\n\n@property --tw-content {\n  syntax: "*";\n  inherits: false;\n  initial-value: "";\n}\n\n@keyframes spin {\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n@keyframes pulse {\n  50% {\n    opacity: .5;\n  }\n}\n\n@keyframes enter {\n  from {\n    opacity: var(--tw-enter-opacity, 1);\n    transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1)) rotate(var(--tw-enter-rotate, 0));\n  }\n}\n\n@keyframes exit {\n  to {\n    opacity: var(--tw-exit-opacity, 1);\n    transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));\n  }\n}\n\n@keyframes accordion-down {\n  from {\n    height: 0;\n  }\n\n  to {\n    height: var(--radix-accordion-content-height, var(--bits-accordion-content-height, var(--reka-accordion-content-height, var(--kb-accordion-content-height, auto))));\n  }\n}\n\n@keyframes accordion-up {\n  from {\n    height: var(--radix-accordion-content-height, var(--bits-accordion-content-height, var(--reka-accordion-content-height, var(--kb-accordion-content-height, auto))));\n  }\n\n  to {\n    height: 0;\n  }\n}\n\n@keyframes caret-blink {\n  0%, 70%, 100% {\n    opacity: 1;\n  }\n\n  20%, 50% {\n    opacity: 0;\n  }\n}\n/*$vite$:1*/';
   document.head.appendChild(__vite_style__);
   var global = globalThis || window;
   if (!window.global) window.global = window;
@@ -15933,19 +15933,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     Component.displayName = toPascalCase(iconName);
     return Component;
   };
-  const __iconNode$W = [
+  const __iconNode$V = [
     ["path", { d: "M8 3 4 7l4 4", key: "9rb6wj" }],
     ["path", { d: "M4 7h16", key: "6tx8e3" }],
     ["path", { d: "m16 21 4-4-4-4", key: "siv7j2" }],
     ["path", { d: "M20 17H4", key: "h6l3hr" }]
   ];
-  const ArrowLeftRight = createLucideIcon("arrow-left-right", __iconNode$W);
-  const __iconNode$V = [
+  const ArrowLeftRight = createLucideIcon("arrow-left-right", __iconNode$V);
+  const __iconNode$U = [
     ["path", { d: "m12 19-7-7 7-7", key: "1l729n" }],
     ["path", { d: "M19 12H5", key: "x3x0zl" }]
   ];
-  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$V);
-  const __iconNode$U = [
+  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$U);
+  const __iconNode$T = [
     [
       "path",
       {
@@ -15956,8 +15956,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "m3.3 7 8.7 5 8.7-5", key: "g66t2b" }],
     ["path", { d: "M12 22V12", key: "d0xqtd" }]
   ];
-  const Box = createLucideIcon("box", __iconNode$U);
-  const __iconNode$T = [
+  const Box = createLucideIcon("box", __iconNode$T);
+  const __iconNode$S = [
     ["rect", { width: "16", height: "20", x: "4", y: "2", rx: "2", key: "1nb95v" }],
     ["line", { x1: "8", x2: "16", y1: "6", y2: "6", key: "x4nwl0" }],
     ["line", { x1: "16", x2: "16", y1: "14", y2: "18", key: "wjye3r" }],
@@ -15969,28 +15969,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "M12 18h.01", key: "mhygvu" }],
     ["path", { d: "M8 18h.01", key: "lrp35t" }]
   ];
-  const Calculator = createLucideIcon("calculator", __iconNode$T);
-  const __iconNode$S = [
+  const Calculator = createLucideIcon("calculator", __iconNode$S);
+  const __iconNode$R = [
     ["path", { d: "M3 3v16a2 2 0 0 0 2 2h16", key: "c24i48" }],
     ["path", { d: "M18 17V9", key: "2bz60n" }],
     ["path", { d: "M13 17V5", key: "1frdt8" }],
     ["path", { d: "M8 17v-3", key: "17ska0" }]
   ];
-  const ChartColumn = createLucideIcon("chart-column", __iconNode$S);
-  const __iconNode$R = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-  const Check = createLucideIcon("check", __iconNode$R);
-  const __iconNode$Q = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-  const ChevronDown = createLucideIcon("chevron-down", __iconNode$Q);
-  const __iconNode$P = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
-  const ChevronRight = createLucideIcon("chevron-right", __iconNode$P);
-  const __iconNode$O = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-  const ChevronUp = createLucideIcon("chevron-up", __iconNode$O);
-  const __iconNode$N = [
-    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-    ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
-    ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
-  ];
-  const CircleAlert = createLucideIcon("circle-alert", __iconNode$N);
+  const ChartColumn = createLucideIcon("chart-column", __iconNode$R);
+  const __iconNode$Q = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+  const Check = createLucideIcon("check", __iconNode$Q);
+  const __iconNode$P = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  const ChevronDown = createLucideIcon("chevron-down", __iconNode$P);
+  const __iconNode$O = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
+  const ChevronRight = createLucideIcon("chevron-right", __iconNode$O);
+  const __iconNode$N = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+  const ChevronUp = createLucideIcon("chevron-up", __iconNode$N);
   const __iconNode$M = [
     ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
     ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
@@ -16001,15 +15995,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
   ];
   const CircleCheck = createLucideIcon("circle-check", __iconNode$L);
-  const __iconNode$K = [
-    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-    ["path", { d: "m15 9-6 6", key: "1uzhvr" }],
-    ["path", { d: "m9 9 6 6", key: "z0biqf" }]
-  ];
-  const CircleX = createLucideIcon("circle-x", __iconNode$K);
-  const __iconNode$J = [["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]];
-  const Circle = createLucideIcon("circle", __iconNode$J);
-  const __iconNode$I = [
+  const __iconNode$K = [["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]];
+  const Circle = createLucideIcon("circle", __iconNode$K);
+  const __iconNode$J = [
     [
       "path",
       {
@@ -16019,19 +16007,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ],
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
   ];
-  const Compass = createLucideIcon("compass", __iconNode$I);
-  const __iconNode$H = [
+  const Compass = createLucideIcon("compass", __iconNode$J);
+  const __iconNode$I = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M12 18a6 6 0 0 0 0-12v12z", key: "j4l70d" }]
   ];
-  const Contrast = createLucideIcon("contrast", __iconNode$H);
-  const __iconNode$G = [
+  const Contrast = createLucideIcon("contrast", __iconNode$I);
+  const __iconNode$H = [
     ["path", { d: "M12 15V3", key: "m9g1x1" }],
     ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
     ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
   ];
-  const Download = createLucideIcon("download", __iconNode$G);
-  const __iconNode$F = [
+  const Download = createLucideIcon("download", __iconNode$H);
+  const __iconNode$G = [
     [
       "path",
       {
@@ -16049,8 +16037,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  const EyeOff = createLucideIcon("eye-off", __iconNode$F);
-  const __iconNode$E = [
+  const EyeOff = createLucideIcon("eye-off", __iconNode$G);
+  const __iconNode$F = [
     [
       "path",
       {
@@ -16060,31 +16048,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  const Eye = createLucideIcon("eye", __iconNode$E);
-  const __iconNode$D = [
+  const Eye = createLucideIcon("eye", __iconNode$F);
+  const __iconNode$E = [
     ["path", { d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", key: "1rqfz7" }],
     ["path", { d: "M14 2v4a2 2 0 0 0 2 2h4", key: "tnqrlb" }],
     ["path", { d: "M12 18v-6", key: "17g6i2" }],
     ["path", { d: "m9 15 3 3 3-3", key: "1npd3o" }]
   ];
-  const FileDown = createLucideIcon("file-down", __iconNode$D);
-  const __iconNode$C = [
+  const FileDown = createLucideIcon("file-down", __iconNode$E);
+  const __iconNode$D = [
     ["path", { d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", key: "1rqfz7" }],
     ["path", { d: "M14 2v4a2 2 0 0 0 2 2h4", key: "tnqrlb" }],
     ["path", { d: "M10 9H8", key: "b1mrlr" }],
     ["path", { d: "M16 13H8", key: "t4e002" }],
     ["path", { d: "M16 17H8", key: "z1uh3a" }]
   ];
-  const FileText = createLucideIcon("file-text", __iconNode$C);
-  const __iconNode$B = [
+  const FileText = createLucideIcon("file-text", __iconNode$D);
+  const __iconNode$C = [
     ["path", { d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", key: "1rqfz7" }],
     ["path", { d: "M14 2v4a2 2 0 0 0 2 2h4", key: "tnqrlb" }],
     ["path", { d: "M9 13v-1h6v1", key: "1bb014" }],
     ["path", { d: "M12 12v6", key: "3ahymv" }],
     ["path", { d: "M11 18h2", key: "12mj7e" }]
   ];
-  const FileType = createLucideIcon("file-type", __iconNode$B);
-  const __iconNode$A = [
+  const FileType = createLucideIcon("file-type", __iconNode$C);
+  const __iconNode$B = [
     [
       "path",
       {
@@ -16093,8 +16081,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const FolderOpen = createLucideIcon("folder-open", __iconNode$A);
-  const __iconNode$z = [
+  const FolderOpen = createLucideIcon("folder-open", __iconNode$B);
+  const __iconNode$A = [
     ["circle", { cx: "9", cy: "12", r: "1", key: "1vctgf" }],
     ["circle", { cx: "9", cy: "5", r: "1", key: "hp0tcf" }],
     ["circle", { cx: "9", cy: "19", r: "1", key: "fkjjf6" }],
@@ -16102,8 +16090,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["circle", { cx: "15", cy: "5", r: "1", key: "19l28e" }],
     ["circle", { cx: "15", cy: "19", r: "1", key: "f4zoj3" }]
   ];
-  const GripVertical = createLucideIcon("grip-vertical", __iconNode$z);
-  const __iconNode$y = [
+  const GripVertical = createLucideIcon("grip-vertical", __iconNode$A);
+  const __iconNode$z = [
     ["path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", key: "5wwlr5" }],
     [
       "path",
@@ -16113,14 +16101,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const House = createLucideIcon("house", __iconNode$y);
-  const __iconNode$x = [
+  const House = createLucideIcon("house", __iconNode$z);
+  const __iconNode$y = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2", key: "1m3agn" }],
     ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }],
     ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }]
   ];
-  const Image$1 = createLucideIcon("image", __iconNode$x);
-  const __iconNode$w = [
+  const Image$1 = createLucideIcon("image", __iconNode$y);
+  const __iconNode$x = [
     [
       "path",
       {
@@ -16143,31 +16131,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const Layers = createLucideIcon("layers", __iconNode$w);
-  const __iconNode$v = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-  const LoaderCircle = createLucideIcon("loader-circle", __iconNode$v);
-  const __iconNode$u = [
+  const Layers = createLucideIcon("layers", __iconNode$x);
+  const __iconNode$w = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  const LoaderCircle = createLucideIcon("loader-circle", __iconNode$w);
+  const __iconNode$v = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  const Lock = createLucideIcon("lock", __iconNode$u);
-  const __iconNode$t = [
+  const Lock = createLucideIcon("lock", __iconNode$v);
+  const __iconNode$u = [
     ["path", { d: "M8 3H5a2 2 0 0 0-2 2v3", key: "1dcmit" }],
     ["path", { d: "M21 8V5a2 2 0 0 0-2-2h-3", key: "1e4gt3" }],
     ["path", { d: "M3 16v3a2 2 0 0 0 2 2h3", key: "wsl5sc" }],
     ["path", { d: "M16 21h3a2 2 0 0 0 2-2v-3", key: "18trek" }]
   ];
-  const Maximize = createLucideIcon("maximize", __iconNode$t);
-  const __iconNode$s = [
+  const Maximize = createLucideIcon("maximize", __iconNode$u);
+  const __iconNode$t = [
     ["path", { d: "m14 10 7-7", key: "oa77jy" }],
     ["path", { d: "M20 10h-6V4", key: "mjg0md" }],
     ["path", { d: "m3 21 7-7", key: "tjx5ai" }],
     ["path", { d: "M4 14h6v6", key: "rmj7iw" }]
   ];
-  const Minimize2 = createLucideIcon("minimize-2", __iconNode$s);
-  const __iconNode$r = [["path", { d: "M5 12h14", key: "1ays0h" }]];
-  const Minus = createLucideIcon("minus", __iconNode$r);
-  const __iconNode$q = [
+  const Minimize2 = createLucideIcon("minimize-2", __iconNode$t);
+  const __iconNode$s = [["path", { d: "M5 12h14", key: "1ays0h" }]];
+  const Minus = createLucideIcon("minus", __iconNode$s);
+  const __iconNode$r = [
     [
       "path",
       {
@@ -16176,8 +16164,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const MousePointer2 = createLucideIcon("mouse-pointer-2", __iconNode$q);
-  const __iconNode$p = [
+  const MousePointer2 = createLucideIcon("mouse-pointer-2", __iconNode$r);
+  const __iconNode$q = [
     ["path", { d: "M12.586 12.586 19 19", key: "ea5xo7" }],
     [
       "path",
@@ -16187,8 +16175,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const MousePointer = createLucideIcon("mouse-pointer", __iconNode$p);
-  const __iconNode$o = [
+  const MousePointer = createLucideIcon("mouse-pointer", __iconNode$q);
+  const __iconNode$p = [
     ["path", { d: "M12 2v20", key: "t6zp3m" }],
     ["path", { d: "m15 19-3 3-3-3", key: "11eu04" }],
     ["path", { d: "m19 9 3 3-3 3", key: "1mg7y2" }],
@@ -16196,8 +16184,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "m5 9-3 3 3 3", key: "j64kie" }],
     ["path", { d: "m9 5 3-3 3 3", key: "l8vdw6" }]
   ];
-  const Move = createLucideIcon("move", __iconNode$o);
-  const __iconNode$n = [
+  const Move = createLucideIcon("move", __iconNode$p);
+  const __iconNode$o = [
     [
       "path",
       {
@@ -16210,20 +16198,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["circle", { cx: "6.5", cy: "12.5", r: ".5", fill: "currentColor", key: "qy21gx" }],
     ["circle", { cx: "8.5", cy: "7.5", r: ".5", fill: "currentColor", key: "fotxhn" }]
   ];
-  const Palette = createLucideIcon("palette", __iconNode$n);
-  const __iconNode$m = [
+  const Palette = createLucideIcon("palette", __iconNode$o);
+  const __iconNode$n = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
     ["path", { d: "M15 3v18", key: "14nvp0" }],
     ["path", { d: "m8 9 3 3-3 3", key: "12hl5m" }]
   ];
-  const PanelRightClose = createLucideIcon("panel-right-close", __iconNode$m);
-  const __iconNode$l = [
+  const PanelRightClose = createLucideIcon("panel-right-close", __iconNode$n);
+  const __iconNode$m = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
     ["path", { d: "M15 3v18", key: "14nvp0" }],
     ["path", { d: "m10 15-3-3 3-3", key: "1pgupc" }]
   ];
-  const PanelRightOpen = createLucideIcon("panel-right-open", __iconNode$l);
-  const __iconNode$k = [
+  const PanelRightOpen = createLucideIcon("panel-right-open", __iconNode$m);
+  const __iconNode$l = [
     ["path", { d: "M12 20h9", key: "t2du7b" }],
     [
       "path",
@@ -16233,8 +16221,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const PenLine = createLucideIcon("pen-line", __iconNode$k);
-  const __iconNode$j = [
+  const PenLine = createLucideIcon("pen-line", __iconNode$l);
+  const __iconNode$k = [
     [
       "path",
       {
@@ -16243,27 +16231,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     ]
   ];
-  const Pen = createLucideIcon("pen", __iconNode$j);
-  const __iconNode$i = [["polygon", { points: "6 3 20 12 6 21 6 3", key: "1oa8hb" }]];
-  const Play = createLucideIcon("play", __iconNode$i);
-  const __iconNode$h = [
+  const Pen = createLucideIcon("pen", __iconNode$k);
+  const __iconNode$j = [["polygon", { points: "6 3 20 12 6 21 6 3", key: "1oa8hb" }]];
+  const Play = createLucideIcon("play", __iconNode$j);
+  const __iconNode$i = [
     ["path", { d: "M5 12h14", key: "1ays0h" }],
     ["path", { d: "M12 5v14", key: "s699le" }]
   ];
-  const Plus = createLucideIcon("plus", __iconNode$h);
-  const __iconNode$g = [
+  const Plus = createLucideIcon("plus", __iconNode$i);
+  const __iconNode$h = [
     ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
     ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
     ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  const RefreshCw = createLucideIcon("refresh-cw", __iconNode$g);
-  const __iconNode$f = [
+  const RefreshCw = createLucideIcon("refresh-cw", __iconNode$h);
+  const __iconNode$g = [
     ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
     ["path", { d: "M3 3v5h5", key: "1xhq8a" }]
   ];
-  const RotateCcw = createLucideIcon("rotate-ccw", __iconNode$f);
-  const __iconNode$e = [
+  const RotateCcw = createLucideIcon("rotate-ccw", __iconNode$g);
+  const __iconNode$f = [
     [
       "path",
       {
@@ -16276,8 +16264,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "m8.5 6.5 2-2", key: "vc6u1g" }],
     ["path", { d: "m17.5 15.5 2-2", key: "wo5hmg" }]
   ];
-  const Ruler = createLucideIcon("ruler", __iconNode$e);
-  const __iconNode$d = [
+  const Ruler = createLucideIcon("ruler", __iconNode$f);
+  const __iconNode$e = [
     [
       "path",
       {
@@ -16288,15 +16276,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ["path", { d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7", key: "1ydtos" }],
     ["path", { d: "M7 3v4a1 1 0 0 0 1 1h7", key: "t51u73" }]
   ];
-  const Save = createLucideIcon("save", __iconNode$d);
-  const __iconNode$c = [
+  const Save = createLucideIcon("save", __iconNode$e);
+  const __iconNode$d = [
     ["path", { d: "M14 17H5", key: "gfn3mx" }],
     ["path", { d: "M19 7h-9", key: "6i9tg" }],
     ["circle", { cx: "17", cy: "17", r: "3", key: "18b49y" }],
     ["circle", { cx: "7", cy: "7", r: "3", key: "dfmy0x" }]
   ];
-  const Settings2 = createLucideIcon("settings-2", __iconNode$c);
-  const __iconNode$b = [
+  const Settings2 = createLucideIcon("settings-2", __iconNode$d);
+  const __iconNode$c = [
     [
       "path",
       {
@@ -16306,13 +16294,25 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  const Settings = createLucideIcon("settings", __iconNode$b);
-  const __iconNode$a = [
+  const Settings = createLucideIcon("settings", __iconNode$c);
+  const __iconNode$b = [
     ["path", { d: "M12 2v13", key: "1km8f5" }],
     ["path", { d: "m16 6-4-4-4 4", key: "13yo43" }],
     ["path", { d: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8", key: "1b2hhj" }]
   ];
-  const Share = createLucideIcon("share", __iconNode$a);
+  const Share = createLucideIcon("share", __iconNode$b);
+  const __iconNode$a = [
+    ["line", { x1: "21", x2: "14", y1: "4", y2: "4", key: "obuewd" }],
+    ["line", { x1: "10", x2: "3", y1: "4", y2: "4", key: "1q6298" }],
+    ["line", { x1: "21", x2: "12", y1: "12", y2: "12", key: "1iu8h1" }],
+    ["line", { x1: "8", x2: "3", y1: "12", y2: "12", key: "ntss68" }],
+    ["line", { x1: "21", x2: "16", y1: "20", y2: "20", key: "14d8ph" }],
+    ["line", { x1: "12", x2: "3", y1: "20", y2: "20", key: "m0wm8r" }],
+    ["line", { x1: "14", x2: "14", y1: "2", y2: "6", key: "14e1ph" }],
+    ["line", { x1: "8", x2: "8", y1: "10", y2: "14", key: "1i6ji0" }],
+    ["line", { x1: "16", x2: "16", y1: "18", y2: "22", key: "1lctlv" }]
+  ];
+  const SlidersHorizontal = createLucideIcon("sliders-horizontal", __iconNode$a);
   const __iconNode$9 = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }]
   ];
@@ -21573,7 +21573,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return useBoundStore;
   };
   const create$1 = (createState) => createImpl;
-  const __vite_import_meta_env__ = { "BASE_URL": "./", "DEV": false, "MODE": "electron", "PROD": true, "SSR": false, "VITE_GA_MEASUREMENT_ID": "G-49RMEYQCTH", "VITE_SUPABASE_ANON_KEY": "sb_publishable_qIWd4Anx9hyqpEsrVyzF7Q_CC69zOyH", "VITE_SUPABASE_URL": "https://drvfydscorgjixrhvfky.supabase.co" };
+  const __vite_import_meta_env__ = { "BASE_URL": "./", "DEV": false, "MODE": "electron", "PROD": true, "SSR": false, "VITE_GA_MEASUREMENT_ID": "G-49RMEYQCTH" };
   const trackedConnections = /* @__PURE__ */ new Map();
   const getTrackedConnectionState = (name2) => {
     const api = trackedConnections.get(name2);
@@ -22207,6 +22207,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return true;
     }
   };
+  const MEASUREMENT_GEOMETRY = {
+    "SNA": { segments: [["N", "S"], ["N", "A"]], vertex: "N" },
+    "SNB": { segments: [["N", "S"], ["N", "B"]], vertex: "N" },
+    "ANB": { segments: [["N", "A"], ["N", "B"]], vertex: "N" },
+    "SNPg": { segments: [["N", "S"], ["N", "Pog"]], vertex: "N" },
+    "NS-Ba": { segments: [["S", "N"], ["S", "Ba"]], vertex: "S" },
+    "NSBa": { segments: [["S", "N"], ["S", "Ba"]], vertex: "S" },
+    "Gn-Go-Ar": { segments: [["Go", "Gn"], ["Go", "Ar"]], vertex: "Go" },
+    "ML-NSL": { segments: [["T2", "Me"], ["N", "S"]] },
+    "NL-NSL": { segments: [["Spa", "Spp"], ["N", "S"]] },
+    "ML-NL": { segments: [["T2", "Me"], ["Spa", "Spp"]] },
+    "H-Winkel": { segments: [["Pog'", "Ls"], ["Pog'", "N'"]], vertex: "Pog'" },
+    "Nasolabialwinkel": { segments: [["Sn", "Prn"], ["Sn", "Ls"]], vertex: "Sn" },
+    "Interinzisalwinkel": { segments: [["OK Ap1", "OK IS1"], ["UK AP1", "UK IS1"]] },
+    "1er-NA": { segments: [["OK Ap1", "OK IS1"], ["N", "A"]] },
+    "1er-NB": { segments: [["UK AP1", "UK IS1"], ["N", "B"]] },
+    "G'-Sn-Pog'": { segments: [["Sn", "G'"], ["Sn", "Pog'"]], vertex: "Sn" },
+    "Mentolabial Angle": { segments: [["Infralabiale", "Li"], ["Infralabiale", "Pog'"]], vertex: "Infralabiale" },
+    // OA/OB are the projections of A/B onto the occlusal plane; the A→OA and
+    // B→OB legs visualise that construction alongside the measured OA–OB span
+    "Wits": {
+      segments: [["OA", "OB"], ["A", "OA"], ["B", "OB"]],
+      referenceLine: { line: ["LM Cusp", "UK IS1"], reach: ["OA", "OB"] }
+    },
+    "1er-NA (mm)": { segments: [["N", "A"]], perpendicular: { from: "OK IS1", to: ["N", "A"] } },
+    "1er-NB (mm)": { segments: [["N", "B"]], perpendicular: { from: "UK IS1", to: ["N", "B"] } },
+    "Kinngrübchen-NB (mm)": { segments: [["N", "B"]], perpendicular: { from: "Pog", to: ["N", "B"] } }
+  };
   const calculateSpecificDistance = (measurementName, points, _calculateRealWorldDistance, referenceScale) => {
     try {
       if (!referenceScale || !referenceScale.scaleFactor) return null;
@@ -22524,7 +22552,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const updatedPoints = state2.points.map(
             (point) => point.id === id ? __spreadValues(__spreadValues({}, point), updates) : point
           );
-          const pointsVisible = "visible" in updates ? updatedPoints.some((p2) => p2.visible && p2.type !== "soft_tissue") : state2.pointsVisible;
+          const pointsVisible = "visible" in updates ? updatedPoints.some(
+            (p2) => p2.visible && p2.type !== "soft_tissue" && p2.type !== "freehand"
+          ) : state2.pointsVisible;
           return {
             points: updatedPoints,
             pointsVisible,
@@ -22545,7 +22575,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const updatedPoints = state2.points.map(
             (point) => point.id === id ? __spreadValues(__spreadValues({}, point), updates) : point
           );
-          const pointsVisible = "visible" in updates ? updatedPoints.some((p2) => p2.visible && p2.type !== "soft_tissue") : state2.pointsVisible;
+          const pointsVisible = "visible" in updates ? updatedPoints.some(
+            (p2) => p2.visible && p2.type !== "soft_tissue" && p2.type !== "freehand"
+          ) : state2.pointsVisible;
           return {
             points: updatedPoints,
             pointsVisible
@@ -22608,12 +22640,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
     }),
     clearAllPoints: () => set((state) => ({
-      points: state.currentImage ? state.points.map(
+      // Template landmarks reset to unplaced; freehand points are deleted outright —
+      // at (-1,-1) they would be picked up by the auto placement sequence
+      points: state.currentImage ? state.points.filter(
+        (point) => {
+          var _a2;
+          return !(point.imageId === ((_a2 = state.currentImage) == null ? void 0 : _a2.id) && point.type === "freehand");
+        }
+      ).map(
         (point) => {
           var _a2;
           return point.imageId === ((_a2 = state.currentImage) == null ? void 0 : _a2.id) ? __spreadProps(__spreadValues({}, point), { x: -1, y: -1 }) : point;
         }
       ) : state.points,
+      distances: state.currentImage ? state.distances.filter((d2) => !d2.isFreehand) : state.distances,
       selectedPointId: null,
       isPlacingPoint: false,
       isPlacingSequence: false,
@@ -22627,8 +22667,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const newVisible = !state.pointsVisible;
       return {
         pointsVisible: newVisible,
+        // Freehand endpoints follow their distance's visibility, not the landmark toggle
         points: state.points.map(
-          (p2) => p2.type === "soft_tissue" ? p2 : __spreadProps(__spreadValues({}, p2), { visible: newVisible })
+          (p2) => p2.type === "soft_tissue" || p2.type === "freehand" ? p2 : __spreadProps(__spreadValues({}, p2), { visible: newVisible })
         )
       };
     }),
@@ -23109,10 +23150,66 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     distances: createDefaultDistances(),
     selectedDistanceId: null,
     // Actions
-    addDistance: (distance2) => set((state) => ({
-      distances: [...state.distances, __spreadProps(__spreadValues({}, distance2), { id: generateId() })],
-      isConfigurationModified: true
-    })),
+    addDistance: (distance2) => {
+      const id = generateId();
+      set((state) => ({
+        distances: [...state.distances, __spreadProps(__spreadValues({}, distance2), { id })],
+        isConfigurationModified: true
+      }));
+      return id;
+    },
+    addFreehandMeasurement: (p1, p2) => {
+      const state = get();
+      const currentImage = state.currentImage;
+      if (!currentImage) return null;
+      const point1Id = generateId();
+      const point2Id = generateId();
+      const distanceId = generateId();
+      const usedNames = new Set(state.distances.map((d2) => d2.name));
+      let freehandNumber = state.distances.filter((d2) => d2.isFreehand).length + 1;
+      while (usedNames.has("Distance ".concat(freehandNumber))) freehandNumber++;
+      const pixelDistance = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
+      );
+      const value = state.referenceScale ? Math.round(pixelDistance / state.referenceScale.scaleFactor * 100) / 100 : void 0;
+      set((s2) => ({
+        points: [
+          ...s2.points,
+          {
+            id: point1Id,
+            name: "Freehand ".concat(freehandNumber, "A"),
+            x: p1.x,
+            y: p1.y,
+            type: "freehand",
+            visible: true,
+            imageId: currentImage.id
+          },
+          {
+            id: point2Id,
+            name: "Freehand ".concat(freehandNumber, "B"),
+            x: p2.x,
+            y: p2.y,
+            type: "freehand",
+            visible: true,
+            imageId: currentImage.id
+          }
+        ],
+        distances: [
+          ...s2.distances,
+          {
+            id: distanceId,
+            name: "Distance ".concat(freehandNumber),
+            type: "point_point",
+            pointIds: [point1Id, point2Id],
+            value,
+            visible: true,
+            isCustom: true,
+            isFreehand: true
+          }
+        ]
+      }));
+      return distanceId;
+    },
     updateDistance: (id, updates) => {
       const isStructuralChange = "standardValue" in updates || "standardDeviation" in updates || "visible" in updates || "description" in updates;
       set((state) => ({
@@ -23123,116 +23220,57 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         isConfigurationModified: isStructuralChange ? true : state.isConfigurationModified
       }));
     },
-    removeDistance: (id) => set((state) => ({
-      distances: state.distances.filter((distance2) => distance2.id !== id),
-      selectedDistanceId: state.selectedDistanceId === id ? null : state.selectedDistanceId,
-      isConfigurationModified: true
-    })),
+    removeDistance: (id) => set((state) => {
+      const removed = state.distances.find((distance2) => distance2.id === id);
+      const base = {
+        distances: state.distances.filter((distance2) => distance2.id !== id),
+        selectedDistanceId: state.selectedDistanceId === id ? null : state.selectedDistanceId
+      };
+      if (removed == null ? void 0 : removed.isFreehand) {
+        return __spreadProps(__spreadValues({}, base), {
+          points: state.points.filter((p2) => {
+            var _a2;
+            return !((_a2 = removed.pointIds) == null ? void 0 : _a2.includes(p2.id));
+          })
+        });
+      }
+      return __spreadProps(__spreadValues({}, base), { isConfigurationModified: true });
+    }),
     setSelectedDistance: (id) => set({ selectedDistanceId: id }),
     calculateDistanceMeasurement: (id) => {
-      var _a2;
       const state = get();
       const distance2 = state.distances.find((d2) => d2.id === id);
       if (!distance2) return;
-      let calculatedValue = 0;
+      let calculatedValue = null;
       const currentImagePoints = state.getPointsForCurrentImage();
-      if (distance2.type === "specific" && state.referenceScale) {
-        if (distance2.name === "Wits") {
-          const oaPoint = currentImagePoints.find(
-            (p2) => p2.name === "OA" && p2.x >= 0 && p2.y >= 0
-          );
-          const obPoint = currentImagePoints.find(
-            (p2) => p2.name === "OB" && p2.x >= 0 && p2.y >= 0
-          );
-          if (oaPoint && obPoint) {
-            const horizontalDistance = oaPoint.x - obPoint.x;
-            calculatedValue = Math.round(horizontalDistance / state.referenceScale.scaleFactor * 100) / 100;
-          }
-        } else if (distance2.name === "1er-NA (mm)") {
-          const nPoint = currentImagePoints.find(
-            (p2) => p2.name === "N" && p2.x >= 0 && p2.y >= 0
-          );
-          const aPoint = currentImagePoints.find(
-            (p2) => p2.name === "A" && p2.x >= 0 && p2.y >= 0
-          );
-          const incPoint = currentImagePoints.find(
-            (p2) => p2.name === "OK IS1" && p2.x >= 0 && p2.y >= 0
-          );
-          if (nPoint && aPoint && incPoint) {
-            const A2 = aPoint.y - nPoint.y;
-            const B3 = nPoint.x - aPoint.x;
-            const C2 = aPoint.x * nPoint.y - nPoint.x * aPoint.y;
-            const pixelDistance = Math.abs(A2 * incPoint.x + B3 * incPoint.y + C2) / Math.sqrt(A2 * A2 + B3 * B3);
-            calculatedValue = Math.round(pixelDistance / state.referenceScale.scaleFactor * 100) / 100;
-          }
-        } else if (distance2.name === "1er-NB (mm)") {
-          const nPoint = currentImagePoints.find(
-            (p2) => p2.name === "N" && p2.x >= 0 && p2.y >= 0
-          );
-          const bPoint = currentImagePoints.find(
-            (p2) => p2.name === "B" && p2.x >= 0 && p2.y >= 0
-          );
-          const incPoint = currentImagePoints.find(
-            (p2) => p2.name === "UK IS1" && p2.x >= 0 && p2.y >= 0
-          );
-          if (nPoint && bPoint && incPoint) {
-            const A2 = bPoint.y - nPoint.y;
-            const B3 = nPoint.x - bPoint.x;
-            const C2 = bPoint.x * nPoint.y - nPoint.x * bPoint.y;
-            const pixelDistance = Math.abs(A2 * incPoint.x + B3 * incPoint.y + C2) / Math.sqrt(A2 * A2 + B3 * B3);
-            calculatedValue = Math.round(pixelDistance / state.referenceScale.scaleFactor * 100) / 100;
-          }
-        } else if (distance2.name === "Kinngrübchen-NB (mm)") {
-          const nPoint = currentImagePoints.find(
-            (p2) => p2.name === "N" && p2.x >= 0 && p2.y >= 0
-          );
-          const bPoint = currentImagePoints.find(
-            (p2) => p2.name === "B" && p2.x >= 0 && p2.y >= 0
-          );
-          const pogPoint = currentImagePoints.find(
-            (p2) => p2.name === "Pog" && p2.x >= 0 && p2.y >= 0
-          );
-          if (nPoint && bPoint && pogPoint) {
-            const A2 = bPoint.y - nPoint.y;
-            const B3 = nPoint.x - bPoint.x;
-            const C2 = bPoint.x * nPoint.y - nPoint.x * bPoint.y;
-            const pixelDistance = Math.abs(A2 * pogPoint.x + B3 * pogPoint.y + C2) / Math.sqrt(A2 * A2 + B3 * B3);
-            calculatedValue = Math.round(pixelDistance / state.referenceScale.scaleFactor * 100) / 100;
-          }
-        }
+      if (distance2.type === "specific") {
+        calculatedValue = calculateSpecificDistance(
+          distance2.name,
+          currentImagePoints,
+          state.calculateRealWorldDistance,
+          state.referenceScale
+        );
       } else if (distance2.type === "point_point" && distance2.pointIds) {
-        const [p1Id, p2Id] = distance2.pointIds;
-        const p1 = state.getPointById(p1Id);
-        const p2 = state.getPointById(p2Id);
+        const p1 = state.getPointById(distance2.pointIds[0]);
+        const p2 = state.getPointById(distance2.pointIds[1]);
         if (p1 && p2 && p1.x >= 0 && p2.x >= 0) {
-          const pixelDistance = Math.sqrt(
-            Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)
-          );
-          calculatedValue = state.calculateRealWorldDistance(p1Id, p2Id) || pixelDistance * 0.1;
+          calculatedValue = calculatePointPointDistanceMm(p1, p2, state.referenceScale);
         }
       } else if (distance2.type === "point_line" && distance2.pointId && distance2.lineId) {
         const point = state.getPointById(distance2.pointId);
         const line = state.getLineById(distance2.lineId);
-        if (point && line && point.x >= 0 && point.y >= 0) {
-          const lineP1 = state.getPointById(line.pointIds[0]);
-          const lineP2 = state.getPointById(line.pointIds[1]);
-          if (lineP1 && lineP2 && lineP1.x >= 0 && lineP2.x >= 0) {
-            const lineLength = Math.sqrt(
-              Math.pow(lineP2.x - lineP1.x, 2) + Math.pow(lineP2.y - lineP1.y, 2)
-            );
-            if (lineLength > 0) {
-              const t2 = ((point.x - lineP1.x) * (lineP2.x - lineP1.x) + (point.y - lineP1.y) * (lineP2.y - lineP1.y)) / (lineLength * lineLength);
-              const projX = lineP1.x + t2 * (lineP2.x - lineP1.x);
-              const projY = lineP1.y + t2 * (lineP2.y - lineP1.y);
-              const pixelDistance = Math.sqrt(
-                Math.pow(point.x - projX, 2) + Math.pow(point.y - projY, 2)
-              );
-              calculatedValue = state.calculateRealWorldDistance(point.id, point.id) ? pixelDistance / (((_a2 = state.referenceScale) == null ? void 0 : _a2.scaleFactor) || 1) : pixelDistance * 0.1;
-            }
-          }
+        const lineP1 = line && state.getPointById(line.pointIds[0]);
+        const lineP2 = line && state.getPointById(line.pointIds[1]);
+        if (point && lineP1 && lineP2 && point.x >= 0 && lineP1.x >= 0 && lineP2.x >= 0) {
+          calculatedValue = calculatePointLineDistanceMm(
+            point,
+            lineP1,
+            lineP2,
+            state.referenceScale
+          );
         }
       }
-      state.updateDistance(id, { value: calculatedValue });
+      state.updateDistance(id, { value: calculatedValue != null ? calculatedValue : void 0 });
     }
   });
   const createTemplatesSlice = (set, get) => ({
@@ -23453,16 +23491,156 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         console.log("Step 5: Created", templateLines.length, "lines");
+        const defaultAngles = createDefaultAngles();
+        const templateAngles = template.angles && template.angles.length > 0 ? template.angles.flatMap((angleTemplate) => {
+          var _a3, _b3, _c, _d, _e2;
+          const defaultMatch = defaultAngles.find((d2) => d2.name === angleTemplate.name);
+          if (!angleTemplate.isCustom && defaultMatch) {
+            return [
+              __spreadProps(__spreadValues({}, defaultMatch), {
+                visible: (_a3 = angleTemplate.visible) != null ? _a3 : defaultMatch.visible,
+                standardValue: (_b3 = angleTemplate.standardValue) != null ? _b3 : defaultMatch.standardValue,
+                standardDeviation: (_c = angleTemplate.standardDeviation) != null ? _c : defaultMatch.standardDeviation
+              })
+            ];
+          }
+          if (angleTemplate.type === "line_line" && angleTemplate.lineNames) {
+            const line1 = templateLines.find((l2) => l2.name === angleTemplate.lineNames[0]);
+            const line2 = templateLines.find((l2) => l2.name === angleTemplate.lineNames[1]);
+            if (line1 && line2) {
+              return [
+                {
+                  id: generateId(),
+                  name: angleTemplate.name,
+                  description: angleTemplate.description || "",
+                  type: "line_line",
+                  lineIds: [line1.id, line2.id],
+                  visible: (_d = angleTemplate.visible) != null ? _d : true,
+                  isCustom: true,
+                  value: 0,
+                  standardValue: angleTemplate.standardValue,
+                  standardDeviation: angleTemplate.standardDeviation
+                }
+              ];
+            }
+          }
+          if (angleTemplate.type === "three_point" && angleTemplate.pointNames) {
+            const [p1, p2, p3] = angleTemplate.pointNames.map(
+              (n2) => templatePoints.find((p4) => p4.name === n2)
+            );
+            if (p1 && p2 && p3) {
+              return [
+                {
+                  id: generateId(),
+                  name: angleTemplate.name,
+                  description: angleTemplate.description || "",
+                  type: "three_point",
+                  pointIds: [p1.id, p2.id, p3.id],
+                  visible: (_e2 = angleTemplate.visible) != null ? _e2 : true,
+                  isCustom: true,
+                  value: 0,
+                  standardValue: angleTemplate.standardValue,
+                  standardDeviation: angleTemplate.standardDeviation
+                }
+              ];
+            }
+          }
+          if (angleTemplate.isCustom || angleTemplate.pointNames || angleTemplate.lineNames) {
+            console.warn(
+              '⚠️ Template angle "'.concat(angleTemplate.name, '" could not be restored (missing points/lines)')
+            );
+          }
+          return [];
+        }) : defaultAngles;
+        const defaultDistances = createDefaultDistances();
+        const templateDistances = template.distances && template.distances.length > 0 ? template.distances.flatMap((distanceTemplate) => {
+          var _a3, _b3, _c, _d, _e2;
+          const defaultMatch = defaultDistances.find(
+            (d2) => d2.name === distanceTemplate.name
+          );
+          if (!distanceTemplate.isCustom && defaultMatch) {
+            return [
+              __spreadProps(__spreadValues({}, defaultMatch), {
+                visible: (_a3 = distanceTemplate.visible) != null ? _a3 : defaultMatch.visible,
+                standardValue: (_b3 = distanceTemplate.standardValue) != null ? _b3 : defaultMatch.standardValue,
+                standardDeviation: (_c = distanceTemplate.standardDeviation) != null ? _c : defaultMatch.standardDeviation
+              })
+            ];
+          }
+          if (distanceTemplate.type === "point_point" && distanceTemplate.pointNames) {
+            const p1 = templatePoints.find(
+              (p3) => p3.name === distanceTemplate.pointNames[0]
+            );
+            const p2 = templatePoints.find(
+              (p3) => p3.name === distanceTemplate.pointNames[1]
+            );
+            if (p1 && p2) {
+              return [
+                {
+                  id: generateId(),
+                  name: distanceTemplate.name,
+                  description: distanceTemplate.description || "",
+                  type: "point_point",
+                  pointIds: [p1.id, p2.id],
+                  visible: (_d = distanceTemplate.visible) != null ? _d : true,
+                  isCustom: true,
+                  standardValue: distanceTemplate.standardValue,
+                  standardDeviation: distanceTemplate.standardDeviation
+                }
+              ];
+            }
+          }
+          if (distanceTemplate.type === "point_line" && distanceTemplate.pointName && distanceTemplate.lineName) {
+            const point = templatePoints.find((p2) => p2.name === distanceTemplate.pointName);
+            const line = templateLines.find((l2) => l2.name === distanceTemplate.lineName);
+            if (point && line) {
+              return [
+                {
+                  id: generateId(),
+                  name: distanceTemplate.name,
+                  description: distanceTemplate.description || "",
+                  type: "point_line",
+                  pointId: point.id,
+                  lineId: line.id,
+                  visible: (_e2 = distanceTemplate.visible) != null ? _e2 : true,
+                  isCustom: true,
+                  standardValue: distanceTemplate.standardValue,
+                  standardDeviation: distanceTemplate.standardDeviation
+                }
+              ];
+            }
+          }
+          if (distanceTemplate.isCustom || distanceTemplate.pointNames || distanceTemplate.pointName) {
+            console.warn(
+              '⚠️ Template distance "'.concat(distanceTemplate.name, '" could not be restored (missing points/lines)')
+            );
+          }
+          return [];
+        }) : defaultDistances;
         if (typeof window !== "undefined") {
           localStorage.setItem("lastUsedTemplateId", templateId);
         }
         set({
-          points: templatePoints,
+          points: [
+            ...templatePoints,
+            ...state.points.filter(
+              (p2) => {
+                var _a3;
+                return p2.imageId === ((_a3 = state.currentImage) == null ? void 0 : _a3.id) && p2.type === "freehand";
+              }
+            )
+          ],
           lines: templateLines,
-          angles: createDefaultAngles(),
-          // Always include default angles
-          distances: createDefaultDistances(),
-          // Always include default distances
+          angles: templateAngles,
+          distances: [
+            ...templateDistances,
+            ...state.distances.filter((d2) => d2.isFreehand)
+          ],
+          // Always replace standards/descriptions — keeping the previous template's
+          // values around would silently apply them to measurements this template
+          // never defined standards for.
+          standards: template.analysisStandards || {},
+          measurementDescriptions: template.measurementDescriptions || {},
           lastUsedTemplateId: templateId,
           defaultTemplateId: templateId,
           isConfigurationModified: false
@@ -23511,20 +23689,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           set({ points: updatedPoints });
           console.log("Step 8: Fixed intersection point references");
           get().recalculateIntersectionPoints();
-          if (template.analysisStandards) {
-            console.log(
-              "Step 9a: Loading template standards...",
-              template.analysisStandards
-            );
-            set({ standards: template.analysisStandards });
-          }
-          if (template.measurementDescriptions) {
-            console.log(
-              "Step 9b: Loading template measurement descriptions...",
-              Object.keys(template.measurementDescriptions)
-            );
-            set({ measurementDescriptions: template.measurementDescriptions });
-          }
           console.log("Step 9: Recalculated intersection points - Template fully loaded!");
         } catch (error) {
           console.error("Error fixing intersection references:", error);
@@ -23538,7 +23702,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         (t2) => t2.id !== id || defaultTemplates.some((dt2) => dt2.id === id)
       );
       saveTemplatesToStorage(updatedTemplates);
-      return { templates: updatedTemplates };
+      const wasRemoved = updatedTemplates.length !== state.templates.length;
+      const wasActive = wasRemoved && state.defaultTemplateId === id;
+      if (wasActive && typeof window !== "undefined") {
+        localStorage.removeItem("lastUsedTemplateId");
+      }
+      return __spreadValues({
+        templates: updatedTemplates
+      }, wasActive ? { defaultTemplateId: null, lastUsedTemplateId: null } : {});
     }),
     setDefaultTemplate: (templateId) => {
       if (typeof window !== "undefined" && templateId) {
@@ -23568,7 +23739,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         standards: prevState.standards,
         measurementDescriptions: prevState.measurementDescriptions,
         currentImage: prevState.currentImage,
-        images: prevState.images
+        images: prevState.images,
+        isConfigurationModified: prevState.isConfigurationModified
       };
       try {
         set({ isLoadingCephFile: true });
@@ -23662,42 +23834,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           lines.map((l2) => "".concat(l2.name, ": ").concat(l2.visible)).join(", ")
         );
         const rawAngles = data.angles;
-        console.log("Raw angles from .ceph file:", (rawAngles == null ? void 0 : rawAngles.length) || 0, "angles");
-        if ((rawAngles == null ? void 0 : rawAngles.length) > 0) {
-          console.log("First angle sample:", rawAngles[0]);
-        }
-        let angles = [];
-        if (!rawAngles || rawAngles.length === 0) {
-          console.log("No angles in .ceph file, using defaults");
-          angles = createDefaultAngles();
-        } else {
-          const defaultAngles = createDefaultAngles();
-          const loadedAngleNames = rawAngles.map((a2) => a2.name);
-          angles = [
-            ...rawAngles,
-            ...defaultAngles.filter((a2) => !loadedAngleNames.includes(a2.name))
-          ];
-          console.log("Merged angles:", angles.length, "total");
-        }
+        const angles = rawAngles != null ? rawAngles : createDefaultAngles();
+        console.log("Loaded angles from .ceph file:", angles.length);
         const rawDistances = data.distances;
-        console.log(
-          "Raw distances from .ceph file:",
-          (rawDistances == null ? void 0 : rawDistances.length) || 0,
-          "distances"
-        );
-        let distances = [];
-        if (!rawDistances || rawDistances.length === 0) {
-          console.log("No distances in .ceph file, using defaults");
-          distances = createDefaultDistances();
-        } else {
-          const defaultDistances = createDefaultDistances();
-          const loadedDistanceNames = rawDistances.map((d2) => d2.name);
-          distances = [
-            ...rawDistances,
-            ...defaultDistances.filter((d2) => !loadedDistanceNames.includes(d2.name))
-          ];
-          console.log("Merged distances:", distances.length, "total");
-        }
+        const distances = rawDistances != null ? rawDistances : createDefaultDistances();
+        console.log("Loaded distances from .ceph file:", distances.length);
         const referenceScale = data.referenceScale || null;
         const clinicalNotes = data.clinicalNotes || "";
         const patientName = data.patientName || null;
@@ -23722,15 +23863,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           clinicalNotes,
           patientName,
           measurementVisibility,
-          standards: analysisStandards
+          standards: analysisStandards,
+          isConfigurationModified: true
         }, Object.keys(loadedMeasurementDescriptions).length > 0 ? { measurementDescriptions: loadedMeasurementDescriptions } : {}));
-        const currentState = get();
-        if (currentState.defaultTemplateId && Object.keys(analysisStandards).length > 0) {
-          console.log("Applying loaded analysis standards to current template...");
-          currentState.updateTemplate(currentState.defaultTemplateId, {
-            analysisStandards
-          });
-        }
         const finalState = get();
         console.log("Store updated - final point count:", finalState.points.length);
         const currentImagePoints = finalState.getPointsForCurrentImage();
@@ -23833,7 +23968,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             description: "Imported from .ceph file (".concat((/* @__PURE__ */ new Date()).toLocaleDateString(), ")"),
             version: 2,
             createdAt: /* @__PURE__ */ new Date(),
-            points: (cephPoints || []).map((p2) => ({
+            // Freehand measurements are patient data — never reconstructed into a template
+            points: (cephPoints || []).filter((p2) => p2.type !== "freehand").map((p2) => ({
               name: p2.name,
               type: p2.type,
               visible: p2.visible,
@@ -23905,7 +24041,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               }
               return baseAngle;
             }),
-            distances: (cephDistances || []).map((d2) => {
+            distances: (cephDistances || []).filter((d2) => !d2.isFreehand).map((d2) => {
               const baseDistance = {
                 name: d2.name,
                 description: d2.description || "",
@@ -24019,6 +24155,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         standards: {},
         measurementDescriptions: {},
         measurementVisibility: {},
+        // IP1/IP2 were just reset to unplaced — a scale derived from their old
+        // positions is stale and would silently mis-scale every distance.
+        referenceScale: null,
         // Reset any loading states
         isLoadingCephFile: false
       });
@@ -24046,6 +24185,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     harmonyBoxOrangeLineOffset: 0,
     anatomicalOverlayVisible: false,
     scrollWheelZoom: localStorage.getItem("cephalyzer_scroll_wheel_zoom") !== "false",
+    highlightedMeasurement: null,
+    measureToolActive: false,
+    pendingFreehandStart: null,
+    namingFreehandDistanceId: null,
     individualOverlayVisibility: {
       nasalFloor: true,
       cranialBase: true,
@@ -24058,7 +24201,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     setIsPlacingPoint: (placing) => set({ isPlacingPoint: placing }),
     startPlacementSequence: () => {
       const state = get();
-      const unplacedPoints = state.getPointsForCurrentImage().filter((p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection");
+      const unplacedPoints = state.getPointsForCurrentImage().filter((p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection" && p2.type !== "freehand");
       if (unplacedPoints.length > 0) {
         set({
           isPlacingSequence: true,
@@ -24078,7 +24221,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     },
     nextPointInSequence: () => {
       const state = get();
-      const unplacedPoints = state.getPointsForCurrentImage().filter((p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection");
+      const unplacedPoints = state.getPointsForCurrentImage().filter((p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection" && p2.type !== "freehand");
       if (unplacedPoints.length > 0) {
         set({
           currentPlacementIndex: 0,
@@ -24097,6 +24240,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     toggleAnatomicalOverlay: () => set((state) => ({
       anatomicalOverlayVisible: !state.anatomicalOverlayVisible
     })),
+    setHighlightedMeasurement: (name2) => set({ highlightedMeasurement: name2 }),
+    setMeasureToolActive: (active) => set(
+      active ? { measureToolActive: true, highlightedMeasurement: null } : { measureToolActive: false, pendingFreehandStart: null }
+    ),
+    setPendingFreehandStart: (start) => set({ pendingFreehandStart: start }),
+    setNamingFreehandDistanceId: (id) => set({ namingFreehandDistanceId: id }),
     toggleScrollWheelZoom: () => set((state) => {
       const next = !state.scrollWheelZoom;
       localStorage.setItem("cephalyzer_scroll_wheel_zoom", String(next));
@@ -30979,33 +31128,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const fileName = file.name.toLowerCase();
     return fileName.endsWith(".tif") || fileName.endsWith(".tiff");
   }
-  async function getTiffDimensions(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        var _a2;
-        try {
-          const arrayBuffer = (_a2 = event.target) == null ? void 0 : _a2.result;
-          const ifds = UTIF.decode(arrayBuffer);
-          if (ifds.length === 0) {
-            reject(new Error("No images found in TIFF file"));
-            return;
-          }
-          const firstImage = ifds[0];
-          resolve({
-            width: firstImage.width,
-            height: firstImage.height
-          });
-        } catch (error) {
-          reject(new Error("Failed to get TIFF dimensions: ".concat(error instanceof Error ? error.message : "Unknown error")));
-        }
-      };
-      reader.onerror = () => {
-        reject(new Error("Failed to read TIFF file"));
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
   var util;
   (function(util2) {
     util2.assertEqual = (_2) => {
@@ -34536,7 +34658,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     id: stringType(),
     name: stringType().min(1).max(100),
     description: stringType().optional(),
-    type: enumType(["standard", "intersection", "reference", "soft_tissue"]),
+    type: enumType(["standard", "intersection", "reference", "soft_tissue", "freehand"]),
     x: numberType(),
     y: numberType(),
     visible: booleanType(),
@@ -34580,6 +34702,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     value: numberType().optional(),
     visible: booleanType(),
     isCustom: booleanType().optional(),
+    // zod strips unknown keys on parse — isFreehand must be declared or it is silently dropped
+    isFreehand: booleanType().optional(),
     standardValue: numberType().optional(),
     standardDeviation: numberType().optional()
   });
@@ -36453,6 +36577,222 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     );
   }
+  function NameDistanceDialog() {
+    const {
+      namingFreehandDistanceId,
+      setNamingFreehandDistanceId,
+      distances,
+      updateDistance,
+      removeDistance
+    } = useCephalometricStore();
+    const distance2 = namingFreehandDistanceId ? distances.find((d2) => d2.id === namingFreehandDistanceId) : void 0;
+    const [name2, setName] = reactExports.useState("");
+    reactExports.useEffect(() => {
+      if (distance2) setName(distance2.name);
+    }, [distance2 == null ? void 0 : distance2.id]);
+    if (!distance2) return null;
+    const handleSave = () => {
+      const trimmed = name2.trim();
+      if (trimmed && distances.some((d2) => d2.name === trimmed && d2.id !== distance2.id)) {
+        toast.error('A measurement named "'.concat(trimmed, '" already exists'), {
+          description: "Measurement names must be unique — choose a different name."
+        });
+        return;
+      }
+      if (trimmed) updateDistance(distance2.id, { name: trimmed });
+      setNamingFreehandDistanceId(null);
+    };
+    const handleCancel = () => {
+      removeDistance(distance2.id);
+      setNamingFreehandDistanceId(null);
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Dialog, { open: true, onOpenChange: (open2) => {
+      if (!open2) handleCancel();
+    }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogContent, { className: "sm:max-w-sm", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogHeader, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTitle, { children: "Name this measurement" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(DialogDescription, { children: distance2.value !== void 0 ? "Measured distance: ".concat(distance2.value.toFixed(1), " mm") : "No reference scale set — place IP1 and IP2 to measure this distance in millimeters." })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "freehand-distance-name", children: "Name" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Input,
+          {
+            id: "freehand-distance-name",
+            value: name2,
+            onChange: (e2) => setName(e2.target.value),
+            onKeyDown: (e2) => {
+              if (e2.key === "Enter") {
+                e2.preventDefault();
+                handleSave();
+              }
+            },
+            placeholder: "e.g. Airway Width",
+            autoFocus: true,
+            onFocus: (e2) => e2.target.select()
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogFooter, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline", onClick: handleCancel, children: "Discard" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: handleSave, children: "Save" })
+      ] })
+    ] }) });
+  }
+  const perpendicularFoot = (p2, a2, b2) => {
+    const abx = b2.x - a2.x;
+    const aby = b2.y - a2.y;
+    const len2 = abx * abx + aby * aby;
+    if (len2 === 0) return null;
+    const t2 = ((p2.x - a2.x) * abx + (p2.y - a2.y) * aby) / len2;
+    return { x: a2.x + t2 * abx, y: a2.y + t2 * aby };
+  };
+  function lineIntersection(a1, a2, b1, b2) {
+    const d1x = a2.x - a1.x, d1y = a2.y - a1.y;
+    const d2x = b2.x - b1.x, d2y = b2.y - b1.y;
+    const denom = d1x * d2y - d1y * d2x;
+    if (Math.abs(denom) < 1e-6) return null;
+    const s2 = ((b1.x - a1.x) * d2y - (b1.y - a1.y) * d2x) / denom;
+    const x2 = a1.x + s2 * d1x;
+    const y2 = a1.y + s2 * d1y;
+    const len2b = d2x * d2x + d2y * d2y;
+    const u2 = len2b === 0 ? 0 : ((x2 - b1.x) * d2x + (y2 - b1.y) * d2y) / len2b;
+    return { x: x2, y: y2, s: s2, u: u2 };
+  }
+  function computeAngleExtensions(segA, segB) {
+    const hit = lineIntersection(segA.p1, segA.p2, segB.p1, segB.p2);
+    if (!hit) return [];
+    const to = { x: hit.x, y: hit.y };
+    const extensions = [];
+    if (hit.s > 1) extensions.push({ from: segA.p2, to });
+    else if (hit.s < 0) extensions.push({ from: segA.p1, to });
+    if (hit.u > 1) extensions.push({ from: segB.p2, to });
+    else if (hit.u < 0) extensions.push({ from: segB.p1, to });
+    return extensions;
+  }
+  function computeReachExtension(a2, b2, target) {
+    const abx = b2.x - a2.x, aby = b2.y - a2.y;
+    const len2 = abx * abx + aby * aby;
+    if (len2 === 0) return null;
+    const t2 = ((target.x - a2.x) * abx + (target.y - a2.y) * aby) / len2;
+    if (t2 > 1) return { from: b2, to: { x: target.x, y: target.y } };
+    if (t2 < 0) return { from: a2, to: { x: target.x, y: target.y } };
+    return null;
+  }
+  function clipToImageBounds(from, to, w2, h2) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    let t0 = 0;
+    let t1 = 1;
+    const clip = (p2, q2) => {
+      if (p2 === 0) return q2 >= 0;
+      const r2 = q2 / p2;
+      if (p2 < 0) {
+        if (r2 > t1) return false;
+        if (r2 > t0) t0 = r2;
+      } else {
+        if (r2 < t0) return false;
+        if (r2 < t1) t1 = r2;
+      }
+      return true;
+    };
+    if (clip(-dx, from.x) && clip(dx, w2 - from.x) && clip(-dy, from.y) && clip(dy, h2 - from.y)) {
+      return { x: from.x + t1 * dx, y: from.y + t1 * dy };
+    }
+    return to;
+  }
+  function resolveMeasurementHighlight(name2, points, lines, angles, distances) {
+    const placedByName = (pointName) => {
+      var _a2;
+      return (_a2 = points.find((pt2) => pt2.name === pointName && pt2.x >= 0 && pt2.y >= 0)) != null ? _a2 : null;
+    };
+    const placedById = (id) => {
+      var _a2;
+      return (_a2 = points.find((pt2) => pt2.id === id && pt2.x >= 0 && pt2.y >= 0)) != null ? _a2 : null;
+    };
+    const geometry = MEASUREMENT_GEOMETRY[name2];
+    if (geometry) {
+      const segments = [];
+      geometry.segments.forEach(([name1, name22]) => {
+        const p1 = placedByName(name1);
+        const p2 = placedByName(name22);
+        if (p1 && p2) segments.push({ p1, p2 });
+      });
+      let perpendicular = null;
+      let perpendicularExtension = null;
+      if (geometry.perpendicular) {
+        const from = placedByName(geometry.perpendicular.from);
+        const a2 = placedByName(geometry.perpendicular.to[0]);
+        const b2 = placedByName(geometry.perpendicular.to[1]);
+        const foot = from && a2 && b2 ? perpendicularFoot(from, a2, b2) : null;
+        if (from && foot) perpendicular = { from, foot };
+        if (a2 && b2 && foot) perpendicularExtension = computeReachExtension(a2, b2, foot);
+      }
+      let referenceLine = null;
+      const referenceLineExtensions = [];
+      if (geometry.referenceLine) {
+        const p1 = placedByName(geometry.referenceLine.line[0]);
+        const p2 = placedByName(geometry.referenceLine.line[1]);
+        if (p1 && p2) {
+          referenceLine = { p1, p2 };
+          geometry.referenceLine.reach.forEach((reachName) => {
+            const reachPoint = placedByName(reachName);
+            const ext = reachPoint ? computeReachExtension(p1, p2, reachPoint) : null;
+            if (ext) referenceLineExtensions.push(ext);
+          });
+        }
+      }
+      if (segments.length === 0 && !perpendicular && !referenceLine) return null;
+      const vertex = geometry.vertex ? placedByName(geometry.vertex) : null;
+      const angleExtensions = !vertex && !perpendicular && segments.length === 2 ? computeAngleExtensions(segments[0], segments[1]) : [];
+      const extensions = [
+        ...angleExtensions,
+        ...perpendicularExtension ? [perpendicularExtension] : [],
+        ...referenceLineExtensions
+      ];
+      return { segments, vertex, perpendicular, extensions, referenceLine };
+    }
+    const angle2 = angles.find((a2) => a2.isCustom && a2.name === name2);
+    if (angle2) {
+      const segments = [];
+      if (angle2.type === "line_line" && angle2.lineIds) {
+        angle2.lineIds.forEach((lineId) => {
+          const line = lines.find((l2) => l2.id === lineId);
+          const p1 = line ? placedById(line.pointIds[0]) : null;
+          const p2 = line ? placedById(line.pointIds[1]) : null;
+          if (p1 && p2) segments.push({ p1, p2 });
+        });
+        const extensions = segments.length === 2 ? computeAngleExtensions(segments[0], segments[1]) : [];
+        return segments.length ? { segments, vertex: null, perpendicular: null, extensions, referenceLine: null } : null;
+      } else if (angle2.type === "three_point" && angle2.pointIds) {
+        const [aId, vertexId, bId] = angle2.pointIds;
+        const pA = placedById(aId), pV = placedById(vertexId), pB = placedById(bId);
+        if (pA && pV) segments.push({ p1: pV, p2: pA });
+        if (pB && pV) segments.push({ p1: pV, p2: pB });
+        const vertex = placedById(vertexId);
+        return segments.length ? { segments, vertex, perpendicular: null, extensions: [], referenceLine: null } : null;
+      }
+      return segments.length ? { segments, vertex: null, perpendicular: null, extensions: [], referenceLine: null } : null;
+    }
+    const distance2 = distances.find((d2) => d2.isCustom && d2.name === name2);
+    if (distance2) {
+      if (distance2.type === "point_point" && distance2.pointIds) {
+        const p1 = placedById(distance2.pointIds[0]);
+        const p2 = placedById(distance2.pointIds[1]);
+        if (p1 && p2) return { segments: [{ p1, p2 }], vertex: null, perpendicular: null, extensions: [], referenceLine: null };
+      } else if (distance2.type === "point_line" && distance2.pointId && distance2.lineId) {
+        const from = placedById(distance2.pointId);
+        const line = lines.find((l2) => l2.id === distance2.lineId);
+        const a2 = line ? placedById(line.pointIds[0]) : null;
+        const b2 = line ? placedById(line.pointIds[1]) : null;
+        const foot = from && a2 && b2 ? perpendicularFoot(from, a2, b2) : null;
+        if (from && foot && a2 && b2) {
+          return { segments: [{ p1: a2, p2: b2 }], vertex: null, perpendicular: { from, foot }, extensions: [], referenceLine: null };
+        }
+      }
+    }
+    return null;
+  }
   function ImageCanvas() {
     var _a2, _b2, _c;
     const canvasRef = reactExports.useRef(null);
@@ -36467,6 +36807,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const [dragStartX, setDragStartX] = reactExports.useState(0);
     const [dragStartValue, setDragStartValue] = reactExports.useState(0);
     const wasDragAdjustingRef = reactExports.useRef(false);
+    const [draggingFreehandPointId, setDraggingFreehandPointId] = reactExports.useState(null);
+    const [measureMouse, setMeasureMouse] = reactExports.useState(null);
+    const wasDraggingEndpointRef = reactExports.useRef(false);
     const isIntelMac2 = typeof window !== "undefined" && ((_a2 = window.electronAPI) == null ? void 0 : _a2.isIntelMac);
     const isAppleSilicon2 = typeof window !== "undefined" && ((_b2 = window.electronAPI) == null ? void 0 : _b2.isAppleSilicon);
     const isWindows2 = typeof window !== "undefined" && ((_c = window.electronAPI) == null ? void 0 : _c.isWindows);
@@ -36477,6 +36820,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       points,
       lines,
       angles,
+      distances,
+      highlightedMeasurement,
+      setHighlightedMeasurement,
       pointsVisible,
       linesVisible,
       softTissueVisible,
@@ -36494,7 +36840,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       nextPointInSequence,
       anatomicalOverlayVisible,
       updateImageSettings,
-      scrollWheelZoom
+      scrollWheelZoom,
+      measureToolActive,
+      pendingFreehandStart,
+      setPendingFreehandStart,
+      setNamingFreehandDistanceId,
+      addFreehandMeasurement,
+      calculateDistanceMeasurement
     } = useCephalometricStore();
     reactExports.useEffect(() => {
       var _a3, _b3, _c2, _d, _e2, _f, _g;
@@ -36510,15 +36862,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       setActualImageDimensions(null);
     }, [currentImage]);
-    const getCanvasCoordinates = reactExports.useCallback((clientX, clientY) => {
+    const getImageTransform = reactExports.useCallback(() => {
       var _a3, _b3;
-      const canvas = canvasRef.current;
       const container = containerRef.current;
-      if (!canvas || !container) return { x: 0, y: 0 };
+      if (!container || !currentImage) return null;
       const rect = container.getBoundingClientRect();
-      const containerX = clientX - rect.left;
-      const containerY = clientY - rect.top;
-      if (!currentImage) return { x: 0, y: 0 };
       const imageWidth = (_a3 = actualImageDimensions == null ? void 0 : actualImageDimensions.width) != null ? _a3 : currentImage.width;
       const imageHeight = (_b3 = actualImageDimensions == null ? void 0 : actualImageDimensions.height) != null ? _b3 : currentImage.height;
       const imageAspect = imageWidth / imageHeight;
@@ -36538,34 +36886,84 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const scaledHeight = imageDisplayHeight * viewport.scale;
       const scaledOffsetX = offsetX + viewport.translateX + (imageDisplayWidth - scaledWidth) / 2;
       const scaledOffsetY = offsetY + viewport.translateY + (imageDisplayHeight - scaledHeight) / 2;
-      const normalizedX = (containerX - scaledOffsetX) / scaledWidth;
-      const normalizedY = (containerY - scaledOffsetY) / scaledHeight;
-      const x2 = normalizedX * imageWidth;
-      const y2 = normalizedY * imageHeight;
-      return { x: x2, y: y2 };
+      return { rect, imageWidth, imageHeight, scaledWidth, scaledHeight, scaledOffsetX, scaledOffsetY };
     }, [currentImage, viewport, actualImageDimensions]);
+    const getCanvasCoordinates = reactExports.useCallback((clientX, clientY) => {
+      const t2 = getImageTransform();
+      if (!t2) return { x: 0, y: 0 };
+      const containerX = clientX - t2.rect.left;
+      const containerY = clientY - t2.rect.top;
+      const x2 = (containerX - t2.scaledOffsetX) / t2.scaledWidth * t2.imageWidth;
+      const y2 = (containerY - t2.scaledOffsetY) / t2.scaledHeight * t2.imageHeight;
+      return { x: x2, y: y2 };
+    }, [getImageTransform]);
+    const hitTestFreehandEndpoint = reactExports.useCallback((clientX, clientY) => {
+      const t2 = getImageTransform();
+      if (!t2) return null;
+      const mouseX = clientX - t2.rect.left;
+      const mouseY = clientY - t2.rect.top;
+      const grabbablePointIds = /* @__PURE__ */ new Set();
+      distances.forEach((d2) => {
+        if (d2.isFreehand && d2.visible && d2.pointIds) {
+          grabbablePointIds.add(d2.pointIds[0]);
+          grabbablePointIds.add(d2.pointIds[1]);
+        }
+      });
+      if (grabbablePointIds.size === 0) return null;
+      const GRAB_RADIUS = 10;
+      let best = null;
+      getPointsForCurrentImage().forEach((p2) => {
+        if (p2.type !== "freehand" || !grabbablePointIds.has(p2.id) || p2.x < 0 || p2.y < 0) return;
+        const cx2 = t2.scaledOffsetX + p2.x / t2.imageWidth * t2.scaledWidth;
+        const cy = t2.scaledOffsetY + p2.y / t2.imageHeight * t2.scaledHeight;
+        const dist = Math.hypot(mouseX - cx2, mouseY - cy);
+        if (dist <= GRAB_RADIUS && (!best || dist < best.dist)) best = { id: p2.id, dist };
+      });
+      return best ? best.id : null;
+    }, [getImageTransform, distances, getPointsForCurrentImage]);
+    const addClickRipple = reactExports.useCallback((e2) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const ripple = {
+        x: e2.clientX - rect.left,
+        y: e2.clientY - rect.top,
+        timestamp: Date.now(),
+        id: Math.random()
+      };
+      setClickRipples((prev) => [...prev, ripple]);
+      setTimeout(() => {
+        setClickRipples((prev) => prev.filter((r2) => r2.id !== ripple.id));
+      }, 600);
+    }, []);
     const handleCanvasClick = reactExports.useCallback((e2) => {
       var _a3, _b3, _c2, _d;
       if (wasDragAdjustingRef.current) {
         wasDragAdjustingRef.current = false;
         return;
       }
-      if (dragAdjustMode) return;
-      if (!currentImage || !isPlacingPoint || !selectedPointId) return;
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const ripple = {
-          x: e2.clientX - rect.left,
-          y: e2.clientY - rect.top,
-          timestamp: Date.now(),
-          id: Math.random()
-        };
-        setClickRipples((prev) => [...prev, ripple]);
-        setTimeout(() => {
-          setClickRipples((prev) => prev.filter((r2) => r2.id !== ripple.id));
-        }, 600);
+      if (wasDraggingEndpointRef.current) {
+        wasDraggingEndpointRef.current = false;
+        return;
       }
+      if (dragAdjustMode) return;
+      if (measureToolActive) {
+        if (!currentImage) return;
+        addClickRipple(e2);
+        const coords2 = getCanvasCoordinates(e2.clientX, e2.clientY);
+        if (!pendingFreehandStart) {
+          setPendingFreehandStart(coords2);
+        } else {
+          if (Math.hypot(coords2.x - pendingFreehandStart.x, coords2.y - pendingFreehandStart.y) < 2) return;
+          const distanceId = addFreehandMeasurement(pendingFreehandStart, coords2);
+          setPendingFreehandStart(null);
+          setMeasureMouse(null);
+          if (distanceId) setNamingFreehandDistanceId(distanceId);
+        }
+        return;
+      }
+      if (!currentImage || !isPlacingPoint || !selectedPointId) return;
+      addClickRipple(e2);
       const coords = getCanvasCoordinates(e2.clientX, e2.clientY);
       console.log("ImageCanvas: Point placement:", {
         pointId: selectedPointId,
@@ -36588,7 +36986,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         setIsPlacingPoint(false);
         setSelectedPoint(null);
       }
-    }, [currentImage, isPlacingPoint, selectedPointId, isPlacingSequence, getCanvasCoordinates, updatePoint, setIsPlacingPoint, setSelectedPoint, nextPointInSequence, dragAdjustMode]);
+    }, [currentImage, isPlacingPoint, selectedPointId, isPlacingSequence, getCanvasCoordinates, updatePoint, setIsPlacingPoint, setSelectedPoint, nextPointInSequence, dragAdjustMode, measureToolActive, pendingFreehandStart, setPendingFreehandStart, addFreehandMeasurement, setNamingFreehandDistanceId, addClickRipple]);
     const handleZoomChange = reactExports.useCallback((value) => {
       const newScale = value[0];
       setViewport(__spreadProps(__spreadValues({}, viewport), {
@@ -36611,9 +37009,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         } else if (dragAdjustMode === "zoom") {
           setDragStartValue(viewport.scale);
         }
+      } else if (e2.button === 0 && currentImage) {
+        const hitId = hitTestFreehandEndpoint(e2.clientX, e2.clientY);
+        if (hitId) {
+          e2.preventDefault();
+          setDraggingFreehandPointId(hitId);
+        }
       }
-    }, [dragAdjustMode, currentImage, viewport.scale]);
+    }, [dragAdjustMode, currentImage, viewport.scale, hitTestFreehandEndpoint]);
     const handleMouseMove = reactExports.useCallback((e2) => {
+      if (draggingFreehandPointId && currentImage) {
+        e2.preventDefault();
+        const coords = getCanvasCoordinates(e2.clientX, e2.clientY);
+        updatePoint(draggingFreehandPointId, { x: coords.x, y: coords.y });
+        const parentDistance = distances.find(
+          (d2) => {
+            var _a3;
+            return d2.isFreehand && ((_a3 = d2.pointIds) == null ? void 0 : _a3.includes(draggingFreehandPointId));
+          }
+        );
+        if (parentDistance) calculateDistanceMeasurement(parentDistance.id);
+        wasDraggingEndpointRef.current = true;
+        return;
+      }
+      if (measureToolActive && pendingFreehandStart) {
+        setMeasureMouse(getCanvasCoordinates(e2.clientX, e2.clientY));
+      }
       if (isDragAdjusting && dragAdjustMode && currentImage) {
         e2.preventDefault();
         const deltaX2 = e2.clientX - dragStartX;
@@ -36638,16 +37059,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         translateY: viewport.translateY + deltaY
       }));
       setLastPanPoint({ x: e2.clientX, y: e2.clientY });
-    }, [isPanning, lastPanPoint, viewport, setViewport, isDragAdjusting, dragAdjustMode, dragStartX, dragStartValue, currentImage, updateImageSettings]);
+    }, [isPanning, lastPanPoint, viewport, setViewport, isDragAdjusting, dragAdjustMode, dragStartX, dragStartValue, currentImage, updateImageSettings, draggingFreehandPointId, getCanvasCoordinates, updatePoint, distances, calculateDistanceMeasurement, measureToolActive, pendingFreehandStart]);
     const handleMouseUp = reactExports.useCallback((e2) => {
       if (e2.button === 2) {
         setIsPanning(false);
+      } else if (e2.button === 0 && draggingFreehandPointId) {
+        setDraggingFreehandPointId(null);
+        wasDraggingEndpointRef.current = true;
       } else if (e2.button === 0 && isDragAdjusting) {
         setIsDragAdjusting(false);
         setDragAdjustMode(null);
         wasDragAdjustingRef.current = true;
       }
-    }, [isDragAdjusting]);
+    }, [isDragAdjusting, draggingFreehandPointId]);
     const handleContextMenu = reactExports.useCallback((e2) => {
       e2.preventDefault();
     }, []);
@@ -36686,7 +37110,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       canvas.width = rect.width;
       canvas.height = rect.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!pointsVisible && !linesVisible && !softTissueVisible) return;
+      const visibleFreehandDistances = distances.filter((d2) => d2.isFreehand && d2.visible);
+      if (!pointsVisible && !linesVisible && !softTissueVisible && !highlightedMeasurement && visibleFreehandDistances.length === 0 && !measureToolActive) return;
       const currentImagePoints = getPointsForCurrentImage();
       const imageWidth = (_a3 = actualImageDimensions == null ? void 0 : actualImageDimensions.width) != null ? _a3 : currentImage.width;
       const imageHeight = (_b3 = actualImageDimensions == null ? void 0 : actualImageDimensions.height) != null ? _b3 : currentImage.height;
@@ -36789,7 +37214,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       currentImagePoints.forEach((point) => {
         if (!point.visible || point.x < 0 || point.y < 0) return;
-        if (point.type === "soft_tissue") {
+        if (point.type === "freehand") {
+          return;
+        } else if (point.type === "soft_tissue") {
           return;
         } else {
           if (!pointsVisible) return;
@@ -36962,6 +37389,199 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           ctx.fillText(label, midX, midY - 16 - pv + 1);
         }
       }
+      if (visibleFreehandDistances.length > 0 || measureToolActive && pendingFreehandStart) {
+        const FH_ACCENT = "rgba(52, 211, 153, 0.95)";
+        const FH_GLOW = "rgba(52, 211, 153, 0.25)";
+        ctx.save();
+        ctx.lineCap = "round";
+        const drawFreehandLabel = (label, centerX, textY) => {
+          ctx.font = "500 10px Inter, system-ui, sans-serif";
+          ctx.textAlign = "center";
+          const tw = ctx.measureText(label).width;
+          const ph = 4, pv = 2, rr = 3;
+          const pw = tw + ph * 2, pht = 10 + pv * 2;
+          const px = centerX - pw / 2, py = textY - 10 - pv + 1;
+          ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+          ctx.beginPath();
+          ctx.moveTo(px + rr, py);
+          ctx.lineTo(px + pw - rr, py);
+          ctx.arcTo(px + pw, py, px + pw, py + rr, rr);
+          ctx.lineTo(px + pw, py + pht - rr);
+          ctx.arcTo(px + pw, py + pht, px + pw - rr, py + pht, rr);
+          ctx.lineTo(px + rr, py + pht);
+          ctx.arcTo(px, py + pht, px, py + pht - rr, rr);
+          ctx.lineTo(px, py + rr);
+          ctx.arcTo(px, py, px + rr, py, rr);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+          ctx.fillText(label, centerX, textY);
+        };
+        visibleFreehandDistances.forEach((d2) => {
+          if (!d2.pointIds) return;
+          const p1 = currentImagePoints.find((p3) => p3.id === d2.pointIds[0]);
+          const p2 = currentImagePoints.find((p3) => p3.id === d2.pointIds[1]);
+          if (!p1 || !p2 || p1.x < 0 || p1.y < 0 || p2.x < 0 || p2.y < 0) return;
+          const c1 = imageToCanvas(p1.x, p1.y);
+          const c2 = imageToCanvas(p2.x, p2.y);
+          ctx.setLineDash([]);
+          ctx.strokeStyle = FH_GLOW;
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(c1.x, c1.y);
+          ctx.lineTo(c2.x, c2.y);
+          ctx.stroke();
+          ctx.strokeStyle = FH_ACCENT;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(c1.x, c1.y);
+          ctx.lineTo(c2.x, c2.y);
+          ctx.stroke();
+          [{ p: p1, c: c1 }, { p: p2, c: c2 }].forEach(({ p: p3, c: c3 }) => {
+            const r2 = draggingFreehandPointId === p3.id ? 5 : 3.5;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+            ctx.beginPath();
+            ctx.arc(c3.x, c3.y, r2 + 1.5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = FH_ACCENT;
+            ctx.beginPath();
+            ctx.arc(c3.x, c3.y, r2, 0, 2 * Math.PI);
+            ctx.fill();
+          });
+          const pixelLength = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          const label = referenceScale ? "".concat(d2.name, " · ").concat((pixelLength / referenceScale.scaleFactor).toFixed(1), " mm") : d2.name;
+          drawFreehandLabel(label, (c1.x + c2.x) / 2, (c1.y + c2.y) / 2 - 10);
+        });
+        if (measureToolActive && pendingFreehandStart) {
+          const c2 = imageToCanvas(pendingFreehandStart.x, pendingFreehandStart.y);
+          ctx.strokeStyle = FH_ACCENT;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(c2.x, c2.y, 5, 0, 2 * Math.PI);
+          ctx.stroke();
+          if (measureMouse) {
+            const m2 = imageToCanvas(measureMouse.x, measureMouse.y);
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(c2.x, c2.y);
+            ctx.lineTo(m2.x, m2.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+        ctx.restore();
+      }
+      if (highlightedMeasurement) {
+        const highlight = resolveMeasurementHighlight(
+          highlightedMeasurement,
+          currentImagePoints,
+          lines,
+          angles,
+          distances
+        );
+        if (highlight) {
+          const ACCENT = "rgba(34, 211, 238, 0.95)";
+          const GLOW = "rgba(34, 211, 238, 0.25)";
+          ctx.save();
+          ctx.lineCap = "round";
+          if (highlight.referenceLine) {
+            const { p1, p2 } = highlight.referenceLine;
+            const c1 = imageToCanvas(p1.x, p1.y);
+            const c2 = imageToCanvas(p2.x, p2.y);
+            ctx.setLineDash([]);
+            ctx.strokeStyle = GLOW;
+            ctx.lineWidth = 7;
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+          }
+          highlight.segments.forEach(({ p1, p2 }) => {
+            const c1 = imageToCanvas(p1.x, p1.y);
+            const c2 = imageToCanvas(p2.x, p2.y);
+            ctx.setLineDash([]);
+            ctx.strokeStyle = GLOW;
+            ctx.lineWidth = 7;
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+          });
+          highlight.extensions.forEach(({ from, to }) => {
+            const clipped = clipToImageBounds(from, to, imageWidth, imageHeight);
+            const c1 = imageToCanvas(from.x, from.y);
+            const c2 = imageToCanvas(clipped.x, clipped.y);
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          });
+          if (highlight.perpendicular) {
+            const from = imageToCanvas(highlight.perpendicular.from.x, highlight.perpendicular.from.y);
+            const foot = imageToCanvas(highlight.perpendicular.foot.x, highlight.perpendicular.foot.y);
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(foot.x, foot.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = ACCENT;
+            ctx.fillRect(foot.x - 2.5, foot.y - 2.5, 5, 5);
+          }
+          if (highlight.vertex && highlight.segments.length >= 2) {
+            const vertex = highlight.vertex;
+            const rayEnd = (seg) => seg.p1.id === vertex.id ? seg.p2 : seg.p1;
+            const v2 = imageToCanvas(vertex.x, vertex.y);
+            const e1 = imageToCanvas(rayEnd(highlight.segments[0]).x, rayEnd(highlight.segments[0]).y);
+            const e2 = imageToCanvas(rayEnd(highlight.segments[1]).x, rayEnd(highlight.segments[1]).y);
+            let a1 = Math.atan2(e1.y - v2.y, e1.x - v2.x);
+            let a2 = Math.atan2(e2.y - v2.y, e2.x - v2.x);
+            const sweep = ((a2 - a1) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            if (sweep > Math.PI) [a1, a2] = [a2, a1];
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(v2.x, v2.y, 30, a1, a2);
+            ctx.stroke();
+          }
+          const ringed = /* @__PURE__ */ new Set();
+          const ringPoint = (pt2) => {
+            if (ringed.has(pt2.id)) return;
+            ringed.add(pt2.id);
+            const c2 = imageToCanvas(pt2.x, pt2.y);
+            ctx.strokeStyle = ACCENT;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(c2.x, c2.y, 8, 0, 2 * Math.PI);
+            ctx.stroke();
+          };
+          highlight.segments.forEach(({ p1, p2 }) => {
+            ringPoint(p1);
+            ringPoint(p2);
+          });
+          if (highlight.perpendicular) ringPoint(highlight.perpendicular.from);
+          ctx.restore();
+        }
+      }
       if (isWindows2 || isIntelMac2 || isAppleSilicon2) {
         renderingRef.current = false;
         if (typeof ((_c2 = window.electronAPI) == null ? void 0 : _c2.forceGC) === "function") {
@@ -36980,11 +37600,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       getPointsForCurrentImage,
       lines,
       angles,
+      distances,
+      highlightedMeasurement,
       selectedPointId,
       isPlacingPoint,
       isPlacingSequence,
       referenceScale,
-      actualImageDimensions
+      actualImageDimensions,
+      measureToolActive,
+      pendingFreehandStart,
+      draggingFreehandPointId,
+      measureMouse
     ]);
     reactExports.useEffect(() => {
       if (isWindows2 || isIntelMac2 || isAppleSilicon2) {
@@ -37073,12 +37699,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         } else if (key === "z" && !e2.ctrlKey && !e2.metaKey) {
           setDragAdjustMode((prev) => prev === "zoom" ? null : "zoom");
         } else if (key === "escape") {
-          setDragAdjustMode(null);
+          if (document.querySelector('[role="dialog"]')) return;
+          const store = useCephalometricStore.getState();
+          if (store.pendingFreehandStart) {
+            e2.preventDefault();
+            store.setPendingFreehandStart(null);
+          } else if (store.measureToolActive) {
+            e2.preventDefault();
+            store.setMeasureToolActive(false);
+          } else {
+            setDragAdjustMode(null);
+            setHighlightedMeasurement(null);
+          }
         }
       };
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [setHighlightedMeasurement]);
     if (!currentImage) {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "w-full h-full flex items-center justify-center bg-gray-800/30 border-gray-700/30", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-500 text-sm", children: "No image uploaded" }) }) });
     }
@@ -37138,7 +37775,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               onMouseUp: handleMouseUp,
               onContextMenu: handleContextMenu,
               style: {
-                cursor: dragAdjustMode ? "ew-resize" : isPanning ? "move" : isPlacingPoint ? "crosshair" : "inherit",
+                cursor: draggingFreehandPointId ? "grabbing" : dragAdjustMode ? "ew-resize" : isPanning ? "move" : measureToolActive || isPlacingPoint ? "crosshair" : "inherit",
                 pointerEvents: "auto"
               }
             }
@@ -37194,6 +37831,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               containerRef
             }
           ),
+          highlightedMeasurement && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-3 left-3 z-50 bg-gray-900/90 backdrop-blur-sm border border-gray-700/50 rounded-md px-3 py-1.5 shadow-lg shadow-black/20", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-xs", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-2 h-2 rounded-full bg-cyan-400" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-200 font-medium", children: highlightedMeasurement }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => setHighlightedMeasurement(null),
+                className: "text-gray-500 hover:text-white transition-colors",
+                title: "Clear highlight (Esc)",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X$1, { className: "h-3 w-3" })
+              }
+            )
+          ] }) }),
+          measureToolActive && !dragAdjustMode && currentImage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-3 right-3 z-50 bg-gray-900/90 backdrop-blur-sm border border-emerald-700/50 rounded-md px-3 py-1.5 shadow-lg shadow-black/20", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-xs", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Ruler, { className: "h-3.5 w-3.5 text-emerald-400" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-200 font-medium", children: pendingFreehandStart ? "Click the second point" : "Measure distance — click two points" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-500", children: "Esc to exit" })
+          ] }) }),
           dragAdjustMode && currentImage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-3 right-3 z-50 bg-gray-900/90 backdrop-blur-sm border border-gray-700/50 rounded-md px-3 py-1.5 shadow-lg shadow-black/20", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-xs", children: [
             dragAdjustMode === "brightness" && /* @__PURE__ */ jsxRuntimeExports.jsx(Sun, { className: "h-3.5 w-3.5 text-yellow-400" }),
             dragAdjustMode === "contrast" && /* @__PURE__ */ jsxRuntimeExports.jsx(Contrast, { className: "h-3.5 w-3.5 text-gray-300" }),
@@ -37222,21 +37877,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               Math.round(viewport.scale * 100),
               "%"
             ] })
-          ] }) })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(NameDistanceDialog, {})
         ]
       }
     ) }) });
   }
-  function Textarea(_ia) {
-    var _ja = _ia, { className } = _ja, props2 = __objRest(_ja, ["className"]);
+  const badgeVariants = cva(
+    "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+    {
+      variants: {
+        variant: {
+          default: "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+          secondary: "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          destructive: "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground"
+        }
+      },
+      defaultVariants: {
+        variant: "default"
+      }
+    }
+  );
+  function Badge(_ia) {
+    var _ja = _ia, {
+      className,
+      variant,
+      asChild = false
+    } = _ja, props2 = __objRest(_ja, [
+      "className",
+      "variant",
+      "asChild"
+    ]);
+    const Comp = asChild ? Slot$2 : "span";
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "textarea",
+      Comp,
       __spreadValues({
-        "data-slot": "textarea",
-        className: cn$1(
-          "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        )
+        "data-slot": "badge",
+        className: cn$1(badgeVariants({ variant }), className)
       }, props2)
     );
   }
@@ -40688,1426 +41366,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       })
     );
   }
-  const badgeVariants = cva(
-    "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
-    {
-      variants: {
-        variant: {
-          default: "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-          secondary: "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-          destructive: "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-          outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground"
-        }
-      },
-      defaultVariants: {
-        variant: "default"
-      }
-    }
-  );
-  function Badge(_ya) {
-    var _za = _ya, {
-      className,
-      variant,
-      asChild = false
-    } = _za, props2 = __objRest(_za, [
-      "className",
-      "variant",
-      "asChild"
-    ]);
-    const Comp = asChild ? Slot$2 : "span";
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Comp,
-      __spreadValues({
-        "data-slot": "badge",
-        className: cn$1(badgeVariants({ variant }), className)
-      }, props2)
-    );
-  }
-  var COLLAPSIBLE_NAME = "Collapsible";
-  var [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
-  var [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
-  var Collapsible$1 = reactExports.forwardRef(
-    (props2, forwardedRef) => {
-      const _a2 = props2, {
-        __scopeCollapsible,
-        open: openProp,
-        defaultOpen,
-        disabled,
-        onOpenChange
-      } = _a2, collapsibleProps = __objRest(_a2, [
-        "__scopeCollapsible",
-        "open",
-        "defaultOpen",
-        "disabled",
-        "onOpenChange"
-      ]);
-      const [open2, setOpen] = useControllableState({
-        prop: openProp,
-        defaultProp: defaultOpen != null ? defaultOpen : false,
-        onChange: onOpenChange,
-        caller: COLLAPSIBLE_NAME
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleProvider,
-        {
-          scope: __scopeCollapsible,
-          disabled,
-          contentId: useId$1(),
-          open: open2,
-          onOpenToggle: reactExports.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Primitive.div,
-            __spreadProps(__spreadValues({
-              "data-state": getState$1(open2),
-              "data-disabled": disabled ? "" : void 0
-            }, collapsibleProps), {
-              ref: forwardedRef
-            })
-          )
-        }
-      );
-    }
-  );
-  Collapsible$1.displayName = COLLAPSIBLE_NAME;
-  var TRIGGER_NAME = "CollapsibleTrigger";
-  var CollapsibleTrigger$1 = reactExports.forwardRef(
-    (props2, forwardedRef) => {
-      const _a2 = props2, { __scopeCollapsible } = _a2, triggerProps = __objRest(_a2, ["__scopeCollapsible"]);
-      const context = useCollapsibleContext(TRIGGER_NAME, __scopeCollapsible);
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Primitive.button,
-        __spreadProps(__spreadValues({
-          type: "button",
-          "aria-controls": context.contentId,
-          "aria-expanded": context.open || false,
-          "data-state": getState$1(context.open),
-          "data-disabled": context.disabled ? "" : void 0,
-          disabled: context.disabled
-        }, triggerProps), {
-          ref: forwardedRef,
-          onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
-        })
-      );
-    }
-  );
-  CollapsibleTrigger$1.displayName = TRIGGER_NAME;
-  var CONTENT_NAME = "CollapsibleContent";
-  var CollapsibleContent$1 = reactExports.forwardRef(
-    (props2, forwardedRef) => {
-      const _a2 = props2, { forceMount } = _a2, contentProps = __objRest(_a2, ["forceMount"]);
-      const context = useCollapsibleContext(CONTENT_NAME, props2.__scopeCollapsible);
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContentImpl, __spreadProps(__spreadValues({}, contentProps), { ref: forwardedRef, present })) });
-    }
-  );
-  CollapsibleContent$1.displayName = CONTENT_NAME;
-  var CollapsibleContentImpl = reactExports.forwardRef((props2, forwardedRef) => {
-    const _a2 = props2, { __scopeCollapsible, present, children } = _a2, contentProps = __objRest(_a2, ["__scopeCollapsible", "present", "children"]);
-    const context = useCollapsibleContext(CONTENT_NAME, __scopeCollapsible);
-    const [isPresent, setIsPresent] = reactExports.useState(present);
-    const ref = reactExports.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const heightRef = reactExports.useRef(0);
-    const height = heightRef.current;
-    const widthRef = reactExports.useRef(0);
-    const width = widthRef.current;
-    const isOpen = context.open || isPresent;
-    const isMountAnimationPreventedRef = reactExports.useRef(isOpen);
-    const originalStylesRef = reactExports.useRef(void 0);
-    reactExports.useEffect(() => {
-      const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
-      return () => cancelAnimationFrame(rAF);
-    }, []);
-    useLayoutEffect2(() => {
-      const node2 = ref.current;
-      if (node2) {
-        originalStylesRef.current = originalStylesRef.current || {
-          transitionDuration: node2.style.transitionDuration,
-          animationName: node2.style.animationName
-        };
-        node2.style.transitionDuration = "0s";
-        node2.style.animationName = "none";
-        const rect = node2.getBoundingClientRect();
-        heightRef.current = rect.height;
-        widthRef.current = rect.width;
-        if (!isMountAnimationPreventedRef.current) {
-          node2.style.transitionDuration = originalStylesRef.current.transitionDuration;
-          node2.style.animationName = originalStylesRef.current.animationName;
-        }
-        setIsPresent(present);
-      }
-    }, [context.open, present]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.div,
-      __spreadProps(__spreadValues({
-        "data-state": getState$1(context.open),
-        "data-disabled": context.disabled ? "" : void 0,
-        id: context.contentId,
-        hidden: !isOpen
-      }, contentProps), {
-        ref: composedRefs,
-        style: __spreadValues({
-          ["--radix-collapsible-content-height"]: height ? "".concat(height, "px") : void 0,
-          ["--radix-collapsible-content-width"]: width ? "".concat(width, "px") : void 0
-        }, props2.style),
-        children: isOpen && children
-      })
-    );
-  });
-  function getState$1(open2) {
-    return open2 ? "open" : "closed";
-  }
-  var Root$1 = Collapsible$1;
-  function Collapsible(_Aa) {
-    var props2 = __objRest(_Aa, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Root$1, __spreadValues({ "data-slot": "collapsible" }, props2));
-  }
-  function CollapsibleTrigger(_Ba) {
-    var props2 = __objRest(_Ba, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      CollapsibleTrigger$1,
-      __spreadValues({
-        "data-slot": "collapsible-trigger"
-      }, props2)
-    );
-  }
-  function CollapsibleContent(_Ca) {
-    var props2 = __objRest(_Ca, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      CollapsibleContent$1,
-      __spreadValues({
-        "data-slot": "collapsible-content"
-      }, props2)
-    );
-  }
-  function PointManager() {
-    const {
-      currentImage,
-      isPlacingPoint,
-      isPlacingSequence,
-      selectedPointId,
-      addPoint,
-      updatePoint,
-      removePoint,
-      clearAllPoints,
-      setSelectedPoint,
-      setIsPlacingPoint,
-      getPointsForCurrentImage,
-      lines,
-      createLineIntersectionPoint,
-      createPerpendicularIntersectionPoint,
-      reorderPoints
-    } = useCephalometricStore();
-    const [newPointName, setNewPointName] = reactExports.useState("");
-    const [newPointDescription, setNewPointDescription] = reactExports.useState("");
-    const [newPointType, setNewPointType] = reactExports.useState("standard");
-    const [editingPointId, setEditingPointId] = reactExports.useState(null);
-    const [editingName, setEditingName] = reactExports.useState("");
-    const [isAddPointOpen, setIsAddPointOpen] = reactExports.useState(false);
-    const [dragIndex, setDragIndex] = reactExports.useState(null);
-    const [dragOverIndex, setDragOverIndex] = reactExports.useState(null);
-    const handleDragStart = (e2, index2) => {
-      setDragIndex(index2);
-      e2.dataTransfer.effectAllowed = "move";
-      e2.dataTransfer.setData("text/plain", String(index2));
-    };
-    const handleDragOver = (e2, index2) => {
-      e2.preventDefault();
-      e2.dataTransfer.dropEffect = "move";
-      setDragOverIndex(index2);
-    };
-    const handleDrop = (e2, index2) => {
-      e2.preventDefault();
-      if (dragIndex !== null && dragIndex !== index2 && currentImage) {
-        reorderPoints(currentImage.id, dragIndex, index2);
-      }
-      setDragIndex(null);
-      setDragOverIndex(null);
-    };
-    const handleDragEnd = () => {
-      setDragIndex(null);
-      setDragOverIndex(null);
-    };
-    const [intersectionType, setIntersectionType] = reactExports.useState("line-line");
-    const [selectedLine1, setSelectedLine1] = reactExports.useState("");
-    const [selectedLine2, setSelectedLine2] = reactExports.useState("");
-    const [selectedIntersectionPoint, setSelectedIntersectionPoint] = reactExports.useState("");
-    const [selectedIntersectionLine, setSelectedIntersectionLine] = reactExports.useState("");
-    const currentImagePoints = getPointsForCurrentImage();
-    const handleAddPoint = () => {
-      if (!currentImage || !newPointName.trim()) return;
-      if (newPointType === "intersection") {
-        handleCreateIntersectionPoint();
-        return;
-      }
-      const point = {
-        name: newPointName.trim(),
-        description: newPointDescription.trim() || void 0,
-        x: -1,
-        // Use -1 to indicate unplaced point
-        y: -1,
-        type: newPointType,
-        visible: true,
-        imageId: currentImage.id
-      };
-      addPoint(point);
-      setNewPointName("");
-      setNewPointDescription("");
-      setTimeout(() => {
-        const nameField = document.querySelector('[data-field="name"]');
-        if (nameField) {
-          nameField.focus();
-        }
-      }, 100);
-    };
-    const handleCreateIntersectionPoint = () => {
-      if (!currentImage || !newPointName.trim()) return;
-      if (intersectionType === "line-line") {
-        if (!selectedLine1 || !selectedLine2) {
-          alert("Please select two lines for intersection");
-          return;
-        }
-        if (selectedLine1 === selectedLine2) {
-          alert("Please select two different lines");
-          return;
-        }
-        createLineIntersectionPoint(selectedLine1, selectedLine2, newPointName.trim(), currentImage.id);
-      } else if (intersectionType === "point-line") {
-        if (!selectedIntersectionPoint || !selectedIntersectionLine) {
-          alert("Please select a point and a line for perpendicular intersection");
-          return;
-        }
-        createPerpendicularIntersectionPoint(selectedIntersectionPoint, selectedIntersectionLine, newPointName.trim(), currentImage.id);
-      }
-      setNewPointName("");
-      setNewPointDescription("");
-      setSelectedLine1("");
-      setSelectedLine2("");
-      setSelectedIntersectionPoint("");
-      setSelectedIntersectionLine("");
-      setNewPointType("standard");
-    };
-    const handleKeyDown = (e2, field) => {
-      if (e2.key === "Enter") {
-        e2.preventDefault();
-        if (field === "name" && newPointName.trim()) {
-          const descriptionField = document.querySelector('[data-field="description"]');
-          if (descriptionField) {
-            descriptionField.focus();
-          } else {
-            handleAddPoint();
-          }
-        } else if (field === "description") {
-          handleAddPoint();
-        }
-      }
-    };
-    const handleEditPoint = (pointId, currentName) => {
-      setEditingPointId(pointId);
-      setEditingName(currentName);
-    };
-    const handleSaveEdit = () => {
-      if (editingPointId && editingName.trim()) {
-        const original = currentImagePoints.find((p2) => p2.id === editingPointId);
-        const newName = editingName.trim();
-        if (original && original.name !== newName && PROTECTED_LANDMARK_NAMES.has(original.name)) {
-          toast.error('"'.concat(original.name, '" cannot be renamed'), {
-            description: "This landmark name is required by the measurement calculations."
-          });
-          setEditingPointId(null);
-          setEditingName("");
-          return;
-        }
-        if (original && original.name !== newName && PROTECTED_LANDMARK_NAMES.has(newName)) {
-          toast.error('"'.concat(newName, '" is a reserved landmark name'), {
-            description: "Choose a different name to avoid corrupting the standard measurements."
-          });
-          return;
-        }
-        updatePoint(editingPointId, { name: newName });
-        setEditingPointId(null);
-        setEditingName("");
-      }
-    };
-    const handleCancelEdit = () => {
-      setEditingPointId(null);
-      setEditingName("");
-    };
-    const handleToggleVisibility = (pointId, currentVisibility) => {
-      updatePoint(pointId, { visible: !currentVisibility });
-    };
-    const handlePlacePoint = (pointId) => {
-      setSelectedPoint(pointId);
-      setIsPlacingPoint(true);
-    };
-    const handleRePlace = (pointId) => {
-      setSelectedPoint(pointId);
-      setIsPlacingPoint(true);
-    };
-    const handleClearAllPoints = () => {
-      if (confirm("Are you sure you want to clear all point placements? The points will remain in the list but will need to be placed again.")) {
-        clearAllPoints();
-      }
-    };
-    const isPointPlaced = (point) => {
-      return point.x >= 0 && point.y >= 0;
-    };
-    const isPointCalculated = (point) => {
-      return point.type === "intersection" && point.x >= 0 && point.y >= 0;
-    };
-    const isIntersectionPoint = (point) => {
-      return point.type === "intersection";
-    };
-    const getPointTypeColor = (type) => {
-      switch (type) {
-        case "standard":
-          return "bg-blue-100 text-blue-800";
-        case "reference":
-          return "bg-red-100 text-red-800";
-        case "intersection":
-          return "bg-amber-100 text-amber-800";
-        case "soft_tissue":
-          return "bg-green-100 text-green-800";
-        default:
-          return "bg-gray-100 text-gray-800";
-      }
-    };
-    const getPointTypeLabel = (type) => {
-      switch (type) {
-        case "standard":
-          return "Standard";
-        case "reference":
-          return "Reference";
-        case "intersection":
-          return "Intersection";
-        case "soft_tissue":
-          return "Soft Tissue";
-        default:
-          return "Unknown";
-      }
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(MousePointer, { className: "h-4 w-4" }),
-        "Point Management"
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isAddPointOpen, onOpenChange: setIsAddPointOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-gray-600 rounded-lg bg-gray-700/50", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            Button,
-            {
-              variant: "ghost",
-              className: "w-full justify-between p-3 h-auto hover:bg-gray-700/30",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-gray-300 cursor-pointer", children: "Add New Point" }),
-                isAddPointOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-gray-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-gray-400" })
-              ]
-            }
-          ) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                placeholder: "Point name (Enter to continue)",
-                value: newPointName,
-                onChange: (e2) => setNewPointName(e2.target.value),
-                onKeyDown: (e2) => handleKeyDown(e2, "name"),
-                disabled: !currentImage,
-                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs h-7",
-                "data-field": "name"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Textarea,
-              {
-                placeholder: "Placement description/instructions (Tab from name, Enter to add)",
-                value: newPointDescription,
-                onChange: (e2) => setNewPointDescription(e2.target.value),
-                onKeyDown: (e2) => handleKeyDown(e2, "description"),
-                disabled: !currentImage,
-                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs min-h-[60px] resize-none",
-                "data-field": "description"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: newPointType, onValueChange: (value) => setNewPointType(value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select point type" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(SelectContent, { className: "bg-gray-800 border-gray-600", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "standard", className: "text-white hover:bg-gray-700", children: "Standard Point" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "reference", className: "text-white hover:bg-gray-700", children: "Reference Point (for scaling)" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "intersection", className: "text-white hover:bg-gray-700", children: "Intersection Point" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "soft_tissue", className: "text-white hover:bg-gray-700", children: "Soft Tissue Point" })
-              ] })
-            ] }),
-            newPointType === "intersection" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 pt-2 border-t border-gray-600", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Intersection Type" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Button,
-                  {
-                    variant: intersectionType === "line-line" ? "default" : "outline",
-                    onClick: () => setIntersectionType("line-line"),
-                    className: "text-xs h-7",
-                    children: "Line ∩ Line"
-                  }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Button,
-                  {
-                    variant: intersectionType === "point-line" ? "default" : "outline",
-                    onClick: () => setIntersectionType("point-line"),
-                    className: "text-xs h-7",
-                    children: "Point ⊥ Line"
-                  }
-                )
-              ] }),
-              intersectionType === "line-line" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Select two lines for intersection" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "First Line" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedLine1, onValueChange: setSelectedLine1, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select first line" }) }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Second Line" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedLine2, onValueChange: setSelectedLine2, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select second line" }) }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
-                    ] })
-                  ] })
-                ] })
-              ] }),
-              intersectionType === "point-line" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Select point and line for perpendicular intersection" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Point" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedIntersectionPoint, onValueChange: setSelectedIntersectionPoint, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select point" }) }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Line" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedIntersectionLine, onValueChange: setSelectedIntersectionLine, children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select line" }) }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
-                    ] })
-                  ] })
-                ] })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Button,
-                {
-                  onClick: handleAddPoint,
-                  disabled: !currentImage || !newPointName.trim() || newPointType === "intersection" && (intersectionType === "line-line" && (!selectedLine1 || !selectedLine2) || intersectionType === "point-line" && (!selectedIntersectionPoint || !selectedIntersectionLine)),
-                  className: "flex-1 bg-blue-600 hover:bg-blue-700 text-xs h-7",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "h-3 w-3 mr-1" }),
-                    newPointType === "intersection" ? "Create Intersection" : "Add Point"
-                  ]
-                }
-              ),
-              isPlacingPoint && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Button,
-                {
-                  variant: "outline",
-                  onClick: () => setIsPlacingPoint(false),
-                  className: "border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs h-7",
-                  children: "Cancel"
-                }
-              )
-            ] })
-          ] }) })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
-            "Points (",
-            currentImagePoints.length,
-            ")"
-          ] }) }),
-          currentImagePoints.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No points added yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-0.5", children: currentImagePoints.map((point, index2) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              draggable: true,
-              onDragStart: (e2) => handleDragStart(e2, index2),
-              onDragOver: (e2) => handleDragOver(e2, index2),
-              onDrop: (e2) => handleDrop(e2, index2),
-              onDragEnd: handleDragEnd,
-              className: "p-1.5 border rounded-lg transition-colors ".concat(dragOverIndex === index2 && dragIndex !== index2 ? "border-blue-400 bg-blue-900/20" : selectedPointId === point.id ? "border-blue-500 bg-blue-900/30" : "border-gray-600 bg-gray-700/30 hover:bg-gray-700/50", " ").concat(dragIndex === index2 ? "opacity-40" : ""),
-              onClick: () => setSelectedPoint(point.id),
-              style: { cursor: dragIndex !== null ? "grabbing" : "pointer" },
-              children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "div",
-                  {
-                    className: "flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 transition-colors",
-                    onMouseDown: (e2) => e2.stopPropagation(),
-                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(GripVertical, { className: "h-4 w-4" })
-                  }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 min-w-0", children: editingPointId === point.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Input,
-                    {
-                      value: editingName,
-                      onChange: (e2) => setEditingName(e2.target.value),
-                      className: "h-8"
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      onClick: handleSaveEdit,
-                      children: "Save"
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "outline",
-                      onClick: handleCancelEdit,
-                      children: "Cancel"
-                    }
-                  )
-                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-0", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-wrap gap-y-0.5", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: point.name }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { className: "text-xs ".concat(getPointTypeColor(point.type)), children: getPointTypeLabel(point.type) }),
-                    isIntersectionPoint(point) && !isPointCalculated(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-purple-500 text-purple-400", children: "Awaiting Calculation" }),
-                    isIntersectionPoint(point) && isPointCalculated(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-green-500 text-green-400", children: "Calculated" }),
-                    (point.name === "IP1" || point.name === "IP2") && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { className: "text-xs bg-red-600 text-white", children: "PERMANENT" }),
-                    !isIntersectionPoint(point) && !isPointPlaced(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-amber-500 text-amber-400", children: "Not Placed" })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-400", children: isIntersectionPoint(point) && isPointCalculated(point) ? "(".concat(Math.round(point.x), ", ").concat(Math.round(point.y), ") - Calculated") : isIntersectionPoint(point) ? "Awaiting calculation" : isPointPlaced(point) ? "(".concat(Math.round(point.x), ", ").concat(Math.round(point.y), ")") : "Awaiting placement" })
-                ] }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 shrink-0", children: [
-                  !isIntersectionPoint(point) && !isPointPlaced(point) && !isPlacingSequence && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      onClick: (e2) => {
-                        e2.stopPropagation();
-                        handlePlacePoint(point.id);
-                      },
-                      className: "bg-blue-600 hover:bg-blue-700 text-white text-xs h-6",
-                      children: "Place"
-                    }
-                  ),
-                  !isIntersectionPoint(point) && isPointPlaced(point) && !isPlacingSequence && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      onClick: (e2) => {
-                        e2.stopPropagation();
-                        handleRePlace(point.id);
-                      },
-                      className: "bg-green-600 hover:bg-green-700 text-white text-xs h-6",
-                      title: "Correct placement - click to re-place",
-                      children: "Correct"
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "ghost",
-                      onClick: (e2) => {
-                        e2.stopPropagation();
-                        handleToggleVisibility(point.id, point.visible);
-                      },
-                      className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
-                      children: point.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3" })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "ghost",
-                      onClick: (e2) => {
-                        e2.stopPropagation();
-                        handleEditPoint(point.id, point.name);
-                      },
-                      className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
-                      disabled: point.name === "IP1" || point.name === "IP2",
-                      title: point.name === "IP1" || point.name === "IP2" ? "Cannot edit permanent reference point" : "Edit point name",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pen, { className: "h-3 w-3" })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "ghost",
-                      onClick: (e2) => {
-                        e2.stopPropagation();
-                        if (point.name === "IP1" || point.name === "IP2") {
-                          alert("Cannot delete ".concat(point.name, ": This is a permanent reference point required for measurements."));
-                          return;
-                        }
-                        if (confirm('Delete point "'.concat(point.name, '"? This action cannot be undone.'))) {
-                          removePoint(point.id);
-                        }
-                      },
-                      className: "text-gray-400 hover:text-red-400 hover:bg-red-900/20 h-6 w-6 p-0",
-                      disabled: point.name === "IP1" || point.name === "IP2",
-                      title: point.name === "IP1" || point.name === "IP2" ? "Cannot delete permanent reference point" : "Delete point",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
-                    }
-                  )
-                ] })
-              ] })
-            },
-            point.id
-          )) })
-        ] }),
-        currentImagePoints.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "border border-orange-600/50 rounded-lg bg-orange-900/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { className: "h-4 w-4 text-orange-400" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-orange-300", children: "Clear All Placements" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                onClick: handleClearAllPoints,
-                variant: "outline",
-                className: "border-orange-500 text-orange-400 hover:bg-orange-900/20 text-xs h-7",
-                children: "Clear All"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-orange-300/70", children: "Reset all point placements (points remain in list)" })
-        ] }) }),
-        lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Note:" }),
-          " You need at least 2 lines to create line-line intersection points."
-        ] }) }),
-        currentImagePoints.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Note:" }),
-          " You need at least 1 point and 1 line to create point-line intersection points."
-        ] }) })
-      ] })
-    ] });
-  }
-  function LineManager() {
-    const {
-      lines,
-      currentImage,
-      addLine,
-      updateLine,
-      removeLine,
-      getPointsForCurrentImage,
-      getPointById,
-      calculatePixelDistance,
-      calculateRealWorldDistance
-    } = useCephalometricStore();
-    const [newLineName, setNewLineName] = reactExports.useState("");
-    const [selectedPoint1, setSelectedPoint1] = reactExports.useState("");
-    const [selectedPoint2, setSelectedPoint2] = reactExports.useState("");
-    const [editingLineId, setEditingLineId] = reactExports.useState(null);
-    const [editingName, setEditingName] = reactExports.useState("");
-    const [isAddLineOpen, setIsAddLineOpen] = reactExports.useState(false);
-    const [colorPickerOpenFor, setColorPickerOpenFor] = reactExports.useState(null);
-    const [isGlobalControlsOpen, setIsGlobalControlsOpen] = reactExports.useState(false);
-    const [globalColorPickerOpen, setGlobalColorPickerOpen] = reactExports.useState(false);
-    const lineColors = [
-      { name: "Default", value: "", color: "#9ca3af" },
-      { name: "Blue", value: "#3b82f6", color: "#3b82f6" },
-      { name: "Red", value: "#ef4444", color: "#ef4444" },
-      { name: "Orange", value: "#f97316", color: "#f97316" },
-      { name: "Yellow", value: "#eab308", color: "#eab308" }
-    ];
-    const currentImagePoints = getPointsForCurrentImage();
-    reactExports.useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (colorPickerOpenFor && !event.target.closest(".color-picker-container")) {
-          setColorPickerOpenFor(null);
-        }
-        if (globalColorPickerOpen && !event.target.closest(".global-color-picker-container")) {
-          setGlobalColorPickerOpen(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [colorPickerOpenFor, globalColorPickerOpen]);
-    const handleAddLine = () => {
-      if (!currentImage || !newLineName.trim() || !selectedPoint1 || !selectedPoint2) return;
-      if (selectedPoint1 === selectedPoint2) {
-        alert("Please select two different points");
-        return;
-      }
-      const line = {
-        name: newLineName.trim(),
-        pointIds: [selectedPoint1, selectedPoint2],
-        visible: false,
-        color: "",
-        // Default — uses canvas grey/white style
-        extendedMode: false
-        // Default to non-extended (point-to-point)
-      };
-      addLine(line);
-      setNewLineName("");
-      setSelectedPoint1("");
-      setSelectedPoint2("");
-    };
-    const handleEditLine = (lineId, currentName) => {
-      setEditingLineId(lineId);
-      setEditingName(currentName);
-    };
-    const handleSaveEdit = () => {
-      if (editingLineId && editingName.trim()) {
-        updateLine(editingLineId, { name: editingName.trim() });
-        setEditingLineId(null);
-        setEditingName("");
-      }
-    };
-    const handleCancelEdit = () => {
-      setEditingLineId(null);
-      setEditingName("");
-    };
-    const handleToggleVisibility = (lineId, currentVisibility) => {
-      updateLine(lineId, { visible: !currentVisibility });
-    };
-    const handleRemoveLine = (lineId) => {
-      removeLine(lineId);
-    };
-    const handleColorChange = (lineId, color2) => {
-      updateLine(lineId, { color: color2 });
-      setColorPickerOpenFor(null);
-    };
-    const handleToggleExtendedMode = (lineId, currentExtendedMode) => {
-      updateLine(lineId, { extendedMode: !currentExtendedMode });
-    };
-    const handleToggleAllVisibility = () => {
-      const hasVisibleLines = lines.some((line) => line.visible);
-      const newVisibility = !hasVisibleLines;
-      lines.forEach((line) => {
-        updateLine(line.id, { visible: newVisibility });
-      });
-    };
-    const handleToggleAllExtendedMode = () => {
-      const hasExtendedLines = lines.some((line) => line.extendedMode);
-      const newExtendedMode = !hasExtendedLines;
-      lines.forEach((line) => {
-        updateLine(line.id, { extendedMode: newExtendedMode });
-      });
-    };
-    const handleChangeAllColors = (color2) => {
-      lines.forEach((line) => {
-        updateLine(line.id, { color: color2 });
-      });
-      setGlobalColorPickerOpen(false);
-    };
-    const getLineDistance = (line) => {
-      const pixelDistance = calculatePixelDistance(line.pointIds[0], line.pointIds[1]);
-      const realWorldDistance = calculateRealWorldDistance(line.pointIds[0], line.pointIds[1]);
-      return {
-        pixels: pixelDistance ? Math.round(pixelDistance) : null,
-        realWorld: realWorldDistance ? realWorldDistance.toFixed(2) : null
-      };
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Minus, { className: "h-4 w-4" }),
-        "Line Management"
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isAddLineOpen, onOpenChange: setIsAddLineOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-gray-600 rounded-lg bg-gray-700/50", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            Button,
-            {
-              variant: "ghost",
-              className: "w-full justify-between p-3 h-auto hover:bg-gray-700/30",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-gray-300 cursor-pointer", children: "Add New Line" }),
-                isAddLineOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-gray-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-gray-400" })
-              ]
-            }
-          ) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                placeholder: "Line name",
-                value: newLineName,
-                onChange: (e2) => setNewLineName(e2.target.value),
-                disabled: !currentImage,
-                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs h-7"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "First Point" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedPoint1, onValueChange: setSelectedPoint1, children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select first point" }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Second Point" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedPoint2, onValueChange: setSelectedPoint2, children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select second point" }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
-                ] })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Button,
-              {
-                onClick: handleAddLine,
-                disabled: !currentImage || !newLineName.trim() || !selectedPoint1 || !selectedPoint2,
-                className: "w-full bg-blue-600 hover:bg-blue-700 text-xs h-7",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "h-3 w-3 mr-1" }),
-                  "Add Line"
-                ]
-              }
-            )
-          ] }) })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
-            "Lines (",
-            lines.length,
-            ")"
-          ] }),
-          lines.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No lines created yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lines.map((line) => {
-            const point1 = getPointById(line.pointIds[0]);
-            const point2 = getPointById(line.pointIds[1]);
-            const distance2 = getLineDistance(line);
-            return /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                className: "p-2 border border-gray-600 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1", children: editingLineId === line.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Input,
-                      {
-                        value: editingName,
-                        onChange: (e2) => setEditingName(e2.target.value),
-                        className: "h-8 bg-gray-700 border-gray-600 text-white"
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        onClick: handleSaveEdit,
-                        className: "text-xs",
-                        children: "Save"
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "outline",
-                        onClick: handleCancelEdit,
-                        className: "text-xs",
-                        children: "Cancel"
-                      }
-                    )
-                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: line.name }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-blue-500 text-blue-400", children: "Line" })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-300", children: [
-                      "From: ",
-                      (point1 == null ? void 0 : point1.name) || "Unknown",
-                      " → To: ",
-                      (point2 == null ? void 0 : point2.name) || "Unknown"
-                    ] }),
-                    distance2.pixels && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-blue-400", children: [
-                      "Distance: ",
-                      distance2.pixels,
-                      "px",
-                      distance2.realWorld && " (".concat(distance2.realWorld, "mm)")
-                    ] })
-                  ] }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => handleToggleVisibility(line.id, line.visible),
-                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
-                        title: line.visible ? "Hide line" : "Show line",
-                        children: line.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-4 w-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-4 w-4" })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => handleToggleExtendedMode(line.id, line.extendedMode),
-                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
-                        title: line.extendedMode ? "Switch to point-to-point" : "Switch to extended line",
-                        children: line.extendedMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Maximize, { className: "h-4 w-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeftRight, { className: "h-4 w-4" })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative color-picker-container", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        Button,
-                        {
-                          size: "sm",
-                          variant: "ghost",
-                          onClick: () => setColorPickerOpenFor(colorPickerOpenFor === line.id ? null : line.id),
-                          className: "text-gray-400 hover:text-white hover:bg-gray-700",
-                          style: { color: line.color || "#9ca3af" },
-                          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { className: "h-4 w-4" })
-                        }
-                      ),
-                      colorPickerOpenFor === line.id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute top-8 right-0 z-50 bg-gray-900 border border-gray-600 rounded-lg p-3 shadow-xl min-w-[180px]", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mb-2 font-medium", children: "Line Color" }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lineColors.map((colorOption) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                          "button",
-                          {
-                            onClick: () => handleColorChange(line.id, colorOption.value),
-                            className: "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors ".concat(line.color === colorOption.value || !line.color && colorOption.value === "" ? "bg-gray-700 ring-1 ring-gray-500" : ""),
-                            children: [
-                              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                "div",
-                                {
-                                  className: "w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0",
-                                  style: { backgroundColor: colorOption.color }
-                                }
-                              ),
-                              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-gray-200 flex-1 text-left", children: colorOption.name }),
-                              (line.color === colorOption.value || !line.color && colorOption.value === "") && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 bg-gray-400 rounded-full flex-shrink-0" })
-                            ]
-                          },
-                          colorOption.name
-                        )) })
-                      ] })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => handleEditLine(line.id, line.name),
-                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
-                        title: "Edit line name",
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pen, { className: "h-4 w-4" })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => {
-                          if (confirm('Delete line "'.concat(line.name, '"? This action cannot be undone.'))) {
-                            handleRemoveLine(line.id);
-                          }
-                        },
-                        className: "text-gray-400 hover:text-red-400 hover:bg-red-900/20",
-                        title: "Delete line",
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" })
-                      }
-                    )
-                  ] })
-                ] })
-              },
-              line.id
-            );
-          }) })
-        ] }),
-        lines.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isGlobalControlsOpen, onOpenChange: setIsGlobalControlsOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-blue-600/50 rounded-lg bg-blue-900/10", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            Button,
-            {
-              variant: "ghost",
-              className: "w-full justify-between p-3 h-auto hover:bg-blue-900/20",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-blue-300 cursor-pointer", children: "Global Line Controls" }),
-                isGlobalControlsOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-blue-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-blue-400" })
-              ]
-            }
-          ) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Button,
-                {
-                  onClick: handleToggleAllVisibility,
-                  variant: "outline",
-                  className: "border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
-                  children: lines.some((line) => line.visible) ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3 mr-1" }),
-                    "Hide All"
-                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3 mr-1" }),
-                    "Show All"
-                  ] })
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Button,
-                {
-                  onClick: handleToggleAllExtendedMode,
-                  variant: "outline",
-                  className: "border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
-                  children: lines.some((line) => line.extendedMode) ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeftRight, { className: "h-3 w-3 mr-1" }),
-                    "All P2P"
-                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Maximize, { className: "h-3 w-3 mr-1" }),
-                    "All Extended"
-                  ] })
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative global-color-picker-container", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Button,
-                {
-                  onClick: () => setGlobalColorPickerOpen(!globalColorPickerOpen),
-                  variant: "outline",
-                  className: "w-full border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { className: "h-3 w-3 mr-1" }),
-                    "Change All Colors"
-                  ]
-                }
-              ),
-              globalColorPickerOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute top-10 left-0 right-0 z-50 bg-gray-900 border border-gray-600 rounded-lg p-3 shadow-xl", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mb-2 font-medium", children: "Set All Lines Color" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lineColors.map((colorOption) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "button",
-                  {
-                    onClick: () => handleChangeAllColors(colorOption.value),
-                    className: "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors",
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "div",
-                        {
-                          className: "w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0",
-                          style: { backgroundColor: colorOption.color }
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-gray-200 flex-1 text-left", children: colorOption.name })
-                    ]
-                  },
-                  colorOption.name
-                )) })
-              ] })
-            ] })
-          ] }) })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3 bg-gray-700 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-white", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Lines:" }),
-          " Lines extend infinitely through the selected points. They are not terminated at the point locations but continue beyond them."
-        ] }) }),
-        currentImagePoints.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
-          " You need at least 2 points to create a line."
-        ] }) })
-      ] })
-    ] });
-  }
-  function AddAngleDialog() {
-    const [isOpen, setIsOpen] = reactExports.useState(false);
-    const [name2, setName] = reactExports.useState("");
-    const [description, setDescription] = reactExports.useState("");
-    const [line1Id, setLine1Id] = reactExports.useState("");
-    const [line2Id, setLine2Id] = reactExports.useState("");
-    const [standardValue, setStandardValue] = reactExports.useState(0);
-    const [standardDeviation, setStandardDeviation] = reactExports.useState(0);
-    const {
-      lines,
-      addAngle,
-      calculateAngle,
-      templates,
-      defaultTemplateId,
-      updateTemplate
-    } = useCephalometricStore();
-    const handleSubmit = (e2) => {
-      if (e2) {
-        e2.preventDefault();
-      }
-      if (!name2.trim()) {
-        alert("Please enter a name for the angle");
-        return;
-      }
-      if (!line1Id || !line2Id) {
-        alert("Please select two lines for the angle measurement");
-        return;
-      }
-      if (line1Id === line2Id) {
-        alert("Please select two different lines");
-        return;
-      }
-      const line1 = lines.find((l2) => l2.id === line1Id);
-      const line2 = lines.find((l2) => l2.id === line2Id);
-      if (!line1 || !line2) {
-        alert("Selected lines not found. Please try again.");
-        return;
-      }
-      const angleData = {
-        name: name2.trim(),
-        description: description.trim() || "",
-        type: "line_line",
-        lineIds: [line1Id, line2Id],
-        visible: true,
-        isCustom: true,
-        standardValue: standardValue || void 0,
-        standardDeviation: standardDeviation || void 0
-      };
-      try {
-        addAngle(angleData);
-        setName("");
-        setDescription("");
-        setLine1Id("");
-        setLine2Id("");
-        setStandardValue(0);
-        setStandardDeviation(0);
-        setIsOpen(false);
-      } catch (error) {
-        console.error("Error adding angle:", error);
-        alert("Failed to add angle. Please try again.");
-      }
-    };
-    const canSubmit = name2.trim() && line1Id && line2Id && lines.length >= 2;
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Dialog, { open: isOpen, onOpenChange: setIsOpen, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        Button,
-        {
-          variant: "outline",
-          size: "sm",
-          className: "border-blue-600 text-blue-400 hover:bg-blue-700 hover:text-white",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Triangle, { className: "h-4 w-4 mr-2" }),
-            "Add Angle"
-          ]
-        }
-      ) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogContent, { className: "bg-gray-800 border-gray-700 max-w-md", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTitle, { className: "text-white", children: "Add Custom Angle Measurement" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogDescription, { className: "text-sm text-gray-400", children: "Create a custom angle measurement between two lines." })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "space-y-4", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "angle-name", className: "text-gray-300", children: "Measurement Name *" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "angle-name",
-                value: name2,
-                onChange: (e2) => setName(e2.target.value),
-                placeholder: "e.g., Custom Angle",
-                className: "bg-gray-700 border-gray-600 text-white"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "angle-description", className: "text-gray-300", children: "Description" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "angle-description",
-                value: description,
-                onChange: (e2) => setDescription(e2.target.value),
-                placeholder: "Optional description",
-                className: "bg-gray-700 border-gray-600 text-white"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-gray-300", children: "Select Lines *" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Line 1" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: line1Id, onValueChange: setLine1Id, children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Line 1" }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-700 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white", children: line.name }, line.id)) })
-                ] }, "line1-".concat(lines.length))
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Line 2" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: line2Id, onValueChange: setLine2Id, children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Line 2" }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-700 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white", children: line.name }, line.id)) })
-                ] }, "line2-".concat(lines.length))
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-gray-300", children: "Standard Values (Optional)" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Standard (°)" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Input,
-                  {
-                    type: "number",
-                    value: standardValue || "",
-                    onChange: (e2) => setStandardValue(Number(e2.target.value)),
-                    placeholder: "0",
-                    className: "bg-gray-700 border-gray-600 text-white"
-                  }
-                )
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Deviation (±°)" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Input,
-                  {
-                    type: "number",
-                    value: standardDeviation || "",
-                    onChange: (e2) => setStandardDeviation(Number(e2.target.value)),
-                    placeholder: "0",
-                    className: "bg-gray-700 border-gray-600 text-white"
-                  }
-                )
-              ] })
-            ] })
-          ] }),
-          lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
-            " You need at least 2 lines to create an angle. Create lines in the Lines tab first."
-          ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end space-x-2 pt-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                type: "button",
-                variant: "outline",
-                onClick: () => setIsOpen(false),
-                className: "border-gray-600 text-gray-300 hover:bg-gray-700",
-                children: "Cancel"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                type: "submit",
-                disabled: !canSubmit,
-                className: "bg-blue-600 hover:bg-blue-700",
-                children: "Add Angle"
-              }
-            )
-          ] })
-        ] })
-      ] })
-    ] });
-  }
-  function AngleManager() {
-    const {
-      angles,
-      lines,
-      currentImage,
-      updateAngle,
-      removeAngle,
-      calculateAngle,
-      getLineById
-    } = useCephalometricStore();
-    const handleToggleVisibility = (angleId, currentVisibility) => {
-      updateAngle(angleId, { visible: !currentVisibility });
-    };
-    const handleRecalculateAngle = (angleId) => {
-      calculateAngle(angleId);
-    };
-    const getAngleDescription = (angle2) => {
-      if (angle2.lineIds) {
-        const l1 = getLineById(angle2.lineIds[0]);
-        const l2 = getLineById(angle2.lineIds[1]);
-        return "".concat((l1 == null ? void 0 : l1.name) || "Unknown", " ∩ ").concat((l2 == null ? void 0 : l2.name) || "Unknown");
-      }
-      return "Unknown";
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Compass, { className: "h-4 w-4" }),
-        "Angle Measurement"
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(AddAngleDialog, {}),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
-            "Measured Angles (",
-            angles.length,
-            ")"
-          ] }),
-          angles.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No angles measured yet. Create lines first, then measure angles between them." }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: angles.map((angle2) => {
-            const description = getAngleDescription(angle2);
-            return /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                className: "p-2 border border-gray-600 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: angle2.name }),
-                      angle2.value && /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, { className: "text-xs bg-purple-600 text-white", children: [
-                        angle2.value.toFixed(1),
-                        "°"
-                      ] })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300", children: description })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => handleRecalculateAngle(angle2.id),
-                        title: "Recalculate angle",
-                        className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-3 w-3" })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => handleToggleVisibility(angle2.id, angle2.visible),
-                        className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
-                        children: angle2.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3" })
-                      }
-                    ),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      Button,
-                      {
-                        size: "sm",
-                        variant: "ghost",
-                        onClick: () => removeAngle(angle2.id),
-                        className: "text-red-400 hover:text-red-300 hover:bg-red-900/20 h-6 w-6 p-0",
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
-                      }
-                    )
-                  ] })
-                ] })
-              },
-              angle2.id
-            );
-          }) })
-        ] }),
-        lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
-          " You need at least 2 lines to measure angles. Create lines in the Lines tab first."
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-blue-900/30 rounded border border-blue-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-blue-300", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "How to use:" }),
-          " Select two lines to measure the angle between them. The angle will be calculated automatically when both lines have their points placed."
-        ] }) })
-      ] })
-    ] });
-  }
   var ENTRY_FOCUS = "rovingFocusGroup.onEntryFocus";
   var EVENT_OPTIONS = { bubbles: false, cancelable: true };
   var GROUP_NAME = "RovingFocusGroup";
@@ -42329,7 +41587,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function wrapArray(array, startIndex) {
     return array.map((_2, index2) => array[(startIndex + index2) % array.length]);
   }
-  var Root = RovingFocusGroup;
+  var Root$1 = RovingFocusGroup;
   var Item = RovingFocusGroupItem;
   var RADIO_NAME = "Radio";
   var [createRadioContext, createRadioScope] = createContextScope(RADIO_NAME);
@@ -42366,7 +41624,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             type: "button",
             role: "radio",
             "aria-checked": checked,
-            "data-state": getState(checked),
+            "data-state": getState$1(checked),
             "data-disabled": disabled ? "" : void 0,
             disabled,
             value
@@ -42407,7 +41665,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || context.checked, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         Primitive.span,
         __spreadProps(__spreadValues({
-          "data-state": getState(context.checked),
+          "data-state": getState$1(context.checked),
           "data-disabled": context.disabled ? "" : void 0
         }, indicatorProps), {
           ref: forwardedRef
@@ -42418,13 +41676,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   RadioIndicator.displayName = INDICATOR_NAME;
   var BUBBLE_INPUT_NAME = "RadioBubbleInput";
   var RadioBubbleInput = reactExports.forwardRef(
-    (_Da, forwardedRef) => {
-      var _Ea = _Da, {
+    (_ya, forwardedRef) => {
+      var _za = _ya, {
         __scopeRadio,
         control,
         checked,
         bubbles = true
-      } = _Ea, props2 = __objRest(_Ea, [
+      } = _za, props2 = __objRest(_za, [
         "__scopeRadio",
         "control",
         "checked",
@@ -42469,7 +41727,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
   );
   RadioBubbleInput.displayName = BUBBLE_INPUT_NAME;
-  function getState(checked) {
+  function getState$1(checked) {
     return checked ? "checked" : "unchecked";
   }
   var ARROW_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
@@ -42524,7 +41782,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           value,
           onValueChange: setValue,
           children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Root,
+            Root$1,
             __spreadProps(__spreadValues({
               asChild: true
             }, rovingFocusGroupScope), {
@@ -42619,10 +41877,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   var Root2 = RadioGroup$1;
   var Item2 = RadioGroupItem$1;
   var Indicator = RadioGroupIndicator;
-  function RadioGroup(_Fa) {
-    var _Ga = _Fa, {
+  function RadioGroup(_Aa) {
+    var _Ba = _Aa, {
       className
-    } = _Ga, props2 = __objRest(_Ga, [
+    } = _Ba, props2 = __objRest(_Ba, [
       "className"
     ]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -42633,10 +41891,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function RadioGroupItem(_Ha) {
-    var _Ia = _Ha, {
+  function RadioGroupItem(_Ca) {
+    var _Da = _Ca, {
       className
-    } = _Ia, props2 = __objRest(_Ia, [
+    } = _Da, props2 = __objRest(_Da, [
       "className"
     ]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -42673,22 +41931,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const {
       getPointsForCurrentImage,
       lines,
+      distances,
+      angles,
       addDistance,
       calculateDistanceMeasurement,
       templates,
       defaultTemplateId,
       updateTemplate
     } = useCephalometricStore();
-    const currentImagePoints = getPointsForCurrentImage();
+    const currentImagePoints = getPointsForCurrentImage().filter((p2) => p2.type !== "freehand");
     const handleSubmit = () => {
       if (!name2.trim()) return;
+      const trimmedName = name2.trim();
+      if (distances.some((d2) => d2.name === trimmedName) || angles.some((a2) => a2.name === trimmedName)) {
+        toast.error('A measurement named "'.concat(trimmedName, '" already exists'), {
+          description: "Measurement names must be unique — choose a different name."
+        });
+        return;
+      }
       const distanceData = {
-        name: name2.trim(),
+        name: trimmedName,
         description: description.trim(),
         type: distanceType,
         visible: true,
         isCustom: true,
-        standardValue: standardValue > 0 ? standardValue : void 0
+        standardValue: standardValue > 0 ? standardValue : void 0,
+        standardDeviation: standardDeviation > 0 ? standardDeviation : void 0
       };
       if (distanceType === "point_point") {
         if (!point1Id || !point2Id) {
@@ -42709,29 +41977,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         distanceData.lineId = lineId;
       }
       try {
-        addDistance(distanceData);
-        setTimeout(() => {
-          try {
-            const allDistances = useCephalometricStore.getState().distances;
-            const newDistance = allDistances.find((d2) => d2.name === name2.trim() && d2.isCustom);
-            if (newDistance) {
-              calculateDistanceMeasurement(newDistance.id);
-              if (standardValue > 0 && defaultTemplateId) {
-                const template = templates.find((t2) => t2.id === defaultTemplateId);
-                if (template) {
-                  const updatedStandards = __spreadProps(__spreadValues({}, template.analysisStandards), {
-                    [name2.trim()]: { value: standardValue, deviation: standardDeviation }
-                  });
-                  updateTemplate(defaultTemplateId, { analysisStandards: updatedStandards });
-                }
-              }
-            } else {
-              console.error("Could not find newly created distance:", name2.trim());
-            }
-          } catch (error) {
-            console.error("Error calculating distance:", error);
+        const newDistanceId = addDistance(distanceData);
+        calculateDistanceMeasurement(newDistanceId);
+        if (standardValue > 0 && defaultTemplateId) {
+          const template = templates.find((t2) => t2.id === defaultTemplateId);
+          if (template) {
+            const updatedStandards = __spreadProps(__spreadValues({}, template.analysisStandards), {
+              [trimmedName]: { value: standardValue, deviation: standardDeviation }
+            });
+            updateTemplate(defaultTemplateId, { analysisStandards: updatedStandards });
           }
-        }, 200);
+        }
       } catch (error) {
         console.error("Error adding distance:", error);
         return;
@@ -42910,7 +42166,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ] })
     ] });
   }
-  function DistanceManager() {
+  function DistanceManager({ showAddDialog = true }) {
     const {
       distances,
       currentImage,
@@ -42947,6 +42203,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     const getDistanceDescription = (distance2) => {
       var _a2;
+      if (distance2.isFreehand) {
+        return "Freehand measurement";
+      }
       if (distance2.type === "point_point" && ((_a2 = distance2.pointIds) == null ? void 0 : _a2.length) === 2) {
         const point1 = getPointById(distance2.pointIds[0]);
         const point2 = getPointById(distance2.pointIds[1]);
@@ -42964,7 +42223,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (distance2.value !== void 0 && distance2.value !== null) {
         return "".concat(distance2.value.toFixed(2), " mm");
       }
-      return "—";
+      return referenceScale ? "—" : "— (place IP1/IP2 for mm)";
     };
     const sortedDistances = [...distances].sort((a2, b2) => {
       if (a2.isCustom && !b2.isCustom) return 1;
@@ -42977,7 +42236,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         "Distance Measurements"
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(AddDistanceDialog, {}),
+        showAddDialog && /* @__PURE__ */ jsxRuntimeExports.jsx(AddDistanceDialog, {}),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: sortedDistances.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-500 text-center py-4", children: "No distance measurements yet. Add one to get started." }) : sortedDistances.map((distance2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
           "div",
           {
@@ -43035,6 +42294,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         )) })
       ] })
     ] }) });
+  }
+  function Textarea(_Ea) {
+    var _Fa = _Ea, { className } = _Fa, props2 = __objRest(_Fa, ["className"]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "textarea",
+      __spreadValues({
+        "data-slot": "textarea",
+        className: cn$1(
+          "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          className
+        )
+      }, props2)
+    );
   }
   function EditDescriptionDialog({ measurementName }) {
     const { measurementDescriptions, setMeasurementDescription, defaultTemplateId, updateTemplate } = useCephalometricStore();
@@ -43180,7 +42452,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       getMeasurementDescription,
       initializeDefaultDescriptions,
       standards,
-      setStandards
+      setStandards,
+      highlightedMeasurement,
+      setHighlightedMeasurement
     } = useCephalometricStore();
     const [editingStandard, setEditingStandard] = reactExports.useState(null);
     const [editValue, setEditValue] = reactExports.useState({ value: 0, deviation: 0 });
@@ -43549,7 +42823,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const formatValue = (value, decimals = 1) => {
       return value !== null ? value.toFixed(decimals) : "--";
     };
-    const getStatusColor = (status) => {
+    const getStatusColor2 = (status) => {
       switch (status) {
         case "normal":
           return "text-green-400";
@@ -43637,79 +42911,84 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-center px-1 py-2", children: "Diff" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-right px-2 py-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "sr-only", children: "Actions" }) })
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { className: "divide-y divide-gray-800/30", children: analysisResults.map((result, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "tr",
-            {
-              className: "hover:bg-gray-700/20 transition-colors ".concat(idx % 2 === 0 ? "bg-transparent" : "bg-gray-800/15"),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-left px-2 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1.5 min-w-0", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-1.5 h-1.5 rounded-full shrink-0 ".concat(result.currentValue !== null ? getStatusDot(result.status) : "bg-gray-600") }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-white font-medium truncate", children: result.name }) })
-                ] }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", children: editingStandard === result.name ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Input,
+          /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { className: "divide-y divide-gray-800/30", children: analysisResults.map((result, idx) => {
+            const isHighlighted = highlightedMeasurement === result.name;
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "tr",
+              {
+                onClick: () => setHighlightedMeasurement(isHighlighted ? null : result.name),
+                title: isHighlighted ? "Click to clear the highlight" : "Click to highlight this measurement on the image",
+                className: "cursor-pointer transition-colors ".concat(isHighlighted ? "bg-cyan-500/15 hover:bg-cyan-500/20" : "hover:bg-gray-700/20 ".concat(idx % 2 === 0 ? "bg-transparent" : "bg-gray-800/15")),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-left px-2 py-1.5 border-l-2 ".concat(isHighlighted ? "border-cyan-400" : "border-transparent"), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1.5 min-w-0", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-1.5 h-1.5 rounded-full shrink-0 ".concat(result.currentValue !== null ? getStatusDot(result.status) : "bg-gray-600") }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-medium truncate ".concat(isHighlighted ? "text-cyan-300" : "text-white"), children: result.name }) })
+                  ] }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", onClick: (e2) => e2.stopPropagation(), children: editingStandard === result.name ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Input,
+                      {
+                        type: "number",
+                        value: editValue.value,
+                        onChange: (e2) => setEditValue((prev) => __spreadProps(__spreadValues({}, prev), { value: Number(e2.target.value) })),
+                        className: "h-6 text-xs bg-gray-700 border-gray-600 text-white w-full",
+                        step: "0.1"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Input,
+                      {
+                        type: "number",
+                        value: editValue.deviation,
+                        onChange: (e2) => setEditValue((prev) => __spreadProps(__spreadValues({}, prev), { deviation: Number(e2.target.value) })),
+                        className: "h-6 text-xs bg-gray-700 border-gray-600 text-white w-full",
+                        step: "0.1",
+                        placeholder: "±SD"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        onClick: handleSaveStandard,
+                        className: "h-6 w-full text-xs bg-gray-600 hover:bg-gray-500 text-white",
+                        children: "Save"
+                      }
+                    )
+                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "div",
                     {
-                      type: "number",
-                      value: editValue.value,
-                      onChange: (e2) => setEditValue((prev) => __spreadProps(__spreadValues({}, prev), { value: Number(e2.target.value) })),
-                      className: "h-6 text-xs bg-gray-700 border-gray-600 text-white w-full",
-                      step: "0.1"
+                      className: "cursor-pointer truncate",
+                      onClick: () => handleEditStandard(result.name),
+                      title: "".concat(result.standardValue, "±").concat(result.standardDeviation).concat(result.unit),
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: result.standardValue }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-gray-600", children: [
+                          "±",
+                          result.standardDeviation
+                        ] })
+                      ]
                     }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Input,
-                    {
-                      type: "number",
-                      value: editValue.deviation,
-                      onChange: (e2) => setEditValue((prev) => __spreadProps(__spreadValues({}, prev), { deviation: Number(e2.target.value) })),
-                      className: "h-6 text-xs bg-gray-700 border-gray-600 text-white w-full",
-                      step: "0.1",
-                      placeholder: "±SD"
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      onClick: handleSaveStandard,
-                      className: "h-6 w-full text-xs bg-gray-600 hover:bg-gray-500 text-white",
-                      children: "Save"
-                    }
-                  )
-                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "div",
-                  {
-                    className: "cursor-pointer truncate",
-                    onClick: () => handleEditStandard(result.name),
-                    title: "".concat(result.standardValue, "±").concat(result.standardDeviation).concat(result.unit),
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: result.standardValue }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-gray-600", children: [
-                        "±",
-                        result.standardDeviation
-                      ] })
-                    ]
-                  }
-                ) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white font-medium truncate", children: formatValue(result.currentValue) }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium truncate ".concat(getStatusColor(result.status)), children: result.difference !== null ? "".concat(result.difference > 0 ? "+" : "").concat(formatValue(result.difference)) : "--" }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-right px-2 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-end gap-0.5", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(EditDescriptionDialog, { measurementName: result.name }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "button",
-                    {
-                      onClick: () => handleDeleteMeasurement(result.name),
-                      className: "h-5 w-5 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-900/15 transition-colors shrink-0",
-                      title: "Delete measurement",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
-                    }
-                  )
-                ] }) })
-              ]
-            },
-            result.name
-          )) })
+                  ) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white font-medium truncate", children: formatValue(result.currentValue) }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-center px-1 py-1.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium truncate ".concat(getStatusColor2(result.status)), children: result.difference !== null ? "".concat(result.difference > 0 ? "+" : "").concat(formatValue(result.difference)) : "--" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "text-right px-2 py-1.5", onClick: (e2) => e2.stopPropagation(), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-end gap-0.5", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(EditDescriptionDialog, { measurementName: result.name }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: () => handleDeleteMeasurement(result.name),
+                        className: "h-5 w-5 flex items-center justify-center rounded text-gray-600 hover:text-red-400 hover:bg-red-900/15 transition-colors shrink-0",
+                        title: "Delete measurement",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
+                      }
+                    )
+                  ] }) })
+                ]
+              },
+              result.name
+            );
+          }) })
         ] }) }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center py-6", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Calculator, { className: "h-8 w-8 text-gray-600 mx-auto mb-2" }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm text-gray-500", children: "Place anatomical points to see analysis results" })
@@ -43727,7 +43006,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 rounded-full bg-red-400" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-gray-500", children: "Alert" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-gray-600 ml-auto", children: "Click standard to edit" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-gray-600 ml-auto", children: "Click row to highlight · standard to edit" })
         ] })
       ] })
     ] });
@@ -43856,496 +43135,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ] }) })
     ] });
   }
-  function TemplateManager() {
-    const {
-      templates,
-      saveTemplate,
-      loadTemplate,
-      removeTemplate,
-      points,
-      lines,
-      angles,
-      distances,
-      currentImage,
-      exportTemplate,
-      importTemplate,
-      standards,
-      measurementDescriptions,
-      setStandards,
-      setMeasurementDescription,
-      updateAngle,
-      updateDistance,
-      startFromScratch,
-      lastUsedTemplateId,
-      getCurrentMatchingTemplateId
-    } = useCephalometricStore();
-    const currentMatchingTemplateId = getCurrentMatchingTemplateId();
-    const [templateName, setTemplateName] = reactExports.useState("");
-    const [templateDescription, setTemplateDescription] = reactExports.useState("");
-    const [showSaveForm, setShowSaveForm] = reactExports.useState(false);
-    const [isSaving, setIsSaving] = reactExports.useState(false);
-    const handleSaveTemplate = async () => {
-      if (!templateName.trim() || isSaving) return;
-      setIsSaving(true);
-      console.log("🔵 handleSaveTemplate called with:", templateName.trim());
-      console.log("🔵 Current points:", points.length);
-      console.log("🔵 Current lines:", lines.length);
-      console.log("🔵 Current angles:", angles.length);
-      try {
-        const template = {
-          name: templateName.trim(),
-          description: templateDescription.trim(),
-          version: 2,
-          // Template version with point/line mappings
-          points: (points || []).filter((p2) => p2 && p2.name).map((p2) => ({
-            name: p2.name,
-            description: p2.description,
-            type: p2.type,
-            visible: p2.visible,
-            intersectionData: p2.intersectionData
-          })),
-          lines: (lines || []).filter((l2) => l2 && l2.name).map((l2) => {
-            const point1 = points.find((p2) => p2.id === l2.pointIds[0]);
-            const point2 = points.find((p2) => p2.id === l2.pointIds[1]);
-            if (!point1 || !point2) {
-              console.warn('⚠️ Line "'.concat(l2.name, '" has invalid point IDs [').concat(l2.pointIds[0], ", ").concat(l2.pointIds[1], "], skipping"));
-              return null;
-            }
-            return {
-              name: l2.name,
-              pointNames: [point1.name, point2.name],
-              visible: l2.visible,
-              color: l2.color || "white",
-              extendedMode: l2.extendedMode || false
-            };
-          }).filter((l2) => l2 !== null),
-          angles: (angles || []).filter((a2) => a2 && a2.name).map((a2) => {
-            const baseAngle = {
-              name: a2.name,
-              description: a2.description,
-              type: a2.type,
-              visible: a2.visible,
-              isCustom: a2.isCustom,
-              standardValue: a2.standardValue,
-              standardDeviation: a2.standardDeviation
-            };
-            if (a2.type === "three_point" && a2.pointIds) {
-              const p1 = points.find((p4) => p4.id === a2.pointIds[0]);
-              const p2 = points.find((p4) => p4.id === a2.pointIds[1]);
-              const p3 = points.find((p4) => p4.id === a2.pointIds[2]);
-              if (p1 && p2 && p3) {
-                return __spreadProps(__spreadValues({}, baseAngle), {
-                  pointNames: [p1.name, p2.name, p3.name]
-                });
-              }
-            }
-            if (a2.type === "line_line" && a2.lineIds) {
-              const line1 = lines.find((l2) => l2.id === a2.lineIds[0]);
-              const line2 = lines.find((l2) => l2.id === a2.lineIds[1]);
-              if (line1 && line2) {
-                return __spreadProps(__spreadValues({}, baseAngle), {
-                  lineNames: [line1.name, line2.name]
-                });
-              }
-            }
-            return baseAngle;
-          }),
-          distances: (distances || []).filter((d2) => d2 && d2.name).map((d2) => {
-            const baseDistance = {
-              name: d2.name,
-              description: d2.description || "",
-              type: d2.type,
-              visible: d2.visible,
-              isCustom: d2.isCustom || false,
-              standardValue: d2.standardValue,
-              standardDeviation: d2.standardDeviation
-            };
-            if (d2.type === "point_point" && d2.pointIds) {
-              const p1 = points.find((p3) => p3.id === d2.pointIds[0]);
-              const p2 = points.find((p3) => p3.id === d2.pointIds[1]);
-              if (p1 && p2) {
-                return __spreadProps(__spreadValues({}, baseDistance), {
-                  pointNames: [p1.name, p2.name]
-                });
-              }
-            }
-            if (d2.type === "point_line" && d2.pointId && d2.lineId) {
-              const point = points.find((p2) => p2.id === d2.pointId);
-              const line = lines.find((l2) => l2.id === d2.lineId);
-              if (point && line) {
-                return __spreadProps(__spreadValues({}, baseDistance), {
-                  pointName: point.name,
-                  lineName: line.name
-                });
-              }
-            }
-            return baseDistance;
-          }),
-          analysisStandards: standards || {},
-          measurementDescriptions: measurementDescriptions || {}
-        };
-        console.log("🔵 Template object created:", template);
-        saveTemplate(template);
-        console.log("🔵 saveTemplate() called successfully");
-        setTimeout(() => {
-          setTemplateName("");
-          setTemplateDescription("");
-          setShowSaveForm(false);
-          setIsSaving(false);
-        }, 100);
-      } catch (error) {
-        console.error("🔴 Error in handleSaveTemplate:", error);
-        setIsSaving(false);
-      }
-    };
-    const handleLoadTemplate = (templateId) => {
-      loadTemplate(templateId);
-      setTimeout(() => {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("templateChanged"));
-        }
-      }, 300);
-    };
-    const handleRemoveTemplate = (templateId) => {
-      if (confirm("Are you sure you want to delete this template?")) {
-        removeTemplate(templateId);
-      }
-    };
-    const handleImportTemplate = (event) => {
-      var _a2;
-      const file = (_a2 = event.target.files) == null ? void 0 : _a2[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e2) => {
-        var _a3;
-        try {
-          const templateData = JSON.parse((_a3 = e2.target) == null ? void 0 : _a3.result);
-          importTemplate(templateData);
-          event.target.value = "";
-        } catch (error) {
-          console.error("Error importing template:", error);
-          alert("Error importing template. Please check the file format.");
-        }
-      };
-      reader.readAsText(file);
-    };
-    const handleActivateTemplate = (templateId) => {
-      handleLoadTemplate(templateId);
-    };
-    const handleExportTemplate = (template) => {
-      exportTemplate(template.id);
-    };
-    const hasConfiguration = currentImage !== null;
-    const hasChangesFromDefault = () => {
-      const defaultTemplate = defaultTemplates.find((t2) => t2.id === "standard-cephalometric");
-      if (!defaultTemplate) return false;
-      const defaultStandards2 = defaultTemplate.analysisStandards;
-      for (const key in defaultStandards2) {
-        if (standards[key]) {
-          const current = standards[key];
-          const defaultStd = defaultStandards2[key];
-          if (current.value !== defaultStd.value || current.deviation !== defaultStd.deviation) {
-            return true;
-          }
-        }
-      }
-      for (const key in measurementDescriptions) {
-        const desc = measurementDescriptions[key];
-        if (desc.negative2SD || desc.negative1SD || desc.positive1SD || desc.positive2SD) {
-          return true;
-        }
-      }
-      return false;
-    };
-    const resetToDefault = () => {
-      if (confirm("Reset all measurements and descriptions to default cephalometric analysis standards? This will remove all custom descriptions and reset all measurement standards.")) {
-        const defaultTemplate = defaultTemplates.find((t2) => t2.id === "standard-cephalometric");
-        if (defaultTemplate) {
-          setStandards(defaultTemplate.analysisStandards || {});
-          for (const key in measurementDescriptions) {
-            setMeasurementDescription(key, {
-              negative2SD: "",
-              negative1SD: "",
-              positive1SD: "",
-              positive2SD: ""
-            });
-          }
-          angles.forEach((angle2) => {
-            var _a2;
-            const standard = (_a2 = defaultTemplate.analysisStandards) == null ? void 0 : _a2[angle2.name];
-            if (standard) {
-              updateAngle(angle2.id, {
-                standardValue: standard.value,
-                standardDeviation: standard.deviation
-              });
-            }
-          });
-          distances.forEach((distance2) => {
-            var _a2;
-            const standard = (_a2 = defaultTemplate.analysisStandards) == null ? void 0 : _a2[distance2.name];
-            if (standard) {
-              updateDistance(distance2.id, {
-                standardValue: standard.value,
-                standardDeviation: standard.deviation
-              });
-            }
-          });
-          setTimeout(() => {
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("templateChanged"));
-            }
-          }, 100);
-        }
-      }
-    };
-    const handleStartFromScratch = () => {
-      if (confirm("Start a completely empty template from scratch? This will remove all current points, lines, angles, and measurements, keeping only the permanent IP1 and IP2 reference points.")) {
-        startFromScratch();
-      }
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4 p-3", children: [
-      currentMatchingTemplateId === null && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3 p-4 border border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20 rounded-lg transition-all duration-200", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 min-w-0 flex-1", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-green-200 whitespace-nowrap", children: "Save Current Configuration" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "secondary", className: "text-xs bg-green-600/20 text-green-300 border-green-600 whitespace-nowrap", children: "Unsaved Changes" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            Button,
-            {
-              size: "sm",
-              variant: "outline",
-              onClick: () => setShowSaveForm(!showSaveForm),
-              disabled: !hasConfiguration,
-              className: "flex-shrink-0 border-green-500 bg-green-600/10 text-green-300 hover:bg-green-600/20 hover:text-green-200 hover:border-green-400",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { className: "h-4 w-4 mr-2" }),
-                "Save Template"
-              ]
-            }
-          )
-        ] }),
-        showSaveForm && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "template-name", className: "text-white", children: "Template Name" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "template-name",
-                value: templateName,
-                onChange: (e2) => setTemplateName(e2.target.value),
-                placeholder: "Enter template name..."
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "template-description", className: "text-white", children: "Description (optional)" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Textarea,
-              {
-                id: "template-description",
-                value: templateDescription,
-                onChange: (e2) => setTemplateDescription(e2.target.value),
-                placeholder: "Describe this template...",
-                rows: 2
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                onClick: handleSaveTemplate,
-                disabled: !templateName.trim() || isSaving,
-                size: "sm",
-                className: "flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700",
-                children: isSaving ? "Saving..." : "Save"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                variant: "outline",
-                onClick: () => setShowSaveForm(false),
-                size: "sm",
-                className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400",
-                children: "Cancel"
-              }
-            )
-          ] })
-        ] }),
-        !hasConfiguration && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-300", children: "Load an image to enable template saving" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3 p-4 border border-gray-600 rounded-lg bg-gray-800/50", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-white flex-1 min-w-0", children: "Import Template" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-shrink-0", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "file",
-                accept: ".json,.ceph",
-                onChange: handleImportTemplate,
-                className: "hidden",
-                id: "import-template"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Button,
-              {
-                size: "sm",
-                variant: "outline",
-                onClick: () => {
-                  var _a2;
-                  return (_a2 = document.getElementById("import-template")) == null ? void 0 : _a2.click();
-                },
-                className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4 mr-2" }),
-                  "Import Template"
-                ]
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-300", children: "Import template files (.json) or extract templates from .ceph files" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3 p-4 border border-orange-600 rounded-lg bg-orange-600/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-orange-300", children: "Start from Scratch" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-orange-200", children: "Create a completely empty template with only IP1 and IP2 points" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Button,
-          {
-            size: "sm",
-            variant: "outline",
-            onClick: handleStartFromScratch,
-            disabled: !currentImage,
-            className: "flex-shrink-0 border-orange-500 bg-orange-600/20 text-orange-300 hover:bg-orange-600/30 hover:text-orange-200 hover:border-orange-400",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { className: "h-4 w-4 mr-2" }),
-              "Start Fresh"
-            ]
-          }
-        )
-      ] }) }),
-      hasChangesFromDefault() && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3 p-4 border border-yellow-600 rounded-lg bg-yellow-600/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-yellow-300", children: "Settings Modified" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-yellow-200", children: "Your measurement standards or descriptions differ from the default cephalometric analysis template." })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Button,
-          {
-            size: "sm",
-            variant: "outline",
-            onClick: resetToDefault,
-            className: "flex-shrink-0 border-yellow-500 bg-yellow-600/20 text-yellow-300 hover:bg-yellow-600/30 hover:text-yellow-200 hover:border-yellow-400",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-4 w-4 mr-2" }),
-              "Reset to Default"
-            ]
-          }
-        )
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-sm font-medium text-white", children: [
-          "Saved Templates (",
-          templates.length,
-          ")"
-        ] }),
-        templates.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-300 text-center py-4", children: "No templates saved yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: templates.map((template) => {
-          const isActive = currentMatchingTemplateId === template.id;
-          const isStandardTemplate = template.id === "standard-cephalometric";
-          return /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              className: "p-3 border rounded-lg transition-all duration-200 ".concat(isActive ? "border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20" : "border-gray-600 bg-gray-800/30"),
-              children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2 mb-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium ".concat(isActive ? "text-green-200" : "text-white"), children: template.name }),
-                    isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "secondary", className: "text-xs bg-green-600/20 text-green-300 border-green-600", children: "Active" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs", children: new Date(template.createdAt).toLocaleDateString("en-GB") })
-                  ] }),
-                  template.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs mb-2 ".concat(isActive ? "text-green-200" : "text-gray-300"), children: template.description }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4 text-xs ".concat(isActive ? "text-green-200" : "text-gray-300"), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                      template.points.length,
-                      " points"
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                      template.lines.length,
-                      " lines"
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                      template.angles.length,
-                      " angles"
-                    ] })
-                  ] })
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-shrink-0", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "outline",
-                      onClick: () => handleLoadTemplate(template.id),
-                      disabled: !currentImage,
-                      title: "Load template",
-                      className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400 h-8 w-8 p-0",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4" })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "outline",
-                      onClick: () => handleActivateTemplate(template.id),
-                      disabled: !currentImage || isActive,
-                      title: isActive ? "Template already active" : "Activate template - Load all points, lines, angles and settings",
-                      className: "h-8 w-8 p-0 ".concat(isActive ? "border-green-400 bg-green-400/20 text-green-200 cursor-not-allowed" : "border-green-500 bg-green-600/10 text-green-300 hover:bg-green-600/20 hover:text-green-200 hover:border-green-400"),
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { className: "h-4 w-4" })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "outline",
-                      onClick: () => handleExportTemplate(template),
-                      title: "Export template",
-                      className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400 h-8 w-8 p-0",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { className: "h-4 w-4" })
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Button,
-                    {
-                      size: "sm",
-                      variant: "outline",
-                      onClick: () => handleRemoveTemplate(template.id),
-                      disabled: isStandardTemplate,
-                      title: isStandardTemplate ? "Standard template cannot be deleted" : "Delete template",
-                      className: "h-8 w-8 p-0 ".concat(isStandardTemplate ? "border-gray-700 bg-gray-900 text-gray-500 cursor-not-allowed" : "border-gray-500 bg-gray-800 text-red-300 hover:bg-red-600 hover:text-white hover:border-red-400"),
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" })
-                    }
-                  )
-                ] })
-              ] })
-            },
-            template.id
-          );
-        }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3 bg-gray-700 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Templates:" }),
-        " Save your current point, line, and angle configurations to quickly set up similar analyses. Templates save the structure but not the actual point coordinates."
-      ] }) })
-    ] });
-  }
   function CollapsibleSection({ title, icon, isExpanded, onToggle, children }) {
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -44363,16 +43152,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       isExpanded && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1.5 ml-1 pl-2 border-l border-gray-800/50", children })
     ] });
   }
-  function ConfigurationTabs({ allSectionsCollapsed = false, onToggleAllSections }) {
+  function ConfigurationTabs({ allSectionsCollapsed = false, onOpenTemplateEditor }) {
     const { currentImage } = useCephalometricStore();
     const [expandedSections, setExpandedSections] = reactExports.useState({
       analysis: true,
       referenceScale: false,
-      points: true,
-      lines: false,
-      angles: false,
-      distances: false,
-      templates: false
+      distances: false
     });
     const toggleSection = (section) => {
       setExpandedSections((prev) => __spreadProps(__spreadValues({}, prev), {
@@ -44384,21 +43169,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         setExpandedSections({
           analysis: false,
           referenceScale: false,
-          points: false,
-          lines: false,
-          angles: false,
-          distances: false,
-          templates: false
+          distances: false
         });
       } else {
         setExpandedSections({
           analysis: true,
           referenceScale: false,
-          points: true,
-          lines: false,
-          angles: false,
-          distances: false,
-          templates: false
+          distances: false
         });
       }
     }, [allSectionsCollapsed]);
@@ -44419,6 +43196,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         CollapsibleSection,
         {
+          title: "Distances",
+          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Move, { className: "h-4 w-4" }),
+          isExpanded: expandedSections.distances,
+          onToggle: () => toggleSection("distances"),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(DistanceManager, { showAddDialog: false })
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        CollapsibleSection,
+        {
           title: "Reference Scale",
           icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Ruler, { className: "h-4 w-4" }),
           isExpanded: expandedSections.referenceScale,
@@ -44427,60 +43215,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       ),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleSection,
-        {
-          title: "Point Management",
-          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(MousePointer, { className: "h-4 w-4" }),
-          isExpanded: expandedSections.points,
-          onToggle: () => toggleSection("points"),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(PointManager, {})
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleSection,
-        {
-          title: "Line Management",
-          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Minus, { className: "h-4 w-4" }),
-          isExpanded: expandedSections.lines,
-          onToggle: () => toggleSection("lines"),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(LineManager, {})
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleSection,
-        {
-          title: "Angle Management",
-          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Compass, { className: "h-4 w-4" }),
-          isExpanded: expandedSections.angles,
-          onToggle: () => toggleSection("angles"),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(AngleManager, {})
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleSection,
-        {
-          title: "Distance Management",
-          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Move, { className: "h-4 w-4" }),
-          isExpanded: expandedSections.distances,
-          onToggle: () => toggleSection("distances"),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(DistanceManager, {})
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px bg-gray-800/40 mx-1" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        CollapsibleSection,
-        {
-          title: "Template Manager",
-          icon: /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { className: "h-4 w-4" }),
-          isExpanded: expandedSections.templates,
-          onToggle: () => toggleSection("templates"),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(TemplateManager, {})
-        }
-      )
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-1 pt-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: onOpenTemplateEditor,
+            className: "w-full border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(SlidersHorizontal, { className: "h-4 w-4 mr-2" }),
+              "Template Editor"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 mt-1.5 px-0.5", children: "Define points, lines, angles and measurements once — reused for every patient." })
+      ] })
     ] });
   }
   function ImageViewer() {
@@ -44733,7 +43483,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return { showArrow, scrollDown };
   }
   function LeftSidebar({ isVisible, onToggle }) {
-    const { currentImage } = useCephalometricStore();
+    const { currentImage, measureToolActive, setMeasureToolActive } = useCephalometricStore();
     const [contentEl, setContentEl] = reactExports.useState(null);
     const { showArrow, scrollDown } = useScrollIndicator(contentEl);
     if (!currentImage) {
@@ -44749,6 +43499,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xs font-medium text-gray-400 mb-2.5", children: "Image Controls" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(ImageViewer, {})
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xs font-medium text-gray-400 mb-2.5", children: "Tools" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Button,
+              {
+                variant: "outline",
+                size: "sm",
+                onClick: () => setMeasureToolActive(!measureToolActive),
+                className: "w-full border-gray-500 hover:border-gray-400 ".concat(measureToolActive ? "bg-emerald-900/40 text-emerald-300 border-emerald-600/60 hover:bg-emerald-900/60" : "bg-gray-800 text-gray-400 hover:bg-gray-600 hover:text-white"),
+                title: "Click two points on the image to measure the distance between them",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Ruler, { className: "h-4 w-4 mr-2" }),
+                  "Measure Distance",
+                  measureToolActive ? ": On" : ""
+                ]
+              }
+            )
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-xs font-medium text-gray-400 mb-2.5", children: "Clinical Notes" }),
@@ -54750,14 +53518,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }, t2.loadImageFile = t2.loadFile;
   }(E$1.API), function(e2) {
     function n2() {
-      return (i$5.html2canvas ? Promise.resolve(i$5.html2canvas) : __vitePreload(() => Promise.resolve().then(() => html2canvas_esm), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-CsJgYqnK.js", document.baseURI).href)).catch(function(t2) {
+      return (i$5.html2canvas ? Promise.resolve(i$5.html2canvas) : __vitePreload(() => Promise.resolve().then(() => html2canvas_esm), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-BcvlbIor.js", document.baseURI).href)).catch(function(t2) {
         return Promise.reject(new Error("Could not load html2canvas: " + t2));
       }).then(function(t2) {
         return t2.default ? t2.default : t2;
       });
     }
     function r2() {
-      return (i$5.DOMPurify ? Promise.resolve(i$5.DOMPurify) : __vitePreload(() => Promise.resolve().then(() => purify_es), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-CsJgYqnK.js", document.baseURI).href)).catch(function(t2) {
+      return (i$5.DOMPurify ? Promise.resolve(i$5.DOMPurify) : __vitePreload(() => Promise.resolve().then(() => purify_es), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-BcvlbIor.js", document.baseURI).href)).catch(function(t2) {
         return Promise.reject(new Error("Could not load dompurify: " + t2));
       }).then(function(t2) {
         return t2.default ? t2.default : t2;
@@ -55444,7 +54212,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var h2 = l2.getContext("2d");
     h2.fillStyle = "#fff", h2.fillRect(0, 0, l2.width, l2.height);
     var f2 = { ignoreMouse: true, ignoreAnimation: true, ignoreDimensions: true }, d2 = this;
-    return (i$5.canvg ? Promise.resolve(i$5.canvg) : __vitePreload(() => Promise.resolve().then(() => index_es), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-CsJgYqnK.js", document.baseURI).href)).catch(function(t3) {
+    return (i$5.canvg ? Promise.resolve(i$5.canvg) : __vitePreload(() => Promise.resolve().then(() => index_es), false ? __VITE_PRELOAD__ : void 0, _documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === "SCRIPT" && _documentCurrentScript.src || new URL("assets/index-BcvlbIor.js", document.baseURI).href)).catch(function(t3) {
       return Promise.reject(new Error("Could not load canvg: " + t3));
     }).then(function(t3) {
       return t3.default ? t3.default : t3;
@@ -56478,7 +55246,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function createExportCanvas() {
     const state = useCephalometricStore.getState();
-    const { currentImage, getPointsForCurrentImage, softTissueVisible, lines, anatomicalOverlayVisible, individualOverlayVisibility } = state;
+    const { currentImage, getPointsForCurrentImage, softTissueVisible, lines, distances, referenceScale, anatomicalOverlayVisible, individualOverlayVisibility } = state;
     if (!currentImage) return Promise.resolve(null);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -56596,6 +55364,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         currentImagePoints.forEach((point) => {
           if (!point.visible || point.x < 0 || point.y < 0) return;
           if (point.type === "soft_tissue") return;
+          if (point.type === "freehand") return;
           const canvasPos = imageToCanvas(point.x, point.y);
           const radius = 2;
           let fillColor = "#9ca3af";
@@ -56608,6 +55377,38 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           ctx.arc(canvasPos.x, canvasPos.y, radius, 0, 2 * Math.PI);
           ctx.fill();
           ctx.stroke();
+        });
+        distances.forEach((distance2) => {
+          if (!distance2.isFreehand || !distance2.visible || !distance2.pointIds) return;
+          const p1 = currentImagePoints.find((p3) => p3.id === distance2.pointIds[0]);
+          const p2 = currentImagePoints.find((p3) => p3.id === distance2.pointIds[1]);
+          if (!p1 || !p2 || p1.x < 0 || p1.y < 0 || p2.x < 0 || p2.y < 0) return;
+          const canvasP1 = imageToCanvas(p1.x, p1.y);
+          const canvasP2 = imageToCanvas(p2.x, p2.y);
+          ctx.strokeStyle = "#059669";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(canvasP1.x, canvasP1.y);
+          ctx.lineTo(canvasP2.x, canvasP2.y);
+          ctx.stroke();
+          ctx.fillStyle = "#059669";
+          [canvasP1, canvasP2].forEach((c2) => {
+            ctx.beginPath();
+            ctx.arc(c2.x, c2.y, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+          });
+          const pixelLength = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          const label = referenceScale ? "".concat(distance2.name, " · ").concat((pixelLength / referenceScale.scaleFactor).toFixed(1), " mm") : distance2.name;
+          ctx.font = "600 11px Helvetica, Arial, sans-serif";
+          ctx.textAlign = "center";
+          const midX = (canvasP1.x + canvasP2.x) / 2;
+          const midY = (canvasP1.y + canvasP2.y) / 2 - 8;
+          const tw = ctx.measureText(label).width;
+          ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+          ctx.fillRect(midX - tw / 2 - 3, midY - 11, tw + 6, 14);
+          ctx.fillStyle = "#065f46";
+          ctx.fillText(label, midX, midY);
         });
         if (anatomicalOverlayVisible) {
           drawAnatomicalOverlaysOnCanvas(ctx, currentImagePoints, canvas, currentImage, individualOverlayVisibility, imageToCanvas);
@@ -58115,7 +56916,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         name: line.name,
         pointIds: line.pointIds,
         visible: line.visible,
-        color: line.color
+        color: line.color,
+        extendedMode: line.extendedMode
       })),
       angles: angles.map((angle2) => ({
         id: angle2.id,
@@ -58141,6 +56943,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         value: distance2.value,
         visible: distance2.visible,
         isCustom: distance2.isCustom || false,
+        isFreehand: distance2.isFreehand || false,
         standardValue: distance2.standardValue,
         standardDeviation: distance2.standardDeviation
       })),
@@ -58528,269 +57331,69 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ] })
     ] });
   }
-  const alertVariants = cva(
-    "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
-    {
-      variants: {
-        variant: {
-          default: "bg-card text-card-foreground",
-          destructive: "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90"
-        }
-      },
-      defaultVariants: {
-        variant: "default"
-      }
-    }
-  );
-  function Alert(_Ja) {
-    var _Ka = _Ja, {
-      className,
-      variant
-    } = _Ka, props2 = __objRest(_Ka, [
-      "className",
-      "variant"
-    ]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      __spreadValues({
-        "data-slot": "alert",
-        role: "alert",
-        className: cn$1(alertVariants({ variant }), className)
-      }, props2)
-    );
-  }
-  function AlertDescription(_La) {
-    var _Ma = _La, {
-      className
-    } = _Ma, props2 = __objRest(_Ma, [
-      "className"
-    ]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      __spreadValues({
-        "data-slot": "alert-description",
-        className: cn$1(
-          "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-          className
-        )
-      }, props2)
-    );
-  }
-  function LoadDialog() {
-    var _a2, _b2, _c, _d, _e2, _f, _g, _h, _i;
-    const [isOpen, setIsOpen] = reactExports.useState(false);
+  function LoadCephButton() {
     const [isLoading, setIsLoading] = reactExports.useState(false);
-    const [error, setError] = reactExports.useState(null);
-    const [validationDetails, setValidationDetails] = reactExports.useState([]);
-    const [selectedFile, setSelectedFile] = reactExports.useState(null);
-    const [cephData, setCephData] = reactExports.useState(null);
-    const [validationStatus, setValidationStatus] = reactExports.useState(null);
     const cephFileInputRef = reactExports.useRef(null);
     const { loadCephFile } = useCephalometricStore();
     const handleCephFileSelect = async (event) => {
-      var _a3;
-      const file = (_a3 = event.target.files) == null ? void 0 : _a3[0];
+      var _a2, _b2;
+      const file = (_a2 = event.target.files) == null ? void 0 : _a2[0];
+      event.target.value = "";
       if (!file) return;
-      setError(null);
-      setValidationDetails([]);
-      setSelectedFile(file);
-      setValidationStatus("validating");
+      setIsLoading(true);
       try {
         const text2 = await file.text();
         let parsedData;
         try {
           parsedData = JSON.parse(text2);
-        } catch (parseError) {
-          setError("File is not valid JSON. The file may be corrupted.");
-          setSelectedFile(null);
-          setCephData(null);
-          setValidationStatus("invalid");
+        } catch (e2) {
+          toast.error('"'.concat(file.name, '" is not valid JSON. The file may be corrupted.'));
           return;
         }
         const validation = safeValidateCephFile(parsedData);
-        if (validation.success && validation.data) {
-          setCephData(validation.data);
-          setValidationStatus("valid");
-        } else {
-          setError(validation.error || "Invalid .ceph file format");
-          setValidationDetails(validation.details || []);
-          setSelectedFile(null);
-          setCephData(null);
-          setValidationStatus("invalid");
+        if (!validation.success || !validation.data) {
+          const details = (_b2 = validation.details) == null ? void 0 : _b2.slice(0, 3);
+          toast.error(validation.error || "Invalid .ceph file format", {
+            description: (details == null ? void 0 : details.length) ? details.join("\n") : void 0
+          });
+          return;
         }
-      } catch (unexpectedError) {
-        setError("Unexpected error reading file: " + String(unexpectedError));
-        setSelectedFile(null);
-        setCephData(null);
-        setValidationStatus("invalid");
-      }
-    };
-    const handleLoad = async () => {
-      if (!cephData || validationStatus !== "valid") return;
-      setIsLoading(true);
-      setError(null);
-      try {
-        await loadCephFile(cephData);
-        setIsOpen(false);
-        setSelectedFile(null);
-        setCephData(null);
-        setValidationStatus(null);
-        setValidationDetails([]);
-        if (cephFileInputRef.current) cephFileInputRef.current.value = "";
+        await loadCephFile(validation.data);
+        toast.success('Loaded "'.concat(file.name, '"'));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load .ceph file");
+        toast.error(err instanceof Error ? err.message : "Failed to load .ceph file");
       } finally {
         setIsLoading(false);
       }
     };
-    const handleOpenChange = (open2) => {
-      setIsOpen(open2);
-      if (!open2) {
-        setError(null);
-        setValidationDetails([]);
-        setSelectedFile(null);
-        setCephData(null);
-        setValidationStatus(null);
-        setIsLoading(false);
-        if (cephFileInputRef.current) cephFileInputRef.current.value = "";
-      }
-    };
-    const canLoad = cephData && !isLoading && validationStatus === "valid";
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Dialog, { open: isOpen, onOpenChange: handleOpenChange, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          ref: cephFileInputRef,
+          type: "file",
+          accept: ".ceph",
+          onChange: handleCephFileSelect,
+          className: "hidden"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
         Button,
         {
           variant: "outline",
           size: "sm",
+          disabled: isLoading,
+          onClick: () => {
+            var _a2;
+            return (_a2 = cephFileInputRef.current) == null ? void 0 : _a2.click();
+          },
           className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white hover:border-gray-500",
           children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { className: "h-4 w-4 mr-2 text-gray-200" }),
+            isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "h-4 w-4 mr-2 animate-spin" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { className: "h-4 w-4 mr-2 text-gray-200" }),
             "Load .ceph"
           ]
         }
-      ) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogContent, { className: "bg-gray-800 border-gray-700", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogHeader, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTitle, { className: "text-white", children: "Load Analysis from .ceph File" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogDescription, { className: "text-sm text-gray-400", children: "The .ceph file now includes both the analysis data and the image in a single file." })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "ceph-file", className: "text-gray-300", children: "Select .ceph File" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "input",
-                {
-                  ref: cephFileInputRef,
-                  id: "ceph-file",
-                  type: "file",
-                  accept: ".ceph",
-                  onChange: handleCephFileSelect,
-                  className: "hidden"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Button,
-                {
-                  variant: "outline",
-                  onClick: () => {
-                    var _a3;
-                    return (_a3 = cephFileInputRef.current) == null ? void 0 : _a3.click();
-                  },
-                  className: "w-full justify-start border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-4 w-4 mr-2" }),
-                    selectedFile ? selectedFile.name : "Choose .ceph file..."
-                  ]
-                }
-              )
-            ] })
-          ] }),
-          validationStatus === "validating" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { className: "bg-blue-900/20 border-blue-600", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-4 w-4 text-blue-400" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDescription, { className: "text-blue-200", children: "Validating file..." })
-          ] }),
-          validationStatus === "valid" && /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { className: "bg-green-900/20 border-green-600", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-4 w-4 text-green-400" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(AlertDescription, { className: "text-green-200", children: "File validation successful" })
-          ] }),
-          cephData && validationStatus === "valid" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-700 p-3 rounded-lg border border-green-600/30", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("h4", { className: "text-sm font-medium text-gray-300 mb-2 flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "h-4 w-4 text-green-400" }),
-              "File Information"
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-400 space-y-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Original filename: ",
-                ((_a2 = cephData.metadata) == null ? void 0 : _a2.fileName) || "Unknown"
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Export date: ",
-                ((_b2 = cephData.metadata) == null ? void 0 : _b2.exportDate) ? new Date(cephData.metadata.exportDate).toLocaleDateString("en-GB") : "Unknown"
-              ] }),
-              ((_c = cephData.metadata) == null ? void 0 : _c.imageInfo) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Image: ",
-                cephData.metadata.imageInfo.name,
-                " (",
-                cephData.metadata.imageInfo.width,
-                "×",
-                cephData.metadata.imageInfo.height,
-                ")"
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Points: ",
-                ((_d = cephData.points) == null ? void 0 : _d.length) || 0
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Lines: ",
-                ((_e2 = cephData.lines) == null ? void 0 : _e2.length) || 0
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Angles: ",
-                ((_f = cephData.angles) == null ? void 0 : _f.length) || 0
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                "Distances: ",
-                ((_g = cephData.distances) == null ? void 0 : _g.length) || 0
-              ] }),
-              !!cephData.referenceScale && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Reference scale: ✓" }),
-              !!cephData.clinicalNotes && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Clinical notes: ✓" }),
-              ((_i = (_h = cephData.metadata) == null ? void 0 : _h.imageInfo) == null ? void 0 : _i.data) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "✓ Image data included" })
-            ] })
-          ] }),
-          error && /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { className: "bg-red-900/20 border-red-600", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(CircleX, { className: "h-4 w-4 text-red-400" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(AlertDescription, { className: "text-red-200", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-medium mb-1", children: error }),
-              validationDetails.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 text-xs text-red-300 space-y-1", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-medium", children: "Validation errors:" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "list-disc list-inside space-y-0.5 pl-2", children: validationDetails.map((detail, i2) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: detail }, i2)) }),
-                validationDetails.length >= 5 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-red-400 italic", children: "... and possibly more errors" })
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end space-x-2 pt-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                variant: "outline",
-                onClick: () => setIsOpen(false),
-                className: "border-gray-600 text-gray-300 hover:bg-gray-700",
-                children: "Cancel"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                onClick: handleLoad,
-                disabled: !canLoad,
-                className: "bg-blue-600 hover:bg-blue-700 disabled:opacity-50",
-                children: isLoading ? "Loading..." : "Load"
-              }
-            )
-          ] })
-        ] })
-      ] })
+      )
     ] });
   }
   function FloatingPointIndicator() {
@@ -58799,10 +57402,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       isPlacingSequence,
       getPointsForCurrentImage,
       stopPlacementSequence,
-      startPlacementSequence
+      startPlacementSequence,
+      measureToolActive
     } = useCephalometricStore();
     const currentImagePoints = getPointsForCurrentImage();
-    const hasUnplacedPoints = currentImagePoints.some((p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection");
+    if (measureToolActive) return null;
+    const hasUnplacedPoints = currentImagePoints.some(
+      (p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection" && p2.type !== "freehand"
+    );
     if (!hasUnplacedPoints) return null;
     const currentPoint = selectedPointId ? currentImagePoints.find((p2) => p2.id === selectedPointId) : null;
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-3 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bg-gray-900/90 backdrop-blur-sm border border-gray-700/50 rounded-md shadow-lg shadow-black/20 px-3 py-2 pointer-events-auto", children: isPlacingSequence && currentPoint ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-xs max-w-80", children: [
@@ -59297,287 +57904,369 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ] })
     ] });
   }
+  const IDENTITY_VIEWPORT = { scale: 1, translateX: 0, translateY: 0 };
+  function getViewBoxSize(svgContent) {
+    const match = svgContent.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+    if (!match) return null;
+    const width = parseFloat(match[1]);
+    const height = parseFloat(match[2]);
+    if (!(width > 0) || !(height > 0)) return null;
+    return { width, height };
+  }
+  const getPlacedSoftTissuePoints = (file) => file.points.filter((p2) => p2.type === "soft_tissue" && p2.x >= 0 && p2.y >= 0);
+  function fileHasRenderableContent(file) {
+    var _a2;
+    if (!file) return false;
+    if ((_a2 = file.overlays) == null ? void 0 : _a2.svgContent) return true;
+    return getPlacedSoftTissuePoints(file).length > 2;
+  }
+  const getPlacedPoint = (file, name2) => {
+    var _a2;
+    return (_a2 = file.points.find((p2) => p2.name === name2 && p2.x >= 0 && p2.y >= 0)) != null ? _a2 : null;
+  };
+  const getAnchorPoint = (file) => {
+    var _a2;
+    if ((_a2 = file.overlays) == null ? void 0 : _a2.sPoint) return file.overlays.sPoint;
+    const sPoint = getPlacedPoint(file, "S");
+    if (sPoint) return { x: sPoint.x, y: sPoint.y };
+    return { x: file.imageSize.width / 2, y: file.imageSize.height / 2 };
+  };
+  const fitScale = (imageSize, width, height) => Math.min(width / imageSize.width, height / imageSize.height);
+  const computeContentScales = (layers, width, height) => {
+    const fits = layers.map((layer) => fitScale(layer.file.imageSize, width, height));
+    if (layers.length < 2) return fits;
+    const calibrated = layers.map((layer, i2) => ({ scaleFactor: layer.file.scaleFactor, i: i2 })).filter((entry) => typeof entry.scaleFactor === "number" && entry.scaleFactor > 0);
+    if (calibrated.length >= 2) {
+      const targetPxPerMm = Math.min(...calibrated.map(({ scaleFactor, i: i2 }) => fits[i2] * scaleFactor));
+      const scales = [...fits];
+      calibrated.forEach(({ scaleFactor, i: i2 }) => {
+        scales[i2] = targetPxPerMm / scaleFactor;
+      });
+      return scales;
+    }
+    const snLengths = layers.map((layer) => {
+      const s2 = getPlacedPoint(layer.file, "S");
+      const n2 = getPlacedPoint(layer.file, "N");
+      return s2 && n2 ? Math.hypot(n2.x - s2.x, n2.y - s2.y) : 0;
+    });
+    if (snLengths.some((len) => !(len > 0))) return fits;
+    const targetPxPerSn = Math.min(...snLengths.map((len, i2) => fits[i2] * len));
+    return snLengths.map((len) => targetPxPerSn / len);
+  };
+  const getAlignmentAngle = (file, pair) => {
+    const from = getPlacedPoint(file, pair[0]);
+    const to = getPlacedPoint(file, pair[1]);
+    if (!from || !to || from.x === to.x && from.y === to.y) return null;
+    return Math.atan2(to.y - from.y, to.x - from.x);
+  };
+  const MAX_ALIGNMENT_ROTATION = Math.PI / 4;
+  const computeRotations = (layers, alignment) => {
+    const noRotation = layers.map(() => 0);
+    if (alignment === "S" || layers.length < 2) return noRotation;
+    const candidatePairs = alignment === "NL" ? [["Spa", "Spp"], ["S", "N"]] : [["S", "N"]];
+    const pair = candidatePairs.find(
+      (candidate) => layers.every((layer) => getAlignmentAngle(layer.file, candidate) !== null)
+    );
+    if (!pair) return noRotation;
+    const angles = layers.map((layer) => getAlignmentAngle(layer.file, pair));
+    return angles.map((angle2) => {
+      let rotation = angles[0] - angle2;
+      if (rotation > Math.PI) rotation -= 2 * Math.PI;
+      if (rotation <= -Math.PI) rotation += 2 * Math.PI;
+      return Math.abs(rotation) <= MAX_ALIGNMENT_ROTATION ? rotation : 0;
+    });
+  };
+  const computeLayerTransforms = (opts) => {
+    var _a2;
+    const { layers, width, height } = opts;
+    const contentScales = computeContentScales(layers, width, height);
+    const rotations = computeRotations(layers, (_a2 = opts.alignment) != null ? _a2 : "NL");
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    layers.forEach((layer, i2) => {
+      if (!layer.visible || !fileHasRenderableContent(layer.file)) return;
+      const anchor = getAnchorPoint(layer.file);
+      const cos = Math.cos(rotations[i2]);
+      const sin = Math.sin(rotations[i2]);
+      layer.file.points.forEach((p2) => {
+        if (p2.x < 0 || p2.y < 0) return;
+        const dx = p2.x - anchor.x;
+        const dy = p2.y - anchor.y;
+        const x2 = contentScales[i2] * (cos * dx - sin * dy);
+        const y2 = contentScales[i2] * (sin * dx + cos * dy);
+        if (x2 < minX) minX = x2;
+        if (x2 > maxX) maxX = x2;
+        if (y2 < minY) minY = y2;
+        if (y2 > maxY) maxY = y2;
+      });
+    });
+    let offset2 = { x: 0, y: 0 };
+    let fit = 1;
+    const bboxWidth = maxX - minX;
+    const bboxHeight = maxY - minY;
+    if (bboxWidth > 1 && bboxHeight > 1) {
+      fit = Math.min(width * 0.85 / bboxWidth, height * 0.85 / bboxHeight);
+      offset2 = { x: -fit * (minX + maxX) / 2, y: -fit * (minY + maxY) / 2 };
+    }
+    return layers.map((_2, i2) => ({
+      contentScale: contentScales[i2] * fit,
+      rotation: rotations[i2],
+      offset: offset2
+    }));
+  };
+  const applyLayerTransform = (ctx, file, transform2, width, height, viewport) => {
+    const anchor = getAnchorPoint(file);
+    ctx.translate(width / 2 + viewport.translateX, height / 2 + viewport.translateY);
+    ctx.scale(viewport.scale, viewport.scale);
+    ctx.translate(transform2.offset.x, transform2.offset.y);
+    ctx.scale(transform2.contentScale, transform2.contentScale);
+    ctx.rotate(transform2.rotation);
+    ctx.translate(-anchor.x, -anchor.y);
+  };
+  const renderOverlays = (ctx, layer, transform2, opts) => {
+    var _a2, _b2;
+    const svgContent = (_a2 = layer.file.overlays) == null ? void 0 : _a2.svgContent;
+    if (!svgContent) return;
+    let paths;
+    try {
+      const svgDoc = new DOMParser().parseFromString(svgContent, "image/svg+xml");
+      paths = svgDoc.querySelectorAll("path");
+    } catch (error) {
+      console.error("Error parsing comparison overlay SVG:", error);
+      return;
+    }
+    ctx.save();
+    applyLayerTransform(ctx, layer.file, transform2, opts.width, opts.height, opts.viewport);
+    const pixelScale = opts.viewport.scale * transform2.contentScale;
+    const lineWidth = ((_b2 = opts.lineWidth) != null ? _b2 : 2.5) / pixelScale;
+    ctx.strokeStyle = layer.color;
+    ctx.lineWidth = lineWidth;
+    ctx.setLineDash(opts.dashed ? [8 / pixelScale, 4 / pixelScale] : []);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    paths.forEach((pathElement) => {
+      const pathData = pathElement.getAttribute("d");
+      if (!pathData) return;
+      try {
+        ctx.stroke(new Path2D(pathData));
+      } catch (error) {
+        console.error("Error rendering comparison overlay path:", error);
+      }
+    });
+    ctx.restore();
+  };
+  const renderSoftTissue = (ctx, layer, transform2, opts) => {
+    var _a2;
+    const softTissuePoints = getPlacedSoftTissuePoints(layer.file);
+    if (softTissuePoints.length <= 2) return;
+    ctx.save();
+    applyLayerTransform(ctx, layer.file, transform2, opts.width, opts.height, opts.viewport);
+    const pixelScale = opts.viewport.scale * transform2.contentScale;
+    ctx.strokeStyle = layer.color;
+    ctx.lineWidth = ((_a2 = opts.lineWidth) != null ? _a2 : 2.5) / pixelScale;
+    ctx.setLineDash([]);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(softTissuePoints[0].x, softTissuePoints[0].y);
+    for (let i2 = 1; i2 < softTissuePoints.length - 1; i2++) {
+      const current = softTissuePoints[i2];
+      const next = softTissuePoints[i2 + 1];
+      ctx.quadraticCurveTo(current.x, current.y, (current.x + next.x) / 2, (current.y + next.y) / 2);
+    }
+    const last = softTissuePoints[softTissuePoints.length - 1];
+    ctx.lineTo(last.x, last.y);
+    ctx.stroke();
+    ctx.restore();
+  };
+  function renderComparisonScene(ctx, opts) {
+    if (opts.background) {
+      ctx.fillStyle = opts.background;
+      ctx.fillRect(0, 0, opts.width, opts.height);
+    }
+    const transforms = computeLayerTransforms(opts);
+    opts.layers.forEach((layer, i2) => {
+      if (!layer.visible || !fileHasRenderableContent(layer.file)) return;
+      renderOverlays(ctx, layer, transforms[i2], opts);
+      renderSoftTissue(ctx, layer, transforms[i2], opts);
+    });
+  }
+  function renderComparisonToDataUrl(layers, width, height, alignment = "NL") {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      renderComparisonScene(ctx, {
+        width,
+        height,
+        layers,
+        viewport: IDENTITY_VIEWPORT,
+        dashed: false,
+        alignment,
+        // Keep stroke weight visually similar across export resolutions
+        lineWidth: Math.max(3, width / 400),
+        background: "#ffffff"
+      });
+      return canvas.toDataURL("image/png", 1);
+    } catch (error) {
+      console.error("Error rendering comparison export image:", error);
+      return null;
+    }
+  }
+  const ALIGNMENT_LEGEND = {
+    NL: "Aligned at S, palatal planes (Spa–Spp) parallel",
+    SN: "Aligned at S along the S–N line",
+    S: "Overlays aligned at the S point"
+  };
+  const MIN_ZOOM = 25;
+  const MAX_ZOOM = 300;
   function ComparisonAnatomicalCanvas({
-    ceph1Points,
-    ceph2Points,
-    ceph1Overlays,
-    ceph2Overlays,
+    file1,
+    file2,
+    file1Label = "Ceph File 1",
+    file2Label = "Ceph File 2",
     width,
     height,
-    ceph1Visible = true,
-    ceph2Visible = true,
-    zoomLevel = 100
+    file1Visible = true,
+    file2Visible = true,
+    alignment,
+    zoomLevel,
+    onZoomChange
   }) {
     const canvasRef = reactExports.useRef(null);
     const containerRef = reactExports.useRef(null);
-    const [isLoaded, setIsLoaded] = reactExports.useState(false);
-    const [viewport, setViewport] = reactExports.useState({ scale: 1, translateX: 0, translateY: 0 });
+    const [pan, setPan] = reactExports.useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = reactExports.useState(false);
-    const [lastMousePos, setLastMousePos] = reactExports.useState({ x: 0, y: 0 });
+    const lastMousePos = reactExports.useRef({ x: 0, y: 0 });
+    const zoomLevelRef = reactExports.useRef(zoomLevel);
+    zoomLevelRef.current = zoomLevel;
+    const onZoomChangeRef = reactExports.useRef(onZoomChange);
+    onZoomChangeRef.current = onZoomChange;
     const handleMouseDown = reactExports.useCallback((e2) => {
       setIsDragging(true);
-      setLastMousePos({ x: e2.clientX, y: e2.clientY });
+      lastMousePos.current = { x: e2.clientX, y: e2.clientY };
     }, []);
     const handleMouseMove = reactExports.useCallback((e2) => {
       if (!isDragging) return;
-      const deltaX = e2.clientX - lastMousePos.x;
-      const deltaY = e2.clientY - lastMousePos.y;
-      setViewport((prev) => __spreadProps(__spreadValues({}, prev), {
-        translateX: prev.translateX + deltaX,
-        translateY: prev.translateY + deltaY
-      }));
-      setLastMousePos({ x: e2.clientX, y: e2.clientY });
-    }, [isDragging, lastMousePos]);
+      const deltaX = e2.clientX - lastMousePos.current.x;
+      const deltaY = e2.clientY - lastMousePos.current.y;
+      lastMousePos.current = { x: e2.clientX, y: e2.clientY };
+      setPan((prev) => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+    }, [isDragging]);
     const handleMouseUp = reactExports.useCallback(() => {
       setIsDragging(false);
     }, []);
-    const handleWheel = reactExports.useCallback((e2) => {
-      e2.preventDefault();
-      const delta = e2.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.min(Math.max(viewport.scale * delta, 0.1), 5);
-      setViewport({
-        scale: newScale,
-        translateX: viewport.translateX,
-        translateY: viewport.translateY
-      });
-    }, [viewport]);
-    const parseSVGPath = (pathData) => {
-      return new Path2D(pathData);
-    };
-    const renderSoftTissue = (ctx, points, color2, imageSize) => {
-      const softTissuePoints = points.filter((p2) => p2.type === "soft_tissue");
-      if (softTissuePoints.length <= 2) return;
-      console.log("Soft tissue points found:", softTissuePoints.length, softTissuePoints.map((p2) => ({ name: p2.name, x: p2.x, y: p2.y })));
-      ctx.save();
-      const imageAspect = imageSize.width / imageSize.height;
-      const canvasAspect = width / height;
-      let contentScale, contentWidth, contentHeight, contentOffsetX, contentOffsetY;
-      if (imageAspect > canvasAspect) {
-        contentScale = width / imageSize.width;
-        contentWidth = width;
-        contentHeight = imageSize.height * contentScale;
-        contentOffsetX = 0;
-        contentOffsetY = (height - contentHeight) / 2;
-      } else {
-        contentScale = height / imageSize.height;
-        contentWidth = imageSize.width * contentScale;
-        contentHeight = height;
-        contentOffsetX = (width - contentWidth) / 2;
-        contentOffsetY = 0;
-      }
-      const canvasCenterX = width / 2;
-      const canvasCenterY = height / 2;
-      const sPoint = points.find((p2) => p2.name === "S");
-      let sPointX = canvasCenterX;
-      let sPointY = canvasCenterY;
-      if (sPoint && sPoint.x >= 0 && sPoint.y >= 0) {
-        sPointX = contentOffsetX + sPoint.x * contentScale;
-        sPointY = contentOffsetY + sPoint.y * contentScale;
-      }
-      const sPointOffsetX = canvasCenterX - sPointX;
-      const sPointOffsetY = canvasCenterY - sPointY;
-      ctx.translate(canvasCenterX, canvasCenterY);
-      ctx.translate(viewport.translateX, viewport.translateY);
-      ctx.scale(viewport.scale, viewport.scale);
-      ctx.translate(-canvasCenterX, -canvasCenterY);
-      ctx.translate(contentOffsetX + sPointOffsetX, contentOffsetY + sPointOffsetY);
-      ctx.scale(contentScale, contentScale);
-      const imageToCanvas = (imageX, imageY) => {
-        return { x: imageX, y: imageY };
+    const resetView = reactExports.useCallback(() => {
+      setPan({ x: 0, y: 0 });
+      onZoomChange(100);
+    }, [onZoomChange]);
+    reactExports.useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+      const handleWheel = (e2) => {
+        e2.preventDefault();
+        const factor = e2.deltaY > 0 ? 0.9 : 1.1;
+        const next = Math.round(Math.min(Math.max(zoomLevelRef.current * factor, MIN_ZOOM), MAX_ZOOM));
+        if (next !== zoomLevelRef.current) {
+          onZoomChangeRef.current(next);
+        }
       };
-      ctx.strokeStyle = color2;
-      ctx.lineWidth = 3 / viewport.scale;
-      ctx.setLineDash([]);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      const firstPoint = imageToCanvas(softTissuePoints[0].x, softTissuePoints[0].y);
-      ctx.beginPath();
-      ctx.moveTo(firstPoint.x, firstPoint.y);
-      for (let i2 = 1; i2 < softTissuePoints.length - 1; i2++) {
-        const current = imageToCanvas(softTissuePoints[i2].x, softTissuePoints[i2].y);
-        const next = imageToCanvas(softTissuePoints[i2 + 1].x, softTissuePoints[i2 + 1].y);
-        const controlX = (current.x + next.x) / 2;
-        const controlY = (current.y + next.y) / 2;
-        ctx.quadraticCurveTo(current.x, current.y, controlX, controlY);
-      }
-      const lastPoint = imageToCanvas(softTissuePoints[softTissuePoints.length - 1].x, softTissuePoints[softTissuePoints.length - 1].y);
-      ctx.lineTo(lastPoint.x, lastPoint.y);
-      ctx.stroke();
-      ctx.restore();
-    };
-    const renderOverlays = (ctx, overlays, color2, imageSize) => {
-      if (!(overlays == null ? void 0 : overlays.svgContent)) return;
-      try {
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(overlays.svgContent, "image/svg+xml");
-        const paths = svgDoc.querySelectorAll("path");
-        ctx.save();
-        const imageAspect = imageSize.width / imageSize.height;
-        const canvasAspect = width / height;
-        let contentScale, contentWidth, contentHeight, contentOffsetX, contentOffsetY;
-        if (imageAspect > canvasAspect) {
-          contentScale = width / imageSize.width;
-          contentWidth = width;
-          contentHeight = imageSize.height * contentScale;
-          contentOffsetX = 0;
-          contentOffsetY = (height - contentHeight) / 2;
-        } else {
-          contentScale = height / imageSize.height;
-          contentWidth = imageSize.width * contentScale;
-          contentHeight = height;
-          contentOffsetX = (width - contentWidth) / 2;
-          contentOffsetY = 0;
-        }
-        console.log("Aspect ratio calculation:", {
-          imageSize,
-          canvasSize: { width, height },
-          imageAspect,
-          canvasAspect,
-          contentScale,
-          contentDimensions: { contentWidth, contentHeight },
-          contentOffset: { contentOffsetX, contentOffsetY }
-        });
-        const canvasCenterX = width / 2;
-        const canvasCenterY = height / 2;
-        let sPointX = canvasCenterX;
-        let sPointY = canvasCenterY;
-        if (overlays.sPoint) {
-          sPointX = contentOffsetX + overlays.sPoint.x * contentScale;
-          sPointY = contentOffsetY + overlays.sPoint.y * contentScale;
-        }
-        const sPointOffsetX = canvasCenterX - sPointX;
-        const sPointOffsetY = canvasCenterY - sPointY;
-        ctx.translate(canvasCenterX, canvasCenterY);
-        ctx.translate(viewport.translateX, viewport.translateY);
-        ctx.scale(viewport.scale, viewport.scale);
-        ctx.translate(-canvasCenterX, -canvasCenterY);
-        ctx.translate(contentOffsetX + sPointOffsetX, contentOffsetY + sPointOffsetY);
-        ctx.scale(contentScale, contentScale);
-        paths.forEach((pathElement) => {
-          const pathData = pathElement.getAttribute("d");
-          if (!pathData) return;
-          const path2D = parseSVGPath(pathData);
-          ctx.strokeStyle = color2;
-          ctx.lineWidth = 3 / viewport.scale;
-          ctx.setLineDash([8 / viewport.scale, 4 / viewport.scale]);
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.stroke(path2D);
-        });
-        ctx.restore();
-      } catch (error) {
-        console.error("Error rendering overlay:", error);
-      }
-    };
-    const renderCanvas = reactExports.useCallback(() => {
+      container.addEventListener("wheel", handleWheel, { passive: false });
+      return () => container.removeEventListener("wheel", handleWheel);
+    }, []);
+    reactExports.useEffect(() => {
+      setPan({ x: 0, y: 0 });
+    }, [file1, file2]);
+    const hasContent = fileHasRenderableContent(file1) || fileHasRenderableContent(file2);
+    reactExports.useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.fillStyle = "#1f2937";
-      ctx.fillRect(0, 0, width, height);
-      console.log("Rendering comparison canvas with overlays:", {
-        ceph1Overlays: !!ceph1Overlays,
-        ceph2Overlays: !!ceph2Overlays,
-        ceph1SPoint: ceph1Overlays == null ? void 0 : ceph1Overlays.sPoint,
-        ceph2SPoint: ceph2Overlays == null ? void 0 : ceph2Overlays.sPoint,
-        viewport
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderComparisonScene(ctx, {
+        width,
+        height,
+        layers: [
+          ...file1 ? [{ file: file1, color: "#ef4444", visible: file1Visible }] : [],
+          ...file2 ? [{ file: file2, color: "#3b82f6", visible: file2Visible }] : []
+        ],
+        viewport: {
+          scale: zoomLevel / 100,
+          translateX: pan.x,
+          translateY: pan.y
+        },
+        dashed: true,
+        alignment,
+        background: "#1f2937"
       });
-      const getImageSize = (overlays) => {
-        if (overlays == null ? void 0 : overlays.svgContent) {
-          const viewBoxMatch = overlays.svgContent.match(/viewBox="0 0 (\d+) (\d+)"/);
-          if (viewBoxMatch) {
-            return { width: parseInt(viewBoxMatch[1]), height: parseInt(viewBoxMatch[2]) };
-          }
-        }
-        return { width: 800, height: 600 };
-      };
-      const imageSize = ceph1Overlays ? getImageSize(ceph1Overlays) : ceph2Overlays ? getImageSize(ceph2Overlays) : { width: 800, height: 600 };
-      console.log("Using image size for scaling:", imageSize);
-      if (ceph1Overlays && ceph1Visible) {
-        renderOverlays(ctx, ceph1Overlays, "#ef4444", imageSize);
-      }
-      if (ceph2Overlays && ceph2Visible) {
-        renderOverlays(ctx, ceph2Overlays, "#3b82f6", imageSize);
-      }
-      if (ceph1Points && ceph1Visible) {
-        renderSoftTissue(ctx, ceph1Points, "#ef4444", imageSize);
-      }
-      if (ceph2Points && ceph2Visible) {
-        renderSoftTissue(ctx, ceph2Points, "#3b82f6", imageSize);
-      }
-      setIsLoaded(true);
-    }, [ceph1Overlays, ceph2Overlays, ceph1Points, ceph2Points, ceph1Visible, ceph2Visible, viewport, width, height, zoomLevel]);
-    reactExports.useEffect(() => {
-      const container = containerRef.current;
-      if (!container) return;
-      const preventWheel = (e2) => e2.preventDefault();
-      container.addEventListener("wheel", preventWheel, { passive: false });
-      return () => {
-        container.removeEventListener("wheel", preventWheel);
-      };
-    }, []);
-    reactExports.useEffect(() => {
-      renderCanvas();
-    }, [renderCanvas]);
-    reactExports.useEffect(() => {
-      setViewport((prev) => __spreadProps(__spreadValues({}, prev), { scale: zoomLevel / 100 }));
-    }, [zoomLevel]);
-    reactExports.useEffect(() => {
-      setViewport({ scale: zoomLevel / 100, translateX: 0, translateY: 0 });
-    }, [ceph1Overlays, ceph2Overlays, zoomLevel]);
+    }, [file1, file2, file1Visible, file2Visible, alignment, zoomLevel, pan, width, height]);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
         ref: containerRef,
-        className: "relative w-full h-full bg-gray-800 rounded-lg overflow-hidden cursor-grab",
+        className: "relative w-full h-full bg-gray-800 rounded-lg overflow-hidden",
         style: { cursor: isDragging ? "grabbing" : "grab" },
         onMouseDown: handleMouseDown,
         onMouseMove: handleMouseMove,
         onMouseUp: handleMouseUp,
         onMouseLeave: handleMouseUp,
-        onWheel: handleWheel,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "canvas",
             {
-              id: "comparison-canvas",
               ref: canvasRef,
-              width,
-              height,
+              style: { width: "".concat(width, "px"), height: "".concat(height, "px") },
               className: "w-full h-full"
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-4 left-4 bg-black/50 rounded-lg p-3 text-white text-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
               "Zoom: ",
-              (viewport.scale * 100).toFixed(0),
+              zoomLevel,
               "%"
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300", children: "Scroll to zoom, drag to pan" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300", children: "Scroll to zoom, drag to pan" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Button,
+              {
+                variant: "ghost",
+                size: "sm",
+                onClick: resetView,
+                onMouseDown: (e2) => e2.stopPropagation(),
+                className: "h-6 px-2 text-xs text-gray-300 hover:text-white hover:bg-white/10",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { className: "h-3 w-3 mr-1" }),
+                  "Reset view"
+                ]
+              }
+            )
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-4 right-4 bg-black/50 rounded-lg p-3 text-white text-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute top-4 right-4 bg-black/50 rounded-lg p-3 text-white text-sm max-w-[220px]", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-1 bg-red-500" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Ceph File 1" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-1 bg-red-500 shrink-0" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate", children: file1Label })
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-1 bg-blue-500" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Ceph File 2" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-1 bg-blue-500 shrink-0" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate", children: file2Label })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mt-2", children: "Shows anatomical overlays & soft tissue lines" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mt-2", children: ALIGNMENT_LEGEND[alignment] })
           ] }) }),
-          !isLoaded && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-white text-sm", children: "Loading comparison..." }) }),
-          isLoaded && !ceph1Overlays && !ceph2Overlays && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-gray-400 text-sm text-center", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "No anatomical overlays found in the uploaded .ceph files." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs mt-2", children: "Make sure to export .ceph files with anatomical overlays enabled." })
+          !hasContent && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 flex items-center justify-center pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-gray-400 text-sm text-center px-8", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "No anatomical overlays or soft tissue found in the loaded files." }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs mt-2", children: "Overlays are generated from the placed landmark points — make sure the .ceph files contain the anatomical landmarks (S, Ba, Ar, Go, Me, Pog, incisors) or soft tissue points." })
           ] }) })
         ]
       }
     );
   }
-  function Table(_Na) {
-    var _Oa = _Na, { className } = _Oa, props2 = __objRest(_Oa, ["className"]);
+  function Table(_Ga) {
+    var _Ha = _Ga, { className } = _Ha, props2 = __objRest(_Ha, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
@@ -59593,8 +58282,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     );
   }
-  function TableHeader(_Pa) {
-    var _Qa = _Pa, { className } = _Qa, props2 = __objRest(_Qa, ["className"]);
+  function TableHeader(_Ia) {
+    var _Ja = _Ia, { className } = _Ja, props2 = __objRest(_Ja, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "thead",
       __spreadValues({
@@ -59603,8 +58292,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function TableBody(_Ra) {
-    var _Sa = _Ra, { className } = _Sa, props2 = __objRest(_Sa, ["className"]);
+  function TableBody(_Ka) {
+    var _La = _Ka, { className } = _La, props2 = __objRest(_La, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "tbody",
       __spreadValues({
@@ -59613,8 +58302,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function TableRow(_Ta) {
-    var _Ua = _Ta, { className } = _Ua, props2 = __objRest(_Ua, ["className"]);
+  function TableRow(_Ma) {
+    var _Na = _Ma, { className } = _Na, props2 = __objRest(_Na, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "tr",
       __spreadValues({
@@ -59626,8 +58315,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function TableHead(_Va) {
-    var _Wa = _Va, { className } = _Wa, props2 = __objRest(_Wa, ["className"]);
+  function TableHead(_Oa) {
+    var _Pa = _Oa, { className } = _Pa, props2 = __objRest(_Pa, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "th",
       __spreadValues({
@@ -59639,8 +58328,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function TableCell(_Xa) {
-    var _Ya = _Xa, { className } = _Ya, props2 = __objRest(_Ya, ["className"]);
+  function TableCell(_Qa) {
+    var _Ra = _Qa, { className } = _Ra, props2 = __objRest(_Ra, ["className"]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       "td",
       __spreadValues({
@@ -59652,191 +58341,158 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, props2)
     );
   }
-  function ComparisonMeasurementsTable({ ceph1File, ceph2File, onDataUpdate }) {
-    const comparisonData = reactExports.useMemo(() => {
-      if (!ceph1File && !ceph2File) return [];
-      try {
-        console.log("Starting comparison measurements calculation...");
-        const measurements = [];
-        const calculateMeasurements = (cephFile) => {
-          var _a2, _b2;
-          if (!cephFile) {
-            console.log("No ceph file provided to calculateMeasurements");
-            return { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-          }
-          try {
-            const { data, points } = cephFile;
-            if (!points || points.length === 0) {
-              console.log("No points found in ceph file:", cephFile.file.name);
-              return { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-            }
-            const lines = data.lines || [];
-            const angles = data.angles || [];
-            const distances = data.distances || [];
-            const referenceScale = data.referenceScale;
-            console.log("Calculating measurements for:", cephFile.file.name, {
-              pointsCount: points.length,
-              linesCount: lines.length,
-              anglesCount: angles.length,
-              distancesCount: distances.length,
-              hasReferenceScale: !!referenceScale
-            });
-            const hasRefScale = !!referenceScale;
-            const calculateRealWorldDistance = (id1, id2) => {
-              const point1 = points.find((p2) => p2.id === id1 || p2.name === id1);
-              const point2 = points.find((p2) => p2.id === id2 || p2.name === id2);
-              if (!point1 || !point2) return null;
-              const pixelDistance = Math.sqrt(
-                Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2)
-              );
-              if (!hasRefScale) return pixelDistance;
-              return pixelDistance / referenceScale.scaleFactor;
-            };
-            const measurements2 = getAllMeasurements(points, calculateRealWorldDistance, hasRefScale, angles, distances, lines, referenceScale);
-            console.log("Measurements calculated:", {
-              angularCount: ((_a2 = measurements2 == null ? void 0 : measurements2.angularMeasurements) == null ? void 0 : _a2.length) || 0,
-              linearCount: ((_b2 = measurements2 == null ? void 0 : measurements2.linearMeasurements) == null ? void 0 : _b2.length) || 0
-            });
-            return measurements2 || { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-          } catch (error) {
-            console.error("Error calculating measurements for", cephFile.file.name, ":", error);
-            return { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-          }
-        };
-        const ceph1Measurements = ceph1File ? calculateMeasurements(ceph1File) : { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-        const ceph2Measurements = ceph2File ? calculateMeasurements(ceph2File) : { angularMeasurements: [], linearMeasurements: [], hasRefScale: false };
-        const getStatus = (value, standard) => {
-          if (value === null || !standard) return "normal";
-          const deviation = Math.abs(value - standard.value);
-          const stdDev = standard.deviation;
-          if (deviation <= stdDev) return "normal";
-          if (deviation <= 2 * stdDev) return "warning";
-          return "alert";
-        };
-        const ceph1Angular = ceph1Measurements.angularMeasurements || [];
-        const ceph1Linear = ceph1Measurements.linearMeasurements || [];
-        const ceph2Angular = ceph2Measurements.angularMeasurements || [];
-        const ceph2Linear = ceph2Measurements.linearMeasurements || [];
-        const allMeasurementNames = /* @__PURE__ */ new Set([
-          ...ceph1Angular.map((m2) => m2.name),
-          ...ceph1Linear.map((m2) => m2.name),
-          ...ceph2Angular.map((m2) => m2.name),
-          ...ceph2Linear.map((m2) => m2.name)
-        ]);
-        const allMeasurementNamesArray = Array.from(allMeasurementNames);
-        allMeasurementNamesArray.forEach((name2) => {
-          var _a2, _b2, _c, _d, _e2, _f;
-          try {
-            const ceph1AngularMeasurement = ceph1Angular.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
-            const ceph2AngularMeasurement = ceph2Angular.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
-            const ceph1LinearMeasurement = ceph1Linear.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
-            const ceph2LinearMeasurement = ceph2Linear.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
-            const isAngular = !!(ceph1AngularMeasurement || ceph2AngularMeasurement);
-            const unit = isAngular ? "°" : "mm";
-            const ceph1Value = isAngular ? (_a2 = ceph1AngularMeasurement == null ? void 0 : ceph1AngularMeasurement.current) != null ? _a2 : null : (_b2 = ceph1LinearMeasurement == null ? void 0 : ceph1LinearMeasurement.current) != null ? _b2 : null;
-            const ceph2Value = isAngular ? (_c = ceph2AngularMeasurement == null ? void 0 : ceph2AngularMeasurement.current) != null ? _c : null : (_d = ceph2LinearMeasurement == null ? void 0 : ceph2LinearMeasurement.current) != null ? _d : null;
-            const difference = ceph1Value !== null && ceph2Value !== null ? ceph2Value - ceph1Value : null;
-            const measurementSource = (isAngular ? ceph1AngularMeasurement : ceph1LinearMeasurement) || (isAngular ? ceph2AngularMeasurement : ceph2LinearMeasurement);
-            const standard = (measurementSource == null ? void 0 : measurementSource.standard) ? {
-              value: (_e2 = measurementSource.standard.value) != null ? _e2 : 0,
-              deviation: (_f = measurementSource.standard.deviation) != null ? _f : 0
-            } : {
-              value: 0,
-              deviation: 0
-            };
-            measurements.push({
-              name: name2,
-              ceph1Value,
-              ceph2Value,
-              difference,
-              standardMean: standard.value,
-              standardDeviation: standard.deviation,
-              unit,
-              ceph1Status: getStatus(ceph1Value, standard),
-              ceph2Status: getStatus(ceph2Value, standard)
-            });
-          } catch (error) {
-            console.error("Error processing measurement:", name2, error);
-          }
-        });
-        const angularNames = [
-          "SNA",
-          "SNB",
-          "ANB",
-          "SNPg",
-          "NS-Ba",
-          "Gn-Go-Ar",
-          "ML-NSL",
-          "NL-NSL",
-          "ML-NL",
-          "H-Winkel",
-          "Nasolabialwinkel",
-          "Interinzisalwinkel",
-          "1er-NA",
-          "1er-NB"
-        ];
-        const linearNames = ["Wits", "1er-NA (mm)", "1er-NB (mm)", "Kinngrübchen-NB (mm)"];
-        return measurements.sort((a2, b2) => {
-          const aAngularIndex = angularNames.indexOf(a2.name);
-          const bAngularIndex = angularNames.indexOf(b2.name);
-          const aLinearIndex = linearNames.indexOf(a2.name);
-          const bLinearIndex = linearNames.indexOf(b2.name);
-          if (aAngularIndex !== -1 && bAngularIndex !== -1) {
-            return aAngularIndex - bAngularIndex;
-          }
-          if (aAngularIndex !== -1 && bAngularIndex === -1) return -1;
-          if (aAngularIndex === -1 && bAngularIndex !== -1) return 1;
-          if (aLinearIndex !== -1 && bLinearIndex !== -1) {
-            return aLinearIndex - bLinearIndex;
-          }
-          if (aLinearIndex !== -1 && bLinearIndex === -1) return -1;
-          if (aLinearIndex === -1 && bLinearIndex !== -1) return 1;
-          return a2.name.localeCompare(b2.name);
-        });
-        console.log("Comparison measurements completed successfully:", measurements.length, "measurements");
-        return measurements;
-      } catch (error) {
-        console.error("Error in comparison measurements calculation:", error);
-        return [];
-      }
-    }, [ceph1File, ceph2File]);
-    reactExports.useEffect(() => {
-      if (onDataUpdate) {
-        onDataUpdate(comparisonData);
-      }
-    }, [comparisonData, onDataUpdate]);
-    const formatValue = (value, unit) => {
-      if (value === null) return "-";
-      return "".concat(value.toFixed(1)).concat(unit);
+  const EMPTY_MEASUREMENTS = { angular: [], linear: [] };
+  const calculateFileMeasurements = (cephFile) => {
+    const { data, points } = cephFile;
+    if (!points || points.length === 0) return EMPTY_MEASUREMENTS;
+    const lines = data.lines || [];
+    const angles = data.angles || [];
+    const distances = data.distances || [];
+    const referenceScale = data.referenceScale;
+    const hasRefScale = !!(referenceScale == null ? void 0 : referenceScale.scaleFactor);
+    const calculateRealWorldDistance = (id1, id2) => {
+      if (!hasRefScale) return null;
+      const point1 = points.find((p2) => p2.id === id1 || p2.name === id1);
+      const point2 = points.find((p2) => p2.id === id2 || p2.name === id2);
+      if (!point1 || !point2) return null;
+      const pixelDistance = Math.hypot(point2.x - point1.x, point2.y - point1.y);
+      return pixelDistance / referenceScale.scaleFactor;
     };
-    const formatDifference = (difference, unit) => {
-      if (difference === null) return "-";
-      const sign = difference >= 0 ? "+" : "";
-      return "".concat(sign).concat(difference.toFixed(1)).concat(unit);
-    };
-    const getStatusColor = (status) => {
-      switch (status) {
-        case "normal":
-          return "text-green-400";
-        case "warning":
-          return "text-yellow-400";
-        case "alert":
-          return "text-red-400";
-        default:
-          return "text-gray-400";
-      }
-    };
-    const getStatusIcon = (status) => {
-      switch (status) {
-        case "normal":
-          return "●";
-        case "warning":
-          return "▲";
-        case "alert":
-          return "⬥";
-        default:
-          return "○";
-      }
+    try {
+      const result = getAllMeasurements(
+        points,
+        calculateRealWorldDistance,
+        hasRefScale,
+        angles,
+        distances,
+        lines,
+        referenceScale
+      );
+      return {
+        angular: (result == null ? void 0 : result.angularMeasurements) || [],
+        linear: (result == null ? void 0 : result.linearMeasurements) || []
+      };
+    } catch (error) {
+      console.error("Error calculating comparison measurements for", cephFile.file.name, error);
+      return EMPTY_MEASUREMENTS;
+    }
+  };
+  const getStatus = (value, standard) => {
+    if (value === null || !standard || !(standard.deviation > 0)) return "none";
+    const deviation = Math.abs(value - standard.value);
+    if (deviation <= standard.deviation) return "normal";
+    if (deviation <= 2 * standard.deviation) return "warning";
+    return "alert";
+  };
+  const ANGULAR_ORDER = [
+    "SNA",
+    "SNB",
+    "ANB",
+    "SNPg",
+    "NS-Ba",
+    "Gn-Go-Ar",
+    "ML-NSL",
+    "NL-NSL",
+    "ML-NL",
+    "H-Winkel",
+    "Nasolabialwinkel",
+    "Interinzisalwinkel",
+    "1er-NA",
+    "1er-NB"
+  ];
+  const LINEAR_ORDER = ["Wits", "1er-NA (mm)", "1er-NB (mm)", "Kinngrübchen-NB (mm)"];
+  function computeComparisonData(ceph1File, ceph2File) {
+    if (!ceph1File && !ceph2File) return [];
+    const ceph1 = ceph1File ? calculateFileMeasurements(ceph1File) : EMPTY_MEASUREMENTS;
+    const ceph2 = ceph2File ? calculateFileMeasurements(ceph2File) : EMPTY_MEASUREMENTS;
+    const allNames = /* @__PURE__ */ new Set([
+      ...ceph1.angular.map((m2) => m2.name),
+      ...ceph1.linear.map((m2) => m2.name),
+      ...ceph2.angular.map((m2) => m2.name),
+      ...ceph2.linear.map((m2) => m2.name)
+    ]);
+    const measurements = [];
+    allNames.forEach((name2) => {
+      var _a2, _b2, _c, _d, _e2, _f, _g;
+      const ceph1Angular = ceph1.angular.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
+      const ceph2Angular = ceph2.angular.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
+      const ceph1Linear = ceph1.linear.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
+      const ceph2Linear = ceph2.linear.find((m2) => (m2 == null ? void 0 : m2.name) === name2);
+      const isAngular = !!(ceph1Angular || ceph2Angular);
+      const unit = isAngular ? "°" : "mm";
+      const ceph1Value = isAngular ? (_a2 = ceph1Angular == null ? void 0 : ceph1Angular.current) != null ? _a2 : null : (_b2 = ceph1Linear == null ? void 0 : ceph1Linear.current) != null ? _b2 : null;
+      const ceph2Value = isAngular ? (_c = ceph2Angular == null ? void 0 : ceph2Angular.current) != null ? _c : null : (_d = ceph2Linear == null ? void 0 : ceph2Linear.current) != null ? _d : null;
+      const difference = ceph1Value !== null && ceph2Value !== null ? ceph2Value - ceph1Value : null;
+      const source = (isAngular ? ceph1Angular : ceph1Linear) || (isAngular ? ceph2Angular : ceph2Linear);
+      const standard = (source == null ? void 0 : source.standard) != null ? {
+        value: source.standard.value,
+        deviation: (_e2 = source.standard.deviation) != null ? _e2 : 0
+      } : null;
+      measurements.push({
+        name: name2,
+        ceph1Value,
+        ceph2Value,
+        difference,
+        standardMean: (_f = standard == null ? void 0 : standard.value) != null ? _f : null,
+        standardDeviation: (_g = standard == null ? void 0 : standard.deviation) != null ? _g : null,
+        unit,
+        ceph1Status: getStatus(ceph1Value, standard),
+        ceph2Status: getStatus(ceph2Value, standard)
+      });
+    });
+    return measurements.sort((a2, b2) => {
+      const aAngular = ANGULAR_ORDER.indexOf(a2.name);
+      const bAngular = ANGULAR_ORDER.indexOf(b2.name);
+      const aLinear = LINEAR_ORDER.indexOf(a2.name);
+      const bLinear = LINEAR_ORDER.indexOf(b2.name);
+      if (aAngular !== -1 && bAngular !== -1) return aAngular - bAngular;
+      if (aAngular !== -1) return -1;
+      if (bAngular !== -1) return 1;
+      if (aLinear !== -1 && bLinear !== -1) return aLinear - bLinear;
+      if (aLinear !== -1) return -1;
+      if (bLinear !== -1) return 1;
+      return a2.name.localeCompare(b2.name);
+    });
+  }
+  const formatMeasurementValue = (value, unit) => {
+    if (value === null) return "-";
+    return "".concat(value.toFixed(1)).concat(unit);
+  };
+  const formatMeasurementDifference = (difference, unit) => {
+    if (difference === null) return "-";
+    const sign = difference >= 0 ? "+" : "";
+    return "".concat(sign).concat(difference.toFixed(1)).concat(unit);
+  };
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "normal":
+        return "text-green-400";
+      case "warning":
+        return "text-yellow-400";
+      case "alert":
+        return "text-red-400";
+      default:
+        return "text-gray-500";
+    }
+  };
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "normal":
+        return "●";
+      case "warning":
+        return "▲";
+      case "alert":
+        return "⬥";
+      default:
+        return "○";
+    }
+  };
+  function ComparisonMeasurementsTable({ data }) {
+    const countByStatus = (key, status) => data.filter((m2) => m2[key] === status).length;
+    const renderChange = (change, increaseIsGood) => {
+      if (change === 0) return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-400", children: "0" });
+      const isGood = increaseIsGood ? change > 0 : change < 0;
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: isGood ? "text-green-400" : "text-red-400", children: change > 0 ? "+".concat(change) : change });
     };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-900 border-gray-700", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(CardHeader, { children: [
@@ -59844,7 +58500,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: "Comparing measurements between the two cephalometric analyses" })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Table, { children: [
+        data.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400 py-4 text-center", children: "No measurements could be calculated from the loaded files." }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Table, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(TableHeader, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(TableRow, { className: "border-gray-700", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-gray-300", children: "Measurement" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-gray-300 text-center", children: "Standard" }),
@@ -59854,21 +58510,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-gray-300 text-center", children: "Ceph 2 vs Std" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableHead, { className: "text-gray-300 text-center", children: "Ceph 1&2 Diff." })
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(TableBody, { children: comparisonData.map((measurement, index2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(TableRow, { className: "border-gray-700 hover:bg-gray-800/50", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(TableBody, { children: data.map((measurement) => /* @__PURE__ */ jsxRuntimeExports.jsxs(TableRow, { className: "border-gray-700 hover:bg-gray-800/50", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-white font-medium", children: measurement.name }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center text-gray-400", children: measurement.standardMean !== null && measurement.standardDeviation !== null ? "".concat(measurement.standardMean.toFixed(1), " ± ").concat(measurement.standardDeviation.toFixed(1)).concat(measurement.unit) : "-" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph1Status), children: getStatusIcon(measurement.ceph1Status) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: formatValue(measurement.ceph1Value, measurement.unit) })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: formatMeasurementValue(measurement.ceph1Value, measurement.unit) })
             ] }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph1Status), children: measurement.ceph1Value !== null && measurement.standardMean !== null ? formatDifference(measurement.ceph1Value - measurement.standardMean, measurement.unit) : "-" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph1Status), children: measurement.ceph1Value !== null && measurement.standardMean !== null ? formatMeasurementDifference(measurement.ceph1Value - measurement.standardMean, measurement.unit) : "-" }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-center gap-2", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph2Status), children: getStatusIcon(measurement.ceph2Status) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: formatValue(measurement.ceph2Value, measurement.unit) })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-300", children: formatMeasurementValue(measurement.ceph2Value, measurement.unit) })
             ] }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph2Status), children: measurement.ceph2Value !== null && measurement.standardMean !== null ? formatDifference(measurement.ceph2Value - measurement.standardMean, measurement.unit) : "-" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: measurement.difference !== null ? Math.abs(measurement.difference) > 2 ? "text-yellow-400 font-semibold" : "text-gray-300" : "text-gray-500", children: formatDifference(measurement.difference, measurement.unit) }) })
-          ] }, index2)) })
+            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: getStatusColor(measurement.ceph2Status), children: measurement.ceph2Value !== null && measurement.standardMean !== null ? formatMeasurementDifference(measurement.ceph2Value - measurement.standardMean, measurement.unit) : "-" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(TableCell, { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: measurement.difference !== null ? Math.abs(measurement.difference) > 2 ? "text-yellow-400 font-semibold" : "text-gray-300" : "text-gray-500", children: formatMeasurementDifference(measurement.difference, measurement.unit) }) })
+          ] }, measurement.name)) })
         ] }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 flex flex-wrap gap-6 text-sm", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
@@ -59886,294 +58542,60 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               ">",
               "2 SD)"
             ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-500", children: "○" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-400", children: "No standard defined" })
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "text-white font-medium text-sm mb-2", children: "Status Summary" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-4 text-xs", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-800 rounded px-2 py-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-green-400 flex items-center gap-1 mb-1", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "●" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Normal" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex gap-4 text-xs", children: [
+            { status: "normal", label: "Normal", icon: "●", iconColor: "text-green-400", increaseIsGood: true },
+            { status: "warning", label: "Warning", icon: "▲", iconColor: "text-yellow-400", increaseIsGood: false },
+            { status: "alert", label: "Alert", icon: "⬥", iconColor: "text-red-400", increaseIsGood: false }
+          ].map(({ status, label, icon, iconColor, increaseIsGood }) => {
+            const ceph1Count = countByStatus("ceph1Status", status);
+            const ceph2Count = countByStatus("ceph2Status", status);
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-800 rounded px-2 py-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "".concat(iconColor, " flex items-center gap-1 mb-1"), children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: icon }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: label })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-white text-center space-y-0.5", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   "C1: ",
-                  comparisonData.filter((m2) => m2.ceph1Status === "normal").length
+                  ceph1Count
                 ] }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   "C2: ",
-                  comparisonData.filter((m2) => m2.ceph2Status === "normal").length
+                  ceph2Count
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: (() => {
-                  const ceph1Normal = comparisonData.filter((m2) => m2.ceph1Status === "normal").length;
-                  const ceph2Normal = comparisonData.filter((m2) => m2.ceph2Status === "normal").length;
-                  const change = ceph2Normal - ceph1Normal;
-                  if (change > 0) return /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-green-400", children: [
-                    "+",
-                    change
-                  ] });
-                  if (change < 0) return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-red-400", children: change });
-                  return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-400", children: "0" });
-                })() })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: renderChange(ceph2Count - ceph1Count, increaseIsGood) })
               ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-800 rounded px-2 py-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-yellow-400 flex items-center gap-1 mb-1", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "▲" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Warning" })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-white text-center space-y-0.5", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  "C1: ",
-                  comparisonData.filter((m2) => m2.ceph1Status === "warning").length
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  "C2: ",
-                  comparisonData.filter((m2) => m2.ceph2Status === "warning").length
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: (() => {
-                  const ceph1Warning = comparisonData.filter((m2) => m2.ceph1Status === "warning").length;
-                  const ceph2Warning = comparisonData.filter((m2) => m2.ceph2Status === "warning").length;
-                  const change = ceph2Warning - ceph1Warning;
-                  if (change > 0) return /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-red-400", children: [
-                    "+",
-                    change
-                  ] });
-                  if (change < 0) return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-green-400", children: change });
-                  return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-400", children: "0" });
-                })() })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-800 rounded px-2 py-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-red-400 flex items-center gap-1 mb-1", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "⬥" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Alert" })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-white text-center space-y-0.5", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  "C1: ",
-                  comparisonData.filter((m2) => m2.ceph1Status === "alert").length
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  "C2: ",
-                  comparisonData.filter((m2) => m2.ceph2Status === "alert").length
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: (() => {
-                  const ceph1Alert = comparisonData.filter((m2) => m2.ceph1Status === "alert").length;
-                  const ceph2Alert = comparisonData.filter((m2) => m2.ceph2Status === "alert").length;
-                  const change = ceph2Alert - ceph1Alert;
-                  if (change > 0) return /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-red-400", children: [
-                    "+",
-                    change
-                  ] });
-                  if (change < 0) return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-green-400", children: change });
-                  return /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-400", children: "0" });
-                })() })
-              ] })
-            ] })
-          ] })
+            ] }, status);
+          }) })
         ] })
       ] })
     ] });
   }
-  function SimpleComparisonExport({ ceph1File, ceph2File }) {
+  function SimpleComparisonExport({
+    ceph1File,
+    ceph2File,
+    comparisonData,
+    renderFile1,
+    renderFile2,
+    ceph1Visible = true,
+    ceph2Visible = true,
+    alignment = "NL"
+  }) {
     var _a2, _b2, _c;
     const [isOpen, setIsOpen] = reactExports.useState(false);
     const [isExporting, setIsExporting] = reactExports.useState(false);
     const [patientName, setPatientName] = reactExports.useState("");
     const [fileName, setFileName] = reactExports.useState("");
     const [saveDirectory, setSaveDirectory] = reactExports.useState("");
-    const { angles, distances, getComparisonExportTemplate, patientName: storePatientName } = useCephalometricStore();
-    const comparisonData = reactExports.useMemo(() => {
-      if (!ceph1File && !ceph2File) return [];
-      const measurements = [];
-      const calculateMeasurements = (cephFile) => {
-        if (!cephFile) return { angular: [], linear: [] };
-        const { data, points } = cephFile;
-        const lines = data.lines || [];
-        const angles2 = data.angles || [];
-        const distances2 = data.distances || [];
-        const referenceScale = data.referenceScale;
-        const hasRefScale = !!referenceScale;
-        const calculateRealWorldDistance = (id1, id2) => {
-          const point1 = points.find((p2) => p2.id === id1 || p2.name === id1);
-          const point2 = points.find((p2) => p2.id === id2 || p2.name === id2);
-          if (!point1 || !point2) return null;
-          const pixelDistance = Math.sqrt(
-            Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2)
-          );
-          if (!hasRefScale) return pixelDistance;
-          return pixelDistance / referenceScale.scaleFactor;
-        };
-        return getAllMeasurements(points, calculateRealWorldDistance, hasRefScale, angles2, distances2, lines, referenceScale);
-      };
-      const ceph1Measurements = ceph1File ? calculateMeasurements(ceph1File) : { angularMeasurements: [], linearMeasurements: [] };
-      const ceph2Measurements = ceph2File ? calculateMeasurements(ceph2File) : { angularMeasurements: [], linearMeasurements: [] };
-      const ceph1Angular = ceph1Measurements.angularMeasurements || [];
-      const ceph1Linear = ceph1Measurements.linearMeasurements || [];
-      const ceph2Angular = ceph2Measurements.angularMeasurements || [];
-      const ceph2Linear = ceph2Measurements.linearMeasurements || [];
-      /* @__PURE__ */ new Set([
-        ...ceph1Angular.map((m2) => m2.name),
-        ...ceph1Linear.map((m2) => m2.name),
-        ...ceph2Angular.map((m2) => m2.name),
-        ...ceph2Linear.map((m2) => m2.name)
-      ]);
-      const getStatus = (value, standard) => {
-        if (value === null || !standard) return "normal";
-        const deviation = Math.abs(value - standard.value);
-        const stdDev = standard.deviation;
-        if (deviation <= stdDev) return "normal";
-        if (deviation <= 2 * stdDev) return "warning";
-        return "alert";
-      };
-      const allStoreAngles = angles.filter((a2) => !a2.isCustom);
-      const allStoreDistances = distances.filter((d2) => !d2.isCustom);
-      allStoreAngles.forEach((angle2) => {
-        var _a3, _b3;
-        const name2 = angle2.name;
-        const ceph1AngularMeasurement = ceph1Angular.find((m2) => m2.name === name2);
-        const ceph2AngularMeasurement = ceph2Angular.find((m2) => m2.name === name2);
-        const ceph1Value = (ceph1AngularMeasurement == null ? void 0 : ceph1AngularMeasurement.current) || null;
-        const ceph2Value = (ceph2AngularMeasurement == null ? void 0 : ceph2AngularMeasurement.current) || null;
-        const difference = ceph1Value !== null && ceph2Value !== null ? ceph2Value - ceph1Value : null;
-        const standard = {
-          value: (_a3 = angle2.standardValue) != null ? _a3 : 0,
-          deviation: (_b3 = angle2.standardDeviation) != null ? _b3 : 0
-        };
-        measurements.push({
-          name: name2,
-          ceph1Value,
-          ceph2Value,
-          difference,
-          standardMean: standard.value,
-          standardDeviation: standard.deviation,
-          unit: "°",
-          ceph1Status: getStatus(ceph1Value, standard),
-          ceph2Status: getStatus(ceph2Value, standard)
-        });
-      });
-      allStoreDistances.forEach((distance2) => {
-        var _a3, _b3;
-        const name2 = distance2.name;
-        const ceph1LinearMeasurement = ceph1Linear.find((m2) => m2.name === name2);
-        const ceph2LinearMeasurement = ceph2Linear.find((m2) => m2.name === name2);
-        const ceph1Value = (ceph1LinearMeasurement == null ? void 0 : ceph1LinearMeasurement.current) || null;
-        const ceph2Value = (ceph2LinearMeasurement == null ? void 0 : ceph2LinearMeasurement.current) || null;
-        const difference = ceph1Value !== null && ceph2Value !== null ? ceph2Value - ceph1Value : null;
-        const standard = {
-          value: (_a3 = distance2.standardValue) != null ? _a3 : 0,
-          deviation: (_b3 = distance2.standardDeviation) != null ? _b3 : 0
-        };
-        measurements.push({
-          name: name2,
-          ceph1Value,
-          ceph2Value,
-          difference,
-          standardMean: standard.value,
-          standardDeviation: standard.deviation,
-          unit: "mm",
-          ceph1Status: getStatus(ceph1Value, standard),
-          ceph2Status: getStatus(ceph2Value, standard)
-        });
-      });
-      const angularNames = [
-        "SNA",
-        "SNB",
-        "ANB",
-        "SNPg",
-        "NS-Ba",
-        "Gn-Go-Ar",
-        "ML-NSL",
-        "NL-NSL",
-        "ML-NL",
-        "H-Winkel",
-        "Nasolabialwinkel",
-        "Interinzisalwinkel",
-        "1er-NA",
-        "1er-NB"
-      ];
-      const linearNames = ["Wits", "1er-NA (mm)", "1er-NB (mm)", "Kinngrübchen-NB (mm)"];
-      return measurements.sort((a2, b2) => {
-        const aAngularIndex = angularNames.indexOf(a2.name);
-        const bAngularIndex = angularNames.indexOf(b2.name);
-        const aLinearIndex = linearNames.indexOf(a2.name);
-        const bLinearIndex = linearNames.indexOf(b2.name);
-        if (aAngularIndex !== -1 && bAngularIndex !== -1) {
-          return aAngularIndex - bAngularIndex;
-        }
-        if (aAngularIndex !== -1 && bAngularIndex === -1) return -1;
-        if (aAngularIndex === -1 && bAngularIndex !== -1) return 1;
-        if (aLinearIndex !== -1 && bLinearIndex !== -1) {
-          return aLinearIndex - bLinearIndex;
-        }
-        if (aLinearIndex !== -1 && bLinearIndex === -1) return -1;
-        if (aLinearIndex === -1 && bLinearIndex !== -1) return 1;
-        return a2.name.localeCompare(b2.name);
-      });
-    }, [ceph1File, ceph2File, angles, distances]);
-    const captureCanvas = () => {
-      try {
-        console.log("Starting canvas capture...");
-        const canvas = document.getElementById("comparison-canvas");
-        if (!canvas) {
-          console.error("Canvas not found");
-          return null;
-        }
-        console.log("Canvas found, dimensions:", canvas.width, canvas.height);
-        const exportCanvas = document.createElement("canvas");
-        exportCanvas.width = canvas.width;
-        exportCanvas.height = canvas.height;
-        const exportCtx = exportCanvas.getContext("2d");
-        if (!exportCtx) {
-          console.error("Could not get export canvas context");
-          return null;
-        }
-        exportCtx.fillStyle = "#ffffff";
-        exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-        console.log("White background applied");
-        const originalCtx = canvas.getContext("2d");
-        if (!originalCtx) {
-          console.error("Could not get original canvas context");
-          return null;
-        }
-        const imageData = originalCtx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i2 = 0; i2 < data.length; i2 += 4) {
-          const r2 = data[i2];
-          const g2 = data[i2 + 1];
-          const b2 = data[i2 + 2];
-          const a2 = data[i2 + 3];
-          const isDarkBackground = r2 >= 25 && r2 <= 35 && // Red component around 31
-          g2 >= 35 && g2 <= 45 && // Green component around 41
-          b2 >= 50 && b2 <= 60;
-          if (isDarkBackground || a2 === 0) {
-            data[i2] = 255;
-            data[i2 + 1] = 255;
-            data[i2 + 2] = 255;
-            data[i2 + 3] = 255;
-          }
-        }
-        exportCtx.putImageData(imageData, 0, 0);
-        console.log("Canvas processing complete");
-        const dataURL = exportCanvas.toDataURL("image/png", 1);
-        console.log("Canvas capture successful, data URL length:", dataURL.length);
-        return dataURL;
-      } catch (error) {
-        console.error("Error in captureCanvas:", error);
-        return null;
-      }
-    };
-    const formatValue = (value, unit) => {
-      if (value === null) return "-";
-      return "".concat(value.toFixed(1)).concat(unit);
-    };
-    const formatDifference = (difference, unit) => {
-      if (difference === null) return "-";
-      const sign = difference >= 0 ? "+" : "";
-      return "".concat(sign).concat(difference.toFixed(1)).concat(unit);
-    };
+    const { getComparisonExportTemplate, patientName: storePatientName } = useCephalometricStore();
     const handleBrowseDirectory = async () => {
       var _a3;
       if ((_a3 = window.electronAPI) == null ? void 0 : _a3.isElectron) {
@@ -60189,10 +58611,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         } catch (error) {
           console.error("Error opening directory dialog:", error);
-          alert("Error opening directory dialog. Please enter the path manually.");
+          toast.error("Error opening directory dialog. Please enter the path manually.");
         }
       } else {
-        alert("Directory selection is only available in the desktop version. Please enter the path manually.");
+        toast.info("Directory selection is only available in the desktop version.");
       }
     };
     const exportToPDF2 = async () => {
@@ -60205,7 +58627,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const pdf = new E$1({
           orientation: "portrait",
           unit: "mm",
-          format: "a4"
+          format: "a4",
+          compress: true
         });
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
@@ -60219,52 +58642,81 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let infoLine = "Export Date: ".concat((/* @__PURE__ */ new Date()).toLocaleDateString("en-GB"));
         if (patientName) infoLine = "Patient: ".concat(patientName, " | ") + infoLine;
         pdf.text(infoLine, pageWidth / 2, yPos, { align: "center" });
-        yPos += 15;
-        const canvasImage = captureCanvas();
+        yPos += 10;
+        const imageWidthMm = 160;
+        const imageHeightMm = 95;
+        const canvasImage = renderComparisonToDataUrl(
+          [
+            ...renderFile1 ? [{ file: renderFile1, color: "#ef4444", visible: ceph1Visible }] : [],
+            ...renderFile2 ? [{ file: renderFile2, color: "#3b82f6", visible: ceph2Visible }] : []
+          ],
+          Math.round(imageWidthMm * 10),
+          Math.round(imageHeightMm * 10),
+          alignment
+        );
         if (canvasImage) {
-          const canvasWidth = 160;
-          const canvasHeight = 95;
-          const canvasX = (pageWidth - canvasWidth) / 2;
-          const canvasY = yPos;
-          pdf.addImage(canvasImage, "PNG", canvasX, canvasY, canvasWidth, canvasHeight);
-          yPos += canvasHeight + 10;
+          const canvasX = (pageWidth - imageWidthMm) / 2;
+          pdf.addImage(canvasImage, "PNG", canvasX, yPos, imageWidthMm, imageHeightMm, void 0, "FAST");
+          pdf.setDrawColor(180, 180, 180);
+          pdf.setLineWidth(0.2);
+          pdf.rect(canvasX, yPos, imageWidthMm, imageHeightMm);
+          yPos += imageHeightMm + 5;
+          pdf.setFontSize(8);
+          const legendX = canvasX;
+          pdf.setFillColor(239, 68, 68);
+          pdf.rect(legendX, yPos - 2, 5, 1.5, "F");
+          pdf.setTextColor(0, 0, 0);
+          pdf.text("Ceph 1: ".concat(ceph1File.file.name), legendX + 7, yPos);
+          pdf.setFillColor(59, 130, 246);
+          pdf.rect(legendX + 85, yPos - 2, 5, 1.5, "F");
+          pdf.text("Ceph 2: ".concat(ceph2File.file.name), legendX + 92, yPos);
+          yPos += 8;
         }
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.text("Measurements Comparison", margin, yPos);
         yPos += 8;
-        pdf.setFontSize(8);
-        pdf.setFont("helvetica", "bold");
-        const availableWidth = pageWidth - 2 * margin;
         const colWidths = [30, 26, 18, 20, 18, 20, 22];
         const colPositions = [margin];
         for (let i2 = 0; i2 < colWidths.length - 1; i2++) {
           colPositions.push(colPositions[i2] + colWidths[i2]);
         }
         const headers = ["Measurement", "Standard", "Ceph 1", "Ceph 1 vs Std", "Ceph 2", "Ceph 2 vs Std", "Ceph 1&2 Diff."];
-        headers.forEach((header, i2) => {
-          pdf.text(header, colPositions[i2] + 1, yPos);
-        });
-        yPos += 6;
-        pdf.setLineWidth(0.3);
-        pdf.line(margin, yPos - 1, pageWidth - margin, yPos - 1);
-        pdf.setLineWidth(0.2);
-        pdf.setDrawColor(180, 180, 180);
-        for (let i2 = 1; i2 < colPositions.length; i2++) {
-          pdf.line(colPositions[i2], yPos - 7, colPositions[i2], yPos - 1);
-        }
-        yPos += 2;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7);
+        const drawTableHeader = () => {
+          pdf.setFontSize(8);
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(0, 0, 0);
+          headers.forEach((header, i2) => {
+            pdf.text(header, colPositions[i2] + 1, yPos);
+          });
+          yPos += 6;
+          pdf.setLineWidth(0.3);
+          pdf.setDrawColor(0, 0, 0);
+          pdf.line(margin, yPos - 1, pageWidth - margin, yPos - 1);
+          pdf.setLineWidth(0.2);
+          pdf.setDrawColor(180, 180, 180);
+          for (let i2 = 1; i2 < colPositions.length; i2++) {
+            pdf.line(colPositions[i2], yPos - 7, colPositions[i2], yPos - 1);
+          }
+          yPos += 2;
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(7);
+        };
+        drawTableHeader();
         comparisonData.forEach((measurement, index2) => {
+          if (yPos > pageHeight - margin - 5) {
+            pdf.addPage();
+            yPos = margin;
+            drawTableHeader();
+          }
           const rowData = [
             measurement.name,
             measurement.standardMean !== null && measurement.standardDeviation !== null ? "".concat(measurement.standardMean.toFixed(1), " ± ").concat(measurement.standardDeviation.toFixed(1)).concat(measurement.unit) : "-",
-            formatValue(measurement.ceph1Value, measurement.unit),
-            measurement.ceph1Value !== null && measurement.standardMean !== null ? formatDifference(measurement.ceph1Value - measurement.standardMean, measurement.unit) : "-",
-            formatValue(measurement.ceph2Value, measurement.unit),
-            measurement.ceph2Value !== null && measurement.standardMean !== null ? formatDifference(measurement.ceph2Value - measurement.standardMean, measurement.unit) : "-",
-            formatDifference(measurement.difference, measurement.unit)
+            formatMeasurementValue(measurement.ceph1Value, measurement.unit),
+            measurement.ceph1Value !== null && measurement.standardMean !== null ? formatMeasurementDifference(measurement.ceph1Value - measurement.standardMean, measurement.unit) : "-",
+            formatMeasurementValue(measurement.ceph2Value, measurement.unit),
+            measurement.ceph2Value !== null && measurement.standardMean !== null ? formatMeasurementDifference(measurement.ceph2Value - measurement.standardMean, measurement.unit) : "-",
+            formatMeasurementDifference(measurement.difference, measurement.unit)
           ];
           if (index2 % 2 === 1) {
             pdf.setFillColor(240, 240, 240);
@@ -60290,24 +58742,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         pdf.setDrawColor(0, 0, 0);
         pdf.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 5;
+        const cardWidth = 45;
+        const cardHeight = 20;
+        const cardGap = 8;
+        if (yPos + cardHeight + 15 > pageHeight - margin) {
+          pdf.addPage();
+          yPos = margin;
+        }
         pdf.setFontSize(10);
         pdf.setFont("helvetica", "bold");
         pdf.text("Status Summary", margin, yPos);
         yPos += 8;
-        const ceph1Normal = comparisonData.filter((m2) => m2.ceph1Status === "normal").length;
-        const ceph2Normal = comparisonData.filter((m2) => m2.ceph2Status === "normal").length;
-        const ceph1Warning = comparisonData.filter((m2) => m2.ceph1Status === "warning").length;
-        const ceph2Warning = comparisonData.filter((m2) => m2.ceph2Status === "warning").length;
-        const ceph1Alert = comparisonData.filter((m2) => m2.ceph1Status === "alert").length;
-        const ceph2Alert = comparisonData.filter((m2) => m2.ceph2Status === "alert").length;
-        const normalChange = ceph2Normal - ceph1Normal;
-        const warningChange = ceph2Warning - ceph1Warning;
-        const alertChange = ceph2Alert - ceph1Alert;
-        const cardWidth = 45;
-        const cardHeight = 20;
-        const cardGap = 8;
-        const cardStartX = margin;
-        const drawStatusCard = (x2, y2, title, icon, ceph1Count, ceph2Count, change) => {
+        const countStatus = (key, status) => comparisonData.filter((m2) => m2[key] === status).length;
+        const drawStatusCard = (x2, y2, title, ceph1Count, ceph2Count) => {
           pdf.setFillColor(200, 200, 200);
           pdf.roundedRect(x2, y2, cardWidth, cardHeight, 2, 2, "F");
           pdf.setFontSize(8);
@@ -60316,63 +58763,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           pdf.text(title, x2 + 2, y2 + 4);
           pdf.setFont("helvetica", "normal");
           pdf.setFontSize(7);
-          pdf.setTextColor(0, 0, 0);
           pdf.text("C1: ".concat(ceph1Count), x2 + 2, y2 + 8);
           pdf.text("C2: ".concat(ceph2Count), x2 + 2, y2 + 12);
-          let changeText = change === 0 ? "0" : change > 0 ? "+".concat(change) : "".concat(change);
-          pdf.text(changeText, x2 + 2, y2 + 16);
+          const change = ceph2Count - ceph1Count;
+          pdf.text(change > 0 ? "+".concat(change) : "".concat(change), x2 + 2, y2 + 16);
         };
-        drawStatusCard(cardStartX, yPos, "Normal", "", ceph1Normal, ceph2Normal, normalChange);
-        drawStatusCard(cardStartX + cardWidth + cardGap, yPos, "Warning", "", ceph1Warning, ceph2Warning, warningChange);
-        drawStatusCard(cardStartX + 2 * (cardWidth + cardGap), yPos, "Alert", "", ceph1Alert, ceph2Alert, alertChange);
-        yPos += cardHeight + 8;
+        drawStatusCard(margin, yPos, "Normal", countStatus("ceph1Status", "normal"), countStatus("ceph2Status", "normal"));
+        drawStatusCard(margin + cardWidth + cardGap, yPos, "Warning", countStatus("ceph1Status", "warning"), countStatus("ceph2Status", "warning"));
+        drawStatusCard(margin + 2 * (cardWidth + cardGap), yPos, "Alert", countStatus("ceph1Status", "alert"), countStatus("ceph2Status", "alert"));
         if (((_a3 = window.electronAPI) == null ? void 0 : _a3.isElectron) && saveDirectory.trim()) {
+          const pdfFilePath = "".concat(saveDirectory, "/").concat(fullFileName);
           try {
-            let pdfFilePath = "".concat(saveDirectory, "/").concat(fullFileName);
-            console.log("Saving comparison PDF to specified directory:", pdfFilePath);
             const pdfDataUri = pdf.output("datauristring");
             const base64Data = pdfDataUri.split(",")[1];
             const result = await window.electronAPI.writeBinaryFile(pdfFilePath, base64Data);
-            if (result.success) {
-              console.log("Comparison PDF saved successfully to:", pdfFilePath);
-              try {
-                const openResult = await window.electronAPI.openFile(pdfFilePath);
-                if (openResult.success) {
-                  console.log("Comparison PDF opened automatically with system PDF viewer");
-                } else {
-                  console.error("Failed to auto-open comparison PDF:", openResult.error);
-                }
-              } catch (error) {
-                console.error("Failed to auto-open comparison PDF:", error);
-              }
-            } else {
-              console.error("Failed to save comparison PDF file:", result.error);
-              throw new Error("Failed to save comparison PDF file to disk");
+            if (!result.success) {
+              throw new Error(result.error || "Failed to write PDF file");
+            }
+            toast.success("Comparison PDF saved to ".concat(pdfFilePath));
+            try {
+              await window.electronAPI.openFile(pdfFilePath);
+            } catch (error) {
+              console.error("Failed to auto-open comparison PDF:", error);
             }
           } catch (error) {
-            console.error("Error with Electron comparison PDF export:", error);
+            console.error("Error saving comparison PDF via Electron:", error);
             pdf.save(fullFileName);
+            toast.warning("Could not save to ".concat(saveDirectory, " — downloaded as ").concat(fullFileName, " instead."));
           }
         } else {
           pdf.save(fullFileName);
-          console.log("Comparison PDF download triggered");
+          toast.success("Comparison PDF exported as ".concat(fullFileName));
         }
+        setIsOpen(false);
       } catch (error) {
         console.error("Error exporting PDF:", error);
-        alert("Error generating PDF. Please try again.");
+        toast.error("Error generating PDF. Please try again.");
       } finally {
         setIsExporting(false);
-        setIsOpen(false);
-        if (saveDirectory.trim()) {
-          setTimeout(() => {
-            var _a4;
-            if ((_a4 = window.electronAPI) == null ? void 0 : _a4.isElectron) {
-              alert("PDF exported! Intended location: ".concat(saveDirectory, "/").concat(fullFileName));
-            } else {
-              alert("PDF exported to your Downloads folder. Intended location was: ".concat(saveDirectory, "/").concat(fullFileName));
-            }
-          }, 1e3);
-        }
       }
     };
     const canExport = ceph1File && ceph2File;
@@ -60380,27 +58808,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!ceph1File || !ceph2File) {
         return { filesFromDifferentPaths: false, commonDirectory: "", ceph1Directory: "", ceph2Directory: "" };
       }
-      let ceph1Dir = "";
-      let ceph2Dir = "";
-      if (ceph1File.file.webkitRelativePath) {
-        ceph1Dir = ceph1File.file.webkitRelativePath.split("/").slice(0, -1).join("/");
-      }
-      if (ceph2File.file.webkitRelativePath) {
-        ceph2Dir = ceph2File.file.webkitRelativePath.split("/").slice(0, -1).join("/");
-      }
-      if (!ceph1Dir && ceph1File.file.path) {
-        const fullPath = ceph1File.file.path;
-        ceph1Dir = fullPath.split(/[\\/]/).slice(0, -1).join("/");
-      }
-      if (!ceph2Dir && ceph2File.file.path) {
-        const fullPath = ceph2File.file.path;
-        ceph2Dir = fullPath.split(/[\\/]/).slice(0, -1).join("/");
-      }
-      const pathsDiffer = ceph1Dir !== ceph2Dir && (ceph1Dir || ceph2Dir);
-      const common2 = !pathsDiffer && ceph1Dir ? ceph1Dir : "";
+      const getDirectory = (cephFile) => {
+        if (cephFile.file.webkitRelativePath) {
+          return cephFile.file.webkitRelativePath.split("/").slice(0, -1).join("/");
+        }
+        const fullPath = cephFile.file.path;
+        if (fullPath) {
+          return fullPath.split(/[\\/]/).slice(0, -1).join("/");
+        }
+        return "";
+      };
+      const ceph1Dir = getDirectory(ceph1File);
+      const ceph2Dir = getDirectory(ceph2File);
+      const pathsDiffer = ceph1Dir !== ceph2Dir && !!(ceph1Dir || ceph2Dir);
       return {
         filesFromDifferentPaths: pathsDiffer,
-        commonDirectory: common2,
+        commonDirectory: !pathsDiffer && ceph1Dir ? ceph1Dir : "",
         ceph1Directory: ceph1Dir,
         ceph2Directory: ceph2Dir
       };
@@ -60417,15 +58840,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const name2 = ceph2File.file.name.replace(/\.[^/.]+$/, "");
           setFileName("".concat(name1, "_vs_").concat(name2, "_").concat(template));
         }
-        if (commonDirectory) {
-          setSaveDirectory(commonDirectory);
-        } else if (filesFromDifferentPaths) {
-          setSaveDirectory("");
-        } else {
-          setSaveDirectory("");
-        }
+        setSaveDirectory(commonDirectory);
       }
-    }, [ceph1File, ceph2File, getComparisonExportTemplate, storePatientName, patientName, commonDirectory, filesFromDifferentPaths]);
+    }, [ceph1File, ceph2File, getComparisonExportTemplate, storePatientName, patientName, commonDirectory]);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(Dialog, { open: isOpen, onOpenChange: setIsOpen, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
         Button,
@@ -60471,11 +58888,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-400", children: [
               "File will be saved as: ",
               fileName.trim() ? fileName.endsWith(".pdf") ? fileName : "".concat(fileName, ".pdf") : "cephalometric-comparison-[date].pdf"
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-500", children: [
-              "Filename generated using template from settings. ",
-              storePatientName || patientName ? "Patient name + template" : "File names + template",
-              "."
             ] })
           ] }),
           ((_a2 = window.electronAPI) == null ? void 0 : _a2.isElectron) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
@@ -60530,26 +58942,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gray-800 border border-gray-600 rounded p-3", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-sm text-gray-300", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Export includes:" }),
-              " Anatomical overlay comparison image with white background and complete measurements comparison table with differences and standard deviations."
+              " Anatomical overlay comparison image and complete measurements comparison table with differences and standard deviations."
             ] }),
-            ((_b2 = window.electronAPI) == null ? void 0 : _b2.isElectron) ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 text-xs space-y-1", children: [
-              commonDirectory && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-green-400", children: [
-                "✓ ",
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Auto-save location:" }),
-                " ",
-                commonDirectory
-              ] }),
-              filesFromDifferentPaths && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-yellow-400", children: [
-                "⚠ ",
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Manual save required:" }),
-                " Files from different directories."
-              ] }),
-              !commonDirectory && !filesFromDifferentPaths && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-gray-400", children: [
-                "ℹ ",
-                /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Default save:" }),
-                " Browser's download folder."
-              ] })
-            ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-2 text-xs text-gray-400", children: [
+            !((_b2 = window.electronAPI) == null ? void 0 : _b2.isElectron) && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-2 text-xs text-gray-400", children: [
               "ℹ ",
               /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Save location:" }),
               " Your browser's download folder."
@@ -60912,159 +59307,91 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     });
     return transformedPath;
   }
+  const toRenderFile = (cephFile) => {
+    var _a2, _b2, _c, _d, _e2, _f, _g, _h, _i;
+    if (!cephFile) return void 0;
+    const imageInfo = (_b2 = (_a2 = cephFile.data) == null ? void 0 : _a2.metadata) == null ? void 0 : _b2.imageInfo;
+    const imageWidth = (_c = imageInfo == null ? void 0 : imageInfo.width) != null ? _c : 0;
+    const imageHeight = (_d = imageInfo == null ? void 0 : imageInfo.height) != null ? _d : 0;
+    const imageSize = imageWidth > 0 && imageHeight > 0 ? { width: imageWidth, height: imageHeight } : ((_e2 = cephFile.anatomicalOverlays) == null ? void 0 : _e2.svgContent) && getViewBoxSize(cephFile.anatomicalOverlays.svgContent) || { width: 800, height: 600 };
+    return {
+      points: cephFile.points,
+      overlays: (_f = cephFile.anatomicalOverlays) != null ? _f : null,
+      imageSize,
+      scaleFactor: (_i = (_h = (_g = cephFile.data) == null ? void 0 : _g.referenceScale) == null ? void 0 : _h.scaleFactor) != null ? _i : null
+    };
+  };
   function ComparisonPage({ onBack }) {
     const [ceph1File, setCeph1File] = reactExports.useState(null);
     const [ceph2File, setCeph2File] = reactExports.useState(null);
     const [showComparison, setShowComparison] = reactExports.useState(false);
     const [ceph1Visible, setCeph1Visible] = reactExports.useState(true);
     const [ceph2Visible, setCeph2Visible] = reactExports.useState(true);
+    const [alignment, setAlignment] = reactExports.useState("NL");
     const [zoomLevel, setZoomLevel] = reactExports.useState(100);
-    const [comparisonData, setComparisonData] = reactExports.useState([]);
     const ceph1InputRef = reactExports.useRef(null);
     const ceph2InputRef = reactExports.useRef(null);
-    reactExports.useRef(null);
+    const comparisonData = reactExports.useMemo(
+      () => computeComparisonData(ceph1File, ceph2File),
+      [ceph1File, ceph2File]
+    );
+    const renderFile1 = reactExports.useMemo(() => toRenderFile(ceph1File), [ceph1File]);
+    const renderFile2 = reactExports.useMemo(() => toRenderFile(ceph2File), [ceph2File]);
     const handleFileUpload = async (event, fileNumber) => {
-      var _a2, _b2, _c, _d, _e2, _f, _g, _h;
+      var _a2, _b2, _c, _d, _e2;
       const file = (_a2 = event.target.files) == null ? void 0 : _a2[0];
+      event.target.value = "";
       if (!file) return;
+      if (!file.name.toLowerCase().endsWith(".ceph")) {
+        toast.error("Please select a .ceph analysis file. Comparison mode works with saved analyses, not raw images.");
+        return;
+      }
       try {
-        if (file.name.endsWith(".ceph")) {
-          const text2 = await file.text();
-          const data = JSON.parse(text2);
-          console.log("Loading .ceph file:", file.name);
-          console.log("Ceph file data:", {
-            hasAnatomicalOverlays: !!data.anatomicalOverlays,
-            overlaysSVGLength: ((_c = (_b2 = data.anatomicalOverlays) == null ? void 0 : _b2.svgContent) == null ? void 0 : _c.length) || 0,
-            sPoint: (_d = data.anatomicalOverlays) == null ? void 0 : _d.sPoint,
-            pointsCount: (data.points || []).length
-          });
-          let anatomicalOverlays = data.anatomicalOverlays;
-          if (!anatomicalOverlays && data.points && data.points.length > 0) {
-            console.log("No pre-rendered overlays found, generating from points...");
-            const imageWidth = ((_f = (_e2 = data.metadata) == null ? void 0 : _e2.imageInfo) == null ? void 0 : _f.width) || 800;
-            const imageHeight = ((_h = (_g = data.metadata) == null ? void 0 : _g.imageInfo) == null ? void 0 : _h.height) || 600;
-            const referenceScale = data.referenceScale || null;
-            console.log("Using reference scale for overlay generation:", referenceScale);
-            const generatedOverlays = generateAnatomicalOverlaysFromPoints(data.points, imageWidth, imageHeight, referenceScale);
-            if (generatedOverlays) {
-              anatomicalOverlays = generatedOverlays;
-              console.log("Successfully generated anatomical overlays from points:", {
-                svgContentLength: generatedOverlays.svgContent.length,
-                sPoint: generatedOverlays.sPoint
-              });
-            } else {
-              console.log("Could not generate anatomical overlays - insufficient points");
-            }
-          }
-          const cephFile = {
-            file,
-            data,
-            points: data.points || [],
-            anatomicalOverlays: anatomicalOverlays || void 0,
-            isImageFile: false
-          };
-          console.log("Created ceph file object:", {
-            hasOverlays: !!cephFile.anatomicalOverlays,
-            overlayData: cephFile.anatomicalOverlays,
-            wasGenerated: !data.anatomicalOverlays && !!anatomicalOverlays
-          });
-          if (fileNumber === 1) {
-            setCeph1File(cephFile);
-          } else {
-            setCeph2File(cephFile);
-          }
-        } else {
-          const fileName = file.name.toLowerCase();
-          const isValidImage = file.type.startsWith("image/") || fileName.endsWith(".tif") || fileName.endsWith(".tiff") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".png") || fileName.endsWith(".gif");
-          if (!isValidImage) {
-            alert("Please select a valid image file (PNG, JPG, JPEG, GIF, TIF, TIFF) or .ceph file");
-            event.target.value = "";
-            return;
-          }
-          console.log("Loading image file:", file.name);
-          let imageWidth = 800;
-          let imageHeight = 600;
-          if (isTiffFile(file)) {
-            try {
-              console.log("Converting TIF/TIFF file for comparison mode:", file.name);
-              const dimensions = await getTiffDimensions(file);
-              imageWidth = dimensions.width;
-              imageHeight = dimensions.height;
-              const pngDataUrl = await convertTiffToPng(file);
-              console.log("TIF/TIFF converted successfully for comparison:", {
-                width: imageWidth,
-                height: imageHeight,
-                dataUrlLength: pngDataUrl.length
-              });
-            } catch (error) {
-              console.error("Error converting TIF/TIFF for comparison:", error);
-              alert("Failed to convert TIF/TIFF file. Please try a different file.");
-              event.target.value = "";
-              return;
-            }
-          }
-          const imageData = {
-            metadata: {
-              fileName: file.name,
-              exportDate: (/* @__PURE__ */ new Date()).toISOString(),
-              imageInfo: {
-                name: file.name,
-                width: imageWidth,
-                height: imageHeight
-              }
-            },
-            points: [],
-            lines: [],
-            angles: [],
-            distances: []
-          };
-          const cephFile = {
-            file,
-            data: imageData,
-            points: [],
-            anatomicalOverlays: void 0,
-            isImageFile: true
-          };
-          if (fileNumber === 1) {
-            setCeph1File(cephFile);
-          } else {
-            setCeph2File(cephFile);
-          }
+        const text2 = await file.text();
+        const data = JSON.parse(text2);
+        const points = Array.isArray(data.points) ? data.points : [];
+        if (points.length === 0) {
+          toast.error('"'.concat(file.name, '" contains no landmark points — nothing to compare.'));
+          return;
         }
-        event.target.value = "";
+        let anatomicalOverlays = data.anatomicalOverlays;
+        if (!(anatomicalOverlays == null ? void 0 : anatomicalOverlays.svgContent)) {
+          const imageWidth = ((_c = (_b2 = data.metadata) == null ? void 0 : _b2.imageInfo) == null ? void 0 : _c.width) || 800;
+          const imageHeight = ((_e2 = (_d = data.metadata) == null ? void 0 : _d.imageInfo) == null ? void 0 : _e2.height) || 600;
+          anatomicalOverlays = generateAnatomicalOverlaysFromPoints(
+            points,
+            imageWidth,
+            imageHeight,
+            data.referenceScale || null
+          ) || void 0;
+        }
+        const cephFile = {
+          file,
+          data,
+          points,
+          anatomicalOverlays
+        };
+        if (fileNumber === 1) {
+          setCeph1File(cephFile);
+        } else {
+          setCeph2File(cephFile);
+        }
       } catch (error) {
-        console.error("Error loading file:", error);
-        alert("Error loading file. Please ensure it is a valid .ceph file or image file.");
-        event.target.value = "";
+        console.error("Error loading .ceph file:", error);
+        toast.error('Could not read "'.concat(file.name, '". Please ensure it is a valid .ceph file.'));
       }
     };
     const getStatusText = () => {
       if (!ceph1File && !ceph2File) {
-        return "Please upload both files (.ceph or images) to begin comparison";
+        return "Upload both .ceph analysis files to begin comparison";
       } else if (ceph1File && !ceph2File) {
         return "File 1 loaded. Please upload File 2.";
       } else if (!ceph1File && ceph2File) {
         return "File 2 loaded. Please upload File 1.";
-      } else {
-        return "Both files loaded. Ready for comparison!";
       }
+      return "Both files loaded. Ready for comparison!";
     };
-    const getStatusColor = () => {
-      if (ceph1File && ceph2File) {
-        return "text-green-400";
-      } else {
-        return "text-gray-400";
-      }
-    };
-    const startComparison = () => {
-      if (ceph1File && ceph2File) {
-        setShowComparison(true);
-      }
-    };
-    const resetComparison = () => {
-      setShowComparison(false);
-    };
-    if (showComparison) {
+    if (showComparison && ceph1File && ceph2File) {
       return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 bg-gray-950 z-50 flex flex-col", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4", children: [
@@ -61085,9 +59412,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-xl font-bold text-white", children: "Anatomical Overlay Comparison" }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-400", children: [
                 "Comparing ",
-                ceph1File == null ? void 0 : ceph1File.file.name,
+                ceph1File.file.name,
                 " vs ",
-                ceph2File == null ? void 0 : ceph2File.file.name
+                ceph2File.file.name
               ] })
             ] })
           ] }),
@@ -61096,7 +59423,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               SimpleComparisonExport,
               {
                 ceph1File,
-                ceph2File
+                ceph2File,
+                comparisonData,
+                renderFile1,
+                renderFile2,
+                ceph1Visible,
+                ceph2Visible,
+                alignment
               }
             ),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -61104,7 +59437,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               {
                 variant: "outline",
                 size: "sm",
-                onClick: resetComparison,
+                onClick: () => setShowComparison(false),
                 className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white hover:border-gray-500",
                 children: "Back to Upload"
               }
@@ -61116,15 +59449,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { width: "650px", height: "600px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
               ComparisonAnatomicalCanvas,
               {
-                ceph1Points: (ceph1File == null ? void 0 : ceph1File.points) || [],
-                ceph2Points: (ceph2File == null ? void 0 : ceph2File.points) || [],
-                ceph1Overlays: ceph1File == null ? void 0 : ceph1File.anatomicalOverlays,
-                ceph2Overlays: ceph2File == null ? void 0 : ceph2File.anatomicalOverlays,
+                file1: renderFile1,
+                file2: renderFile2,
+                file1Label: ceph1File.file.name,
+                file2Label: ceph2File.file.name,
                 width: 650,
                 height: 600,
-                ceph1Visible,
-                ceph2Visible,
-                zoomLevel
+                file1Visible: ceph1Visible,
+                file2Visible: ceph2Visible,
+                alignment,
+                zoomLevel,
+                onZoomChange: setZoomLevel
               }
             ) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col justify-center space-y-6", children: [
@@ -61162,6 +59497,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-600 p-4", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-white text-sm font-medium mb-1", children: "Superimposition" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 mb-4", children: "Both tracings are registered at the S point" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  RadioGroup,
+                  {
+                    value: alignment,
+                    onValueChange: (value) => setAlignment(value),
+                    className: "space-y-3",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(RadioGroupItem, { value: "NL", id: "align-nl", className: "border-gray-500 text-white" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "align-nl", className: "text-sm text-gray-300", children: "Palatal planes (Spa–Spp) parallel" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(RadioGroupItem, { value: "SN", id: "align-sn", className: "border-gray-500 text-white" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "align-sn", className: "text-sm text-gray-300", children: "S–N lines aligned (cranial base)" })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(RadioGroupItem, { value: "S", id: "align-s", className: "border-gray-500 text-white" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "align-s", className: "text-sm text-gray-300", children: "S point only (no rotation)" })
+                      ] })
+                    ]
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-600 p-4", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-white text-sm font-medium mb-4", children: "Zoom Level" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-sm text-gray-300", children: [
@@ -61187,16 +59548,90 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               ] })
             ] })
           ] }) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ComparisonMeasurementsTable,
-            {
-              ceph1File,
-              ceph2File
-            }
-          )
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ComparisonMeasurementsTable, { data: comparisonData })
         ] }) })
       ] });
     }
+    const uploadCard = (fileNumber) => {
+      const cephFile = fileNumber === 1 ? ceph1File : ceph2File;
+      const setCephFile = fileNumber === 1 ? setCeph1File : setCeph2File;
+      const inputRef = fileNumber === 1 ? ceph1InputRef : ceph2InputRef;
+      const accent = fileNumber === 1 ? {
+        loadedBg: "bg-red-600",
+        dashedBox: "bg-red-600/20 border-red-500",
+        icon: "text-red-400",
+        button: "border-red-500 bg-red-900/20 text-red-400 hover:bg-red-800/30 hover:text-red-300 hover:border-red-400"
+      } : {
+        loadedBg: "bg-blue-600",
+        dashedBox: "bg-blue-600/20 border-blue-500",
+        icon: "text-blue-400",
+        button: "border-blue-500 bg-blue-900/20 text-blue-400 hover:bg-blue-800/30 hover:text-blue-300 hover:border-blue-400"
+      };
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "bg-gray-900 border-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { className: "flex flex-col items-center justify-center p-8 text-center space-y-4", children: cephFile ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 ".concat(accent.loadedBg, " rounded-lg flex items-center justify-center"), children: /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-8 w-8 text-white" }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "text-lg font-medium text-white mb-1", children: [
+            "File ",
+            fileNumber,
+            " Loaded"
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: cephFile.file.name }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-500 mt-1", children: [
+            cephFile.points.length,
+            " points"
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: () => setCephFile(null),
+            className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-red-600 hover:text-white hover:border-red-500",
+            children: "Remove File"
+          }
+        )
+      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 ".concat(accent.dashedBox, " border-2 border-dashed rounded-lg flex items-center justify-center"), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-8 w-8 ".concat(accent.icon) }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "text-lg font-medium text-white mb-1", children: [
+            "File ",
+            fileNumber
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-sm text-gray-400", children: [
+            "Upload ",
+            fileNumber === 1 ? "first" : "second",
+            " .ceph file"
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            className: accent.button,
+            onClick: () => {
+              var _a2;
+              return (_a2 = inputRef.current) == null ? void 0 : _a2.click();
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4 mr-2" }),
+              "Choose File"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            ref: inputRef,
+            type: "file",
+            accept: ".ceph",
+            onChange: (e2) => handleFileUpload(e2, fileNumber),
+            className: "hidden"
+          }
+        )
+      ] }) }) });
+    };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 bg-gray-950 z-50 flex flex-col", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -61214,117 +59649,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ml-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-xl font-bold text-white", children: "Comparison Mode" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400", children: "Upload two files (.ceph or images) to compare anatomical overlays" })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400", children: "Upload two .ceph analyses (e.g. pre/post treatment) to compare overlays and measurements" })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex items-center justify-center p-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full max-w-2xl space-y-8", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "bg-gray-900 border-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { className: "flex flex-col items-center justify-center p-8 text-center space-y-4", children: ceph1File ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-8 w-8 text-white" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-medium text-white mb-1", children: "File 1 Loaded" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: ceph1File.file.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 mt-1", children: ceph1File.isImageFile ? "Image file" : "".concat(ceph1File.points.length, " points") })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                onClick: () => setCeph1File(null),
-                className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-red-600 hover:text-white hover:border-red-500",
-                children: "Remove File"
-              }
-            )
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-red-600/20 border-2 border-red-500 border-dashed rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-8 w-8 text-red-400" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-medium text-white mb-1", children: "File 1" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: "Upload first file (.ceph or image)" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                className: "border-red-500 bg-red-900/20 text-red-400 hover:bg-red-800/30 hover:text-red-300 hover:border-red-400",
-                onClick: () => {
-                  var _a2;
-                  return (_a2 = ceph1InputRef.current) == null ? void 0 : _a2.click();
-                },
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4 mr-2" }),
-                  "Choose File"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                ref: ceph1InputRef,
-                type: "file",
-                accept: ".ceph,image/*,.tif,.tiff,.jpg,.jpeg",
-                onChange: (e2) => handleFileUpload(e2, 1),
-                className: "hidden"
-              }
-            )
-          ] }) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Card, { className: "bg-gray-900 border-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CardContent, { className: "flex flex-col items-center justify-center p-8 text-center space-y-4", children: ceph2File ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "h-8 w-8 text-white" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-medium text-white mb-1", children: "File 2 Loaded" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: ceph2File.file.name }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 mt-1", children: ceph2File.isImageFile ? "Image file" : "".concat(ceph2File.points.length, " points") })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                onClick: () => setCeph2File(null),
-                className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-red-600 hover:text-white hover:border-red-500",
-                children: "Remove File"
-              }
-            )
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-blue-600/20 border-2 border-blue-500 border-dashed rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-8 w-8 text-blue-400" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-medium text-white mb-1", children: "File 2" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-400", children: "Upload second file (.ceph or image)" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Button,
-              {
-                variant: "outline",
-                size: "sm",
-                className: "border-blue-500 bg-blue-900/20 text-blue-400 hover:bg-blue-800/30 hover:text-blue-300 hover:border-blue-400",
-                onClick: () => {
-                  var _a2;
-                  return (_a2 = ceph2InputRef.current) == null ? void 0 : _a2.click();
-                },
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4 mr-2" }),
-                  "Choose File"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                ref: ceph2InputRef,
-                type: "file",
-                accept: ".ceph,image/*,.tif,.tiff,.jpg,.jpeg",
-                onChange: (e2) => handleFileUpload(e2, 2),
-                className: "hidden"
-              }
-            )
-          ] }) }) })
+          uploadCard(1),
+          uploadCard(2)
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm ".concat(getStatusColor()), children: getStatusText() }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm ".concat(ceph1File && ceph2File ? "text-green-400" : "text-gray-400"), children: getStatusText() }) }),
         ceph1File && ceph2File && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
           Button,
           {
-            onClick: startComparison,
+            onClick: () => setShowComparison(true),
             size: "lg",
             className: "bg-green-600 hover:bg-green-700 text-white border-green-600 px-8 py-3",
             children: [
@@ -61333,6 +59670,1987 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             ]
           }
         ) })
+      ] }) })
+    ] });
+  }
+  var COLLAPSIBLE_NAME = "Collapsible";
+  var [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
+  var [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
+  var Collapsible$1 = reactExports.forwardRef(
+    (props2, forwardedRef) => {
+      const _a2 = props2, {
+        __scopeCollapsible,
+        open: openProp,
+        defaultOpen,
+        disabled,
+        onOpenChange
+      } = _a2, collapsibleProps = __objRest(_a2, [
+        "__scopeCollapsible",
+        "open",
+        "defaultOpen",
+        "disabled",
+        "onOpenChange"
+      ]);
+      const [open2, setOpen] = useControllableState({
+        prop: openProp,
+        defaultProp: defaultOpen != null ? defaultOpen : false,
+        onChange: onOpenChange,
+        caller: COLLAPSIBLE_NAME
+      });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        CollapsibleProvider,
+        {
+          scope: __scopeCollapsible,
+          disabled,
+          contentId: useId$1(),
+          open: open2,
+          onOpenToggle: reactExports.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Primitive.div,
+            __spreadProps(__spreadValues({
+              "data-state": getState(open2),
+              "data-disabled": disabled ? "" : void 0
+            }, collapsibleProps), {
+              ref: forwardedRef
+            })
+          )
+        }
+      );
+    }
+  );
+  Collapsible$1.displayName = COLLAPSIBLE_NAME;
+  var TRIGGER_NAME = "CollapsibleTrigger";
+  var CollapsibleTrigger$1 = reactExports.forwardRef(
+    (props2, forwardedRef) => {
+      const _a2 = props2, { __scopeCollapsible } = _a2, triggerProps = __objRest(_a2, ["__scopeCollapsible"]);
+      const context = useCollapsibleContext(TRIGGER_NAME, __scopeCollapsible);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Primitive.button,
+        __spreadProps(__spreadValues({
+          type: "button",
+          "aria-controls": context.contentId,
+          "aria-expanded": context.open || false,
+          "data-state": getState(context.open),
+          "data-disabled": context.disabled ? "" : void 0,
+          disabled: context.disabled
+        }, triggerProps), {
+          ref: forwardedRef,
+          onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
+        })
+      );
+    }
+  );
+  CollapsibleTrigger$1.displayName = TRIGGER_NAME;
+  var CONTENT_NAME = "CollapsibleContent";
+  var CollapsibleContent$1 = reactExports.forwardRef(
+    (props2, forwardedRef) => {
+      const _a2 = props2, { forceMount } = _a2, contentProps = __objRest(_a2, ["forceMount"]);
+      const context = useCollapsibleContext(CONTENT_NAME, props2.__scopeCollapsible);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContentImpl, __spreadProps(__spreadValues({}, contentProps), { ref: forwardedRef, present })) });
+    }
+  );
+  CollapsibleContent$1.displayName = CONTENT_NAME;
+  var CollapsibleContentImpl = reactExports.forwardRef((props2, forwardedRef) => {
+    const _a2 = props2, { __scopeCollapsible, present, children } = _a2, contentProps = __objRest(_a2, ["__scopeCollapsible", "present", "children"]);
+    const context = useCollapsibleContext(CONTENT_NAME, __scopeCollapsible);
+    const [isPresent, setIsPresent] = reactExports.useState(present);
+    const ref = reactExports.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const heightRef = reactExports.useRef(0);
+    const height = heightRef.current;
+    const widthRef = reactExports.useRef(0);
+    const width = widthRef.current;
+    const isOpen = context.open || isPresent;
+    const isMountAnimationPreventedRef = reactExports.useRef(isOpen);
+    const originalStylesRef = reactExports.useRef(void 0);
+    reactExports.useEffect(() => {
+      const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
+      return () => cancelAnimationFrame(rAF);
+    }, []);
+    useLayoutEffect2(() => {
+      const node2 = ref.current;
+      if (node2) {
+        originalStylesRef.current = originalStylesRef.current || {
+          transitionDuration: node2.style.transitionDuration,
+          animationName: node2.style.animationName
+        };
+        node2.style.transitionDuration = "0s";
+        node2.style.animationName = "none";
+        const rect = node2.getBoundingClientRect();
+        heightRef.current = rect.height;
+        widthRef.current = rect.width;
+        if (!isMountAnimationPreventedRef.current) {
+          node2.style.transitionDuration = originalStylesRef.current.transitionDuration;
+          node2.style.animationName = originalStylesRef.current.animationName;
+        }
+        setIsPresent(present);
+      }
+    }, [context.open, present]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive.div,
+      __spreadProps(__spreadValues({
+        "data-state": getState(context.open),
+        "data-disabled": context.disabled ? "" : void 0,
+        id: context.contentId,
+        hidden: !isOpen
+      }, contentProps), {
+        ref: composedRefs,
+        style: __spreadValues({
+          ["--radix-collapsible-content-height"]: height ? "".concat(height, "px") : void 0,
+          ["--radix-collapsible-content-width"]: width ? "".concat(width, "px") : void 0
+        }, props2.style),
+        children: isOpen && children
+      })
+    );
+  });
+  function getState(open2) {
+    return open2 ? "open" : "closed";
+  }
+  var Root = Collapsible$1;
+  function Collapsible(_Sa) {
+    var props2 = __objRest(_Sa, []);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Root, __spreadValues({ "data-slot": "collapsible" }, props2));
+  }
+  function CollapsibleTrigger(_Ta) {
+    var props2 = __objRest(_Ta, []);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      CollapsibleTrigger$1,
+      __spreadValues({
+        "data-slot": "collapsible-trigger"
+      }, props2)
+    );
+  }
+  function CollapsibleContent(_Ua) {
+    var props2 = __objRest(_Ua, []);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      CollapsibleContent$1,
+      __spreadValues({
+        "data-slot": "collapsible-content"
+      }, props2)
+    );
+  }
+  function PointManager() {
+    const {
+      currentImage,
+      isPlacingPoint,
+      isPlacingSequence,
+      selectedPointId,
+      addPoint,
+      updatePoint,
+      removePoint,
+      clearAllPoints,
+      setSelectedPoint,
+      setIsPlacingPoint,
+      getPointsForCurrentImage,
+      lines,
+      createLineIntersectionPoint,
+      createPerpendicularIntersectionPoint,
+      reorderPoints
+    } = useCephalometricStore();
+    const [newPointName, setNewPointName] = reactExports.useState("");
+    const [newPointDescription, setNewPointDescription] = reactExports.useState("");
+    const [newPointType, setNewPointType] = reactExports.useState("standard");
+    const [editingPointId, setEditingPointId] = reactExports.useState(null);
+    const [editingName, setEditingName] = reactExports.useState("");
+    const [isAddPointOpen, setIsAddPointOpen] = reactExports.useState(false);
+    const [dragIndex, setDragIndex] = reactExports.useState(null);
+    const [dragOverIndex, setDragOverIndex] = reactExports.useState(null);
+    const handleDragStart = (e2, index2) => {
+      setDragIndex(index2);
+      e2.dataTransfer.effectAllowed = "move";
+      e2.dataTransfer.setData("text/plain", String(index2));
+    };
+    const handleDragOver = (e2, index2) => {
+      e2.preventDefault();
+      e2.dataTransfer.dropEffect = "move";
+      setDragOverIndex(index2);
+    };
+    const handleDrop = (e2, index2) => {
+      e2.preventDefault();
+      if (dragIndex !== null && dragIndex !== index2 && currentImage) {
+        const fromIndex = allImagePoints.indexOf(currentImagePoints[dragIndex]);
+        const toIndex = allImagePoints.indexOf(currentImagePoints[index2]);
+        if (fromIndex >= 0 && toIndex >= 0) {
+          reorderPoints(currentImage.id, fromIndex, toIndex);
+        }
+      }
+      setDragIndex(null);
+      setDragOverIndex(null);
+    };
+    const handleDragEnd = () => {
+      setDragIndex(null);
+      setDragOverIndex(null);
+    };
+    const [intersectionType, setIntersectionType] = reactExports.useState("line-line");
+    const [selectedLine1, setSelectedLine1] = reactExports.useState("");
+    const [selectedLine2, setSelectedLine2] = reactExports.useState("");
+    const [selectedIntersectionPoint, setSelectedIntersectionPoint] = reactExports.useState("");
+    const [selectedIntersectionLine, setSelectedIntersectionLine] = reactExports.useState("");
+    const allImagePoints = getPointsForCurrentImage();
+    const currentImagePoints = allImagePoints.filter((p2) => p2.type !== "freehand");
+    const handleAddPoint = () => {
+      if (!currentImage || !newPointName.trim()) return;
+      const trimmedName = newPointName.trim();
+      if (allImagePoints.some((p2) => p2.name === trimmedName)) {
+        toast.error('A point named "'.concat(trimmedName, '" already exists'), {
+          description: "Point names must be unique — choose a different name."
+        });
+        return;
+      }
+      if (newPointType === "intersection") {
+        handleCreateIntersectionPoint();
+        return;
+      }
+      const point = {
+        name: trimmedName,
+        description: newPointDescription.trim() || void 0,
+        x: -1,
+        // Use -1 to indicate unplaced point
+        y: -1,
+        type: newPointType,
+        visible: true,
+        imageId: currentImage.id
+      };
+      addPoint(point);
+      setNewPointName("");
+      setNewPointDescription("");
+      setTimeout(() => {
+        const nameField = document.querySelector('[data-field="name"]');
+        if (nameField) {
+          nameField.focus();
+        }
+      }, 100);
+    };
+    const handleCreateIntersectionPoint = () => {
+      if (!currentImage || !newPointName.trim()) return;
+      if (intersectionType === "line-line") {
+        if (!selectedLine1 || !selectedLine2) {
+          alert("Please select two lines for intersection");
+          return;
+        }
+        if (selectedLine1 === selectedLine2) {
+          alert("Please select two different lines");
+          return;
+        }
+        createLineIntersectionPoint(selectedLine1, selectedLine2, newPointName.trim(), currentImage.id);
+      } else if (intersectionType === "point-line") {
+        if (!selectedIntersectionPoint || !selectedIntersectionLine) {
+          alert("Please select a point and a line for perpendicular intersection");
+          return;
+        }
+        createPerpendicularIntersectionPoint(selectedIntersectionPoint, selectedIntersectionLine, newPointName.trim(), currentImage.id);
+      }
+      setNewPointName("");
+      setNewPointDescription("");
+      setSelectedLine1("");
+      setSelectedLine2("");
+      setSelectedIntersectionPoint("");
+      setSelectedIntersectionLine("");
+      setNewPointType("standard");
+    };
+    const handleKeyDown = (e2, field) => {
+      if (e2.key === "Enter") {
+        e2.preventDefault();
+        if (field === "name" && newPointName.trim()) {
+          const descriptionField = document.querySelector('[data-field="description"]');
+          if (descriptionField) {
+            descriptionField.focus();
+          } else {
+            handleAddPoint();
+          }
+        } else if (field === "description") {
+          handleAddPoint();
+        }
+      }
+    };
+    const handleEditPoint = (pointId, currentName) => {
+      setEditingPointId(pointId);
+      setEditingName(currentName);
+    };
+    const handleSaveEdit = () => {
+      if (editingPointId && editingName.trim()) {
+        const original = currentImagePoints.find((p2) => p2.id === editingPointId);
+        const newName = editingName.trim();
+        if (original && original.name !== newName && PROTECTED_LANDMARK_NAMES.has(original.name)) {
+          toast.error('"'.concat(original.name, '" cannot be renamed'), {
+            description: "This landmark name is required by the measurement calculations."
+          });
+          setEditingPointId(null);
+          setEditingName("");
+          return;
+        }
+        if (original && original.name !== newName && PROTECTED_LANDMARK_NAMES.has(newName)) {
+          toast.error('"'.concat(newName, '" is a reserved landmark name'), {
+            description: "Choose a different name to avoid corrupting the standard measurements."
+          });
+          return;
+        }
+        if (original && original.name !== newName && allImagePoints.some((p2) => p2.name === newName && p2.id !== editingPointId)) {
+          toast.error('A point named "'.concat(newName, '" already exists'), {
+            description: "Point names must be unique — choose a different name."
+          });
+          return;
+        }
+        updatePoint(editingPointId, { name: newName });
+        setEditingPointId(null);
+        setEditingName("");
+      }
+    };
+    const handleCancelEdit = () => {
+      setEditingPointId(null);
+      setEditingName("");
+    };
+    const handleToggleVisibility = (pointId, currentVisibility) => {
+      updatePoint(pointId, { visible: !currentVisibility });
+    };
+    const handlePlacePoint = (pointId) => {
+      setSelectedPoint(pointId);
+      setIsPlacingPoint(true);
+    };
+    const handleRePlace = (pointId) => {
+      setSelectedPoint(pointId);
+      setIsPlacingPoint(true);
+    };
+    const handleClearAllPoints = () => {
+      if (confirm("Are you sure you want to clear all point placements? The points will remain in the list but will need to be placed again.")) {
+        clearAllPoints();
+      }
+    };
+    const isPointPlaced = (point) => {
+      return point.x >= 0 && point.y >= 0;
+    };
+    const isPointCalculated = (point) => {
+      return point.type === "intersection" && point.x >= 0 && point.y >= 0;
+    };
+    const isIntersectionPoint = (point) => {
+      return point.type === "intersection";
+    };
+    const getPointTypeColor = (type) => {
+      switch (type) {
+        case "standard":
+          return "bg-blue-100 text-blue-800";
+        case "reference":
+          return "bg-red-100 text-red-800";
+        case "intersection":
+          return "bg-amber-100 text-amber-800";
+        case "soft_tissue":
+          return "bg-green-100 text-green-800";
+        default:
+          return "bg-gray-100 text-gray-800";
+      }
+    };
+    const getPointTypeLabel = (type) => {
+      switch (type) {
+        case "standard":
+          return "Standard";
+        case "reference":
+          return "Reference";
+        case "intersection":
+          return "Intersection";
+        case "soft_tissue":
+          return "Soft Tissue";
+        default:
+          return "Unknown";
+      }
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(MousePointer, { className: "h-4 w-4" }),
+        "Point Management"
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isAddPointOpen, onOpenChange: setIsAddPointOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-gray-600 rounded-lg bg-gray-700/50", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            Button,
+            {
+              variant: "ghost",
+              className: "w-full justify-between p-3 h-auto hover:bg-gray-700/30",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-gray-300 cursor-pointer", children: "Add New Point" }),
+                isAddPointOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-gray-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-gray-400" })
+              ]
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                placeholder: "Point name (Enter to continue)",
+                value: newPointName,
+                onChange: (e2) => setNewPointName(e2.target.value),
+                onKeyDown: (e2) => handleKeyDown(e2, "name"),
+                disabled: !currentImage,
+                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs h-7",
+                "data-field": "name"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Textarea,
+              {
+                placeholder: "Placement description/instructions (Tab from name, Enter to add)",
+                value: newPointDescription,
+                onChange: (e2) => setNewPointDescription(e2.target.value),
+                onKeyDown: (e2) => handleKeyDown(e2, "description"),
+                disabled: !currentImage,
+                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs min-h-[60px] resize-none",
+                "data-field": "description"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: newPointType, onValueChange: (value) => setNewPointType(value), children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select point type" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(SelectContent, { className: "bg-gray-800 border-gray-600", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "standard", className: "text-white hover:bg-gray-700", children: "Standard Point" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "reference", className: "text-white hover:bg-gray-700", children: "Reference Point (for scaling)" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "intersection", className: "text-white hover:bg-gray-700", children: "Intersection Point" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: "soft_tissue", className: "text-white hover:bg-gray-700", children: "Soft Tissue Point" })
+              ] })
+            ] }),
+            newPointType === "intersection" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 pt-2 border-t border-gray-600", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Intersection Type" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Button,
+                  {
+                    variant: intersectionType === "line-line" ? "default" : "outline",
+                    onClick: () => setIntersectionType("line-line"),
+                    className: "text-xs h-7",
+                    children: "Line ∩ Line"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Button,
+                  {
+                    variant: intersectionType === "point-line" ? "default" : "outline",
+                    onClick: () => setIntersectionType("point-line"),
+                    className: "text-xs h-7",
+                    children: "Point ⊥ Line"
+                  }
+                )
+              ] }),
+              intersectionType === "line-line" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Select two lines for intersection" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "First Line" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedLine1, onValueChange: setSelectedLine1, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select first line" }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Second Line" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedLine2, onValueChange: setSelectedLine2, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select second line" }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
+                    ] })
+                  ] })
+                ] })
+              ] }),
+              intersectionType === "point-line" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Select point and line for perpendicular intersection" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Point" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedIntersectionPoint, onValueChange: setSelectedIntersectionPoint, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select point" }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Line" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedIntersectionLine, onValueChange: setSelectedIntersectionLine, children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select line" }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white hover:bg-gray-700", children: line.name }, line.id)) })
+                    ] })
+                  ] })
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                Button,
+                {
+                  onClick: handleAddPoint,
+                  disabled: !currentImage || !newPointName.trim() || newPointType === "intersection" && (intersectionType === "line-line" && (!selectedLine1 || !selectedLine2) || intersectionType === "point-line" && (!selectedIntersectionPoint || !selectedIntersectionLine)),
+                  className: "flex-1 bg-blue-600 hover:bg-blue-700 text-xs h-7",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "h-3 w-3 mr-1" }),
+                    newPointType === "intersection" ? "Create Intersection" : "Add Point"
+                  ]
+                }
+              ),
+              isPlacingPoint && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Button,
+                {
+                  variant: "outline",
+                  onClick: () => setIsPlacingPoint(false),
+                  className: "border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white text-xs h-7",
+                  children: "Cancel"
+                }
+              )
+            ] })
+          ] }) })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
+            "Points (",
+            currentImagePoints.length,
+            ")"
+          ] }) }),
+          currentImagePoints.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No points added yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-0.5", children: currentImagePoints.map((point, index2) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              draggable: true,
+              onDragStart: (e2) => handleDragStart(e2, index2),
+              onDragOver: (e2) => handleDragOver(e2, index2),
+              onDrop: (e2) => handleDrop(e2, index2),
+              onDragEnd: handleDragEnd,
+              className: "p-1.5 border rounded-lg transition-colors ".concat(dragOverIndex === index2 && dragIndex !== index2 ? "border-blue-400 bg-blue-900/20" : selectedPointId === point.id ? "border-blue-500 bg-blue-900/30" : "border-gray-600 bg-gray-700/30 hover:bg-gray-700/50", " ").concat(dragIndex === index2 ? "opacity-40" : ""),
+              onClick: () => setSelectedPoint(point.id),
+              style: { cursor: dragIndex !== null ? "grabbing" : "pointer" },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "div",
+                  {
+                    className: "flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 transition-colors",
+                    onMouseDown: (e2) => e2.stopPropagation(),
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(GripVertical, { className: "h-4 w-4" })
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 min-w-0", children: editingPointId === point.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Input,
+                    {
+                      value: editingName,
+                      onChange: (e2) => setEditingName(e2.target.value),
+                      className: "h-8"
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      onClick: handleSaveEdit,
+                      children: "Save"
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "outline",
+                      onClick: handleCancelEdit,
+                      children: "Cancel"
+                    }
+                  )
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-wrap gap-y-0.5", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: point.name }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { className: "text-xs ".concat(getPointTypeColor(point.type)), children: getPointTypeLabel(point.type) }),
+                    isIntersectionPoint(point) && !isPointCalculated(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-purple-500 text-purple-400", children: "Awaiting Calculation" }),
+                    isIntersectionPoint(point) && isPointCalculated(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-green-500 text-green-400", children: "Calculated" }),
+                    (point.name === "IP1" || point.name === "IP2") && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { className: "text-xs bg-red-600 text-white", children: "PERMANENT" }),
+                    !isIntersectionPoint(point) && !isPointPlaced(point) && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-amber-500 text-amber-400", children: "Not Placed" })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-400", children: isIntersectionPoint(point) && isPointCalculated(point) ? "(".concat(Math.round(point.x), ", ").concat(Math.round(point.y), ") - Calculated") : isIntersectionPoint(point) ? "Awaiting calculation" : isPointPlaced(point) ? "(".concat(Math.round(point.x), ", ").concat(Math.round(point.y), ")") : "Awaiting placement" })
+                ] }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 shrink-0", children: [
+                  !isIntersectionPoint(point) && !isPointPlaced(point) && !isPlacingSequence && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      onClick: (e2) => {
+                        e2.stopPropagation();
+                        handlePlacePoint(point.id);
+                      },
+                      className: "bg-blue-600 hover:bg-blue-700 text-white text-xs h-6",
+                      children: "Place"
+                    }
+                  ),
+                  !isIntersectionPoint(point) && isPointPlaced(point) && !isPlacingSequence && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      onClick: (e2) => {
+                        e2.stopPropagation();
+                        handleRePlace(point.id);
+                      },
+                      className: "bg-green-600 hover:bg-green-700 text-white text-xs h-6",
+                      title: "Correct placement - click to re-place",
+                      children: "Correct"
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "ghost",
+                      onClick: (e2) => {
+                        e2.stopPropagation();
+                        handleToggleVisibility(point.id, point.visible);
+                      },
+                      className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
+                      children: point.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "ghost",
+                      onClick: (e2) => {
+                        e2.stopPropagation();
+                        handleEditPoint(point.id, point.name);
+                      },
+                      className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
+                      disabled: point.name === "IP1" || point.name === "IP2",
+                      title: point.name === "IP1" || point.name === "IP2" ? "Cannot edit permanent reference point" : "Edit point name",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pen, { className: "h-3 w-3" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "ghost",
+                      onClick: (e2) => {
+                        e2.stopPropagation();
+                        if (point.name === "IP1" || point.name === "IP2") {
+                          alert("Cannot delete ".concat(point.name, ": This is a permanent reference point required for measurements."));
+                          return;
+                        }
+                        if (confirm('Delete point "'.concat(point.name, '"? This action cannot be undone.'))) {
+                          removePoint(point.id);
+                        }
+                      },
+                      className: "text-gray-400 hover:text-red-400 hover:bg-red-900/20 h-6 w-6 p-0",
+                      disabled: point.name === "IP1" || point.name === "IP2",
+                      title: point.name === "IP1" || point.name === "IP2" ? "Cannot delete permanent reference point" : "Delete point",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
+                    }
+                  )
+                ] })
+              ] })
+            },
+            point.id
+          )) })
+        ] }),
+        currentImagePoints.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "border border-orange-600/50 rounded-lg bg-orange-900/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCcw, { className: "h-4 w-4 text-orange-400" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-orange-300", children: "Clear All Placements" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                onClick: handleClearAllPoints,
+                variant: "outline",
+                className: "border-orange-500 text-orange-400 hover:bg-orange-900/20 text-xs h-7",
+                children: "Clear All"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-orange-300/70", children: "Reset all point placements (points remain in list)" })
+        ] }) }),
+        lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Note:" }),
+          " You need at least 2 lines to create line-line intersection points."
+        ] }) }),
+        currentImagePoints.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Note:" }),
+          " You need at least 1 point and 1 line to create point-line intersection points."
+        ] }) })
+      ] })
+    ] });
+  }
+  function LineManager() {
+    const {
+      lines,
+      currentImage,
+      addLine,
+      updateLine,
+      removeLine,
+      getPointsForCurrentImage,
+      getPointById,
+      calculatePixelDistance,
+      calculateRealWorldDistance
+    } = useCephalometricStore();
+    const [newLineName, setNewLineName] = reactExports.useState("");
+    const [selectedPoint1, setSelectedPoint1] = reactExports.useState("");
+    const [selectedPoint2, setSelectedPoint2] = reactExports.useState("");
+    const [editingLineId, setEditingLineId] = reactExports.useState(null);
+    const [editingName, setEditingName] = reactExports.useState("");
+    const [isAddLineOpen, setIsAddLineOpen] = reactExports.useState(false);
+    const [colorPickerOpenFor, setColorPickerOpenFor] = reactExports.useState(null);
+    const [isGlobalControlsOpen, setIsGlobalControlsOpen] = reactExports.useState(false);
+    const [globalColorPickerOpen, setGlobalColorPickerOpen] = reactExports.useState(false);
+    const lineColors = [
+      { name: "Default", value: "", color: "#9ca3af" },
+      { name: "Blue", value: "#3b82f6", color: "#3b82f6" },
+      { name: "Red", value: "#ef4444", color: "#ef4444" },
+      { name: "Orange", value: "#f97316", color: "#f97316" },
+      { name: "Yellow", value: "#eab308", color: "#eab308" }
+    ];
+    const currentImagePoints = getPointsForCurrentImage().filter((p2) => p2.type !== "freehand");
+    reactExports.useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (colorPickerOpenFor && !event.target.closest(".color-picker-container")) {
+          setColorPickerOpenFor(null);
+        }
+        if (globalColorPickerOpen && !event.target.closest(".global-color-picker-container")) {
+          setGlobalColorPickerOpen(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [colorPickerOpenFor, globalColorPickerOpen]);
+    const handleAddLine = () => {
+      if (!currentImage || !newLineName.trim() || !selectedPoint1 || !selectedPoint2) return;
+      if (selectedPoint1 === selectedPoint2) {
+        alert("Please select two different points");
+        return;
+      }
+      const trimmedName = newLineName.trim();
+      if (lines.some((l2) => l2.name === trimmedName)) {
+        toast.error('A line named "'.concat(trimmedName, '" already exists'), {
+          description: "Line names must be unique — choose a different name."
+        });
+        return;
+      }
+      const line = {
+        name: trimmedName,
+        pointIds: [selectedPoint1, selectedPoint2],
+        visible: false,
+        color: "",
+        // Default — uses canvas grey/white style
+        extendedMode: false
+        // Default to non-extended (point-to-point)
+      };
+      addLine(line);
+      setNewLineName("");
+      setSelectedPoint1("");
+      setSelectedPoint2("");
+    };
+    const handleEditLine = (lineId, currentName) => {
+      setEditingLineId(lineId);
+      setEditingName(currentName);
+    };
+    const handleSaveEdit = () => {
+      if (editingLineId && editingName.trim()) {
+        const trimmedName = editingName.trim();
+        if (lines.some((l2) => l2.name === trimmedName && l2.id !== editingLineId)) {
+          toast.error('A line named "'.concat(trimmedName, '" already exists'), {
+            description: "Line names must be unique — choose a different name."
+          });
+          return;
+        }
+        updateLine(editingLineId, { name: trimmedName });
+        setEditingLineId(null);
+        setEditingName("");
+      }
+    };
+    const handleCancelEdit = () => {
+      setEditingLineId(null);
+      setEditingName("");
+    };
+    const handleToggleVisibility = (lineId, currentVisibility) => {
+      updateLine(lineId, { visible: !currentVisibility });
+    };
+    const handleRemoveLine = (lineId) => {
+      removeLine(lineId);
+    };
+    const handleColorChange = (lineId, color2) => {
+      updateLine(lineId, { color: color2 });
+      setColorPickerOpenFor(null);
+    };
+    const handleToggleExtendedMode = (lineId, currentExtendedMode) => {
+      updateLine(lineId, { extendedMode: !currentExtendedMode });
+    };
+    const handleToggleAllVisibility = () => {
+      const hasVisibleLines = lines.some((line) => line.visible);
+      const newVisibility = !hasVisibleLines;
+      lines.forEach((line) => {
+        updateLine(line.id, { visible: newVisibility });
+      });
+    };
+    const handleToggleAllExtendedMode = () => {
+      const hasExtendedLines = lines.some((line) => line.extendedMode);
+      const newExtendedMode = !hasExtendedLines;
+      lines.forEach((line) => {
+        updateLine(line.id, { extendedMode: newExtendedMode });
+      });
+    };
+    const handleChangeAllColors = (color2) => {
+      lines.forEach((line) => {
+        updateLine(line.id, { color: color2 });
+      });
+      setGlobalColorPickerOpen(false);
+    };
+    const getLineDistance = (line) => {
+      const pixelDistance = calculatePixelDistance(line.pointIds[0], line.pointIds[1]);
+      const realWorldDistance = calculateRealWorldDistance(line.pointIds[0], line.pointIds[1]);
+      return {
+        pixels: pixelDistance ? Math.round(pixelDistance) : null,
+        realWorld: realWorldDistance ? realWorldDistance.toFixed(2) : null
+      };
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Minus, { className: "h-4 w-4" }),
+        "Line Management"
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isAddLineOpen, onOpenChange: setIsAddLineOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-gray-600 rounded-lg bg-gray-700/50", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            Button,
+            {
+              variant: "ghost",
+              className: "w-full justify-between p-3 h-auto hover:bg-gray-700/30",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-gray-300 cursor-pointer", children: "Add New Line" }),
+                isAddLineOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-gray-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-gray-400" })
+              ]
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                placeholder: "Line name",
+                value: newLineName,
+                onChange: (e2) => setNewLineName(e2.target.value),
+                disabled: !currentImage,
+                className: "bg-gray-700 border-gray-600 text-white placeholder-gray-400 text-xs h-7"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "First Point" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedPoint1, onValueChange: setSelectedPoint1, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select first point" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-300", children: "Second Point" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: selectedPoint2, onValueChange: setSelectedPoint2, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white h-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Select second point" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-800 border-gray-600", children: currentImagePoints.map((point) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: point.id, className: "text-white hover:bg-gray-700", children: point.name }, point.id)) })
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Button,
+              {
+                onClick: handleAddLine,
+                disabled: !currentImage || !newLineName.trim() || !selectedPoint1 || !selectedPoint2,
+                className: "w-full bg-blue-600 hover:bg-blue-700 text-xs h-7",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "h-3 w-3 mr-1" }),
+                  "Add Line"
+                ]
+              }
+            )
+          ] }) })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
+            "Lines (",
+            lines.length,
+            ")"
+          ] }),
+          lines.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No lines created yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lines.map((line) => {
+            const point1 = getPointById(line.pointIds[0]);
+            const point2 = getPointById(line.pointIds[1]);
+            const distance2 = getLineDistance(line);
+            return /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: "p-2 border border-gray-600 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1", children: editingLineId === line.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Input,
+                      {
+                        value: editingName,
+                        onChange: (e2) => setEditingName(e2.target.value),
+                        className: "h-8 bg-gray-700 border-gray-600 text-white"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        onClick: handleSaveEdit,
+                        className: "text-xs",
+                        children: "Save"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "outline",
+                        onClick: handleCancelEdit,
+                        className: "text-xs",
+                        children: "Cancel"
+                      }
+                    )
+                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: line.name }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs border-blue-500 text-blue-400", children: "Line" })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-300", children: [
+                      "From: ",
+                      (point1 == null ? void 0 : point1.name) || "Unknown",
+                      " → To: ",
+                      (point2 == null ? void 0 : point2.name) || "Unknown"
+                    ] }),
+                    distance2.pixels && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-blue-400", children: [
+                      "Distance: ",
+                      distance2.pixels,
+                      "px",
+                      distance2.realWorld && " (".concat(distance2.realWorld, "mm)")
+                    ] })
+                  ] }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => handleToggleVisibility(line.id, line.visible),
+                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
+                        title: line.visible ? "Hide line" : "Show line",
+                        children: line.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-4 w-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-4 w-4" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => handleToggleExtendedMode(line.id, line.extendedMode),
+                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
+                        title: line.extendedMode ? "Switch to point-to-point" : "Switch to extended line",
+                        children: line.extendedMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Maximize, { className: "h-4 w-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeftRight, { className: "h-4 w-4" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative color-picker-container", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        Button,
+                        {
+                          size: "sm",
+                          variant: "ghost",
+                          onClick: () => setColorPickerOpenFor(colorPickerOpenFor === line.id ? null : line.id),
+                          className: "text-gray-400 hover:text-white hover:bg-gray-700",
+                          style: { color: line.color || "#9ca3af" },
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { className: "h-4 w-4" })
+                        }
+                      ),
+                      colorPickerOpenFor === line.id && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute top-8 right-0 z-50 bg-gray-900 border border-gray-600 rounded-lg p-3 shadow-xl min-w-[180px]", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mb-2 font-medium", children: "Line Color" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lineColors.map((colorOption) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                          "button",
+                          {
+                            onClick: () => handleColorChange(line.id, colorOption.value),
+                            className: "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors ".concat(line.color === colorOption.value || !line.color && colorOption.value === "" ? "bg-gray-700 ring-1 ring-gray-500" : ""),
+                            children: [
+                              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                "div",
+                                {
+                                  className: "w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0",
+                                  style: { backgroundColor: colorOption.color }
+                                }
+                              ),
+                              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-gray-200 flex-1 text-left", children: colorOption.name }),
+                              (line.color === colorOption.value || !line.color && colorOption.value === "") && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 bg-gray-400 rounded-full flex-shrink-0" })
+                            ]
+                          },
+                          colorOption.name
+                        )) })
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => handleEditLine(line.id, line.name),
+                        className: "text-gray-400 hover:text-white hover:bg-gray-700",
+                        title: "Edit line name",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pen, { className: "h-4 w-4" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => {
+                          if (confirm('Delete line "'.concat(line.name, '"? This action cannot be undone.'))) {
+                            handleRemoveLine(line.id);
+                          }
+                        },
+                        className: "text-gray-400 hover:text-red-400 hover:bg-red-900/20",
+                        title: "Delete line",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" })
+                      }
+                    )
+                  ] })
+                ] })
+              },
+              line.id
+            );
+          }) })
+        ] }),
+        lines.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx(Collapsible, { open: isGlobalControlsOpen, onOpenChange: setIsGlobalControlsOpen, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-blue-600/50 rounded-lg bg-blue-900/10", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            Button,
+            {
+              variant: "ghost",
+              className: "w-full justify-between p-3 h-auto hover:bg-blue-900/20",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs font-medium text-blue-300 cursor-pointer", children: "Global Line Controls" }),
+                isGlobalControlsOpen ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-4 w-4 text-blue-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-4 w-4 text-blue-400" })
+              ]
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContent, { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Button,
+                {
+                  onClick: handleToggleAllVisibility,
+                  variant: "outline",
+                  className: "border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
+                  children: lines.some((line) => line.visible) ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3 mr-1" }),
+                    "Hide All"
+                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3 mr-1" }),
+                    "Show All"
+                  ] })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                Button,
+                {
+                  onClick: handleToggleAllExtendedMode,
+                  variant: "outline",
+                  className: "border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
+                  children: lines.some((line) => line.extendedMode) ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeftRight, { className: "h-3 w-3 mr-1" }),
+                    "All P2P"
+                  ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Maximize, { className: "h-3 w-3 mr-1" }),
+                    "All Extended"
+                  ] })
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative global-color-picker-container", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                Button,
+                {
+                  onClick: () => setGlobalColorPickerOpen(!globalColorPickerOpen),
+                  variant: "outline",
+                  className: "w-full border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-500 text-xs h-8",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { className: "h-3 w-3 mr-1" }),
+                    "Change All Colors"
+                  ]
+                }
+              ),
+              globalColorPickerOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute top-10 left-0 right-0 z-50 bg-gray-900 border border-gray-600 rounded-lg p-3 shadow-xl", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300 mb-2 font-medium", children: "Set All Lines Color" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: lineColors.map((colorOption) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    onClick: () => handleChangeAllColors(colorOption.value),
+                    className: "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700 transition-colors",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "div",
+                        {
+                          className: "w-4 h-4 rounded-full border-2 border-gray-500 flex-shrink-0",
+                          style: { backgroundColor: colorOption.color }
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm text-gray-200 flex-1 text-left", children: colorOption.name })
+                    ]
+                  },
+                  colorOption.name
+                )) })
+              ] })
+            ] })
+          ] }) })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3 bg-gray-700 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-white", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Lines:" }),
+          " Lines extend infinitely through the selected points. They are not terminated at the point locations but continue beyond them."
+        ] }) }),
+        currentImagePoints.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
+          " You need at least 2 points to create a line."
+        ] }) })
+      ] })
+    ] });
+  }
+  function AddAngleDialog() {
+    const [isOpen, setIsOpen] = reactExports.useState(false);
+    const [name2, setName] = reactExports.useState("");
+    const [description, setDescription] = reactExports.useState("");
+    const [line1Id, setLine1Id] = reactExports.useState("");
+    const [line2Id, setLine2Id] = reactExports.useState("");
+    const [standardValue, setStandardValue] = reactExports.useState(0);
+    const [standardDeviation, setStandardDeviation] = reactExports.useState(0);
+    const {
+      lines,
+      angles,
+      distances,
+      addAngle,
+      calculateAngle,
+      templates,
+      defaultTemplateId,
+      updateTemplate
+    } = useCephalometricStore();
+    const handleSubmit = (e2) => {
+      if (e2) {
+        e2.preventDefault();
+      }
+      if (!name2.trim()) {
+        alert("Please enter a name for the angle");
+        return;
+      }
+      const trimmedName = name2.trim();
+      if (angles.some((a2) => a2.name === trimmedName) || distances.some((d2) => d2.name === trimmedName)) {
+        toast.error('A measurement named "'.concat(trimmedName, '" already exists'), {
+          description: "Measurement names must be unique — choose a different name."
+        });
+        return;
+      }
+      if (!line1Id || !line2Id) {
+        alert("Please select two lines for the angle measurement");
+        return;
+      }
+      if (line1Id === line2Id) {
+        alert("Please select two different lines");
+        return;
+      }
+      const line1 = lines.find((l2) => l2.id === line1Id);
+      const line2 = lines.find((l2) => l2.id === line2Id);
+      if (!line1 || !line2) {
+        alert("Selected lines not found. Please try again.");
+        return;
+      }
+      const angleData = {
+        name: name2.trim(),
+        description: description.trim() || "",
+        type: "line_line",
+        lineIds: [line1Id, line2Id],
+        visible: true,
+        isCustom: true,
+        standardValue: standardValue || void 0,
+        standardDeviation: standardDeviation || void 0
+      };
+      try {
+        addAngle(angleData);
+        setName("");
+        setDescription("");
+        setLine1Id("");
+        setLine2Id("");
+        setStandardValue(0);
+        setStandardDeviation(0);
+        setIsOpen(false);
+      } catch (error) {
+        console.error("Error adding angle:", error);
+        alert("Failed to add angle. Please try again.");
+      }
+    };
+    const canSubmit = name2.trim() && line1Id && line2Id && lines.length >= 2;
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Dialog, { open: isOpen, onOpenChange: setIsOpen, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTrigger, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        Button,
+        {
+          variant: "outline",
+          size: "sm",
+          className: "border-blue-600 text-blue-400 hover:bg-blue-700 hover:text-white",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Triangle, { className: "h-4 w-4 mr-2" }),
+            "Add Angle"
+          ]
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogContent, { className: "bg-gray-800 border-gray-700 max-w-md", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(DialogHeader, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogTitle, { className: "text-white", children: "Add Custom Angle Measurement" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(DialogDescription, { className: "text-sm text-gray-400", children: "Create a custom angle measurement between two lines." })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "space-y-4", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "angle-name", className: "text-gray-300", children: "Measurement Name *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                id: "angle-name",
+                value: name2,
+                onChange: (e2) => setName(e2.target.value),
+                placeholder: "e.g., Custom Angle",
+                className: "bg-gray-700 border-gray-600 text-white"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "angle-description", className: "text-gray-300", children: "Description" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                id: "angle-description",
+                value: description,
+                onChange: (e2) => setDescription(e2.target.value),
+                placeholder: "Optional description",
+                className: "bg-gray-700 border-gray-600 text-white"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-gray-300", children: "Select Lines *" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Line 1" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: line1Id, onValueChange: setLine1Id, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Line 1" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-700 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white", children: line.name }, line.id)) })
+                ] }, "line1-".concat(lines.length))
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Line 2" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value: line2Id, onValueChange: setLine2Id, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectTrigger, { className: "bg-gray-700 border-gray-600 text-white", children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, { placeholder: "Line 2" }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContent, { className: "bg-gray-700 border-gray-600", children: lines.map((line) => /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: line.id, className: "text-white", children: line.name }, line.id)) })
+                ] }, "line2-".concat(lines.length))
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-gray-300", children: "Standard Values (Optional)" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-2 gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Standard (°)" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Input,
+                  {
+                    type: "number",
+                    value: standardValue || "",
+                    onChange: (e2) => setStandardValue(Number(e2.target.value)),
+                    placeholder: "0",
+                    className: "bg-gray-700 border-gray-600 text-white"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-xs text-gray-400", children: "Deviation (±°)" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Input,
+                  {
+                    type: "number",
+                    value: standardDeviation || "",
+                    onChange: (e2) => setStandardDeviation(Number(e2.target.value)),
+                    placeholder: "0",
+                    className: "bg-gray-700 border-gray-600 text-white"
+                  }
+                )
+              ] })
+            ] })
+          ] }),
+          lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
+            " You need at least 2 lines to create an angle. Create lines in the Lines tab first."
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end space-x-2 pt-4", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                type: "button",
+                variant: "outline",
+                onClick: () => setIsOpen(false),
+                className: "border-gray-600 text-gray-300 hover:bg-gray-700",
+                children: "Cancel"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                type: "submit",
+                disabled: !canSubmit,
+                className: "bg-blue-600 hover:bg-blue-700",
+                children: "Add Angle"
+              }
+            )
+          ] })
+        ] })
+      ] })
+    ] });
+  }
+  function AngleManager() {
+    const {
+      angles,
+      lines,
+      currentImage,
+      updateAngle,
+      removeAngle,
+      calculateAngle,
+      getLineById,
+      getPointById
+    } = useCephalometricStore();
+    const handleToggleVisibility = (angleId, currentVisibility) => {
+      updateAngle(angleId, { visible: !currentVisibility });
+    };
+    const handleRecalculateAngle = (angleId) => {
+      calculateAngle(angleId);
+    };
+    const getAngleDescription = (angle2) => {
+      if (angle2.type === "three_point" && angle2.pointIds) {
+        return angle2.pointIds.map((id) => {
+          var _a2;
+          return ((_a2 = getPointById(id)) == null ? void 0 : _a2.name) || id;
+        }).join(" – ");
+      }
+      if (angle2.lineIds) {
+        const l1 = getLineById(angle2.lineIds[0]);
+        const l2 = getLineById(angle2.lineIds[1]);
+        return "".concat((l1 == null ? void 0 : l1.name) || angle2.lineIds[0] || "Unknown", " ∩ ").concat((l2 == null ? void 0 : l2.name) || angle2.lineIds[1] || "Unknown");
+      }
+      return "Unknown";
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(Card, { className: "bg-gray-800 border-gray-700", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CardHeader, { className: "pb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardTitle, { className: "flex items-center gap-2 text-sm text-white", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Compass, { className: "h-4 w-4" }),
+        "Angle Measurement"
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(CardContent, { className: "space-y-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(AddAngleDialog, {}),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-xs font-medium text-gray-300", children: [
+            "Measured Angles (",
+            angles.length,
+            ")"
+          ] }),
+          angles.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 text-center py-4", children: "No angles measured yet. Create lines first, then measure angles between them." }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: angles.map((angle2) => {
+            const description = getAngleDescription(angle2);
+            return /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: "p-2 border border-gray-600 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-colors",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-white", children: angle2.name }),
+                      angle2.value && /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, { className: "text-xs bg-purple-600 text-white", children: [
+                        angle2.value.toFixed(1),
+                        "°"
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-300", children: description })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => handleRecalculateAngle(angle2.id),
+                        title: "Recalculate angle",
+                        className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-3 w-3" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => handleToggleVisibility(angle2.id, angle2.visible),
+                        className: "text-gray-400 hover:text-white hover:bg-gray-700 h-6 w-6 p-0",
+                        children: angle2.visible ? /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3 w-3" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(EyeOff, { className: "h-3 w-3" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Button,
+                      {
+                        size: "sm",
+                        variant: "ghost",
+                        onClick: () => removeAngle(angle2.id),
+                        className: "text-red-400 hover:text-red-300 hover:bg-red-900/20 h-6 w-6 p-0",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-3 w-3" })
+                      }
+                    )
+                  ] })
+                ] })
+              },
+              angle2.id
+            );
+          }) })
+        ] }),
+        lines.length < 2 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-amber-900/30 rounded border border-amber-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-amber-300", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Requirements:" }),
+          " You need at least 2 lines to measure angles. Create lines in the Lines tab first."
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-blue-900/30 rounded border border-blue-800/50", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-blue-300", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "How to use:" }),
+          " Select two lines to measure the angle between them. The angle will be calculated automatically when both lines have their points placed."
+        ] }) })
+      ] })
+    ] });
+  }
+  function TemplateManager() {
+    const {
+      templates,
+      saveTemplate,
+      loadTemplate,
+      removeTemplate,
+      points,
+      lines,
+      angles,
+      distances,
+      currentImage,
+      exportTemplate,
+      importTemplate,
+      standards,
+      measurementDescriptions,
+      setStandards,
+      setMeasurementDescription,
+      updateAngle,
+      updateDistance,
+      startFromScratch,
+      lastUsedTemplateId,
+      getCurrentMatchingTemplateId
+    } = useCephalometricStore();
+    const currentMatchingTemplateId = getCurrentMatchingTemplateId();
+    const [templateName, setTemplateName] = reactExports.useState("");
+    const [templateDescription, setTemplateDescription] = reactExports.useState("");
+    const [showSaveForm, setShowSaveForm] = reactExports.useState(false);
+    const [isSaving, setIsSaving] = reactExports.useState(false);
+    const handleSaveTemplate = async () => {
+      if (!templateName.trim() || isSaving) return;
+      setIsSaving(true);
+      console.log("🔵 handleSaveTemplate called with:", templateName.trim());
+      console.log("🔵 Current points:", points.length);
+      console.log("🔵 Current lines:", lines.length);
+      console.log("🔵 Current angles:", angles.length);
+      try {
+        const template = {
+          name: templateName.trim(),
+          description: templateDescription.trim(),
+          version: 2,
+          // Template version with point/line mappings
+          // Freehand measurements are patient data — never saved into templates
+          points: (points || []).filter((p2) => p2 && p2.name && p2.type !== "freehand").map((p2) => ({
+            name: p2.name,
+            description: p2.description,
+            type: p2.type,
+            visible: p2.visible,
+            intersectionData: p2.intersectionData
+          })),
+          lines: (lines || []).filter((l2) => l2 && l2.name).map((l2) => {
+            const point1 = points.find((p2) => p2.id === l2.pointIds[0]);
+            const point2 = points.find((p2) => p2.id === l2.pointIds[1]);
+            if (!point1 || !point2) {
+              console.warn('⚠️ Line "'.concat(l2.name, '" has invalid point IDs [').concat(l2.pointIds[0], ", ").concat(l2.pointIds[1], "], skipping"));
+              return null;
+            }
+            return {
+              name: l2.name,
+              pointNames: [point1.name, point2.name],
+              visible: l2.visible,
+              color: l2.color || "white",
+              extendedMode: l2.extendedMode || false
+            };
+          }).filter((l2) => l2 !== null),
+          angles: (angles || []).filter((a2) => a2 && a2.name).map((a2) => {
+            const baseAngle = {
+              name: a2.name,
+              description: a2.description,
+              type: a2.type,
+              visible: a2.visible,
+              isCustom: a2.isCustom,
+              standardValue: a2.standardValue,
+              standardDeviation: a2.standardDeviation
+            };
+            if (a2.type === "three_point" && a2.pointIds) {
+              const p1 = points.find((p4) => p4.id === a2.pointIds[0]);
+              const p2 = points.find((p4) => p4.id === a2.pointIds[1]);
+              const p3 = points.find((p4) => p4.id === a2.pointIds[2]);
+              if (p1 && p2 && p3) {
+                return __spreadProps(__spreadValues({}, baseAngle), {
+                  pointNames: [p1.name, p2.name, p3.name]
+                });
+              }
+            }
+            if (a2.type === "line_line" && a2.lineIds) {
+              const line1 = lines.find((l2) => l2.id === a2.lineIds[0]);
+              const line2 = lines.find((l2) => l2.id === a2.lineIds[1]);
+              if (line1 && line2) {
+                return __spreadProps(__spreadValues({}, baseAngle), {
+                  lineNames: [line1.name, line2.name]
+                });
+              }
+            }
+            return baseAngle;
+          }),
+          distances: (distances || []).filter((d2) => d2 && d2.name && !d2.isFreehand).map((d2) => {
+            const baseDistance = {
+              name: d2.name,
+              description: d2.description || "",
+              type: d2.type,
+              visible: d2.visible,
+              isCustom: d2.isCustom || false,
+              standardValue: d2.standardValue,
+              standardDeviation: d2.standardDeviation
+            };
+            if (d2.type === "point_point" && d2.pointIds) {
+              const p1 = points.find((p3) => p3.id === d2.pointIds[0]);
+              const p2 = points.find((p3) => p3.id === d2.pointIds[1]);
+              if (p1 && p2) {
+                return __spreadProps(__spreadValues({}, baseDistance), {
+                  pointNames: [p1.name, p2.name]
+                });
+              }
+            }
+            if (d2.type === "point_line" && d2.pointId && d2.lineId) {
+              const point = points.find((p2) => p2.id === d2.pointId);
+              const line = lines.find((l2) => l2.id === d2.lineId);
+              if (point && line) {
+                return __spreadProps(__spreadValues({}, baseDistance), {
+                  pointName: point.name,
+                  lineName: line.name
+                });
+              }
+            }
+            return baseDistance;
+          }),
+          analysisStandards: standards || {},
+          measurementDescriptions: measurementDescriptions || {}
+        };
+        console.log("🔵 Template object created:", template);
+        saveTemplate(template);
+        console.log("🔵 saveTemplate() called successfully");
+        setTimeout(() => {
+          setTemplateName("");
+          setTemplateDescription("");
+          setShowSaveForm(false);
+          setIsSaving(false);
+        }, 100);
+      } catch (error) {
+        console.error("🔴 Error in handleSaveTemplate:", error);
+        setIsSaving(false);
+      }
+    };
+    const handleLoadTemplate = (templateId) => {
+      loadTemplate(templateId);
+      setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("templateChanged"));
+        }
+      }, 300);
+    };
+    const handleRemoveTemplate = (templateId) => {
+      if (confirm("Are you sure you want to delete this template?")) {
+        removeTemplate(templateId);
+      }
+    };
+    const handleImportTemplate = (event) => {
+      var _a2;
+      const file = (_a2 = event.target.files) == null ? void 0 : _a2[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e2) => {
+        var _a3;
+        try {
+          const templateData = JSON.parse((_a3 = e2.target) == null ? void 0 : _a3.result);
+          importTemplate(templateData);
+          event.target.value = "";
+        } catch (error) {
+          console.error("Error importing template:", error);
+          alert("Error importing template. Please check the file format.");
+        }
+      };
+      reader.readAsText(file);
+    };
+    const handleActivateTemplate = (templateId) => {
+      handleLoadTemplate(templateId);
+    };
+    const handleExportTemplate = (template) => {
+      exportTemplate(template.id);
+    };
+    const hasConfiguration = currentImage !== null;
+    const hasChangesFromDefault = () => {
+      const defaultTemplate = defaultTemplates.find((t2) => t2.id === "standard-cephalometric");
+      if (!defaultTemplate) return false;
+      const defaultStandards2 = defaultTemplate.analysisStandards;
+      for (const key in defaultStandards2) {
+        if (standards[key]) {
+          const current = standards[key];
+          const defaultStd = defaultStandards2[key];
+          if (current.value !== defaultStd.value || current.deviation !== defaultStd.deviation) {
+            return true;
+          }
+        }
+      }
+      for (const key in measurementDescriptions) {
+        const desc = measurementDescriptions[key];
+        if (desc.negative2SD || desc.negative1SD || desc.positive1SD || desc.positive2SD) {
+          return true;
+        }
+      }
+      return false;
+    };
+    const resetToDefault = () => {
+      if (confirm("Reset all measurements and descriptions to default cephalometric analysis standards? This will remove all custom descriptions and reset all measurement standards.")) {
+        const defaultTemplate = defaultTemplates.find((t2) => t2.id === "standard-cephalometric");
+        if (defaultTemplate) {
+          setStandards(defaultTemplate.analysisStandards || {});
+          for (const key in measurementDescriptions) {
+            setMeasurementDescription(key, {
+              negative2SD: "",
+              negative1SD: "",
+              positive1SD: "",
+              positive2SD: ""
+            });
+          }
+          angles.forEach((angle2) => {
+            var _a2;
+            const standard = (_a2 = defaultTemplate.analysisStandards) == null ? void 0 : _a2[angle2.name];
+            if (standard) {
+              updateAngle(angle2.id, {
+                standardValue: standard.value,
+                standardDeviation: standard.deviation
+              });
+            }
+          });
+          distances.forEach((distance2) => {
+            var _a2;
+            const standard = (_a2 = defaultTemplate.analysisStandards) == null ? void 0 : _a2[distance2.name];
+            if (standard) {
+              updateDistance(distance2.id, {
+                standardValue: standard.value,
+                standardDeviation: standard.deviation
+              });
+            }
+          });
+          setTimeout(() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("templateChanged"));
+            }
+          }, 100);
+        }
+      }
+    };
+    const handleStartFromScratch = () => {
+      if (confirm("Start a completely empty template from scratch? This will remove all current points, lines, angles, and measurements, keeping only the permanent IP1 and IP2 reference points.")) {
+        startFromScratch();
+      }
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4 p-3", children: [
+      currentMatchingTemplateId === null && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3 p-4 border border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20 rounded-lg transition-all duration-200", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 min-w-0 flex-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-green-200 whitespace-nowrap", children: "Save Current Configuration" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "secondary", className: "text-xs bg-green-600/20 text-green-300 border-green-600 whitespace-nowrap", children: "Unsaved Changes" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            Button,
+            {
+              size: "sm",
+              variant: "outline",
+              onClick: () => setShowSaveForm(!showSaveForm),
+              disabled: !hasConfiguration,
+              className: "flex-shrink-0 border-green-500 bg-green-600/10 text-green-300 hover:bg-green-600/20 hover:text-green-200 hover:border-green-400",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { className: "h-4 w-4 mr-2" }),
+                "Save Template"
+              ]
+            }
+          )
+        ] }),
+        showSaveForm && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "template-name", className: "text-white", children: "Template Name" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Input,
+              {
+                id: "template-name",
+                value: templateName,
+                onChange: (e2) => setTemplateName(e2.target.value),
+                placeholder: "Enter template name..."
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "template-description", className: "text-white", children: "Description (optional)" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Textarea,
+              {
+                id: "template-description",
+                value: templateDescription,
+                onChange: (e2) => setTemplateDescription(e2.target.value),
+                placeholder: "Describe this template...",
+                rows: 2
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                onClick: handleSaveTemplate,
+                disabled: !templateName.trim() || isSaving,
+                size: "sm",
+                className: "flex-1 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700",
+                children: isSaving ? "Saving..." : "Save"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Button,
+              {
+                variant: "outline",
+                onClick: () => setShowSaveForm(false),
+                size: "sm",
+                className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400",
+                children: "Cancel"
+              }
+            )
+          ] })
+        ] }),
+        !hasConfiguration && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-300", children: "Load an image to enable template saving" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3 p-4 border border-gray-600 rounded-lg bg-gray-800/50", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-white flex-1 min-w-0", children: "Import Template" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-shrink-0", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "file",
+                accept: ".json,.ceph",
+                onChange: handleImportTemplate,
+                className: "hidden",
+                id: "import-template"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Button,
+              {
+                size: "sm",
+                variant: "outline",
+                onClick: () => {
+                  var _a2;
+                  return (_a2 = document.getElementById("import-template")) == null ? void 0 : _a2.click();
+                },
+                className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4 mr-2" }),
+                  "Import Template"
+                ]
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-300", children: "Import template files (.json) or extract templates from .ceph files" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3 p-4 border border-orange-600 rounded-lg bg-orange-600/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-orange-300", children: "Start from Scratch" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-orange-200", children: "Create a completely empty template with only IP1 and IP2 points" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            size: "sm",
+            variant: "outline",
+            onClick: handleStartFromScratch,
+            disabled: !currentImage,
+            className: "flex-shrink-0 border-orange-500 bg-orange-600/20 text-orange-300 hover:bg-orange-600/30 hover:text-orange-200 hover:border-orange-400",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Zap, { className: "h-4 w-4 mr-2" }),
+              "Start Fresh"
+            ]
+          }
+        )
+      ] }) }),
+      hasChangesFromDefault() && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3 p-4 border border-yellow-600 rounded-lg bg-yellow-600/10", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { className: "text-sm font-medium text-yellow-300", children: "Settings Modified" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-yellow-200", children: "Your measurement standards or descriptions differ from the default cephalometric analysis template." })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            size: "sm",
+            variant: "outline",
+            onClick: resetToDefault,
+            className: "flex-shrink-0 border-yellow-500 bg-yellow-600/20 text-yellow-300 hover:bg-yellow-600/30 hover:text-yellow-200 hover:border-yellow-400",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-4 w-4 mr-2" }),
+              "Reset to Default"
+            ]
+          }
+        )
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { className: "text-sm font-medium text-white", children: [
+          "Saved Templates (",
+          templates.length,
+          ")"
+        ] }),
+        templates.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-300 text-center py-4", children: "No templates saved yet" }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: templates.map((template) => {
+          const isActive = currentMatchingTemplateId === template.id;
+          const isStandardTemplate = template.id === "standard-cephalometric";
+          return /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "p-3 border rounded-lg transition-all duration-200 ".concat(isActive ? "border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20" : "border-gray-600 bg-gray-800/30"),
+              children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start gap-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2 mb-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium ".concat(isActive ? "text-green-200" : "text-white"), children: template.name }),
+                    isActive && /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "secondary", className: "text-xs bg-green-600/20 text-green-300 border-green-600", children: "Active" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Badge, { variant: "outline", className: "text-xs", children: new Date(template.createdAt).toLocaleDateString("en-GB") })
+                  ] }),
+                  template.description && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs mb-2 ".concat(isActive ? "text-green-200" : "text-gray-300"), children: template.description }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4 text-xs ".concat(isActive ? "text-green-200" : "text-gray-300"), children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                      template.points.length,
+                      " points"
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                      template.lines.length,
+                      " lines"
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                      template.angles.length,
+                      " angles"
+                    ] })
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 flex-shrink-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "outline",
+                      onClick: () => handleLoadTemplate(template.id),
+                      disabled: !currentImage,
+                      title: "Load template",
+                      className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400 h-8 w-8 p-0",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "h-4 w-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "outline",
+                      onClick: () => handleActivateTemplate(template.id),
+                      disabled: !currentImage || isActive,
+                      title: isActive ? "Template already active" : "Activate template - Load all points, lines, angles and settings",
+                      className: "h-8 w-8 p-0 ".concat(isActive ? "border-green-400 bg-green-400/20 text-green-200 cursor-not-allowed" : "border-green-500 bg-green-600/10 text-green-300 hover:bg-green-600/20 hover:text-green-200 hover:border-green-400"),
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { className: "h-4 w-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "outline",
+                      onClick: () => handleExportTemplate(template),
+                      title: "Export template",
+                      className: "border-gray-500 bg-gray-800 text-gray-200 hover:bg-gray-600 hover:text-white hover:border-gray-400 h-8 w-8 p-0",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { className: "h-4 w-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Button,
+                    {
+                      size: "sm",
+                      variant: "outline",
+                      onClick: () => handleRemoveTemplate(template.id),
+                      disabled: isStandardTemplate,
+                      title: isStandardTemplate ? "Standard template cannot be deleted" : "Delete template",
+                      className: "h-8 w-8 p-0 ".concat(isStandardTemplate ? "border-gray-700 bg-gray-900 text-gray-500 cursor-not-allowed" : "border-gray-500 bg-gray-800 text-red-300 hover:bg-red-600 hover:text-white hover:border-red-400"),
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" })
+                    }
+                  )
+                ] })
+              ] })
+            },
+            template.id
+          );
+        }) })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3 bg-gray-700 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-white", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Templates:" }),
+        " Save your current point, line, and angle configurations to quickly set up similar analyses. Templates save the structure but not the actual point coordinates."
+      ] }) })
+    ] });
+  }
+  function EditorSection({ title, icon, children }) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "bg-gray-900/60 border border-gray-800/60 rounded-lg p-4 min-w-0", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "flex items-center gap-2 text-sm font-medium text-gray-300 mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-500", children: icon }),
+        title
+      ] }),
+      children
+    ] });
+  }
+  function TemplateEditorPage({ onBack }) {
+    const { templates, defaultTemplateId } = useCephalometricStore();
+    const activeTemplate = defaultTemplateId ? templates.find((t2) => t2.id === defaultTemplateId) : void 0;
+    reactExports.useEffect(() => {
+      const handleKeyDown = (e2) => {
+        var _a2, _b2;
+        if (e2.key !== "Escape") return;
+        const tag = (_b2 = (_a2 = e2.target) == null ? void 0 : _a2.tagName) == null ? void 0 : _b2.toLowerCase();
+        if (tag === "input" || tag === "textarea" || tag === "select") return;
+        if (document.querySelector('[role="dialog"]')) return;
+        e2.preventDefault();
+        onBack();
+      };
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onBack]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 bg-gray-950 z-50 flex flex-col", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: onBack,
+            className: "border-gray-600 bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white hover:border-gray-500",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowLeft, { className: "h-4 w-4 mr-2" }),
+              "Back to Analysis"
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-xl font-bold text-white", children: "Template Editor" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-400", children: [
+            activeTemplate ? "Active template: ".concat(activeTemplate.name, " — ") : "",
+            "Define points, lines, angles and measurements once; they are reused for every patient."
+          ] })
+        ] })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-4 p-4 lg:grid-cols-2 xl:grid-cols-3 items-start", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(EditorSection, { title: "Templates", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOpen, { className: "h-4 w-4" }), children: /* @__PURE__ */ jsxRuntimeExports.jsx(TemplateManager, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(EditorSection, { title: "Points", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(MousePointer, { className: "h-4 w-4" }), children: /* @__PURE__ */ jsxRuntimeExports.jsx(PointManager, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(EditorSection, { title: "Lines", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Minus, { className: "h-4 w-4" }), children: /* @__PURE__ */ jsxRuntimeExports.jsx(LineManager, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(EditorSection, { title: "Angles", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Compass, { className: "h-4 w-4" }), children: /* @__PURE__ */ jsxRuntimeExports.jsx(AngleManager, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(EditorSection, { title: "Distances", icon: /* @__PURE__ */ jsxRuntimeExports.jsx(Move, { className: "h-4 w-4" }), children: /* @__PURE__ */ jsxRuntimeExports.jsx(DistanceManager, {}) })
       ] }) })
     ] });
   }
@@ -61359,6 +61677,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const [showUpload, setShowUpload] = reactExports.useState(!currentImage);
     const [allSectionsCollapsed, setAllSectionsCollapsed] = reactExports.useState(false);
     const [showComparisonPage, setShowComparisonPage] = reactExports.useState(false);
+    const [showTemplateEditor, setShowTemplateEditor] = reactExports.useState(false);
     const [rightSidebarVisible, setRightSidebarVisible] = reactExports.useState(true);
     const currentImagePoints = getPointsForCurrentImage();
     const embedded = isEmbedded();
@@ -61441,7 +61760,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }, [embedded]);
     reactExports.useEffect(() => {
       const unplacedPoints = currentImagePoints.filter(
-        (p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection"
+        (p2) => (p2.x < 0 || p2.y < 0) && p2.type !== "intersection" && p2.type !== "freehand"
       );
       if (unplacedPoints.length > 0 && !isPlacingSequence && !isPlacingPoint && currentImage && !isLoadingCephFile) {
         startPlacementSequence();
@@ -61449,6 +61768,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }, [currentImagePoints, isPlacingSequence, isPlacingPoint, currentImage, startPlacementSequence, isLoadingCephFile]);
     if (showComparisonPage) {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(ComparisonPage, { onBack: () => setShowComparisonPage(false) });
+    }
+    if (showTemplateEditor) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(TemplateEditorPage, { onBack: () => setShowTemplateEditor(false) });
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen bg-gray-950", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/60 px-5 py-2.5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
@@ -61519,7 +61841,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           )
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1.5", children: [
-          !embedded && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadDialog, {}),
+          !embedded && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadCephButton, {}),
           currentImage && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
             !embedded && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -61618,7 +61940,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 ConfigurationTabs,
                 {
                   allSectionsCollapsed,
-                  onToggleAllSections: setAllSectionsCollapsed
+                  onToggleAllSections: setAllSectionsCollapsed,
+                  onOpenTemplateEditor: () => setShowTemplateEditor(true)
                 }
               ) })
             ] }),
@@ -62033,8 +62356,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let p2 = JSON.stringify([s2, i2, a2, e2, h2, l2, u2, m2]).slice(1, -1);
     return reactExports.createElement("script", __spreadProps(__spreadValues({}, w2), { suppressHydrationWarning: true, nonce: typeof window == "undefined" ? d2 : "", dangerouslySetInnerHTML: { __html: "(".concat(M.toString(), ")(").concat(p2, ")") } }));
   });
-  const Toaster = (_Za) => {
-    var props2 = __objRest(_Za, []);
+  const Toaster = (_Va) => {
+    var props2 = __objRest(_Va, []);
     const { theme = "system" } = z$1();
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       Toaster$1,
@@ -81406,4 +81729,4 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     vectorsRatio
   }, Symbol.toStringTag, { value: "Module" }));
 })();
-//# sourceMappingURL=index-CsJgYqnK.js.map
+//# sourceMappingURL=index-BcvlbIor.js.map
