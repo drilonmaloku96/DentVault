@@ -639,6 +639,8 @@ export interface Translations {
 		clearPatient: string;
 		deleteAppointment: string;
 		confirmDelete: string;
+		deleteSelected: string;
+		confirmDeleteSelected: string;
 		selectPatient: string;
 		searchPatients: string;
 		optional: string;
@@ -654,6 +656,9 @@ export interface Translations {
 			blockTitle: string;
 			delete: string;
 			confirmDelete: string;
+			applyAllRooms: string;
+			customizeRooms: string;
+			roomsSelected: string;
 		};
 		staffBlockouts: {
 			title: string;
@@ -1386,5 +1391,48 @@ export interface Translations {
 		selectHint: string;
 		title: string;
 		loadFailed: string;
+	};
+	xrayReport: {
+		button: string;
+		selectHint: string;
+		title: string;
+		panelTitle: string;
+		placeholder: string;
+		generate: string;
+		generating: string;
+		generated: string;
+		generateFailed: string;
+		loadFailed: string;
+		existingLoaded: string;
+		viewerHints: string;
+		typeLabel: string;
+	};
+	facialAnalysis: {
+		button: string;
+		selectHint: string;
+		title: string;
+		typeLabel: string;
+		chooseViewTitle: string;
+		chooseViewProfile: string;
+		chooseViewFrontal: string;
+		chooseViewContinue: string;
+		flip: string;
+		notesTitle: string;
+		notesPlaceholder: string;
+		measurementsTitle: string;
+		landmarksTitle: string;
+		landmarksRemaining: string;
+		allLandmarksPlaced: string;
+		generate: string;
+		generating: string;
+		generated: string;
+		generateFailed: string;
+		loadFailed: string;
+		existingLoaded: string;
+		viewerHints: string;
+	};
+	imaging: {
+		analyzeButton: string;
+		analyzeAs: string;
 	};
 }

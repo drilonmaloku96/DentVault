@@ -14,6 +14,7 @@
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 	import { insertDocument, insertTimelineEntry, getDocuments } from '$lib/services/db';
 	import { docCategories } from '$lib/stores/categories.svelte';
+	import AnalysisTypeMenu from '$lib/components/imaging/AnalysisTypeMenu.svelte';
 
 	let { patient }: { patient: Patient } = $props();
 
@@ -41,6 +42,13 @@
 	let dragOverPath       = $state<string | null>(null);
 	let dragStartPos = { x: 0, y: 0 };
 	const DRAG_THRESHOLD = 5; // px of movement before drag activates
+	// Set to true (from onGlobalMouseUp) when a file mousedown→mouseup crossed the drag
+	// threshold — the click event that still fires right after suppresses the "Analyze as"
+	// popup, since a drag-move is not a "fresh select" the user made by clicking the file.
+	let suppressAnalyzePopup = false;
+
+	// ── "Analyze as" popup (Feature 1) — opens next to a file row on a fresh image select ──
+	let analyzePopupFor = $state<string | null>(null); // keyed by VaultFileInfo.rel_path
 
 	// ── Multi-file selection (shift-click) — lets several files be dragged as a group ──
 	let multiSelected = $state<Set<string>>(new Set()); // keyed by VaultFileInfo.rel_path
@@ -53,6 +61,11 @@
 
 	// ── Context menu state ──────────────────────────────────────────────
 	let contextMenu = $state<{ file: VaultFileInfo; x: number; y: number } | null>(null);
+
+	// ── Folder context menu state (Feature 2) — parallel to `contextMenu` above rather than
+	// a union on it, since the file menu's shape is tied to a concrete VaultFileInfo and this
+	// one only ever needs a folder path + a "which label to show" kind. ──
+	let folderContextMenu = $state<{ kind: 'folder' | 'empty'; folderPath: string; x: number; y: number } | null>(null);
 
 	// ── Standard category folder names (language-aware) ────────────────
 	const standardFolders = $derived(
@@ -399,6 +412,10 @@
 		const tpl = draggingTemplate;
 		const file = draggingFile;
 		const targetFolder = dragOverPath;
+		// A click event still fires right after this mouseup even when a drag crossed the
+		// threshold — capture that here so the file row's onclick can skip opening the
+		// "Analyze as" popup for what was really a drag, not a fresh select click.
+		if (file && isDraggingFile) suppressAnalyzePopup = true;
 
 		// Reset all drag state
 		draggingTemplate = null;
@@ -523,6 +540,7 @@
 
 	function handleFileContextMenu(e: MouseEvent, file: VaultFileInfo) {
 		e.preventDefault();
+		e.stopPropagation(); // don't also trigger the tree-level empty-space folder-creation handler
 		contextMenu = {
 			file,
 			x: e.clientX,
@@ -533,7 +551,30 @@
 
 	function closeContextMenu() {
 		contextMenu = null;
+		folderContextMenu = null;
 		document.removeEventListener('click', closeContextMenu);
+	}
+
+	/** Right-click on an existing folder row → "New subfolder" (create inside that folder). */
+	function handleFolderContextMenu(e: MouseEvent, folderPath: string) {
+		e.preventDefault();
+		e.stopPropagation(); // don't also trigger the tree-level empty-space handler below
+		folderContextMenu = { kind: 'folder', folderPath, x: e.clientX, y: e.clientY };
+		document.addEventListener('click', closeContextMenu);
+	}
+
+	/**
+	 * Right-click on empty space in the patient folder tree (not on any folder row) →
+	 * "New folder" at the patient root. Mirrors DayView's `onGridContextMenu` guard pattern:
+	 * bail out via closest() if the click actually landed on a folder row, since that row's
+	 * own oncontextmenu handler (which also stopPropagation()s) already handled it.
+	 */
+	function onEmptyTreeContextMenu(e: MouseEvent) {
+		const target = e.target as HTMLElement;
+		if (target.closest('[data-folder-row]')) return;
+		e.preventDefault();
+		folderContextMenu = { kind: 'empty', folderPath: '', x: e.clientX, y: e.clientY };
+		document.addEventListener('click', closeContextMenu);
 	}
 
 	async function deleteFile(file: VaultFileInfo) {
@@ -615,8 +656,9 @@
 
 	function openFile(f: VaultFileInfo) { openDocumentFile(f.abs_path); }
 
-	function selectFile(f: VaultFileInfo) {
-		cephSelection.toggle({
+	/** Returns true when this call resulted in a FRESH select (see cephSelection.toggle). */
+	function selectFile(f: VaultFileInfo): boolean {
+		return cephSelection.toggle({
 			relPath: f.rel_path,
 			filename: f.filename,
 			patientId: patient.patient_id,
@@ -761,7 +803,8 @@
 			</div>
 
 			<!-- Patient folder tree (collapsible, nested) -->
-			<div class="flex flex-col gap-0.5 px-1.5 pt-0">
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="flex flex-col gap-0.5 px-1.5 pt-0" oncontextmenu={onEmptyTreeContextMenu}>
 				{#each patientFolders as node}
 					{@render patientFolderNode(node, 0)}
 				{/each}
@@ -807,6 +850,27 @@
 			class="w-full px-3 py-1.5 text-left text-xs text-critical hover:bg-critical/10 transition-colors"
 		>
 			Delete
+		</button>
+	</div>
+{/if}
+
+<!-- Context menu for folders (right-click on a folder row = "New subfolder";
+     right-click on empty tree space = "New folder" at the patient root) -->
+{#if folderContextMenu}
+	{@const fcm = folderContextMenu}
+	<div
+		style="position: fixed; left: {fcm.x}px; top: {fcm.y}px; z-index: 50;"
+		class="bg-popover border border-border rounded-md shadow-lg overflow-hidden min-w-[140px]"
+	>
+		<button
+			type="button"
+			onclick={() => {
+				createNewFolder(fcm.folderPath);
+				closeContextMenu();
+			}}
+			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
+		>
+			{fcm.kind === 'folder' ? 'New subfolder' : 'New folder'}
 		</button>
 	</div>
 {/if}
@@ -920,9 +984,12 @@
 	{@const isDropTarget = dragOverPath === node.folderPath}
 
 	<div>
-		<!-- Folder row — serves as mouse-based drop target via data-drop-folder attribute -->
+		<!-- Folder row — serves as mouse-based drop target via data-drop-folder attribute.
+		     data-folder-row marks it for the tree-level empty-space context-menu guard. -->
 		<div
 			data-drop-folder={node.folderPath}
+			data-folder-row
+			oncontextmenu={(e) => handleFolderContextMenu(e, node.folderPath)}
 			style={depth > 0 ? `margin-left: ${depth * 14}px` : undefined}
 			class={[
 				'flex items-center gap-1.5 rounded px-2 py-1 transition-colors group',
@@ -1011,12 +1078,24 @@
 						role="button"
 						tabindex="0"
 						onclick={(e) => {
-							if (e.shiftKey) toggleMultiSelect(file);
-							else {
+							// A drag-move still fires a click on mouseup — don't let that reopen
+							// or open the "Analyze as" popup below; it's not a fresh select click.
+							const dragJustHappened = suppressAnalyzePopup;
+							suppressAnalyzePopup = false;
+							if (e.shiftKey) {
+								analyzePopupFor = null;
+								toggleMultiSelect(file);
+							} else {
 								if (multiSelected.size > 0) multiSelected = new Set();
 								if (multiSelectedTemplates.size > 0) multiSelectedTemplates = new Set();
 								if (selectedTemplate !== null) selectedTemplate = null;
-								selectFile(file);
+								const freshlySelected = selectFile(file);
+								// cephSelection.isImage reflects the file we just (maybe) selected —
+								// true only for plain images, never for .ceph — so no separate
+								// extension list is needed here.
+								analyzePopupFor = (!dragJustHappened && freshlySelected && cephSelection.isImage)
+									? file.rel_path
+									: null;
 							}
 						}}
 						ondblclick={() => openFile(file)}
@@ -1024,7 +1103,7 @@
 						oncontextmenu={(e) => handleFileContextMenu(e, file)}
 						title="{file.filename}\n{formatFileSize(file.file_size)}\n{i18n.t.sidebar.shiftClickHint}"
 						class={[
-							'flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group cursor-move select-none',
+							'relative flex w-full items-center gap-1.5 rounded px-2 py-0.5 text-left transition-colors group cursor-move select-none',
 							isDragging ? 'opacity-50 bg-sidebar-primary/25' : '',
 							!isDragging && isMultiSelected ? 'bg-primary/15 ring-1 ring-primary/50' : '',
 							isSelected && !isDragging && !isMultiSelected
@@ -1039,6 +1118,13 @@
 						<span class="shrink-0 text-[9px] text-muted-foreground/60 tabular-nums">
 							{formatFileSize(file.file_size)}
 						</span>
+						{#if analyzePopupFor === file.rel_path}
+							<AnalysisTypeMenu
+								showHeader={true}
+								panelClass="top-full left-0 mt-1"
+								onClose={() => (analyzePopupFor = null)}
+							/>
+						{/if}
 					</div>
 				{/each}
 

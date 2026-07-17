@@ -29,13 +29,27 @@ export const cephSelection = {
 		return IMAGE_EXTENSIONS.includes(ext) || ext === 'ceph';
 	},
 
+	/** True only for plain image selections (no .ceph) — e.g. the X-ray Report flow. */
+	get isImage(): boolean {
+		if (!_selected) return false;
+		const ext = _selected.filename.split('.').pop()?.toLowerCase() ?? '';
+		return IMAGE_EXTENSIONS.includes(ext);
+	},
+
 	select(file: CephSelectableFile): void {
 		_selected = file;
 	},
 
-	/** Toggle-style select: clicking the already-selected file deselects it. */
-	toggle(file: CephSelectableFile): void {
-		_selected = _selected?.relPath === file.relPath ? null : file;
+	/**
+	 * Toggle-style select: clicking the already-selected file deselects it.
+	 * Returns true when this call resulted in a FRESH select (unselected → selected) —
+	 * callers use this to distinguish "just selected" from "just deselected" without
+	 * re-deriving it from before/after state themselves.
+	 */
+	toggle(file: CephSelectableFile): boolean {
+		const wasThisSelected = _selected?.relPath === file.relPath;
+		_selected = wasThisSelected ? null : file;
+		return !wasThisSelected;
 	},
 
 	isSelected(relPath: string): boolean {

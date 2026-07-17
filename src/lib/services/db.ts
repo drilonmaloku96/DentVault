@@ -1585,6 +1585,62 @@ export async function getTimelineEntry(id: number): Promise<TimelineEntry | null
 	return rows[0] ?? null;
 }
 
+/**
+ * Find the patient's existing X-ray report entry for a given source image.
+ * `chart_data` for `xray_report` entries is JSON `{ source, pdf, text }` — the
+ * match is done by parsing each row's JSON in JS (never LIKE on serialized
+ * fields per DATA_INTEGRITY). Returns null if no report exists for the image.
+ */
+export async function getXrayReportEntryForSource(
+	patientId: string,
+	sourceRelPath: string,
+): Promise<TimelineEntry | null> {
+	const conn = await getDb();
+	const rows = await conn.select<TimelineEntry[]>(
+		`SELECT * FROM timeline_entries
+		 WHERE patient_id = $1 AND entry_type = $2
+		 ORDER BY id DESC`,
+		[patientId, 'xray_report'],
+	);
+	for (const row of rows) {
+		try {
+			const data = JSON.parse(row.chart_data || '{}') as { source?: string };
+			if (data?.source === sourceRelPath) return row;
+		} catch {
+			// malformed chart_data — skip row
+		}
+	}
+	return null;
+}
+
+/**
+ * Find the patient's existing facial-analysis entry for a given source image.
+ * `chart_data` for `facial_analysis` entries is JSON `FacialAnalysisChartData` —
+ * the match is done by parsing each row's JSON in JS (never LIKE on serialized
+ * fields per DATA_INTEGRITY). Returns null if no analysis exists for the image.
+ */
+export async function getFacialAnalysisEntryForSource(
+	patientId: string,
+	sourceRelPath: string,
+): Promise<TimelineEntry | null> {
+	const conn = await getDb();
+	const rows = await conn.select<TimelineEntry[]>(
+		`SELECT * FROM timeline_entries
+		 WHERE patient_id = $1 AND entry_type = $2
+		 ORDER BY id DESC`,
+		[patientId, 'facial_analysis'],
+	);
+	for (const row of rows) {
+		try {
+			const data = JSON.parse(row.chart_data || '{}') as { source?: string };
+			if (data?.source === sourceRelPath) return row;
+		} catch {
+			// malformed chart_data — skip row
+		}
+	}
+	return null;
+}
+
 export async function getPriorProceduresForTooth(
 	patientId: string,
 	toothNumbers: string,

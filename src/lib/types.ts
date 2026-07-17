@@ -64,7 +64,50 @@ export interface PatientFormData {
 
 export type TimelineEntryType = string;
 /** System-only entry types — never shown in user-configurable dropdowns */
-export const SYSTEM_ENTRY_TYPES = new Set(['document', 'plan', 'chart_snapshot', 'ortho_snapshot']);
+export const SYSTEM_ENTRY_TYPES = new Set([
+	'document',
+	'plan',
+	'chart_snapshot',
+	'ortho_snapshot',
+	'xray_report',
+	'facial_analysis',
+]);
+
+export type FacialAnalysisView = 'profile' | 'frontal';
+
+/** A single placed landmark, in NATURAL-IMAGE pixel coordinates (never viewport/zoomed coords). */
+export interface FacialLandmark {
+	x: number;
+	y: number;
+	placedBy: 'human' | 'ai';
+	confidence: number | null; // model confidence when placedBy === 'ai'; null for human placements
+}
+
+export interface FacialMeasurementResult {
+	id: string;
+	value: number;
+	unit: 'deg' | 'ratio' | 'mm' | '%';
+	standardValue?: number;
+	standardDeviation?: number;
+}
+
+/**
+ * Shape stored in timeline_entries.chart_data for entry_type = 'facial_analysis'.
+ * This is also the AI-training data format — see ROADMAP_FACIAL_ANALYSIS.md.
+ * Bump schemaVersion on any breaking shape change; never rename/reuse a landmark id.
+ */
+export interface FacialAnalysisChartData {
+	schemaVersion: 1;
+	source: string; // vault-relative source photo path
+	view: FacialAnalysisView;
+	imageWidth: number; // natural px
+	imageHeight: number; // natural px
+	mirrored: boolean; // true if the source photo was flipped to the canonical face-right frame
+	landmarks: Record<string, FacialLandmark>; // keyed by stable landmark id (see roadmap vocabulary)
+	measurements: FacialMeasurementResult[];
+	pdf?: string; // vault-relative generated PDF path, once generated
+	notes: string; // report/findings text — also printed on the PDF
+}
 
 export type TreatmentCategory =
 	| 'endodontics'

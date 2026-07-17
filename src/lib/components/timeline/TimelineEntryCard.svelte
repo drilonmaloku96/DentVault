@@ -99,6 +99,8 @@
 		document:       { icon: '📎', label: 'File',      dotClass: 'bg-info',            bgClass: 'bg-info-light',                                  textClass: 'text-info'                        },
 		plan:           { icon: '📋', label: 'Plan',      dotClass: 'bg-primary',         bgClass: 'bg-primary/5',                                   textClass: 'text-primary'                     },
 		chart_snapshot: { icon: '🦷', label: 'Chart',     dotClass: 'bg-primary',         bgClass: 'bg-primary-light',                               textClass: 'text-primary'                     },
+		xray_report:    { icon: '🩻', label: i18n.t.xrayReport.title, dotClass: 'bg-primary', bgClass: 'bg-primary-light',                     textClass: 'text-primary'                     },
+		facial_analysis: { icon: '📐', label: i18n.t.facialAnalysis.title, dotClass: 'bg-info', bgClass: 'bg-info-light',                     textClass: 'text-info'                        },
 	};
 
 	const cfg = $derived.by<StaticCfg | DynamicCfg>(() => {

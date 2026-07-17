@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 	import { sidebarWidth } from '$lib/stores/sidebarWidth.svelte';
 	import type { TimelineEntry, TimelineFormData, TreatmentPlan, TreatmentPlanFormData } from '$lib/types';
@@ -41,6 +40,7 @@
 	import ActivePlanBar from '$lib/components/therapy-plan/ActivePlanBar.svelte';
 	import OrthoChartDialog from '$lib/components/ortho/OrthoChartDialog.svelte';
 	import AuditLogDialog from '$lib/components/audit/AuditLogDialog.svelte';
+	import AnalysisTypeMenu from '$lib/components/imaging/AnalysisTypeMenu.svelte';
 	import { generateChartReport } from '$lib/services/chart-report';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { entryTypes } from '$lib/stores/entryTypes.svelte';
@@ -59,9 +59,11 @@
 
 	let entries       = $state<TimelineEntry[]>([]);
 	let plansMap      = $state<Map<string, TreatmentPlan>>(new Map());
-	// Ceph Analysis toolbar button activates when the sidebar file-tree selection
-	// is a Cephalyzer-compatible file belonging to this patient
-	const cephEnabled = $derived(cephSelection.isAnalyzable && cephSelection.file?.patientId === patientId);
+	// Combined "Analyze" toolbar button activates when the sidebar file-tree selection
+	// is a Cephalyzer-compatible file (image or .ceph) belonging to this patient — the
+	// dropdown menu (AnalysisTypeMenu) further enables/disables its own three entries.
+	const analyzeEnabled = $derived(cephSelection.isAnalyzable && cephSelection.file?.patientId === patientId);
+	let analyzeMenuOpen = $state(false);
 	let isLoading     = $state(true);
 	let hasEverLoaded = $state(false);
 	let error         = $state('');
@@ -76,7 +78,7 @@
 	// Text / date search
 	let searchQuery = $state('');
 
-	const SYSTEM_TYPES = new Set(['document', 'chart_snapshot', 'ortho_snapshot', 'plan', 'par_step']);
+	const SYSTEM_TYPES = new Set(['document', 'chart_snapshot', 'ortho_snapshot', 'plan', 'par_step', 'xray_report', 'facial_analysis']);
 
 	function typeLabel(key: string): string {
 		if (key === '')                return i18n.t.timeline.typeLabels.unclassified;
@@ -85,6 +87,8 @@
 		if (key === 'ortho_snapshot') return i18n.t.timeline.typeLabels.orthoRecords;
 		if (key === 'plan')           return i18n.t.timeline.typeLabels.plans;
 		if (key === 'par_step')       return i18n.t.timeline.typeLabels.parSteps;
+		if (key === 'xray_report')    return i18n.t.xrayReport.typeLabel;
+		if (key === 'facial_analysis') return i18n.t.facialAnalysis.typeLabel;
 		return entryTypes.labelFor(key);
 	}
 
@@ -591,27 +595,31 @@
 			</svg>
 			<span class="hidden xl:inline">{i18n.t.ortho.button}</span>
 		</Button>
-		<!-- Open Cephalyzer — needs an image (or saved .ceph) selected in the sidebar file tree -->
-		<Button
-			size="sm"
-			variant="outline"
-			disabled={!cephEnabled}
-			onclick={() => {
-				const sel = cephSelection.file;
-				if (sel) goto(`/patients/${patientId}/ceph?file=${encodeURIComponent(sel.relPath)}`);
-			}}
-			title={cephEnabled ? i18n.t.ceph.analyze : i18n.t.ceph.selectHint}
-			class={cephEnabled ? 'border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30' : ''}
-		>
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
-				<circle cx="12" cy="5" r="2"/>
-				<path d="m3 21 8.02-14.26"/>
-				<path d="m12.99 6.74 1.93 3.44"/>
-				<path d="M19 12c-3.87 4-7.74 8.61-16 4.61"/>
-				<path d="m21 21-2.16-3.84"/>
-			</svg>
-			<span class="hidden xl:inline">{i18n.t.ceph.button}</span>
-		</Button>
+		<!-- Combined image-analysis entry point — dropdown offers Cephalometric / Facial / X-ray Report,
+			 each individually enabled/disabled by AnalysisTypeMenu based on the sidebar file selection -->
+		<div class="relative inline-block">
+			<Button
+				size="sm"
+				variant="outline"
+				disabled={!analyzeEnabled}
+				onclick={() => { if (analyzeEnabled) analyzeMenuOpen = !analyzeMenuOpen; }}
+				title={analyzeEnabled ? i18n.t.imaging.analyzeButton : i18n.t.ceph.selectHint}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="xl:mr-1.5 h-3.5 w-3.5">
+					<circle cx="11" cy="11" r="7"/>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"/>
+					<path d="M11 8v6"/>
+					<path d="M8 11h6"/>
+				</svg>
+				<span class="hidden xl:inline">{i18n.t.imaging.analyzeButton}</span>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="hidden xl:inline h-3 w-3 ml-1">
+					<polyline points="6 9 12 15 18 9"/>
+				</svg>
+			</Button>
+			{#if analyzeMenuOpen}
+				<AnalysisTypeMenu onClose={() => (analyzeMenuOpen = false)} panelClass="top-full mt-1 right-0" />
+			{/if}
+		</div>
 	</div>
 
 </div>

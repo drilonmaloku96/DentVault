@@ -795,8 +795,13 @@ function renderTimeline(
 		html += `<div class="entry avoid-break">`;
 		html += `<div class="entry-header">`;
 		html += `<span class="entry-date">${fmtDate(entry.entry_date)}</span>`;
-		// Composer entries save with entry_type '' — skip the badge instead of rendering an empty pill
-		if (entry.entry_type) html += `<span class="entry-type">${esc(entry.entry_type)}</span>`;
+		// Composer entries save with entry_type '' — skip the badge instead of rendering an empty pill.
+		// System types with a friendlier display name than the raw key get mapped here (export
+		// HTML is standalone, so labels are hardcoded like the rest of this file — no i18n store).
+		const typeBadge = entry.entry_type === 'xray_report' ? 'X-ray Report'
+			: entry.entry_type === 'facial_analysis' ? 'Facial Analysis'
+			: entry.entry_type;
+		if (typeBadge) html += `<span class="entry-type">${esc(typeBadge)}</span>`;
 		if (entry.treatment_category) html += `<span class="entry-cat">${esc(entry.treatment_category)}</span>`;
 		if (entry.treatment_outcome) html += `<span class="entry-outcome">${esc(entry.treatment_outcome)}</span>`;
 		html += `</div>`;
