@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PatientDocument } from '$lib/types';
-	import { fileToAssetUrl, isImageMime, formatFileSize, openDocumentFile, toAbsPath } from '$lib/services/files';
+	import { getFileDisplayUrl, isImageMime, formatFileSize, openDocumentFile, toAbsPath } from '$lib/services/files';
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import { vault } from '$lib/stores/vault.svelte';
 	import { i18n } from '$lib/i18n';
@@ -18,8 +18,27 @@
 
 	let isImageError = $state(false);
 	let resolvedPath = $derived(toAbsPath(doc.rel_path || doc.abs_path, vault.path ?? ''));
-	let assetUrl = $derived(fileToAssetUrl(resolvedPath));
 	let showImage = $derived(isImageMime(doc.mime_type) && !isImageError);
+
+	// getFileDisplayUrl is async (connected mode fetches bytes over HTTP and returns a
+	// blob: URL — see files.ts) so this can't be a plain $derived; the effect's cleanup
+	// revokes the blob URL when doc changes or the card unmounts.
+	let assetUrl = $state('');
+	$effect(() => {
+		let cancelled = false;
+		let objectUrl: string | null = null;
+		getFileDisplayUrl(doc.rel_path || doc.abs_path, vault.path ?? '')
+			.then((url) => {
+				if (cancelled) return;
+				assetUrl = url;
+				if (url.startsWith('blob:')) objectUrl = url;
+			})
+			.catch(() => { isImageError = true; });
+		return () => {
+			cancelled = true;
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+		};
+	});
 
 	// Derived from the reactive categories store — updates if the user renames/adds categories
 	const categoryLabel = $derived(docCategories.getLabel(doc.category));

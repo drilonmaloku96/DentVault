@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { serverConnection } from '$lib/stores/serverConnection.svelte';
 	import { resetDb, insertDoctor, insertAppointmentRoom } from '$lib/services/db';
 	import { pickDirectory, ensureTemplateStructure, ensureDocTemplatesFolder } from '$lib/services/files';
 	import { uiScale } from '$lib/stores/uiScale.svelte';
@@ -11,6 +12,10 @@
 	import { textBlocks } from '$lib/stores/textBlocks.svelte';
 	import { acuteTagOptions, medicalTagOptions } from '$lib/stores/clinicalTags.svelte';
 	import { complicationTypes } from '$lib/stores/complicationTypes.svelte';
+	import { rooms } from '$lib/stores/rooms.svelte';
+	import { appointmentTypes } from '$lib/stores/appointmentTypes.svelte';
+	import { workingHours } from '$lib/stores/workingHours.svelte';
+	import { noShowThreshold } from '$lib/stores/noShowThreshold.svelte';
 
 	let { onConfigured }: { onConfigured: () => void } = $props();
 
@@ -31,7 +36,12 @@
 	async function handlePickFolder() {
 		vaultError = '';
 		const path = await pickDirectory();
-		if (path) selectedPath = path;
+		if (!path) return;
+		if (await vault.isNetworkMount(path)) {
+			vaultError = i18n.t.onboarding.vaultNetworkMount;
+			return;
+		}
+		selectedPath = path;
 	}
 
 	function handleVaultContinue() {
@@ -42,6 +52,49 @@
 		// Don't call vault.configure() yet — doing so makes vault.isConfigured true
 		// which tears down this wizard. Defer to finish().
 		goTo(2);
+	}
+
+	// ── Step 1 (alternate) — Join an existing clinic server ───────────
+	// A workstation joining an already-running clinic has no local vault and no team/rooms
+	// to create — those already exist server-side. This path bypasses steps 2-5 entirely
+	// and goes straight to onConfigured() (ROADMAP_MULTI_COMPUTER.md Phase 1, connected mode).
+	let joinMode = $state(false);
+	let joinUrl = $state('');
+	let joinToken = $state('');
+	let joinError = $state('');
+	let isJoining = $state(false);
+
+	async function handleJoinServer() {
+		if (!joinUrl.trim() || !joinToken.trim()) {
+			joinError = 'Server URL and token are both required.';
+			return;
+		}
+		isJoining = true;
+		joinError = '';
+		try {
+			await serverConnection.configure(joinUrl, joinToken);
+			resetDb();
+			// Same staleness fix as finish() below: stores were already loaded once in
+			// +layout.svelte's onMount against the pre-connection local fallback DB, so they
+			// need a reload now that the transport points at the real clinic server.
+			await Promise.all([
+				docCategories.load(),
+				doctors.load(),
+				staffRoles.load(),
+				textBlocks.load(),
+				acuteTagOptions.load(),
+				medicalTagOptions.load(),
+				complicationTypes.load(),
+				rooms.load(),
+				appointmentTypes.load(),
+				workingHours.load(),
+				noShowThreshold.load(),
+			]);
+			onConfigured();
+		} catch (e) {
+			joinError = String(e instanceof Error ? e.message : e);
+			isJoining = false;
+		}
 	}
 
 	// ── Step 2 — Team ────────────────────────────────────────────────
@@ -125,7 +178,14 @@
 			}
 			// Save UI scale (was previewed during onboarding, now persist it)
 			await uiScale.set(uiScale.value);
-			// Reload stores with the now-configured vault
+			// Reload stores with the now-configured vault. rooms/appointmentTypes/workingHours/
+			// noShowThreshold matter here specifically: +layout.svelte's onMount already called
+			// their .load() once before the vault existed (hitting the app-data-dir fallback DB),
+			// so the in-memory stores are stale relative to what finish() just wrote into the real
+			// vault (the rooms created above, plus appointmentTypes' own auto-seed-if-empty running
+			// against the real DB for the first time here). Without this reload, the Schedule tab
+			// shows zero rooms right after setup — which is exactly what caused a real user to
+			// manually create duplicate rooms on top of these already-existing defaults.
 			await Promise.all([
 				docCategories.load(),
 				doctors.load(),
@@ -134,10 +194,19 @@
 				acuteTagOptions.load(),
 				medicalTagOptions.load(),
 				complicationTypes.load(),
+				rooms.load(),
+				appointmentTypes.load(),
+				workingHours.load(),
+				noShowThreshold.load(),
 			]);
 			onConfigured();
-		} catch {
+		} catch (e) {
+			// The path passed every check up front (handlePickFolder), so a throw here means
+			// something changed between selection and finish — surface it and send the user
+			// back to step 1 rather than silently stranding them on a spinning "finishing" state.
+			vaultError = String(e instanceof Error ? e.message : e);
 			finishing = false;
+			goTo(1);
 		}
 	}
 
@@ -317,7 +386,7 @@
 					<!-- ─────────────────────────────────────────────── -->
 					<!-- STEP 1 — Vault Location                        -->
 					<!-- ─────────────────────────────────────────────── -->
-					{#if step === 1}
+					{#if step === 1 && !joinMode}
 						<h2 class="text-xl font-bold text-foreground">{i18n.t.onboarding.vaultTitle}</h2>
 						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
 							{i18n.t.onboarding.vaultDesc}
@@ -378,6 +447,70 @@
 								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								{i18n.t.onboarding.continueBtn}
+							</button>
+						</div>
+
+						<button
+							type="button"
+							onclick={() => { joinMode = true; joinError = ''; }}
+							class="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-2"
+						>
+							Setting up a new station for a clinic that already runs DentVault? Connect to a server instead →
+						</button>
+
+					<!-- ─────────────────────────────────────────────── -->
+					<!-- STEP 1 (alternate) — Join an existing server    -->
+					<!-- ─────────────────────────────────────────────── -->
+					{:else if step === 1 && joinMode}
+						<h2 class="text-xl font-bold text-foreground">Connect to a DentVault Server</h2>
+						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+							This station will use the clinic's existing patients, schedule, and settings —
+							no local setup needed. Ask whoever runs the server for its address and token
+							(printed when the server starts).
+						</p>
+
+						<div class="my-5 flex flex-col gap-3">
+							<div class="flex flex-col gap-1.5">
+								<span class="text-xs font-medium text-muted-foreground">Server address</span>
+								<input
+									type="text"
+									bind:value={joinUrl}
+									placeholder="http://192.168.1.50:8420"
+									class="rounded-lg border bg-background px-3 py-2.5 text-sm"
+								/>
+							</div>
+							<div class="flex flex-col gap-1.5">
+								<span class="text-xs font-medium text-muted-foreground">Token</span>
+								<input
+									type="text"
+									bind:value={joinToken}
+									placeholder="the token printed at server startup"
+									class="rounded-lg border bg-background px-3 py-2.5 text-sm font-mono"
+								/>
+							</div>
+						</div>
+
+						{#if joinError}
+							<p class="mt-1 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+								{joinError}
+							</p>
+						{/if}
+
+						<div class="mt-6 flex items-center justify-between">
+							<button
+								type="button"
+								onclick={() => { joinMode = false; joinError = ''; }}
+								class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+							>
+								← Back
+							</button>
+							<button
+								type="button"
+								onclick={handleJoinServer}
+								disabled={isJoining || !joinUrl.trim() || !joinToken.trim()}
+								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{isJoining ? i18n.t.common.loading : 'Connect'}
 							</button>
 						</div>
 

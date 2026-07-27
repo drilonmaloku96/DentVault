@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as dialogOpen } from '@tauri-apps/plugin-dialog';
+import { getFilesTransport, isConnectedFilesMode } from './files-connection';
 // DocumentCategory is now `string`; no import needed
 
 // ── File picking ───────────────────────────────────────────────────────
@@ -42,8 +43,13 @@ export function toAbsPath(relPath: string, vaultPath: string): string {
 // ── File operations via Rust commands ──────────────────────────────────
 
 /**
- * Copy a picked file into the vault patient folder.
- * Returns { absPath, relPath, fileSize } on success.
+ * Copy a picked/dropped file into the vault patient folder.
+ * Returns { absPath, relPath, fileSize } on success — absPath is '' in connected mode
+ * (no local absolute path exists for a server-hosted file; rel_path is the portable
+ * source of truth used everywhere else per the July 2026 export-path audit).
+ *
+ * Routes through files-connection.ts: solo mode calls the Tauri command as before,
+ * connected mode reads srcPath's local bytes and uploads them via POST /files/upload.
  */
 export async function saveDocumentFile(opts: {
 	srcPath: string;
@@ -52,14 +58,8 @@ export async function saveDocumentFile(opts: {
 	categoryFolder: string;
 	destFilename: string;
 }): Promise<{ absPath: string; relPath: string; fileSize: number }> {
-	const [absPath, relPath, fileSize] = await invoke<[string, string, number]>('save_document_file', {
-		srcPath: opts.srcPath,
-		vaultPath: opts.vaultPath,
-		patientFolder: opts.patientFolder,
-		categoryFolder: opts.categoryFolder,
-		destFilename: opts.destFilename,
-	});
-	return { absPath, relPath, fileSize };
+	const transport = await getFilesTransport(opts.vaultPath);
+	return transport.saveDocumentFile(opts);
 }
 
 /** Delete a document file from disk. */
@@ -88,12 +88,34 @@ export interface VaultFileInfo {
 /**
  * Scan all immediate subdirectories of a patient vault folder and return metadata
  * for every regular file found. Hidden files and dentvault.db are excluded by Rust.
+ *
+ * Routes through files-connection.ts: solo mode calls the Tauri command as before,
+ * connected mode calls dentvault-server's GET /files/list/{patientFolder} — vaultPath is
+ * only used by the local path (the server already knows its own vault root).
  */
 export async function listVaultFiles(
 	vaultPath: string,
 	patientFolder: string,
 ): Promise<VaultFileInfo[]> {
-	return invoke<VaultFileInfo[]>('list_vault_files', { vaultPath, patientFolder });
+	const transport = await getFilesTransport(vaultPath);
+	return transport.listFiles(patientFolder);
+}
+
+/**
+ * Resolve a vault-relative path to a URL the webview can actually load. Solo mode returns
+ * a Tauri `asset://` URL (fileToAssetUrl) as before; connected mode has no local file to
+ * point at, so it fetches the bytes over HTTP and returns a `blob:` URL instead — the
+ * caller is responsible for revoking it (`URL.revokeObjectURL`) when done, same as any
+ * other blob URL.
+ */
+export async function getFileDisplayUrl(relPath: string, vaultPath: string): Promise<string> {
+	if (await isConnectedFilesMode()) {
+		const transport = await getFilesTransport(vaultPath);
+		const bytes = await transport.getFileBytes(relPath);
+		const mime = getMimeType(relPath);
+		return URL.createObjectURL(new Blob([bytes.slice()], { type: mime }));
+	}
+	return fileToAssetUrl(toAbsPath(relPath, vaultPath));
 }
 
 // ── !TEMPLATE folder ───────────────────────────────────────────────────
@@ -201,6 +223,11 @@ export async function writeTextFile(destPath: string, content: string): Promise<
 /**
  * Copy a file from srcPath to destPath on disk, creating parent directories as needed.
  * Returns the file size in bytes.
+ *
+ * Local-only — takes an absolute destPath, which doesn't exist in connected mode. Use
+ * `saveDocumentFile` instead for anything that needs to work in both modes (it takes a
+ * vault-relative destination and routes through files-connection.ts) — VaultDropDialog
+ * (the only caller as of July 2026) was switched to it for exactly this reason.
  */
 export async function copyFileToVault(srcPath: string, destPath: string): Promise<number> {
 	return invoke<number>('copy_file_to_vault', { srcPath, destPath });
@@ -216,7 +243,8 @@ export interface FolderNode {
 
 /** Return the folder tree for a patient (category folders + subfolders). */
 export async function listPatientFolders(vaultPath: string, patientFolder: string): Promise<FolderNode[]> {
-	return invoke<FolderNode[]>('list_patient_folders', { vaultPath, patientFolder });
+	const transport = await getFilesTransport(vaultPath);
+	return transport.listFolderTree(patientFolder);
 }
 
 /** Create a new subfolder inside a patient's vault. Returns the new folder's rel_path. */
@@ -226,7 +254,8 @@ export async function createPatientSubfolder(
 	parentRel: string,
 	folderName: string,
 ): Promise<string> {
-	return invoke<string>('create_patient_subfolder', { vaultPath, patientFolder, parentRel, folderName });
+	const transport = await getFilesTransport(vaultPath);
+	return transport.createSubfolder(patientFolder, parentRel, folderName);
 }
 
 /** Move a patient vault folder to a new parent folder. */
@@ -236,7 +265,8 @@ export async function movePatientFolder(
 	srcRel: string,
 	destParentRel: string,
 ): Promise<void> {
-	await invoke<void>('move_patient_folder', { vaultPath, patientFolder, srcRel, destParentRel });
+	const transport = await getFilesTransport(vaultPath);
+	await transport.moveFolder(patientFolder, srcRel, destParentRel);
 }
 
 /**

@@ -800,6 +800,7 @@ function renderTimeline(
 		// HTML is standalone, so labels are hardcoded like the rest of this file — no i18n store).
 		const typeBadge = entry.entry_type === 'xray_report' ? 'X-ray Report'
 			: entry.entry_type === 'facial_analysis' ? 'Facial Analysis'
+			: entry.entry_type === 'document_removed' ? 'Removed File'
 			: entry.entry_type;
 		if (typeBadge) html += `<span class="entry-type">${esc(typeBadge)}</span>`;
 		if (entry.treatment_category) html += `<span class="entry-cat">${esc(entry.treatment_category)}</span>`;

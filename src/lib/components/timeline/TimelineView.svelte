@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
 	import { sidebarWidth } from '$lib/stores/sidebarWidth.svelte';
+	import { invalidations } from '$lib/stores/invalidations.svelte';
 	import type { TimelineEntry, TimelineFormData, TreatmentPlan, TreatmentPlanFormData } from '$lib/types';
 	import {
 		getTimelineEntries,
@@ -16,6 +17,7 @@
 		syncAppointmentFromTimelineEntry,
 		recordChartHistory,
 		deleteChartHistoryForSnapshot,
+		isConnectedMode,
 	} from '$lib/services/db';
 	import type { ToothChartEntry } from '$lib/types';
 	import { listen } from '@tauri-apps/api/event';
@@ -83,6 +85,7 @@
 	function typeLabel(key: string): string {
 		if (key === '')                return i18n.t.timeline.typeLabels.unclassified;
 		if (key === 'document')       return i18n.t.timeline.typeLabels.documents;
+		if (key === 'document_removed') return i18n.t.timeline.typeLabels.documentRemoved;
 		if (key === 'chart_snapshot') return i18n.t.timeline.typeLabels.chartSnapshots;
 		if (key === 'ortho_snapshot') return i18n.t.timeline.typeLabels.orthoRecords;
 		if (key === 'plan')           return i18n.t.timeline.typeLabels.plans;
@@ -302,7 +305,17 @@
 	onMount(() => {
 		loadEntries();
 
-		const interval = setInterval(() => loadEntries(false), 5000);
+		// Solo-mode feed: a timer emits into the shared invalidations bus at the same 5s
+		// cadence as before. Connected mode (Phase 1) feeds the same bus from the server's
+		// WebSocket push instead (see ws-client.ts, started once in +layout.svelte) — the
+		// subscribe below (and loadEntries itself) doesn't change either way, so only the
+		// timer needs to skip itself when a WS feed is already covering this entity.
+		const invalidationKey = { entity: 'timeline', patientId } as const;
+		let interval: ReturnType<typeof setInterval> | null = null;
+		isConnectedMode().then((connected) => {
+			if (!connected) interval = setInterval(() => invalidations.emit(invalidationKey), 5000);
+		});
+		const unsubscribe = invalidations.subscribe(invalidationKey, () => loadEntries(false));
 
 		// Tauri intercepts OS file drops — dataTransfer.files is always empty in WKWebView.
 		// Use Tauri's native drag events instead.
@@ -318,7 +331,8 @@
 		];
 
 		return () => {
-			clearInterval(interval);
+			if (interval !== null) clearInterval(interval);
+			unsubscribe();
 			unlistenPromises.forEach(p => p.then(fn => fn()));
 		};
 	});

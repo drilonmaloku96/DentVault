@@ -8,11 +8,11 @@
 		listPatientFolders,
 		createPatientSubfolder,
 		movePatientFolder,
-		copyFileToVault,
+		saveDocumentFile,
 		type FolderNode,
 	} from '$lib/services/files';
 	import { getMimeType } from '$lib/services/files';
-	import { insertDocument } from '$lib/services/db';
+	import { insertDocument, isConnectedMode } from '$lib/services/db';
 	import { insertTimelineEntry } from '$lib/services/db';
 
 	let {
@@ -51,7 +51,9 @@
 	// ── Load tree whenever dialog opens ───────────────────────────────────
 
 	$effect(() => {
-		if (open && vault.path && patientFolder) {
+		// listPatientFolders is transport-aware (files-connection.ts) — no vault.path
+		// pre-check needed; a genuinely unconfigured station just surfaces loadError below.
+		if (open && patientFolder) {
 			loadTree();
 		}
 		if (!open) {
@@ -69,7 +71,7 @@
 
 	async function loadTree() {
 		try {
-			tree = await listPatientFolders(vault.path!, patientFolder);
+			tree = await listPatientFolders(vault.path ?? '', patientFolder);
 			loadError = '';
 		} catch (e) {
 			loadError = e instanceof Error ? e.message : i18n.t.timeline.vaultDrop.loadFailed;
@@ -109,7 +111,7 @@
 		if (!newFolderName.trim() || creatingUnder === null) return;
 		try {
 			const rel = await createPatientSubfolder(
-				vault.path!,
+				vault.path ?? '',
 				patientFolder,
 				creatingUnder,
 				newFolderName.trim(),
@@ -173,7 +175,7 @@
 		const srcParent = src.includes('/') ? src.slice(0, src.lastIndexOf('/')) : '';
 		if (srcParent === dest) return;
 		try {
-			await movePatientFolder(vault.path!, patientFolder, src, dest);
+			await movePatientFolder(vault.path ?? '', patientFolder, src, dest);
 			if (selected === src || selected.startsWith(src + '/')) {
 				const srcName = src.includes('/') ? src.slice(src.lastIndexOf('/') + 1) : src;
 				selected = `${dest}/${srcName}`;
@@ -192,16 +194,23 @@
 	// ── Save files ────────────────────────────────────────────────────────
 
 	async function handleSave() {
-		if (!vault.path || !selected || isSaving) return;
+		if (!selected || isSaving) return;
+		if (!vault.path && !(await isConnectedMode())) return;
 		isSaving = true;
 		try {
 			const today = new Date().toISOString().slice(0, 10);
 			for (const srcPath of filePaths) {
-				const name         = srcPath.replace(/\\/g, '/').split('/').pop() ?? srcPath;
-				const destRel      = `${selected}/${name}`;          // relative to patient folder
-				const vaultRelPath = `${patientFolder}/${destRel}`;  // relative to vault root
-				const destAbs      = `${vault.path}/${vaultRelPath}`;
-				const fileSize = await copyFileToVault(srcPath, destAbs);
+				const name = srcPath.replace(/\\/g, '/').split('/').pop() ?? srcPath;
+				// saveDocumentFile routes through files-connection.ts — solo mode copies the
+				// file directly, connected mode uploads its bytes over HTTP. Either way it
+				// returns the vault-relative path, so there's no manual path math here anymore.
+				const { absPath, relPath: vaultRelPath, fileSize } = await saveDocumentFile({
+					srcPath,
+					vaultPath: vault.path ?? '',
+					patientFolder,
+					categoryFolder: selected,
+					destFilename: name,
+				});
 
 				const mime   = getMimeType(name);
 				const catKey = selected.split('/')[0]; // top-level folder = category
@@ -211,7 +220,7 @@
 					category: catKey,
 					mime_type: mime,
 					file_size: fileSize,
-					abs_path: destAbs,
+					abs_path: absPath,
 					rel_path: vaultRelPath,
 					notes: '',
 				});

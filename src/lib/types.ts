@@ -66,6 +66,7 @@ export type TimelineEntryType = string;
 /** System-only entry types — never shown in user-configurable dropdowns */
 export const SYSTEM_ENTRY_TYPES = new Set([
 	'document',
+	'document_removed',
 	'plan',
 	'chart_snapshot',
 	'ortho_snapshot',

@@ -4,7 +4,10 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { theme } from '$lib/stores/theme.svelte';
+	import { invoke } from '@tauri-apps/api/core';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { serverConnection } from '$lib/stores/serverConnection.svelte';
+	import { connectEvents } from '$lib/services/ws-client';
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffRoles } from '$lib/stores/staffRoles.svelte';
@@ -53,6 +56,10 @@
 	// Theme + vault + stores all init on mount
 	onMount(async () => {
 		await vault.init();
+		// Connected mode (ROADMAP_MULTI_COMPUTER.md Phase 1): a station configured only via
+		// Settings → Server Connection has no local vault.path, so the onboarding gate below
+		// also checks serverConnection.isConnected — otherwise it would loop the wizard forever.
+		await serverConnection.init();
 		// i18n must init right after vault so all stores get the correct language defaults
 		await i18n.init();
 		// Theme must init after vault so DB is available for portable persistence
@@ -79,6 +86,14 @@
 		await uiScale.load();
 		await textHighlightColors.load();
 		await appointmentStatuses.load();
+
+		// Connected mode: start the WebSocket invalidation feed (ROADMAP_MULTI_COMPUTER.md
+		// §3.4) — the counterpart to solo mode's per-component timer feeds into the same
+		// invalidations store. Started last so it doesn't delay the initial data loads above.
+		if (serverConnection.isConnected && serverConnection.url) {
+			const conn = await invoke<{ url: string; token: string } | null>('get_server_connection');
+			if (conn) connectEvents(conn.url, conn.token);
+		}
 	});
 
 	// Keep html[lang] in sync with the current language so <input type="date">
@@ -128,8 +143,8 @@
 	<title>DentVault</title>
 </svelte:head>
 
-<!-- Show onboarding wizard until vault is configured -->
-{#if vault.initialized && !vault.isConfigured}
+<!-- Show onboarding wizard until vault is configured (or a server connection stands in for it) -->
+{#if vault.initialized && serverConnection.initialized && !vault.isConfigured && !serverConnection.isConnected}
 	<OnboardingWizard onConfigured={onVaultConfigured} />
 
 <!-- Normal app shell -->

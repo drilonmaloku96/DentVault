@@ -6,6 +6,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { serverConnection } from '$lib/stores/serverConnection.svelte';
 	import { reconcileVaultIntegrity, type IntegrityResult } from '$lib/services/vault-integrity';
 	import { docCategories, DEFAULT_CATEGORIES, type DocCategory } from '$lib/stores/categories.svelte';
 	import { doctors } from '$lib/stores/doctors.svelte';
@@ -81,6 +82,46 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		} catch (e) {
 			vaultChangeMsg = 'Error: ' + String(e);
 			isChangingVault = false;
+		}
+	}
+
+	// ── Server Connection (connected mode, ROADMAP_MULTI_COMPUTER.md Phase 1) ─────────────
+	// Beta / advanced: DB operations (patients, timeline, appointments, settings) work
+	// end-to-end over the network once connected. Document/X-ray/photo file access still
+	// needs the vault folder to be locally reachable — the file-transport client rewiring
+	// (routing PatientTreeView, VaultDropDialog, exports, thumbnails through dentvault-server's
+	// /files/* endpoints) is the next slice of this work, not shipped yet.
+	let serverUrlInput = $state('');
+	let serverTokenInput = $state('');
+	let isConnectingServer = $state(false);
+	let serverConnectionMsg = $state('');
+
+	async function handleConnectServer() {
+		if (!serverUrlInput.trim() || !serverTokenInput.trim()) {
+			serverConnectionMsg = 'Server URL and token are both required.';
+			return;
+		}
+		isConnectingServer = true;
+		serverConnectionMsg = '';
+		try {
+			await serverConnection.configure(serverUrlInput, serverTokenInput);
+			resetDb();
+			window.location.reload();
+		} catch (e) {
+			serverConnectionMsg = String(e instanceof Error ? e.message : e);
+			isConnectingServer = false;
+		}
+	}
+
+	async function handleDisconnectServer() {
+		isConnectingServer = true;
+		try {
+			await serverConnection.disconnect();
+			resetDb();
+			window.location.reload();
+		} catch (e) {
+			serverConnectionMsg = String(e instanceof Error ? e.message : e);
+			isConnectingServer = false;
 		}
 	}
 
@@ -1463,7 +1504,6 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
-						{ label: i18n.t.settings.sections.workingHours },
 						{ label: i18n.t.settings.sections.rooms },
 						{ label: i18n.t.settings.sections.appointmentTypes },
 					] as item}
@@ -1659,6 +1699,64 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
 		<div>
+			<h2 class="text-base font-semibold">Server Connection <span class="ml-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground align-middle">Beta</span></h2>
+			<p class="text-sm text-muted-foreground">
+				Connect this station to a clinic's DentVault server instead of a local vault
+				(ROADMAP_MULTI_COMPUTER.md Phase 1). Patients, timeline entries, appointments, and
+				settings work over the network once connected — document/X-ray/photo file access
+				still needs the vault folder to be locally reachable; that's not wired over the
+				network yet.
+			</p>
+		</div>
+		<Separator />
+
+		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
+			{#if serverConnection.isConnected}
+				<div class="flex flex-col gap-1.5">
+					<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Connected to</span>
+					<code class="rounded bg-muted px-3 py-2 text-xs break-all">{serverConnection.url}</code>
+				</div>
+				{#if serverConnectionMsg}
+					<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{serverConnectionMsg}</p>
+				{/if}
+				<button
+					type="button"
+					onclick={handleDisconnectServer}
+					disabled={isConnectingServer}
+					class="self-start rounded-md border bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80 transition-colors disabled:opacity-50"
+				>
+					{isConnectingServer ? i18n.t.common.loading : 'Disconnect'}
+				</button>
+			{:else}
+				<div class="flex flex-col gap-3 max-w-md">
+					<div class="flex flex-col gap-1.5">
+						<span class="text-xs font-medium text-muted-foreground">Server address</span>
+						<input type="text" bind:value={serverUrlInput} placeholder="http://192.168.1.50:8420" class="rounded-md border bg-background px-3 py-2 text-sm" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<span class="text-xs font-medium text-muted-foreground">Token</span>
+						<input type="text" bind:value={serverTokenInput} placeholder="the token printed at server startup" class="rounded-md border bg-background px-3 py-2 text-sm font-mono" />
+					</div>
+				</div>
+				{#if serverConnectionMsg}
+					<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{serverConnectionMsg}</p>
+				{/if}
+				<button
+					type="button"
+					onclick={handleConnectServer}
+					disabled={isConnectingServer}
+					class="self-start rounded-md border bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80 transition-colors disabled:opacity-50"
+				>
+					{isConnectingServer ? i18n.t.common.loading : 'Connect'}
+				</button>
+			{/if}
+		</div>
+	</section>
+
+
+	<div class="pt-6 pb-2"><Separator /></div>
+	<section class="flex flex-col gap-4">
+		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.backup}</h2>
 			<p class="text-sm text-muted-foreground">{i18n.t.settings.backup.description}</p>
 		</div>
@@ -1831,7 +1929,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				</div>
 				<div>
 					<p class="text-sm font-medium">DentVault</p>
-					<p class="text-xs text-muted-foreground">{i18n.t.settings.about.version} 0.0.1 · Tauri 2 + SvelteKit + SQLite</p>
+					<p class="text-xs text-muted-foreground">{i18n.t.settings.about.version} 0.9.1 · Tauri 2 + SvelteKit + SQLite</p>
 				</div>
 			</div>
 			<Separator />
@@ -1851,6 +1949,67 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			</p>
 		</div>
 		<Separator />
+
+		<!-- Practice-wide working hours — the clinic-wide default. Visually distinct (accent
+		     border/background/icon) from the per-staff-member card below it, so it reads as
+		     "the one default" rather than another row in the staff list. -->
+		<div class="rounded-lg border-2 border-primary/25 bg-primary/[0.04] dark:bg-primary/[0.06] p-5 flex flex-col gap-4">
+			<div class="flex items-center justify-between gap-3">
+				<div class="flex items-center gap-2.5">
+					<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+					</span>
+					<div>
+						<p class="text-sm font-semibold text-primary">{i18n.t.settings.schedule.practiceHoursTitle}</p>
+						<p class="text-xs text-muted-foreground">{i18n.t.settings.schedule.practiceHoursSubtitle}</p>
+					</div>
+				</div>
+				<div class="flex items-center gap-2 shrink-0">
+					{#if workingHoursSaved}
+						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
+					{/if}
+					<Button size="sm" onclick={handleSaveWorkingHours} disabled={workingHoursSaving}>
+						{workingHoursSaving ? i18n.t.common.loading : i18n.t.actions.save}
+					</Button>
+				</div>
+			</div>
+
+			<div class="flex flex-col divide-y divide-border/70">
+				{#each localWorkingHours as day, idx}
+					<div class="flex items-center gap-3 py-2.5">
+						<input
+							type="checkbox"
+							class="h-4 w-4 rounded border-border"
+							bind:checked={localWorkingHours[idx].is_active}
+						/>
+						<span class="w-24 text-sm font-medium {day.is_active ? '' : 'text-muted-foreground'}">
+							{i18n.t.defaults.workingDays[day.day_of_week]}
+						</span>
+						{#if day.is_active}
+							<input type="time" bind:value={localWorkingHours[idx].start_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
+							<span class="text-xs text-muted-foreground">–</span>
+							<input type="time" bind:value={localWorkingHours[idx].end_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
+							<span class="text-xs text-muted-foreground ml-2">{i18n.t.settings.schedule.break}:</span>
+							<input type="time" bind:value={localWorkingHours[idx].break_start as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
+							<span class="text-xs text-muted-foreground">–</span>
+							<input type="time" bind:value={localWorkingHours[idx].break_end as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
+						{:else}
+							<span class="text-xs text-muted-foreground">{i18n.t.settings.schedule.closed}</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<div class="flex items-center gap-2 pt-1">
+			<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+			</span>
+			<div>
+				<p class="text-sm font-semibold">{i18n.t.staff.membersLabel}</p>
+				<p class="text-xs text-muted-foreground">{i18n.t.staff.membersSubtitle}</p>
+			</div>
+		</div>
 
 		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
 
@@ -3859,55 +4018,6 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	{#if activeSection === 'schedule'}
 	<section class="flex flex-col gap-4">
 		<div>
-			<h2 class="text-base font-semibold">{i18n.t.settings.sections.workingHours}</h2>
-			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.workingHoursDesc}</p>
-		</div>
-		<Separator />
-
-		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
-			<div class="flex items-center justify-between">
-				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.sections.workingHours}</span>
-				<div class="flex items-center gap-2">
-					{#if workingHoursSaved}
-						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
-					{/if}
-					<Button size="sm" onclick={handleSaveWorkingHours} disabled={workingHoursSaving}>
-						{workingHoursSaving ? i18n.t.common.loading : i18n.t.actions.save}
-					</Button>
-				</div>
-			</div>
-
-			<div class="flex flex-col divide-y divide-border">
-				{#each localWorkingHours as day, idx}
-					<div class="flex items-center gap-3 py-2.5">
-						<input
-							type="checkbox"
-							class="h-4 w-4 rounded border-border"
-							bind:checked={localWorkingHours[idx].is_active}
-						/>
-						<span class="w-24 text-sm font-medium {day.is_active ? '' : 'text-muted-foreground'}">
-							{i18n.t.defaults.workingDays[day.day_of_week]}
-						</span>
-						{#if day.is_active}
-							<input type="time" bind:value={localWorkingHours[idx].start_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
-							<span class="text-xs text-muted-foreground">–</span>
-							<input type="time" bind:value={localWorkingHours[idx].end_time} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" />
-							<span class="text-xs text-muted-foreground ml-2">{i18n.t.settings.schedule.break}:</span>
-							<input type="time" bind:value={localWorkingHours[idx].break_start as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
-							<span class="text-xs text-muted-foreground">–</span>
-							<input type="time" bind:value={localWorkingHours[idx].break_end as string} class="border border-border rounded px-2 py-1 text-sm bg-background w-24" placeholder="--:--" />
-						{:else}
-							<span class="text-xs text-muted-foreground">{i18n.t.settings.schedule.closed}</span>
-						{/if}
-					</div>
-				{/each}
-			</div>
-		</div>
-	</section>
-
-	<div class="pt-6 pb-2"><Separator /></div>
-	<section class="flex flex-col gap-4">
-		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.schedule.noShowThresholdTitle}</h2>
 			<p class="text-sm text-muted-foreground">{i18n.t.settings.schedule.noShowThresholdDesc}</p>
 		</div>
@@ -4035,7 +4145,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				<div class="flex flex-col gap-2 border border-border rounded p-3 bg-muted/30">
 					<div class="grid grid-cols-2 gap-2">
 						<input type="text" placeholder={i18n.t.common.name} bind:value={newApptTypeName} class={inputClass + ' col-span-2'} />
-						<input type="text" placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} bind:value={newApptTypeShort} class={inputClass} />
+						<input type="text" placeholder={i18n.t.settings.schedule.apptTypeShortPlaceholder} bind:value={newApptTypeShort} class={inputClass} maxlength="3" />
 						<input type="number" min="5" step="5" placeholder={i18n.t.settings.schedule.durationPlaceholder} bind:value={newApptTypeDuration} class={inputClass} />
 						<div class="flex items-center gap-2">
 							<label class="text-xs text-muted-foreground">{i18n.t.settings.schedule.colorLabel}</label>
@@ -4060,7 +4170,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{#if editingApptTypeId === t.id}
 							<div class="flex flex-1 items-center gap-2 flex-wrap">
 								<input type="text" bind:value={editApptTypeName} class={inputClass + ' flex-1 min-w-0'} />
-								<input type="text" bind:value={editApptTypeShort} placeholder={i18n.t.settings.schedule.abbrShortPlaceholder} class={inputClass + ' w-16'} />
+								<input type="text" bind:value={editApptTypeShort} placeholder={i18n.t.settings.schedule.apptTypeShortPlaceholder} class={inputClass + ' w-16'} maxlength="3" />
 								<input type="number" min="5" step="5" bind:value={editApptTypeDuration} class={inputClass + ' w-16'} />
 								<input type="color" bind:value={editApptTypeColor} class="h-8 w-10 rounded border border-border cursor-pointer" />
 								<input type="text" bind:value={editApptTypeIcon} placeholder={i18n.t.settings.schedule.iconPlaceholder} class={inputClass + ' w-14 text-center text-base'} maxlength="4" title={i18n.t.settings.schedule.iconLabel} />

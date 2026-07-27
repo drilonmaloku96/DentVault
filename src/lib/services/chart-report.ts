@@ -10,8 +10,25 @@ const ALL_PRIMARY_FDI: readonly number[] = [
 ];
 
 /**
+ * True when a tooth's only "notable" trait is an arch-setup placeholder 'missing' —
+ * i.e. the arch-setup step (DentalChartView's confirmArch, permanent/mixed/primary
+ * picker) marking an entire other dentition absent (e.g. every primary tooth when the
+ * patient is charted as permanent dentition), not a clinically documented missing tooth.
+ * Mirrors the exact predicate DentalChartView's DMFT calc already uses to exclude these
+ * from the M count — same reasoning applies here: reporting 20 "missing" primary teeth
+ * on every permanent-dentition chart snapshot is noise, not a finding.
+ */
+function isArchPlaceholderMissing(entry: ToothChartEntry): boolean {
+	return entry.condition === 'missing'
+		&& !entry.notes?.trim()
+		&& (entry.surfaces === '{}' || !entry.surfaces)
+		&& !entry.bridge_group_id;
+}
+
+/**
  * Generate a plain-text report summarising all notable teeth in the chart.
  * Teeth that are 'healthy' with no surface tags, no notes, and no bridge/prosthesis are skipped.
+ * Arch-setup placeholder 'missing' teeth (see isArchPlaceholderMissing) are skipped too.
  *
  * Output format:
  *   Bridge/prosthesis groups first (e.g. "13–23 Bridge: 13 Implant (Abutment), 14 Pontic, ...")
@@ -87,7 +104,8 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		if (!entry) continue;
 
 		const rootSummary = parseRootSummary(entry.root_data);
-		const isNotable = (entry.condition && entry.condition !== 'healthy')
+		const placeholderMissing = isArchPlaceholderMissing(entry);
+		const isNotable = (entry.condition && entry.condition !== 'healthy' && !placeholderMissing)
 			|| hasSurfaceTags(entry.surfaces)
 			|| rootSummary.length > 0
 			|| entry.watch_status === 'observe'
@@ -98,7 +116,7 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		const fdi = toFDI(u);
 		const parts: string[] = [];
 
-		if (entry.condition && entry.condition !== 'healthy') {
+		if (entry.condition && entry.condition !== 'healthy' && !placeholderMissing) {
 			parts.push(dentalTags.getLabel(entry.condition));
 		}
 		const surfaceInfo = parseSurfaceTags(entry.surfaces);
@@ -125,7 +143,8 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		if (!entry) continue;
 
 		const rootSummaryP = parseRootSummary(entry.root_data);
-		const isNotable = (entry.condition && entry.condition !== 'healthy')
+		const placeholderMissingP = isArchPlaceholderMissing(entry);
+		const isNotable = (entry.condition && entry.condition !== 'healthy' && !placeholderMissingP)
 			|| hasSurfaceTags(entry.surfaces)
 			|| rootSummaryP.length > 0
 			|| entry.watch_status === 'observe'
@@ -134,7 +153,7 @@ export function generateChartReport(chartData: ToothChartEntry[]): string {
 		if (!isNotable) continue;
 
 		const parts: string[] = [];
-		if (entry.condition && entry.condition !== 'healthy') {
+		if (entry.condition && entry.condition !== 'healthy' && !placeholderMissingP) {
 			parts.push(dentalTags.getLabel(entry.condition));
 		}
 		const surfaceInfo = parseSurfaceTags(entry.surfaces);

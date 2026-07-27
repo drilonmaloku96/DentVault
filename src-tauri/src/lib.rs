@@ -30,6 +30,156 @@ fn save_vault_path(app: tauri::AppHandle, path: String) -> Result<(), String> {
     std::fs::write(path_file, &path).map_err(|e| e.to_string())
 }
 
+// ── Server connection (connected mode, ROADMAP_MULTI_COMPUTER.md Phase 1) ──────────────
+// Solo mode (no file present) and connected mode are mutually exclusive per app instance;
+// db-connection.ts (TS) picks db-local vs db-remote based on whether this returns Some.
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ServerConnection {
+    url: String,
+    token: String,
+}
+
+fn server_connection_file(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&data_dir).map_err(|e| e.to_string())?;
+    Ok(data_dir.join("server_connection.json"))
+}
+
+#[tauri::command]
+fn get_server_connection(app: tauri::AppHandle) -> Option<ServerConnection> {
+    let file = server_connection_file(&app).ok()?;
+    let text = std::fs::read_to_string(file).ok()?;
+    serde_json::from_str(&text).ok()
+}
+
+#[tauri::command]
+fn save_server_connection(app: tauri::AppHandle, url: String, token: String) -> Result<(), String> {
+    let file = server_connection_file(&app)?;
+    let json = serde_json::to_string(&ServerConnection { url, token }).map_err(|e| e.to_string())?;
+    std::fs::write(file, json).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn clear_server_connection(app: tauri::AppHandle) -> Result<(), String> {
+    let file = server_connection_file(&app)?;
+    if file.exists() {
+        std::fs::remove_file(file).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Detect whether `path` resides on a network-mounted filesystem (SMB/CIFS/NFS/AFP/WebDAV).
+/// SQLite's file locking is unreliable over network shares and *will* silently corrupt
+/// dentvault.db under concurrent writers (see ROADMAP_MULTI_COMPUTER.md, "Option A — REJECTED").
+/// Best-effort: if detection itself fails (parsing hiccup, missing tool), we report `false`
+/// rather than block — a false negative here is far less costly than blocking a legitimate
+/// local path outright.
+#[tauri::command]
+fn is_network_mount(path: String) -> bool {
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    {
+        let network_fs_types: &[&str] = if cfg!(target_os = "macos") {
+            &["smbfs", "nfs", "afpfs", "webdav", "cifs", "ftp"]
+        } else {
+            &["nfs", "nfs4", "cifs", "smbfs", "smb3", "fuse.sshfs", "davfs"]
+        };
+        is_network_mount_unix(&path, network_fs_types)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        is_network_mount_windows(&path)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        false
+    }
+}
+
+/// Parses `mount`'s output to find the filesystem type of the mount point that owns `path`,
+/// then checks it against the list of known network filesystem types. Handles both the
+/// macOS format (`<dev> on <mnt> (<fstype>, <opts>)`) and the Linux format
+/// (`<dev> on <mnt> type <fstype> (<opts>)`).
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn is_network_mount_unix(path: &str, network_fs_types: &[&str]) -> bool {
+    let canonical = std::fs::canonicalize(path).unwrap_or_else(|_| PathBuf::from(path));
+    let canonical_str = canonical.to_string_lossy().to_string();
+
+    let output = match std::process::Command::new("mount").output() {
+        Ok(o) => o,
+        Err(_) => return false,
+    };
+    let text = String::from_utf8_lossy(&output.stdout);
+
+    match find_fs_type_for_path(&text, &canonical_str) {
+        Some(fstype) => network_fs_types.iter().any(|t| fstype.eq_ignore_ascii_case(t)),
+        None => false,
+    }
+}
+
+/// Pure parsing core of `is_network_mount_unix`, factored out for unit testing without
+/// shelling out. Finds the filesystem type of the mount point that owns `canonical_path`
+/// by picking the longest matching mount-point prefix in `mount_output` — the same logic
+/// the kernel uses to resolve which mount "wins" for a nested path.
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn find_fs_type_for_path<'a>(mount_output: &'a str, canonical_path: &str) -> Option<&'a str> {
+    let mut best_match: Option<(&str, usize)> = None; // (fstype, mountpoint length)
+    for line in mount_output.lines() {
+        let Some(on_idx) = line.find(" on ") else { continue };
+        let rest = &line[on_idx + 4..];
+        // Linux format always has " type " before its trailing "(opts)"; macOS format has
+        // no " type " token at all — check " type " first so Linux's own trailing paren
+        // (options, not fstype) doesn't get mistaken for the macOS "(fstype, opts)" form.
+        let (mountpoint, fstype) = if let Some(type_idx) = rest.find(" type ") {
+            let mp = &rest[..type_idx];
+            let after = &rest[type_idx + 6..];
+            let fstype = after.split_whitespace().next().unwrap_or("");
+            (mp, fstype)
+        } else if let Some(paren_idx) = rest.find(" (") {
+            let mp = &rest[..paren_idx];
+            let paren_content = &rest[paren_idx + 2..];
+            let fstype = paren_content
+                .split(|c| c == ',' || c == ')')
+                .next()
+                .unwrap_or("")
+                .trim();
+            (mp, fstype)
+        } else {
+            continue;
+        };
+        let is_prefix_match = mountpoint == "/"
+            || canonical_path == mountpoint
+            || canonical_path.starts_with(&format!("{}/", mountpoint));
+        if is_prefix_match {
+            let len = mountpoint.len();
+            if best_match.map(|(_, l)| len > l).unwrap_or(true) {
+                best_match = Some((fstype, len));
+            }
+        }
+    }
+    best_match.map(|(fstype, _)| fstype)
+}
+
+/// UNC paths (`\\server\share\...`) are always network. Mapped drive letters are checked
+/// via `fsutil fsinfo drivetype`, which reports "Remote Drive" for network-mapped drives.
+#[cfg(target_os = "windows")]
+fn is_network_mount_windows(path: &str) -> bool {
+    if path.starts_with("\\\\") || path.starts_with("//") {
+        return true;
+    }
+    let drive: String = path.chars().take(2).collect();
+    if drive.len() == 2 && drive.ends_with(':') {
+        if let Ok(output) = std::process::Command::new("fsutil")
+            .args(["fsinfo", "drivetype", &drive])
+            .output()
+        {
+            let text = String::from_utf8_lossy(&output.stdout).to_lowercase();
+            return text.contains("remote drive");
+        }
+    }
+    false
+}
+
 #[tauri::command]
 fn get_db_url(app: tauri::AppHandle) -> String {
     if let Some(vault) = read_vault_path(&app) {
@@ -42,16 +192,6 @@ fn get_db_url(app: tauri::AppHandle) -> String {
         // Fall back to app data dir (relative path)
         "sqlite:dentvault.db".to_string()
     }
-}
-
-/// Create the patient folder structure inside the vault.
-#[tauri::command]
-fn init_patient_folder(vault_path: String, patient_folder: String) -> Result<(), String> {
-    let base = PathBuf::from(&vault_path).join(&patient_folder);
-    for sub in &["xrays", "photos", "documents", "lab_results", "consents", "referrals"] {
-        std::fs::create_dir_all(base.join(sub)).map_err(|e| e.to_string())?;
-    }
-    Ok(())
 }
 
 // ── File management commands ───────────────────────────────────────────
@@ -301,9 +441,15 @@ fn get_template_categories(vault_path: String) -> Result<Vec<String>, String> {
 }
 
 /// Copy the entire `!TEMPLATE` folder tree to a new patient folder.
-/// For each subfolder in `!TEMPLATE/`, creates the matching subfolder in the patient
-/// directory and copies all regular files into it.
-/// Falls back to creating empty folders from `fallback_folders` if no template exists.
+/// `!TEMPLATE` on disk is the single source of truth for a new patient's starting
+/// structure: every top-level subfolder is mirrored — INCLUDING any nested
+/// sub-subfolders inside it (e.g. `!TEMPLATE/xrays/Panoramic/`) — via the same
+/// recursive `copy_dir_all` used by the HTML export's patient-folder copy. A prior
+/// version only copied one level deep (subfolder + its direct files), so a nested
+/// folder added under `!TEMPLATE` (easy to create via the sidebar tree, which shows
+/// `!TEMPLATE` like any other patient folder) silently never reached new patients.
+/// Falls back to creating empty folders from `fallback_folders` only if `!TEMPLATE`
+/// itself doesn't exist yet.
 #[tauri::command]
 fn copy_template_to_patient(
     vault_path: String,
@@ -324,20 +470,7 @@ fn copy_template_to_patient(
                 Some(n) if !n.starts_with('.') => n.to_string(),
                 _ => continue,
             };
-            let dest_dir = patient.join(&folder_name);
-            std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
-            if let Ok(files) = std::fs::read_dir(&src_dir) {
-                for file_entry in files.flatten() {
-                    let src_file = file_entry.path();
-                    if !src_file.is_file() { continue; }
-                    let filename = match src_file.file_name().and_then(|n| n.to_str()) {
-                        Some(n) if !n.starts_with('.') => n.to_string(),
-                        _ => continue,
-                    };
-                    // Non-fatal: skip files that fail to copy
-                    let _ = std::fs::copy(&src_file, dest_dir.join(&filename));
-                }
-            }
+            copy_dir_all(&src_dir, &patient.join(&folder_name))?;
         }
     } else {
         // No template yet — create empty folders from the fallback list
@@ -787,8 +920,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_vault_path,
             save_vault_path,
+            is_network_mount,
+            get_server_connection,
+            save_server_connection,
+            clear_server_connection,
             get_db_url,
-            init_patient_folder,
             save_document_file,
             delete_document_file,
             list_vault_files,
@@ -823,4 +959,89 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(all(test, any(target_os = "macos", target_os = "linux")))]
+mod network_mount_tests {
+    use super::find_fs_type_for_path;
+
+    const MACOS_MOUNT: &str = "\
+/dev/disk3s1s1 on / (apfs, sealed, local, read-only, journaled)
+devfs on /dev (devfs, local, nobrowse)
+/dev/disk3s6 on /System/Volumes/VM (apfs, local, noexec, journaled, noatime, nobrowse)
+/dev/disk3s2 on /System/Volumes/Data (apfs, local, journaled, nobrowse)
+map auto_home on /home (autofs, automounted, nobrowse)
+//drilon@clinic-server/DentVaultShare on /Volumes/DentVaultShare (smbfs, nodev, nosuid, mounted by drilon)
+server:/export/vault on /Volumes/nfsvault (nfs, nodev, nosuid, mounted by drilon)";
+
+    const LINUX_MOUNT: &str = "\
+/dev/sda1 on / type ext4 (rw,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev)
+//clinic-server/DentVaultShare on /mnt/dentvault type cifs (rw,relatime,vers=3.1.1)
+server:/export/vault on /mnt/nfsvault type nfs4 (rw,relatime)";
+
+    #[test]
+    fn macos_local_apfs_path_is_not_network() {
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/System/Volumes/Data/Users/drilon/Desktop/DentVaultFolder");
+        assert_eq!(fstype, Some("apfs"));
+    }
+
+    #[test]
+    fn macos_smb_share_is_detected() {
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/Volumes/DentVaultShare/dentvault.db");
+        assert_eq!(fstype, Some("smbfs"));
+    }
+
+    #[test]
+    fn macos_nfs_share_is_detected() {
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/Volumes/nfsvault");
+        assert_eq!(fstype, Some("nfs"));
+    }
+
+    #[test]
+    fn macos_root_mount_exact_match() {
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/");
+        assert_eq!(fstype, Some("apfs"));
+    }
+
+    #[test]
+    fn linux_local_ext4_path_is_not_network() {
+        let fstype = find_fs_type_for_path(LINUX_MOUNT, "/home/user/DentVaultFolder");
+        assert_eq!(fstype, Some("ext4"));
+    }
+
+    #[test]
+    fn linux_cifs_share_is_detected() {
+        let fstype = find_fs_type_for_path(LINUX_MOUNT, "/mnt/dentvault/dentvault.db");
+        assert_eq!(fstype, Some("cifs"));
+    }
+
+    #[test]
+    fn linux_nfs4_share_is_detected() {
+        let fstype = find_fs_type_for_path(LINUX_MOUNT, "/mnt/nfsvault/dentvault.db");
+        assert_eq!(fstype, Some("nfs4"));
+    }
+
+    #[test]
+    fn unclaimed_path_falls_back_to_root_mount() {
+        // In reality every absolute path is under the root mount unless a more specific
+        // mount claims it deeper — there's no such thing as a truly "unmounted" absolute
+        // path on a running system, so falling back to root's fstype is correct.
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/totally/unmounted/path");
+        assert_eq!(fstype, Some("apfs"));
+    }
+
+    #[test]
+    fn no_matching_mount_at_all_returns_none() {
+        let fstype = find_fs_type_for_path("devfs on /dev (devfs, local, nobrowse)", "/some/path");
+        assert_eq!(fstype, None);
+    }
+
+    #[test]
+    fn longest_prefix_wins_over_shorter_parent_mount() {
+        // /Volumes/DentVaultShare/sub must resolve to the smbfs mount, not accidentally
+        // fall through to a shorter unrelated prefix match.
+        let fstype = find_fs_type_for_path(MACOS_MOUNT, "/Volumes/DentVaultShare/sub/dir");
+        assert_eq!(fstype, Some("smbfs"));
+    }
 }

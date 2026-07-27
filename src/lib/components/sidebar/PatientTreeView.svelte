@@ -2,23 +2,33 @@
 	import { toLocalISODate } from '$lib/utils';
 	import { onMount, onDestroy } from 'svelte';
 	import { vault } from '$lib/stores/vault.svelte';
+	import { invalidations } from '$lib/stores/invalidations.svelte';
 	import { invoke } from '@tauri-apps/api/core';
 	import {
 		listVaultFiles, openDocumentFile, formatFileSize, type VaultFileInfo,
 		listDocTemplates, saveDocTemplate, deleteDocTemplate, pickFile,
 		generateDestFilename, type DocTemplateInfo,
 		saveDocumentFile, getMimeType,
+		listPatientFolders, type FolderNode,
 	} from '$lib/services/files';
 	import type { Patient } from '$lib/types';
 	import { i18n } from '$lib/i18n';
 	import { cephSelection } from '$lib/stores/cephSelection.svelte';
-	import { insertDocument, insertTimelineEntry, getDocuments } from '$lib/services/db';
+	import { insertDocument, insertTimelineEntry, getDocuments, deleteDocument, moveDocumentPath, isConnectedMode } from '$lib/services/db';
 	import { docCategories } from '$lib/stores/categories.svelte';
 	import AnalysisTypeMenu from '$lib/components/imaging/AnalysisTypeMenu.svelte';
 
 	let { patient }: { patient: Patient } = $props();
 
 	let files       = $state<VaultFileInfo[]>([]);
+	// Real on-disk folder structure (list_patient_folders — recursive, folders only, no
+	// file-presence requirement) — the source of truth for which category/subfolders the
+	// tree shows. Previously the tree hardcoded a placeholder node for every configured
+	// docCategory regardless of what actually existed on disk, so a folder the user
+	// deleted from !TEMPLATE (and which copy_template_to_patient correctly omits for new
+	// patients) still showed up in the sidebar — making template edits look like they had
+	// no effect. See buildPatientTree.
+	let folderTree  = $state<FolderNode[]>([]);
 	let isLoading   = $state(true);
 	let openFolders = $state<Record<string, boolean>>({});
 	let fileWatcherId: number | null = null;
@@ -66,6 +76,18 @@
 	// a union on it, since the file menu's shape is tied to a concrete VaultFileInfo and this
 	// one only ever needs a folder path + a "which label to show" kind. ──
 	let folderContextMenu = $state<{ kind: 'folder' | 'empty'; folderPath: string; x: number; y: number } | null>(null);
+
+	// ── New-folder name prompt — replaces `window.prompt()` ──────────────────
+	// Tauri's WKWebView (macOS) has no default UIDelegate for
+	// `runJavaScriptTextInputPanelWithPrompt`, so `window.prompt()` returns null
+	// instantly with no dialog shown at all — "New subfolder" silently did nothing.
+	// `confirm()`/`alert()` usually DO have a default WKWebView implementation, which is
+	// why this was the only `prompt()` call in the whole codebase. Replaced with an
+	// inline popover text input, matching how every other "type a name" interaction in
+	// this app already works (e.g. Settings' inline room-rename form).
+	let folderNamePrompt = $state<{ folderPath: string; x: number; y: number } | null>(null);
+	let folderNameInput = $state('');
+	let folderNamePromptEl = $state<HTMLDivElement | null>(null);
 
 	// ── Standard category folder names (language-aware) ────────────────
 	const standardFolders = $derived(
@@ -130,74 +152,88 @@
 		return root;
 	}
 
-	function buildPatientTree(fileList: VaultFileInfo[]): PatientFolderNode[] {
-		const catNodes = new Map<string, PatientFolderNode>();
+	/**
+	 * Builds the sidebar's folder tree from the REAL on-disk structure (`folderTree`, from
+	 * `list_patient_folders`) rather than a hardcoded docCategories placeholder list — a
+	 * folder shows up (even empty) exactly when it actually exists for this patient, so
+	 * deleting/renaming a folder in !TEMPLATE is correctly reflected for every new patient
+	 * from then on. `fileList` is only needed to attach files to their folder node and as a
+	 * defensive fallback (a file whose folder wasn't in this tick's disk scan still gets a
+	 * node, so it's never silently dropped from view).
+	 */
+	function buildPatientTree(fileList: VaultFileInfo[], diskFolders: FolderNode[]): PatientFolderNode[] {
 		const allNodes = new Map<string, PatientFolderNode>();
+		const topLevel: PatientFolderNode[] = [];
 
-		// Always include all standard category folders (even if empty)
-		for (const cat of standardFolders) {
-			const node: PatientFolderNode = {
-				name: cat, folderPath: cat,
-				absPath: vault.path ? `${vault.path}/${patientFolder}/${cat}` : '',
+		function makeNode(name: string, fullPath: string): PatientFolderNode {
+			return {
+				name, folderPath: fullPath,
+				absPath: vault.path ? `${vault.path}/${patientFolder}/${fullPath}` : '',
 				files: [], children: [],
 			};
-			catNodes.set(cat, node);
-			allNodes.set(cat, node);
 		}
 
-		// Also create nodes for non-standard categories found in files
+		function seedFromDisk(nodes: FolderNode[], parentPath: string, parentNode: PatientFolderNode | null) {
+			for (const fn of nodes) {
+				const fullPath = parentPath ? `${parentPath}/${fn.name}` : fn.name;
+				const node = makeNode(fn.name, fullPath);
+				allNodes.set(fullPath, node);
+				if (parentNode) parentNode.children.push(node); else topLevel.push(node);
+				seedFromDisk(fn.children, fullPath, node);
+			}
+		}
+		seedFromDisk(diskFolders, '', null);
+
+		// Defensive fallback: a file whose category folder wasn't in the disk scan (e.g. a
+		// save that landed between listPatientFolders and listVaultFiles calls) still gets
+		// a top-level node so the file isn't silently dropped from the tree.
 		for (const file of fileList) {
-			const cat = file.category_folder;
-			if (!catNodes.has(cat)) {
-				const node: PatientFolderNode = {
-					name: cat, folderPath: cat,
-					absPath: vault.path ? `${vault.path}/${patientFolder}/${cat}` : '',
-					files: [], children: [],
-				};
-				catNodes.set(cat, node);
-				allNodes.set(cat, node);
+			if (!allNodes.has(file.category_folder)) {
+				const node = makeNode(file.category_folder, file.category_folder);
+				allNodes.set(file.category_folder, node);
+				topLevel.push(node);
 			}
 		}
 
-		// Insert files and create intermediate sub-folder nodes
+		// Insert files, creating any intermediate sub-folder nodes not already seeded from disk
 		for (const file of fileList) {
 			const cat = file.category_folder;
 			const sub = file.path_in_category ?? '';
-
 			if (sub === '') {
 				allNodes.get(cat)!.files.push(file);
-			} else {
-				const parts = sub.split('/');
-				let parentPath = cat;
-				for (const part of parts) {
-					const fullPath = `${parentPath}/${part}`;
-					if (!allNodes.has(fullPath)) {
-						const node: PatientFolderNode = {
-							name: part, folderPath: fullPath,
-							absPath: vault.path ? `${vault.path}/${patientFolder}/${fullPath}` : '',
-							files: [], children: [],
-						};
-						allNodes.get(parentPath)!.children.push(node);
-						allNodes.set(fullPath, node);
-					}
-					parentPath = fullPath;
-				}
-				allNodes.get(`${cat}/${sub}`)!.files.push(file);
+				continue;
 			}
+			const parts = sub.split('/');
+			let parentPath = cat;
+			for (const part of parts) {
+				const fullPath = `${parentPath}/${part}`;
+				if (!allNodes.has(fullPath)) {
+					const node = makeNode(part, fullPath);
+					allNodes.get(parentPath)!.children.push(node);
+					allNodes.set(fullPath, node);
+				}
+				parentPath = fullPath;
+			}
+			allNodes.get(`${cat}/${sub}`)!.files.push(file);
 		}
 
+		// Order: configured standard categories first (familiar order) for whichever of
+		// them actually exist on disk, then any other real top-level folder — !TEMPLATE-
+		// driven custom ones — in disk-scan order (already alphabetical).
+		const standardSet = new Set(standardFolders);
 		const result: PatientFolderNode[] = [];
 		for (const cat of standardFolders) {
-			if (catNodes.has(cat)) result.push(catNodes.get(cat)!);
+			const node = topLevel.find(n => n.folderPath === cat);
+			if (node) result.push(node);
 		}
-		for (const [, node] of catNodes) {
-			if (!standardFolders.includes(node.folderPath)) result.push(node);
+		for (const node of topLevel) {
+			if (!standardSet.has(node.folderPath)) result.push(node);
 		}
 		return result;
 	}
 
 	const templateTree   = $derived(buildTemplateTree(docTemplates));
-	const patientFolders = $derived(buildPatientTree(files));
+	const patientFolders = $derived(buildPatientTree(files, folderTree));
 	const totalFiles     = $derived(files.length);
 
 	// ── Mount ───────────────────────────────────────────────────────────
@@ -248,14 +284,16 @@
 	}
 
 	async function refreshFiles() {
-		if (!vault.path || !patientFolder) return;
+		if (!patientFolder) return;
+		// Connected mode (ROADMAP_MULTI_COMPUTER.md Phase 1): listVaultFiles routes over HTTP
+		// via files-connection.ts when connected, so a station with no local vault.path can
+		// still list files. !Documents templates are NOT wired to the remote transport yet
+		// (deferred, along with upload/move/delete — see files-transport.ts) — fetched
+		// separately below so their absence never wipes out a successful file listing.
+		if (!vault.path && !(await isConnectedMode())) return;
 		try {
-			const [result, tpl] = await Promise.all([
-				listVaultFiles(vault.path, patientFolder),
-				listDocTemplates(vault.path),
-			]);
+			const result = await listVaultFiles(vault.path ?? '', patientFolder);
 			files = result;
-			docTemplates = tpl;
 			for (const cat of standardFolders) {
 				openFolders[cat] = result.some(f => f.category_folder === cat);
 			}
@@ -264,22 +302,42 @@
 		} catch {
 			files = [];
 		}
+		try {
+			folderTree = await listPatientFolders(vault.path ?? '', patientFolder);
+		} catch {
+			folderTree = [];
+		}
+		if (vault.path) {
+			try {
+				docTemplates = await listDocTemplates(vault.path);
+			} catch {
+				docTemplates = [];
+			}
+		} else {
+			docTemplates = [];
+		}
 	}
 
 	let watchInterval: ReturnType<typeof setInterval> | null = null;
+	let unsubscribeFiles: (() => void) | null = null;
 
 	onMount(async () => {
 		cephSelection.clear(); // stale selection from a previous patient
 		multiSelected = new Set();
 		multiSelectedTemplates = new Set();
 		selectedTemplate = null;
-		if (!vault.path || !patientFolder) { isLoading = false; return; }
+		if (!patientFolder) { isLoading = false; return; }
+		if (!vault.path && !(await isConnectedMode())) { isLoading = false; return; }
 
 		try {
 			await refreshFiles();
 
-			// Set up a polling mechanism to refresh when files change (auto-refresh on file add/delete)
-			watchInterval = setInterval(refreshFiles, 2000);
+			// Solo-mode feed: a timer emits into the shared invalidations bus at the same 2s
+			// cadence as before (auto-refresh on file add/delete). Connected mode (Phase 1)
+			// replaces this feed with a WebSocket handler — the subscribe below doesn't change.
+			const invalidationKey = { entity: 'files', patientFolder } as const;
+			watchInterval = setInterval(() => invalidations.emit(invalidationKey), 2000);
+			unsubscribeFiles = invalidations.subscribe(invalidationKey, refreshFiles);
 		} catch {
 			files = [];
 		} finally {
@@ -296,6 +354,7 @@
 		if (watchInterval !== null) {
 			clearInterval(watchInterval);
 		}
+		unsubscribeFiles?.();
 		if (fileWatcherId !== null) {
 			invoke('unwatch_folder', { id: fileWatcherId }).catch(() => {});
 		}
@@ -525,6 +584,14 @@
 	async function performFileMove(filesToMove: VaultFileInfo[], newFolder: string) {
 		if (!vault.path || !patientFolder || filesToMove.length === 0) return;
 		try {
+			// Reorganizing files must never touch the timeline — only add/delete does. Look
+			// up which of these are already tracked in `documents` so their row (and any
+			// timeline entry's embedded attachment path) follows them to the new folder;
+			// otherwise the next auto-track pass would see the file as "new" at its new path
+			// and log a spurious "document added" entry for what was only a move.
+			const existingDocs = patient.patient_id ? await getDocuments(patient.patient_id) : [];
+			const docsByRelPath = new Map(existingDocs.map(d => [d.rel_path, d]));
+
 			for (const f of filesToMove) {
 				await invoke('move_patient_file', {
 					vaultPath: vault.path,
@@ -532,6 +599,12 @@
 					srcPath: f.rel_path,
 					destFolder: newFolder,
 				});
+				const doc = docsByRelPath.get(f.rel_path);
+				if (doc) {
+					const newRelPath = newFolder ? `${patientFolder}/${newFolder}/${f.filename}` : `${patientFolder}/${f.filename}`;
+					const newAbsPath = `${vault.path}/${newRelPath}`;
+					await moveDocumentPath(doc.id, newRelPath, newAbsPath);
+				}
 			}
 			files = await listVaultFiles(vault.path, patientFolder);
 			openFolders[newFolder] = true;
@@ -577,6 +650,10 @@
 		document.addEventListener('click', closeContextMenu);
 	}
 
+	function escapeHtml(s: string): string {
+		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
 	async function deleteFile(file: VaultFileInfo) {
 		if (!vault.path || !patientFolder) return;
 		if (!confirm(`Delete "${file.filename}"?`)) return;
@@ -587,25 +664,68 @@
 				patientFolder,
 				filePath: file.rel_path,
 			});
+
+			// Mirror the "file added" entry auto-tracking already creates: clean up the
+			// tracked `documents` row (if any) so it doesn't linger pointing at a file that
+			// no longer exists, and log a "file removed" entry as the deletion counterpart.
+			if (patient.patient_id) {
+				const existingDocs = await getDocuments(patient.patient_id);
+				const doc = existingDocs.find(d => d.rel_path === file.rel_path);
+				if (doc) await deleteDocument(doc.id);
+
+				await insertTimelineEntry(patient.patient_id, {
+					entry_date: toLocalISODate(),
+					entry_type: 'document_removed',
+					title: file.filename,
+					description: `Deleted "${escapeHtml(file.filename)}" from ${escapeHtml(folderLabel(currentFolderPath(file)))}`,
+				});
+			}
+
 			files = await listVaultFiles(vault.path, patientFolder);
 		} catch (err) { console.error('[FileDelete] error:', err); }
 		closeContextMenu();
 	}
 
-	async function createNewFolder(parentFolder: string) {
-		const folderName = prompt('Folder name:');
-		if (!folderName || !vault.path || !patientFolder) return;
+	async function createNewFolder(parentFolder: string, folderName: string) {
+		if (!folderName.trim() || !vault.path || !patientFolder) return;
 
 		try {
 			await invoke('create_patient_subfolder', {
 				vaultPath: vault.path,
 				patientFolder,
 				parentRel: parentFolder,
-				folderName,
+				folderName: folderName.trim(),
 			});
 			files = await listVaultFiles(vault.path, patientFolder);
 			openFolders[parentFolder] = true;
 		} catch (err) { console.error('[CreateFolder] error:', err); }
+	}
+
+	function openFolderNamePrompt(folderPath: string, x: number, y: number) {
+		folderNameInput = '';
+		folderNamePrompt = { folderPath, x, y };
+		// Deferred registration — the click that opened this prompt is still bubbling to
+		// `document` at this point; an immediately-registered listener would see that same
+		// click and close the prompt instantly (same technique as AnalysisTypeMenu).
+		setTimeout(() => document.addEventListener('click', onOutsideFolderNameClick), 0);
+	}
+
+	function onOutsideFolderNameClick(e: MouseEvent) {
+		if (folderNamePromptEl && !folderNamePromptEl.contains(e.target as Node)) {
+			closeFolderNamePrompt();
+		}
+	}
+
+	function closeFolderNamePrompt() {
+		folderNamePrompt = null;
+		folderNameInput = '';
+		document.removeEventListener('click', onOutsideFolderNameClick);
+	}
+
+	async function submitFolderNamePrompt() {
+		if (!folderNamePrompt || !folderNameInput.trim()) return;
+		await createNewFolder(folderNamePrompt.folderPath, folderNameInput);
+		closeFolderNamePrompt();
 	}
 
 	// ── UI helpers ──────────────────────────────────────────────────────
@@ -834,17 +954,6 @@
 		<button
 			type="button"
 			onclick={() => {
-				selectFile(cm.file);
-				closeContextMenu();
-			}}
-			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
-		>
-			Select for Ceph
-		</button>
-		<div class="border-t border-border/50"></div>
-		<button
-			type="button"
-			onclick={() => {
 				deleteFile(cm.file);
 			}}
 			class="w-full px-3 py-1.5 text-left text-xs text-critical hover:bg-critical/10 transition-colors"
@@ -865,13 +974,54 @@
 		<button
 			type="button"
 			onclick={() => {
-				createNewFolder(fcm.folderPath);
+				const { folderPath, x, y } = fcm;
 				closeContextMenu();
+				openFolderNamePrompt(folderPath, x, y);
 			}}
 			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
 		>
 			{fcm.kind === 'folder' ? 'New subfolder' : 'New folder'}
 		</button>
+	</div>
+{/if}
+
+<!-- New-folder name input — replaces window.prompt() (see the state comment above) -->
+{#if folderNamePrompt}
+	{@const fnp = folderNamePrompt}
+	<div
+		bind:this={folderNamePromptEl}
+		style="position: fixed; left: {fnp.x}px; top: {fnp.y}px; z-index: 50;"
+		class="bg-popover border border-border rounded-md shadow-lg p-2 flex flex-col gap-2 min-w-[200px]"
+	>
+		<!-- svelte-ignore a11y_autofocus -->
+		<input
+			type="text"
+			autofocus
+			placeholder="Folder name"
+			bind:value={folderNameInput}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') { e.preventDefault(); submitFolderNamePrompt(); }
+				if (e.key === 'Escape') { e.preventDefault(); closeFolderNamePrompt(); }
+			}}
+			class="border border-input bg-background rounded px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring/50"
+		/>
+		<div class="flex gap-2 justify-end">
+			<button
+				type="button"
+				onclick={closeFolderNamePrompt}
+				class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-muted transition-colors"
+			>
+				Cancel
+			</button>
+			<button
+				type="button"
+				onclick={submitFolderNamePrompt}
+				disabled={!folderNameInput.trim()}
+				class="px-2 py-1 text-xs rounded bg-primary text-primary-foreground disabled:opacity-50 hover:opacity-90 transition-colors"
+			>
+				Create
+			</button>
+		</div>
 	</div>
 {/if}
 
@@ -1045,7 +1195,7 @@
 			<button
 				type="button"
 				title="Create subfolder"
-				onclick={() => createNewFolder(node.folderPath)}
+				onclick={(e) => openFolderNamePrompt(node.folderPath, e.clientX, e.clientY)}
 				class="shrink-0 opacity-0 group-hover:opacity-100 rounded p-0.5 text-sidebar-primary/60 hover:bg-sidebar-primary/10 hover:text-sidebar-primary transition-all"
 			>
 				<svg class="h-3.5 w-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1090,10 +1240,11 @@
 								if (multiSelectedTemplates.size > 0) multiSelectedTemplates = new Set();
 								if (selectedTemplate !== null) selectedTemplate = null;
 								const freshlySelected = selectFile(file);
-								// cephSelection.isImage reflects the file we just (maybe) selected —
-								// true only for plain images, never for .ceph — so no separate
-								// extension list is needed here.
-								analyzePopupFor = (!dragJustHappened && freshlySelected && cephSelection.isImage)
+								// cephSelection.isAnalyzable covers both plain images and saved .ceph
+								// files — selecting either pops the "Analyze as" menu so the user can
+								// confirm loading it into Cephalyzer (for .ceph, that's the only
+								// enabled item in the menu).
+								analyzePopupFor = (!dragJustHappened && freshlySelected && cephSelection.isAnalyzable)
 									? file.rel_path
 									: null;
 							}

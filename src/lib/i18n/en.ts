@@ -175,6 +175,7 @@ export const en: Translations = {
 			orthoRecords: 'Ortho Records',
 			plans: 'Treatment Plans',
 			parSteps: 'PAR Assessments',
+			documentRemoved: 'Removed Files',
 		},
 		entry: {
 			category: 'Category',
@@ -909,7 +910,6 @@ export const en: Translations = {
 			about: 'About DentVault',
 			rooms: 'Rooms & Chairs',
 			appointmentTypes: 'Appointment Types',
-			workingHours: 'Working Hours',
 			patientManagement: 'Patient Management',
 			schedule: 'Schedule',
 			clinical: 'Clinical',
@@ -1001,7 +1001,7 @@ export const en: Translations = {
 		},
 		entryTypes: {
 			title: 'Entry & Appointment Types',
-			description: 'One list controls both timeline entry categories and appointment types in the scheduler.',
+			description: 'One list controls both timeline entry categories and appointment types in the scheduler. Give each type a short 2-3 character code and an emoji icon — either one is enough to spot it at a glance on calendar blocks and timeline badges.',
 			add: 'Add Type',
 			labelPlaceholder: 'Label',
 			iconPlaceholder: 'Abbr.',
@@ -1132,6 +1132,8 @@ export const en: Translations = {
 			dmftToggleDesc: 'Shows D/M/F breakdown in the dental chart header.',
 		},
 		schedule: {
+			practiceHoursTitle: 'Practice Hours',
+			practiceHoursSubtitle: 'Clinic-wide default hours — controls the visible range in the day view. Individual staff members below can have different hours.',
 			workingHoursDesc: 'Practice opening hours — controls the visible range in the day view.',
 			roomsDesc: 'Treatment rooms and chairs for the scheduler.',
 			break: 'Break',
@@ -1139,9 +1141,10 @@ export const en: Translations = {
 			colorLabel: 'Color',
 			abbrPlaceholder: 'Abbr (e.g. S1)',
 			abbrShortPlaceholder: 'Abbr',
+			apptTypeShortPlaceholder: 'Code (e.g. RC)',
 			durationPlaceholder: 'Duration (min)',
 			iconLabel: 'Icon',
-			iconPlaceholder: 'e.g. 🦷',
+			iconPlaceholder: 'Emoji, e.g. 🦷',
 			active: 'Active',
 			inactive: 'Inactive',
 			deactivate: 'Deact.',
@@ -1171,6 +1174,8 @@ export const en: Translations = {
 		},
 		deleteConfirm: 'Delete this staff member?',
 		noStaff: 'No staff members yet',
+		membersLabel: 'Staff Members',
+		membersSubtitle: 'Individual hours here override the practice default above.',
 		workingHours: 'Working Hours',
 		editWorkingHours: 'Edit Working Hours',
 		saveWorkingHours: 'Save Working Hours',
@@ -1472,6 +1477,7 @@ export const en: Translations = {
 		vaultDesc: 'All patient records, documents, X-rays, and the database will be stored in a folder you choose on your computer. You can move or back up this folder at any time.',
 		vaultChoose: 'Choose Folder…',
 		vaultNone: 'No folder selected',
+		vaultNetworkMount: 'This folder is on a network drive (SMB/NFS/network share). DentVault cannot use a network-mounted vault — SQLite database corruption is a real risk on shared drives. Choose a folder on this computer\'s local disk instead.',
 		vaultHint: 'Tip: Choose a folder on a backed-up drive or cloud location.',
 		vaultStructureLabel: 'Your vault structure',
 		teamTitle: 'Your Clinic Team',
@@ -1673,16 +1679,30 @@ export const en: Translations = {
 			{ key: 'rotary',      label: 'Rotary'        },
 			{ key: 'reciprocal',  label: 'Reciproc'      },
 		],
+		// Predetermined set covering the appointment/entry types a general dental practice
+		// creates most often, ordered roughly by frequency. Each gets an emoji `icon` (shown
+		// on calendar blocks) AND a 2-3 char `short_name` (shown on timeline entry badges and
+		// as the calendar pill text) — either one alone is enough to identify the type at a
+		// glance, per the Settings hint text (settings.entryTypes.description). Every
+		// TreatmentCategory value (types.ts) is represented at least once. These only seed a
+		// brand-new vault (appointmentTypes.svelte.ts's load() only inserts when the table is
+		// empty) — existing vaults are never retroactively changed, and every field here stays
+		// fully user-editable/deletable afterward (Settings › Entry & Appointment Types).
 		appointmentTypes: [
-			{ name: 'Check-up',    short_name: 'Cu',  default_duration_min: 15, color: '#3b82f6', treatment_category: 'preventive'    },
-			{ name: 'Consultation',short_name: 'Co',  default_duration_min: 20, color: '#64748b', treatment_category: 'other'          },
-			{ name: 'Cleaning',    short_name: 'Cl',  default_duration_min: 45, color: '#10b981', treatment_category: 'preventive'    },
-			{ name: 'Filling',     short_name: 'Fi',  default_duration_min: 30, color: '#f59e0b', treatment_category: 'restorative'   },
-			{ name: 'Root Canal',  short_name: 'RC',  default_duration_min: 60, color: '#8b5cf6', treatment_category: 'endodontics'   },
-			{ name: 'Extraction',  short_name: 'Ex',  default_duration_min: 30, color: '#ef4444', treatment_category: 'oral_surgery'  },
-			{ name: 'Crown',       short_name: 'Cr',  default_duration_min: 45, color: '#f97316', treatment_category: 'prosthodontics'},
-			{ name: 'Ortho Check', short_name: 'Or',  default_duration_min: 15, color: '#06b6d4', treatment_category: 'orthodontics'  },
-			{ name: 'Emergency',   short_name: 'Em',  default_duration_min: 30, color: '#f43f5e', treatment_category: 'other'          },
+			{ name: 'Check-up',       short_name: 'Cu',  icon: '🦷', default_duration_min: 15, color: '#3b82f6', treatment_category: 'preventive'     },
+			{ name: 'Cleaning',       short_name: 'Cl',  icon: '🪥', default_duration_min: 45, color: '#10b981', treatment_category: 'preventive'     },
+			{ name: 'Consultation',   short_name: 'Co',  icon: '💬', default_duration_min: 20, color: '#64748b', treatment_category: 'other'           },
+			{ name: 'X-ray',          short_name: 'Xr',  icon: '🩻', default_duration_min: 15, color: '#6366f1', treatment_category: 'imaging'         },
+			{ name: 'Filling',        short_name: 'Fi',  icon: '🔧', default_duration_min: 30, color: '#f59e0b', treatment_category: 'restorative'     },
+			{ name: 'Root Canal',     short_name: 'RC',  icon: '🩹', default_duration_min: 60, color: '#8b5cf6', treatment_category: 'endodontics'     },
+			{ name: 'Extraction',     short_name: 'Ex',  icon: '⛏️', default_duration_min: 30, color: '#ef4444', treatment_category: 'oral_surgery'    },
+			{ name: 'Crown',          short_name: 'Cr',  icon: '👑', default_duration_min: 45, color: '#f97316', treatment_category: 'prosthodontics'  },
+			{ name: 'Denture',        short_name: 'De',  icon: '😬', default_duration_min: 60, color: '#ec4899', treatment_category: 'prosthodontics'  },
+			{ name: 'Implant',        short_name: 'Im',  icon: '🔩', default_duration_min: 90, color: '#0ea5e9', treatment_category: 'oral_surgery'    },
+			{ name: 'Perio Therapy',  short_name: 'Pe',  icon: '🩸', default_duration_min: 45, color: '#84cc16', treatment_category: 'periodontics'    },
+			{ name: 'Ortho Check',    short_name: 'Or',  icon: '📐', default_duration_min: 15, color: '#06b6d4', treatment_category: 'orthodontics'    },
+			{ name: 'Emergency',      short_name: 'Em',  icon: '🚨', default_duration_min: 30, color: '#f43f5e', treatment_category: 'other'           },
+			{ name: 'Follow-up',      short_name: 'Fu',  icon: '📋', default_duration_min: 15, color: '#94a3b8', treatment_category: 'other'           },
 		],
 		workingDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 		dayAbbrevs: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -1872,6 +1892,7 @@ export const en: Translations = {
 		selectHint: 'Select an X-ray image in the sidebar file tree first',
 		title: 'Cephalometric Analysis',
 		loadFailed: 'Failed to load the file into Cephalyzer',
+		openButton: 'Open in Cephalyzer',
 	},
 	xrayReport: {
 		button: 'X-ray Report',

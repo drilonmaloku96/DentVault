@@ -1,0 +1,645 @@
+{
+	"latestVersion": 69,
+	"statements": [
+		{
+			"version": 1,
+			"sql": "CREATE TABLE IF NOT EXISTS patients (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT UNIQUE NOT NULL,\n\t\t\tfirstname TEXT NOT NULL,\n\t\t\tlastname TEXT NOT NULL,\n\t\t\tdob TEXT DEFAULT '',\n\t\t\tgender TEXT DEFAULT '',\n\t\t\tphone TEXT DEFAULT '',\n\t\t\temail TEXT DEFAULT '',\n\t\t\tinsurance_provider TEXT DEFAULT '',\n\t\t\tinsurance_id TEXT DEFAULT '',\n\t\t\tallergies TEXT DEFAULT '[]',\n\t\t\tmedications TEXT DEFAULT '[]',\n\t\t\trisk_flags TEXT DEFAULT '[]',\n\t\t\tstatus TEXT DEFAULT 'active',\n\t\t\tnext_appointment TEXT DEFAULT '',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tupdated_at TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 2,
+			"sql": "CREATE TABLE IF NOT EXISTS timeline_entries (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\tentry_date TEXT NOT NULL,\n\t\t\tentry_type TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL,\n\t\t\tprovider TEXT DEFAULT '',\n\t\t\ttooth_numbers TEXT DEFAULT '',\n\t\t\tdescription TEXT DEFAULT '',\n\t\t\tdiagnosis_codes TEXT DEFAULT '[]',\n\t\t\tcpt_codes TEXT DEFAULT '[]',\n\t\t\tattachments TEXT DEFAULT '[]',\n\t\t\ttreatment_category TEXT DEFAULT '',\n\t\t\ttreatment_outcome TEXT DEFAULT '',\n\t\t\trelated_entry_id INTEGER,\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tupdated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 3,
+			"sql": "CREATE TABLE IF NOT EXISTS treatment_plans (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tplan_id TEXT UNIQUE NOT NULL,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL,\n\t\t\tdescription TEXT DEFAULT '',\n\t\t\tstatus TEXT DEFAULT 'proposed',\n\t\t\ttotal_estimated_cost REAL DEFAULT 0,\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tupdated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 3,
+			"sql": "CREATE TABLE IF NOT EXISTS treatment_plan_items (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tplan_id TEXT NOT NULL,\n\t\t\tsequence_order INTEGER NOT NULL,\n\t\t\tprocedure_code TEXT DEFAULT '',\n\t\t\tdescription TEXT NOT NULL,\n\t\t\ttooth_numbers TEXT DEFAULT '',\n\t\t\testimated_cost REAL DEFAULT 0,\n\t\t\tstatus TEXT DEFAULT 'pending',\n\t\t\tcompleted_date TEXT DEFAULT '',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\ttreatment_category TEXT DEFAULT '',\n\t\t\tFOREIGN KEY (plan_id) REFERENCES treatment_plans(plan_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 4,
+			"sql": "CREATE TABLE IF NOT EXISTS ortho_classifications (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL UNIQUE,\n\t\t\tpre_angle_class TEXT DEFAULT '',\n\t\t\tpost_angle_class TEXT DEFAULT '',\n\t\t\tpre_molar_relationship TEXT DEFAULT '',\n\t\t\tpost_molar_relationship TEXT DEFAULT '',\n\t\t\tpre_overjet_mm REAL DEFAULT 0,\n\t\t\tpost_overjet_mm REAL DEFAULT 0,\n\t\t\tpre_overbite_mm REAL DEFAULT 0,\n\t\t\tpost_overbite_mm REAL DEFAULT 0,\n\t\t\tpre_crowding TEXT DEFAULT '',\n\t\t\tpost_crowding TEXT DEFAULT '',\n\t\t\tpre_crossbite TEXT DEFAULT '',\n\t\t\tpost_crossbite TEXT DEFAULT '',\n\t\t\tpre_open_bite TEXT DEFAULT '',\n\t\t\tpost_open_bite TEXT DEFAULT '',\n\t\t\tpre_midline_deviation_mm REAL DEFAULT 0,\n\t\t\tpost_midline_deviation_mm REAL DEFAULT 0,\n\t\t\ttreatment_type TEXT DEFAULT '',\n\t\t\textraction_pattern TEXT DEFAULT '',\n\t\t\ttreatment_start_date TEXT DEFAULT '',\n\t\t\ttreatment_end_date TEXT DEFAULT '',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 4,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_classifications (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL UNIQUE,\n\t\t\tperio_status TEXT DEFAULT '',\n\t\t\tcaries_risk TEXT DEFAULT '',\n\t\t\tperio_risk TEXT DEFAULT '',\n\t\t\tspecial_conditions TEXT DEFAULT '[]',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 5,
+			"sql": "CREATE TABLE IF NOT EXISTS dental_chart (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\ttooth_number INTEGER NOT NULL,\n\t\t\tcondition TEXT DEFAULT 'healthy',\n\t\t\tsurfaces TEXT DEFAULT '{}',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tlast_examined TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL,\n\t\t\tUNIQUE(patient_id, tooth_number),\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 5,
+			"sql": "CREATE TABLE IF NOT EXISTS clinical_exams (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\texam_date TEXT NOT NULL,\n\t\t\texam_type TEXT DEFAULT 'full',\n\t\t\texaminer TEXT DEFAULT '',\n\t\t\tchief_complaint TEXT DEFAULT '',\n\t\t\tfindings TEXT DEFAULT '',\n\t\t\tprobing_data TEXT DEFAULT '{}',\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 6,
+			"sql": "CREATE TABLE IF NOT EXISTS documents (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\tfilename TEXT NOT NULL,\n\t\t\toriginal_name TEXT NOT NULL,\n\t\t\tcategory TEXT DEFAULT 'other',\n\t\t\tmime_type TEXT DEFAULT '',\n\t\t\tfile_size INTEGER DEFAULT 0,\n\t\t\tabs_path TEXT NOT NULL,\n\t\t\tnotes TEXT DEFAULT '',\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 7,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN document_id INTEGER"
+		},
+		{
+			"version": 8,
+			"sql": "CREATE TABLE IF NOT EXISTS settings (\n\t\t\tkey TEXT PRIMARY KEY,\n\t\t\tvalue TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 9,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_note_entries (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL,\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 9,
+			"sql": "CREATE TABLE IF NOT EXISTS medical_entries (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL,\n\t\t\tentry_type TEXT NOT NULL DEFAULT 'note',\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 9,
+			"sql": "CREATE TABLE IF NOT EXISTS acute_problems (\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL,\n\t\t\tresolved INTEGER NOT NULL DEFAULT 0,\n\t\t\tcreated_at TEXT NOT NULL,\n\t\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n\t\t)"
+		},
+		{
+			"version": 9,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN plan_id TEXT DEFAULT ''"
+		},
+		{
+			"version": 9,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN chart_data TEXT DEFAULT ''"
+		},
+		{
+			"version": 9,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN is_locked INTEGER DEFAULT 0"
+		},
+		{
+			"version": 10,
+			"sql": "CREATE TABLE IF NOT EXISTS doctors (\n\t\t\tid        INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tname      TEXT NOT NULL,\n\t\t\tspecialty TEXT DEFAULT '',\n\t\t\tcolor     TEXT DEFAULT '#6366f1',\n\t\t\tcreated_at TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 10,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN doctor_id INTEGER DEFAULT NULL"
+		},
+		{
+			"version": 11,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_misc_notes (\n\t\t\tpatient_id TEXT PRIMARY KEY,\n\t\t\tcontent    TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 12,
+			"sql": "ALTER TABLE doctors ADD COLUMN role TEXT DEFAULT 'doctor'"
+		},
+		{
+			"version": 13,
+			"sql": "ALTER TABLE documents ADD COLUMN rel_path TEXT DEFAULT ''"
+		},
+		{
+			"version": 14,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN bridge_group_id TEXT DEFAULT NULL"
+		},
+		{
+			"version": 14,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN bridge_role TEXT DEFAULT NULL"
+		},
+		{
+			"version": 15,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN abutment_type TEXT DEFAULT NULL"
+		},
+		{
+			"version": 16,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN prosthesis_type TEXT DEFAULT NULL"
+		},
+		{
+			"version": 17,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_acute_text (\n\t\t\tpatient_id TEXT PRIMARY KEY,\n\t\t\tcontent    TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 18,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_medical_text (\n\t\t\tpatient_id TEXT PRIMARY KEY,\n\t\t\tcontent    TEXT DEFAULT '',\n\t\t\tupdated_at TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 19,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_acute_tags (\n\t\t\tid         INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\ttag        TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 20,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_medical_tags (\n\t\t\tid         INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tpatient_id TEXT NOT NULL,\n\t\t\ttag        TEXT NOT NULL\n\t\t)"
+		},
+		{
+			"version": 21,
+			"sql": "ALTER TABLE doctors ADD COLUMN show_in_doc_bar INTEGER DEFAULT 1"
+		},
+		{
+			"version": 22,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN colleague_ids TEXT DEFAULT ''"
+		},
+		{
+			"version": 23,
+			"sql": "CREATE TABLE IF NOT EXISTS entry_teeth (entry_id INTEGER NOT NULL, tooth_number INTEGER NOT NULL, PRIMARY KEY (entry_id, tooth_number), FOREIGN KEY (entry_id) REFERENCES timeline_entries(id) ON DELETE CASCADE)"
+		},
+		{
+			"version": 24,
+			"sql": "ALTER TABLE treatment_plan_items ADD COLUMN timeline_entry_id INTEGER REFERENCES timeline_entries(id) ON DELETE SET NULL"
+		},
+		{
+			"version": 25,
+			"sql": "CREATE TABLE IF NOT EXISTS complications (id INTEGER PRIMARY KEY AUTOINCREMENT, timeline_entry_id INTEGER NOT NULL, patient_id TEXT NOT NULL, complication_type TEXT NOT NULL, description TEXT DEFAULT '', severity TEXT DEFAULT 'mild', date_reported TEXT NOT NULL, date_resolved TEXT DEFAULT '', resolved INTEGER DEFAULT 0, created_at TEXT NOT NULL, FOREIGN KEY (timeline_entry_id) REFERENCES timeline_entries(id) ON DELETE CASCADE)"
+		},
+		{
+			"version": 26,
+			"sql": "CREATE TABLE IF NOT EXISTS dental_chart_history (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id TEXT NOT NULL, tooth_number INTEGER NOT NULL, condition TEXT NOT NULL, surfaces TEXT DEFAULT '{}', snapshot_entry_id INTEGER, recorded_at TEXT NOT NULL, FOREIGN KEY (snapshot_entry_id) REFERENCES timeline_entries(id) ON DELETE SET NULL)"
+		},
+		{
+			"version": 26,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_chart_history_patient_tooth ON dental_chart_history(patient_id, tooth_number)"
+		},
+		{
+			"version": 27,
+			"sql": "CREATE TABLE IF NOT EXISTS probing_records (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id TEXT NOT NULL, exam_date TEXT NOT NULL, examiner TEXT DEFAULT '', notes TEXT DEFAULT '', created_at TEXT NOT NULL, FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE)"
+		},
+		{
+			"version": 27,
+			"sql": "CREATE TABLE IF NOT EXISTS probing_measurements (id INTEGER PRIMARY KEY AUTOINCREMENT, record_id INTEGER NOT NULL, tooth_number INTEGER NOT NULL, site TEXT NOT NULL, pocket_depth INTEGER, bleeding_on_probing INTEGER DEFAULT 0, FOREIGN KEY (record_id) REFERENCES probing_records(id) ON DELETE CASCADE, UNIQUE(record_id, tooth_number, site))"
+		},
+		{
+			"version": 28,
+			"sql": "ALTER TABLE patients ADD COLUMN referral_source TEXT DEFAULT ''"
+		},
+		{
+			"version": 28,
+			"sql": "ALTER TABLE patients ADD COLUMN smoking_status TEXT DEFAULT ''"
+		},
+		{
+			"version": 28,
+			"sql": "ALTER TABLE patients ADD COLUMN occupation TEXT DEFAULT ''"
+		},
+		{
+			"version": 29,
+			"sql": "CREATE TABLE IF NOT EXISTS patient_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_id TEXT NOT NULL, condition_key TEXT NOT NULL, start_date TEXT DEFAULT '', end_date TEXT DEFAULT '', is_active INTEGER DEFAULT 1, notes TEXT DEFAULT '', created_at TEXT NOT NULL)"
+		},
+		{
+			"version": 29,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_patient_conditions_patient ON patient_conditions(patient_id, is_active)"
+		},
+		{
+			"version": 30,
+			"sql": "ALTER TABLE probing_measurements ADD COLUMN recession INTEGER DEFAULT NULL"
+		},
+		{
+			"version": 30,
+			"sql": "ALTER TABLE probing_measurements ADD COLUMN plaque INTEGER DEFAULT 0"
+		},
+		{
+			"version": 30,
+			"sql": "CREATE TABLE IF NOT EXISTS probing_tooth_data (id INTEGER PRIMARY KEY AUTOINCREMENT, record_id INTEGER NOT NULL, tooth_number INTEGER NOT NULL, mobility INTEGER DEFAULT NULL, furcation INTEGER DEFAULT NULL, furcation_sites TEXT DEFAULT '', notes TEXT DEFAULT '', FOREIGN KEY (record_id) REFERENCES probing_records(id) ON DELETE CASCADE, UNIQUE(record_id, tooth_number))"
+		},
+		{
+			"version": 30,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_probing_tooth_data_record ON probing_tooth_data(record_id, tooth_number)"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN address TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN city TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN postal_code TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN country TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN emergency_contact_name TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN emergency_contact_phone TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN emergency_contact_relation TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN blood_group TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN primary_physician TEXT DEFAULT ''"
+		},
+		{
+			"version": 31,
+			"sql": "ALTER TABLE patients ADD COLUMN marital_status TEXT DEFAULT ''"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE TABLE IF NOT EXISTS appointment_rooms (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tname TEXT NOT NULL,\n\t\t\tshort_name TEXT NOT NULL DEFAULT '',\n\t\t\tcolor TEXT NOT NULL DEFAULT '#6366f1',\n\t\t\tsort_order INTEGER NOT NULL DEFAULT 0,\n\t\t\tis_active INTEGER NOT NULL DEFAULT 1,\n\t\t\tcreated_at TEXT NOT NULL DEFAULT (datetime('now'))\n\t\t)"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE TABLE IF NOT EXISTS appointment_types (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tname TEXT NOT NULL,\n\t\t\tshort_name TEXT NOT NULL DEFAULT '',\n\t\t\tdefault_duration_min INTEGER NOT NULL DEFAULT 30,\n\t\t\tcolor TEXT NOT NULL DEFAULT '#6366f1',\n\t\t\ttreatment_category TEXT NOT NULL DEFAULT 'other',\n\t\t\tsort_order INTEGER NOT NULL DEFAULT 0,\n\t\t\tis_active INTEGER NOT NULL DEFAULT 1,\n\t\t\tcreated_at TEXT NOT NULL DEFAULT (datetime('now'))\n\t\t)"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE TABLE IF NOT EXISTS appointments (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tpatient_id TEXT NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,\n\t\t\tdoctor_id TEXT REFERENCES doctors(id) ON DELETE SET NULL,\n\t\t\troom_id TEXT NOT NULL REFERENCES appointment_rooms(id) ON DELETE RESTRICT,\n\t\t\ttype_id TEXT REFERENCES appointment_types(id) ON DELETE SET NULL,\n\t\t\tstart_time TEXT NOT NULL,\n\t\t\tend_time TEXT NOT NULL,\n\t\t\tduration_min INTEGER NOT NULL DEFAULT 30,\n\t\t\ttitle TEXT,\n\t\t\tnotes TEXT,\n\t\t\tstatus TEXT NOT NULL DEFAULT 'scheduled',\n\t\t\ttimeline_entry_id TEXT REFERENCES timeline_entries(id) ON DELETE SET NULL,\n\t\t\tcreated_at TEXT NOT NULL DEFAULT (datetime('now')),\n\t\t\tupdated_at TEXT NOT NULL DEFAULT (datetime('now'))\n\t\t)"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_appointments_start_time ON appointments(start_time)"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_appointments_patient_id ON appointments(patient_id)"
+		},
+		{
+			"version": 32,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_appointments_room_start ON appointments(room_id, start_time)"
+		},
+		{
+			"version": 33,
+			"sql": "CREATE TABLE IF NOT EXISTS schedule_blocks (\n    id TEXT PRIMARY KEY,\n    room_id TEXT NOT NULL REFERENCES appointment_rooms(id) ON DELETE CASCADE,\n    doctor_id TEXT REFERENCES doctors(id) ON DELETE SET NULL,\n    title TEXT NOT NULL,\n    start_time TEXT NOT NULL,\n    end_time TEXT NOT NULL,\n    color TEXT NOT NULL DEFAULT '#94a3b8',\n    notes TEXT,\n    created_at TEXT NOT NULL DEFAULT (datetime('now')),\n    updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n  );\n  CREATE INDEX IF NOT EXISTS idx_schedule_blocks_start ON schedule_blocks(start_time);"
+		},
+		{
+			"version": 34,
+			"sql": "CREATE TABLE IF NOT EXISTS staff_blockouts (\n    id TEXT PRIMARY KEY,\n    doctor_id TEXT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,\n    start_date TEXT NOT NULL,\n    end_date TEXT NOT NULL,\n    start_time TEXT,\n    end_time TEXT,\n    is_all_day INTEGER NOT NULL DEFAULT 1,\n    reason TEXT NOT NULL DEFAULT 'other',\n    notes TEXT,\n    color TEXT NOT NULL DEFAULT '#f59e0b',\n    created_at TEXT NOT NULL DEFAULT (datetime('now'))\n  );\n  CREATE INDEX IF NOT EXISTS idx_staff_blockouts_date ON staff_blockouts(start_date, end_date);"
+		},
+		{
+			"version": 35,
+			"sql": "CREATE TABLE IF NOT EXISTS doctor_working_hours (\n    id TEXT PRIMARY KEY,\n    doctor_id TEXT NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,\n    day_of_week INTEGER NOT NULL,\n    start_time TEXT NOT NULL DEFAULT '08:00',\n    end_time TEXT NOT NULL DEFAULT '18:00',\n    break_start TEXT,\n    break_end TEXT,\n    is_active INTEGER NOT NULL DEFAULT 1,\n    created_at TEXT NOT NULL DEFAULT (datetime('now')),\n    UNIQUE(doctor_id, day_of_week)\n  )"
+		},
+		{
+			"version": 36,
+			"sql": "ALTER TABLE appointments ADD COLUMN cancelled_at TEXT"
+		},
+		{
+			"version": 36,
+			"sql": "ALTER TABLE appointments ADD COLUMN no_show_recorded_at TEXT"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN exam_date TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN pre_canine_class TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN post_canine_class TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN pre_crowding_upper_mm REAL DEFAULT 0"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN post_crowding_upper_mm REAL DEFAULT 0"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN pre_crowding_lower_mm REAL DEFAULT 0"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN post_crowding_lower_mm REAL DEFAULT 0"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN facial_profile TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN lip_competence TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN nasal_breathing TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN oral_habits TEXT DEFAULT '[]'"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN cvm_stage INTEGER DEFAULT 0"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN growth_potential TEXT DEFAULT ''"
+		},
+		{
+			"version": 37,
+			"sql": "ALTER TABLE ortho_classifications ADD COLUMN retention_protocol TEXT DEFAULT ''"
+		},
+		{
+			"version": 38,
+			"sql": "CREATE TABLE IF NOT EXISTS kig_findings (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    patient_id TEXT NOT NULL,\n    kig_group TEXT NOT NULL,\n    kig_level INTEGER NOT NULL DEFAULT 1,\n    measured_value REAL,\n    notes TEXT NOT NULL DEFAULT '',\n    created_at TEXT NOT NULL DEFAULT (datetime('now')),\n    UNIQUE(patient_id, kig_group)\n  );\n  CREATE INDEX IF NOT EXISTS idx_kig_findings_patient ON kig_findings(patient_id);"
+		},
+		{
+			"version": 39,
+			"sql": "CREATE TABLE IF NOT EXISTS ortho_assessments (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    patient_id TEXT NOT NULL,\n    exam_date TEXT NOT NULL,\n    doctor_id INTEGER,\n    findings TEXT NOT NULL DEFAULT '[]',\n    notes TEXT NOT NULL DEFAULT '',\n    created_at TEXT NOT NULL DEFAULT (datetime('now')),\n    FOREIGN KEY (patient_id) REFERENCES patients(id),\n    FOREIGN KEY (doctor_id) REFERENCES doctors(id)\n  );\n  CREATE INDEX IF NOT EXISTS idx_ortho_assessments_patient ON ortho_assessments(patient_id);"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN dentition_stage TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN treatment_phase TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN angle_class TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN cvm_stage INTEGER NOT NULL DEFAULT 0"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN facial_profile TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 40,
+			"sql": "ALTER TABLE ortho_assessments ADD COLUMN treatment_recommendation TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 41,
+			"sql": "ALTER TABLE ortho_assessments RENAME TO ortho_assessments_old"
+		},
+		{
+			"version": 41,
+			"sql": "CREATE TABLE ortho_assessments (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  patient_id TEXT NOT NULL,\n  exam_date TEXT NOT NULL,\n  doctor_id INTEGER,\n  findings TEXT NOT NULL DEFAULT '[]',\n  notes TEXT NOT NULL DEFAULT '',\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  dentition_stage TEXT NOT NULL DEFAULT '',\n  treatment_phase TEXT NOT NULL DEFAULT '',\n  angle_class TEXT NOT NULL DEFAULT '',\n  cvm_stage INTEGER NOT NULL DEFAULT 0,\n  facial_profile TEXT NOT NULL DEFAULT '',\n  treatment_recommendation TEXT NOT NULL DEFAULT '',\n  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,\n  FOREIGN KEY (doctor_id) REFERENCES doctors(id)\n)"
+		},
+		{
+			"version": 41,
+			"sql": "INSERT INTO ortho_assessments SELECT * FROM ortho_assessments_old"
+		},
+		{
+			"version": 41,
+			"sql": "DROP TABLE ortho_assessments_old"
+		},
+		{
+			"version": 41,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_ortho_assessments_patient ON ortho_assessments(patient_id)"
+		},
+		{
+			"version": 42,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN root_data TEXT DEFAULT '{}'"
+		},
+		{
+			"version": 43,
+			"sql": "CREATE TABLE IF NOT EXISTS endo_records (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  patient_id TEXT NOT NULL,\n  tooth_number INTEGER NOT NULL,\n  treatment_date TEXT NOT NULL,\n  notes TEXT DEFAULT '',\n  created_at TEXT NOT NULL,\n  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n)"
+		},
+		{
+			"version": 43,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_endo_patient_tooth ON endo_records(patient_id, tooth_number)"
+		},
+		{
+			"version": 44,
+			"sql": "CREATE TABLE IF NOT EXISTS endo_canals (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  record_id INTEGER NOT NULL,\n  canal_name TEXT NOT NULL,\n  instrument TEXT DEFAULT '',\n  iso_size INTEGER,\n  length_xray REAL,\n  length_preparation REAL,\n  length_electronic REAL,\n  reference_point TEXT DEFAULT '',\n  definitive_length REAL,\n  FOREIGN KEY (record_id) REFERENCES endo_records(id) ON DELETE CASCADE\n)"
+		},
+		{
+			"version": 45,
+			"sql": "CREATE TABLE IF NOT EXISTS tooth_notes (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  patient_id TEXT NOT NULL,\n  tooth_number INTEGER NOT NULL,\n  text TEXT NOT NULL,\n  reminder_date TEXT,\n  created_at TEXT NOT NULL,\n  updated_at TEXT NOT NULL,\n  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE\n)"
+		},
+		{
+			"version": 45,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_tooth_notes_patient_tooth ON tooth_notes(patient_id, tooth_number)"
+		},
+		{
+			"version": 46,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN migration TEXT DEFAULT ''"
+		},
+		{
+			"version": 47,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN tipping TEXT DEFAULT ''"
+		},
+		{
+			"version": 48,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN rotation TEXT DEFAULT ''"
+		},
+		{
+			"version": 49,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN foreign_work INTEGER DEFAULT 0"
+		},
+		{
+			"version": 50,
+			"sql": "ALTER TABLE treatment_plans ADD COLUMN plan_chart_data TEXT DEFAULT '{}'"
+		},
+		{
+			"version": 51,
+			"sql": "ALTER TABLE treatment_plan_items ADD COLUMN tooth_number_int INTEGER"
+		},
+		{
+			"version": 52,
+			"sql": "ALTER TABLE treatment_plan_items ADD COLUMN procedure_type TEXT DEFAULT ''"
+		},
+		{
+			"version": 53,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN shade TEXT DEFAULT NULL"
+		},
+		{
+			"version": 54,
+			"sql": "ALTER TABLE patients ADD COLUMN recall_due TEXT DEFAULT NULL"
+		},
+		{
+			"version": 55,
+			"sql": "CREATE TABLE IF NOT EXISTS par_cases (\n\t\tid          INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tpatient_id  TEXT    NOT NULL,\n\t\tplan_type   TEXT    NOT NULL DEFAULT 'kasse',\n\t\tstatus      TEXT    NOT NULL DEFAULT 'active',\n\t\tgrade       TEXT    DEFAULT NULL,\n\t\tsgb22       INTEGER DEFAULT 0,\n\t\tis_transfer INTEGER DEFAULT 0,\n\t\ttransfer_from TEXT  DEFAULT '',\n\t\ttransfer_step TEXT  DEFAULT NULL,\n\t\ttransfer_upt  INTEGER DEFAULT NULL,\n\t\tend_date    TEXT    DEFAULT NULL,\n\t\tdoctor_id   INTEGER DEFAULT NULL,\n\t\tcreated_at  TEXT    NOT NULL,\n\t\tupdated_at  TEXT    NOT NULL,\n\t\tFOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,\n\t\tFOREIGN KEY (doctor_id)  REFERENCES doctors(id)\n\t)"
+		},
+		{
+			"version": 55,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_par_cases_patient ON par_cases(patient_id)"
+		},
+		{
+			"version": 56,
+			"sql": "CREATE TABLE IF NOT EXISTS par_assessments (\n\t\tid            INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcase_id       INTEGER NOT NULL,\n\t\ttype          TEXT    NOT NULL,\n\t\tsequence      INTEGER DEFAULT 1,\n\t\texam_date     TEXT    NOT NULL,\n\t\tdoctor_id     INTEGER DEFAULT NULL,\n\t\tstart_date    TEXT    DEFAULT NULL,\n\t\tend_date      TEXT    DEFAULT NULL,\n\t\tapproval_date TEXT    DEFAULT NULL,\n\t\tis_referral   INTEGER DEFAULT 0,\n\t\tnotes         TEXT    DEFAULT '',\n\t\tlocked        INTEGER DEFAULT 0,\n\t\tcreated_at    TEXT    NOT NULL,\n\t\tupdated_at    TEXT    NOT NULL,\n\t\tFOREIGN KEY (case_id)   REFERENCES par_cases(id)   ON DELETE CASCADE,\n\t\tFOREIGN KEY (doctor_id) REFERENCES doctors(id)\n\t)"
+		},
+		{
+			"version": 56,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_par_assessments_case ON par_assessments(case_id)"
+		},
+		{
+			"version": 57,
+			"sql": "CREATE TABLE IF NOT EXISTS par_measurements (\n\t\tid             INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tassessment_id  INTEGER NOT NULL,\n\t\ttooth          INTEGER NOT NULL,\n\t\tsite           TEXT    NOT NULL,\n\t\tpocket         INTEGER,\n\t\trecession      INTEGER,\n\t\tbop            INTEGER DEFAULT 0,\n\t\tplaque         INTEGER DEFAULT 0,\n\t\tFOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE,\n\t\tUNIQUE(assessment_id, tooth, site)\n\t)"
+		},
+		{
+			"version": 57,
+			"sql": "CREATE TABLE IF NOT EXISTS par_tooth_data (\n\t\tid             INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tassessment_id  INTEGER NOT NULL,\n\t\ttooth          INTEGER NOT NULL,\n\t\tmobility       INTEGER DEFAULT NULL,\n\t\tfurcation_b    INTEGER DEFAULT NULL,\n\t\tfurcation_m    INTEGER DEFAULT NULL,\n\t\tfurcation_d    INTEGER DEFAULT NULL,\n\t\tvitality       INTEGER DEFAULT NULL,\n\t\tait_planned    INTEGER DEFAULT 0,\n\t\tcpt_planned    INTEGER DEFAULT 0,\n\t\tstatus         TEXT    DEFAULT NULL,\n\t\tFOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE,\n\t\tUNIQUE(assessment_id, tooth)\n\t)"
+		},
+		{
+			"version": 57,
+			"sql": "CREATE TABLE IF NOT EXISTS par_bone_levels (\n\t\tid             INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tassessment_id  INTEGER NOT NULL,\n\t\tjaw            TEXT    NOT NULL,\n\t\tpoints_json    TEXT    NOT NULL DEFAULT '[]',\n\t\tUNIQUE(assessment_id, jaw),\n\t\tFOREIGN KEY (assessment_id) REFERENCES par_assessments(id) ON DELETE CASCADE\n\t)"
+		},
+		{
+			"version": 57,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_par_measurements_ass ON par_measurements(assessment_id, tooth)"
+		},
+		{
+			"version": 57,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_par_tooth_data_ass ON par_tooth_data(assessment_id, tooth)"
+		},
+		{
+			"version": 58,
+			"sql": "CREATE TABLE IF NOT EXISTS par_anamnesis (\n\t\tid               INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcase_id          INTEGER NOT NULL UNIQUE,\n\t\tdiabetes         INTEGER DEFAULT 0,\n\t\thba1c            REAL    DEFAULT NULL,\n\t\tsmoking          INTEGER DEFAULT 0,\n\t\tsmoking_cpd      INTEGER DEFAULT NULL,\n\t\tsmoking_years    INTEGER DEFAULT NULL,\n\t\tcardiovascular   INTEGER DEFAULT 0,\n\t\timmunosuppression INTEGER DEFAULT 0,\n\t\tgeneral_other    TEXT    DEFAULT '',\n\t\tprior_par        INTEGER DEFAULT 0,\n\t\tprior_par_year   INTEGER DEFAULT NULL,\n\t\tfamily_history   INTEGER DEFAULT 0,\n\t\tspecific_other   TEXT    DEFAULT '',\n\t\tspecial_history  TEXT    DEFAULT '',\n\t\tassessor_done    INTEGER DEFAULT 0,\n\t\tassessor_date    TEXT    DEFAULT NULL,\n\t\tFOREIGN KEY (case_id) REFERENCES par_cases(id) ON DELETE CASCADE\n\t)"
+		},
+		{
+			"version": 58,
+			"sql": "CREATE TABLE IF NOT EXISTS par_upt_schedule (\n\t\tid              INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcase_id         INTEGER NOT NULL,\n\t\tsession         INTEGER NOT NULL,\n\t\twindow_start    TEXT    NOT NULL,\n\t\twindow_end      TEXT    NOT NULL,\n\t\tdelivered_date  TEXT    DEFAULT NULL,\n\t\tassessment_id   INTEGER DEFAULT NULL,\n\t\tappointment_id  INTEGER DEFAULT NULL,\n\t\tUNIQUE(case_id, session),\n\t\tFOREIGN KEY (case_id)       REFERENCES par_cases(id)       ON DELETE CASCADE,\n\t\tFOREIGN KEY (assessment_id) REFERENCES par_assessments(id)\n\t)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_timeline_patient_date ON timeline_entries(patient_id, entry_date)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_timeline_plan_id ON timeline_entries(plan_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_timeline_document_id ON timeline_entries(document_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_timeline_doctor_id ON timeline_entries(doctor_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_documents_patient ON documents(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_entry_teeth_tooth ON entry_teeth(tooth_number)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_acute_tags_patient ON patient_acute_tags(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_medical_tags_patient ON patient_medical_tags(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_medical_entries_patient ON medical_entries(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_acute_problems_patient ON acute_problems(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_note_entries_patient ON patient_note_entries(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_complications_patient ON complications(patient_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_complications_entry ON complications(timeline_entry_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_endo_canals_record ON endo_canals(record_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_plan_items_plan ON treatment_plan_items(plan_id)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_probing_records_patient ON probing_records(patient_id, exam_date)"
+		},
+		{
+			"version": 59,
+			"sql": "CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id)"
+		},
+		{
+			"version": 60,
+			"sql": "DELETE FROM appointment_types WHERE name IN ('Kontrolle','Beratung','PZR','Füllung','Wurzelbehandlung','Extraktion','Krone','KFO-Kontrolle','Notfall')"
+		},
+		{
+			"version": 61,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN watch_status TEXT DEFAULT NULL"
+		},
+		{
+			"version": 62,
+			"sql": "UPDATE dental_chart SET condition = 'healthy' WHERE condition = 'watch'"
+		},
+		{
+			"version": 63,
+			"sql": "UPDATE dental_chart SET watch_status = 'observe' WHERE watch_status = 'suspicious'"
+		},
+		{
+			"version": 64,
+			"sql": "ALTER TABLE appointment_types ADD COLUMN icon TEXT NOT NULL DEFAULT ''"
+		},
+		{
+			"version": 65,
+			"sql": "\n\t\tINSERT OR IGNORE INTO doctor_working_hours (id, doctor_id, day_of_week, start_time, end_time, break_start, break_end, is_active)\n\t\tSELECT d.id || '_' || days.day_of_week, d.id, days.day_of_week, days.start_time, days.end_time, days.break_start, days.break_end, days.is_active\n\t\tFROM doctors d\n\t\tCROSS JOIN (\n\t\t\tSELECT 0 AS day_of_week, '08:00' AS start_time, '18:00' AS end_time, '12:00' AS break_start, '13:00' AS break_end, 0 AS is_active\n\t\t\tUNION ALL SELECT 1, '08:00', '18:00', '12:00', '13:00', 1\n\t\t\tUNION ALL SELECT 2, '08:00', '18:00', '12:00', '13:00', 1\n\t\t\tUNION ALL SELECT 3, '08:00', '18:00', '12:00', '13:00', 1\n\t\t\tUNION ALL SELECT 4, '08:00', '18:00', '12:00', '13:00', 1\n\t\t\tUNION ALL SELECT 5, '08:00', '18:00', '12:00', '13:00', 1\n\t\t\tUNION ALL SELECT 6, '08:00', '13:00', NULL, NULL, 1\n\t\t) AS days\n\t\tWHERE NOT EXISTS (SELECT 1 FROM doctor_working_hours WHERE doctor_id = d.id)\n\t"
+		},
+		{
+			"version": 66,
+			"sql": "DELETE FROM entry_teeth WHERE tooth_number BETWEEN 1 AND 10"
+		},
+		{
+			"version": 67,
+			"sql": "\n\t\tINSERT INTO patient_misc_notes (patient_id, content, updated_at)\n\t\tSELECT patient_id, group_concat(line, char(10)), datetime('now')\n\t\tFROM (\n\t\t\tSELECT patient_id,\n\t\t\t       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'') AS line\n\t\t\tFROM patient_note_entries\n\t\t\tORDER BY patient_id, created_at, id\n\t\t)\n\t\tGROUP BY patient_id\n\t\tON CONFLICT(patient_id) DO UPDATE SET\n\t\t\tcontent = CASE\n\t\t\t\tWHEN patient_misc_notes.content = '' THEN excluded.content\n\t\t\t\tWHEN substr(patient_misc_notes.content, -length(excluded.content)) = excluded.content THEN patient_misc_notes.content\n\t\t\t\tELSE patient_misc_notes.content || char(10) || excluded.content\n\t\t\tEND,\n\t\t\tupdated_at = CASE\n\t\t\t\tWHEN substr(patient_misc_notes.content, -length(excluded.content)) = excluded.content THEN patient_misc_notes.updated_at\n\t\t\t\tELSE excluded.updated_at\n\t\t\tEND\n\t"
+		},
+		{
+			"version": 67,
+			"sql": "\n\t\tINSERT INTO patient_medical_text (patient_id, content, updated_at)\n\t\tSELECT patient_id, group_concat(line, char(10)), datetime('now')\n\t\tFROM (\n\t\t\tSELECT patient_id,\n\t\t\t       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'') AS line\n\t\t\tFROM medical_entries\n\t\t\tORDER BY patient_id, created_at, id\n\t\t)\n\t\tGROUP BY patient_id\n\t\tON CONFLICT(patient_id) DO UPDATE SET\n\t\t\tcontent = CASE\n\t\t\t\tWHEN patient_medical_text.content = '' THEN excluded.content\n\t\t\t\tWHEN substr(patient_medical_text.content, -length(excluded.content)) = excluded.content THEN patient_medical_text.content\n\t\t\t\tELSE patient_medical_text.content || char(10) || excluded.content\n\t\t\tEND,\n\t\t\tupdated_at = CASE\n\t\t\t\tWHEN substr(patient_medical_text.content, -length(excluded.content)) = excluded.content THEN patient_medical_text.updated_at\n\t\t\t\tELSE excluded.updated_at\n\t\t\tEND\n\t"
+		},
+		{
+			"version": 67,
+			"sql": "\n\t\tINSERT INTO patient_acute_text (patient_id, content, updated_at)\n\t\tSELECT patient_id, group_concat(line, char(10)), datetime('now')\n\t\tFROM (\n\t\t\tSELECT patient_id,\n\t\t\t       '[' || substr(COALESCE(created_at,''),1,10) || '] ' || COALESCE(content,'')\n\t\t\t       || CASE WHEN resolved = 1 THEN ' (resolved)' ELSE '' END AS line\n\t\t\tFROM acute_problems\n\t\t\tORDER BY patient_id, created_at, id\n\t\t)\n\t\tGROUP BY patient_id\n\t\tON CONFLICT(patient_id) DO UPDATE SET\n\t\t\tcontent = CASE\n\t\t\t\tWHEN patient_acute_text.content = '' THEN excluded.content\n\t\t\t\tWHEN substr(patient_acute_text.content, -length(excluded.content)) = excluded.content THEN patient_acute_text.content\n\t\t\t\tELSE patient_acute_text.content || char(10) || excluded.content\n\t\t\tEND,\n\t\t\tupdated_at = CASE\n\t\t\t\tWHEN substr(patient_acute_text.content, -length(excluded.content)) = excluded.content THEN patient_acute_text.updated_at\n\t\t\t\tELSE excluded.updated_at\n\t\t\tEND\n\t"
+		},
+		{
+			"version": 67,
+			"sql": "\n\t\tINSERT INTO timeline_entries (\n\t\t\tpatient_id, entry_date, entry_type, title, provider, tooth_numbers, description,\n\t\t\tdiagnosis_codes, cpt_codes, attachments, treatment_category, treatment_outcome,\n\t\t\trelated_entry_id, created_at, updated_at\n\t\t)\n\t\tSELECT\n\t\t\tce.patient_id, ce.exam_date, '', 'Legacy clinical exam', '', '',\n\t\t\ttrim(\n\t\t\t\t(CASE WHEN COALESCE(ce.exam_type,'') != '' THEN 'Exam type: ' || ce.exam_type || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(ce.examiner,'') != '' THEN 'Examiner: ' || ce.examiner || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(ce.chief_complaint,'') != '' THEN 'Chief complaint: ' || ce.chief_complaint || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(ce.findings,'') != '' THEN 'Findings: ' || ce.findings || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(ce.notes,'') != '' THEN 'Notes: ' || ce.notes ELSE '' END)\n\t\t\t),\n\t\t\t'[]', '[]', '[]', '', '', NULL, ce.created_at, ce.created_at\n\t\tFROM clinical_exams ce\n\t\tWHERE NOT EXISTS (\n\t\t\tSELECT 1 FROM timeline_entries te\n\t\t\tWHERE te.patient_id = ce.patient_id AND te.title = 'Legacy clinical exam' AND te.entry_date = ce.exam_date\n\t\t)\n\t"
+		},
+		{
+			"version": 67,
+			"sql": "\n\t\tINSERT INTO timeline_entries (\n\t\t\tpatient_id, entry_date, entry_type, title, provider, tooth_numbers, description,\n\t\t\tdiagnosis_codes, cpt_codes, attachments, treatment_category, treatment_outcome,\n\t\t\trelated_entry_id, doctor_id, created_at, updated_at\n\t\t)\n\t\tSELECT\n\t\t\toa.patient_id, oa.exam_date, '', 'Legacy ortho assessment', '', '',\n\t\t\ttrim(\n\t\t\t\t(CASE WHEN COALESCE(oa.dentition_stage,'') != '' THEN 'Dentition stage: ' || oa.dentition_stage || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.treatment_phase,'') != '' THEN 'Treatment phase: ' || oa.treatment_phase || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.angle_class,'') != '' THEN 'Angle class: ' || oa.angle_class || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.cvm_stage,0) != 0 THEN 'CVM stage: ' || oa.cvm_stage || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.facial_profile,'') != '' THEN 'Facial profile: ' || oa.facial_profile || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.treatment_recommendation,'') != '' THEN 'Recommendation: ' || oa.treatment_recommendation || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.findings,'') NOT IN ('', '[]') THEN 'Findings (raw): ' || oa.findings || char(10) ELSE '' END) ||\n\t\t\t\t(CASE WHEN COALESCE(oa.notes,'') != '' THEN 'Notes: ' || oa.notes ELSE '' END)\n\t\t\t),\n\t\t\t'[]', '[]', '[]', '', '', NULL, oa.doctor_id, oa.created_at, oa.created_at\n\t\tFROM ortho_assessments oa\n\t\tWHERE NOT EXISTS (\n\t\t\tSELECT 1 FROM timeline_entries te\n\t\t\tWHERE te.patient_id = oa.patient_id AND te.title = 'Legacy ortho assessment' AND te.entry_date = oa.exam_date\n\t\t)\n\t"
+		},
+		{
+			"version": 68,
+			"sql": "ALTER TABLE appointments ADD COLUMN arrival_time TEXT DEFAULT NULL"
+		},
+		{
+			"version": 68,
+			"sql": "ALTER TABLE appointments ADD COLUMN treatment_start_time TEXT DEFAULT NULL"
+		},
+		{
+			"version": 68,
+			"sql": "ALTER TABLE appointments ADD COLUMN treatment_end_time TEXT DEFAULT NULL"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE appointments ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE schedule_blocks ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE timeline_entries ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE treatment_plans ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE treatment_plan_items ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		},
+		{
+			"version": 69,
+			"sql": "ALTER TABLE dental_chart ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+		}
+	]
+}

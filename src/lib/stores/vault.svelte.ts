@@ -36,10 +36,27 @@ export const vault = {
 	/**
 	 * Save a new vault path (called after user picks a folder).
 	 * Persists to disk and updates the in-memory state.
+	 *
+	 * Refuses network-mounted paths (SMB/NFS/AFP/CIFS/WebDAV) — SQLite's file locking is
+	 * broken over network shares and silently corrupts dentvault.db under concurrent writers.
+	 * See ROADMAP_MULTI_COMPUTER.md, "Option A — REJECTED".
 	 */
 	async configure(folderPath: string): Promise<void> {
+		if (await vault.isNetworkMount(folderPath)) {
+			throw new Error(
+				'This folder is on a network drive (SMB/NFS/network share). DentVault cannot ' +
+				'use a network-mounted vault — SQLite database corruption is a real risk on shared ' +
+				'drives. Choose a folder on this computer\'s local disk instead.',
+			);
+		}
 		await invoke('save_vault_path', { path: folderPath });
 		_vaultPath = folderPath;
+	},
+
+	/** True if `folderPath` resides on a network-mounted filesystem. Best-effort: a detection
+	 *  failure (missing tool, unexpected `mount` output) returns false rather than blocking. */
+	async isNetworkMount(folderPath: string): Promise<boolean> {
+		return invoke<boolean>('is_network_mount', { path: folderPath });
 	},
 
 	/**

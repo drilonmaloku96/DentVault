@@ -91,7 +91,7 @@ export interface Translations {
 		filterCategories: { files: string; documentation: string; charts: string };
 		typeLabels: {
 			unclassified: string; documents: string; chartSnapshots: string;
-			orthoRecords: string; plans: string; parSteps: string;
+			orthoRecords: string; plans: string; parSteps: string; documentRemoved: string;
 		};
 		entry: {
 			category: string; outcome: string; toothNumbers: string;
@@ -708,7 +708,7 @@ export interface Translations {
 			docCategories: string; clinicalTags: string; staffRoles: string;
 			textBlocks: string; complicationTypes: string; entryTypes: string; backup: string; about: string;
 			textHighlightColors: string;
-			rooms: string; appointmentTypes: string; workingHours: string;
+			rooms: string; appointmentTypes: string;
 			patientManagement: string;
 			schedule: string; clinical: string; documents: string;
 			dentalTagsAndSymbols: string; prostheticsAndBridges: string;
@@ -877,6 +877,8 @@ export interface Translations {
 			dmftToggleDesc: string;
 		};
 		schedule: {
+			practiceHoursTitle: string;
+			practiceHoursSubtitle: string;
 			workingHoursDesc: string;
 			roomsDesc: string;
 			break: string;
@@ -884,6 +886,7 @@ export interface Translations {
 			colorLabel: string;
 			abbrPlaceholder: string;
 			abbrShortPlaceholder: string;
+			apptTypeShortPlaceholder: string;
 			durationPlaceholder: string;
 			iconLabel: string;
 			iconPlaceholder: string;
@@ -908,6 +911,8 @@ export interface Translations {
 		title: string; add: string; edit: string; delete: string;
 		fields: { name: string; role: string; email: string; phone: string };
 		deleteConfirm: string; noStaff: string;
+		membersLabel: string;
+		membersSubtitle: string;
 		workingHours: string;
 		editWorkingHours: string;
 		saveWorkingHours: string;
@@ -1107,6 +1112,7 @@ export interface Translations {
 		vaultDesc: string;
 		vaultChoose: string;
 		vaultNone: string;
+		vaultNetworkMount: string;
 		vaultHint: string;
 		vaultStructureLabel: string;
 		teamTitle: string;
@@ -1213,7 +1219,7 @@ export interface Translations {
 		complicationTypes: Array<{ key: string; label: string }>;
 		fillingMaterials: Array<{ key: string; label: string; color: string }>;
 		endoInstruments: Array<{ key: string; label: string }>;
-		appointmentTypes: Array<{ name: string; short_name: string; default_duration_min: number; color: string; treatment_category: string }>;
+		appointmentTypes: Array<{ name: string; short_name: string; icon: string; default_duration_min: number; color: string; treatment_category: string }>;
 		workingDays: string[];
 		dayAbbrevs: string[];
 	};
@@ -1391,6 +1397,7 @@ export interface Translations {
 		selectHint: string;
 		title: string;
 		loadFailed: string;
+		openButton: string;
 	};
 	xrayReport: {
 		button: string;

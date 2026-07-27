@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { untrack, tick } from 'svelte';
+	import { goto } from '$app/navigation';
 	import type { TimelineEntry, TimelineEntryType } from '$lib/types';
 	import { i18n } from '$lib/i18n';
 	import { Button } from '$lib/components/ui/button';
-	import { openDocumentFile, fileToAssetUrl, isImageMime, formatFileSize, toAbsPath } from '$lib/services/files';
+	import { openDocumentFile, getFileDisplayUrl, isImageMime, formatFileSize, toAbsPath } from '$lib/services/files';
 	import { doctors } from '$lib/stores/doctors.svelte';
 	import { staffLabel } from '$lib/utils/staff';
 	import { formatDate } from '$lib/utils';
@@ -97,6 +98,7 @@
 		imaging:        { icon: '📷', label: 'Imaging',   dotClass: 'bg-primary',         bgClass: 'bg-primary-light',                               textClass: 'text-primary'                     },
 		referral:       { icon: '📋', label: 'Referral',  dotClass: 'bg-critical',        bgClass: 'bg-critical-light',                              textClass: 'text-critical'                    },
 		document:       { icon: '📎', label: 'File',      dotClass: 'bg-info',            bgClass: 'bg-info-light',                                  textClass: 'text-info'                        },
+		document_removed: { icon: '🗑️', label: i18n.t.timeline.typeLabels.documentRemoved, dotClass: 'bg-text-tertiary', bgClass: 'bg-surface-tertiary dark:bg-surface-tertiary', textClass: 'text-text-tertiary' },
 		plan:           { icon: '📋', label: 'Plan',      dotClass: 'bg-primary',         bgClass: 'bg-primary/5',                                   textClass: 'text-primary'                     },
 		chart_snapshot: { icon: '🦷', label: 'Chart',     dotClass: 'bg-primary',         bgClass: 'bg-primary-light',                               textClass: 'text-primary'                     },
 		xray_report:    { icon: '🩻', label: i18n.t.xrayReport.title, dotClass: 'bg-primary', bgClass: 'bg-primary-light',                     textClass: 'text-primary'                     },
@@ -206,6 +208,37 @@
 	);
 	/** Resolve the attachment path (may be relative) to an absolute path for display/open. */
 	const resolvedDocPath = $derived(docFile ? toAbsPath(docFile.path, vault.path ?? '') : '');
+	const isCephFile = $derived(docFile ? docFile.name.toLowerCase().endsWith('.ceph') : false);
+
+	function openInCephalyzer() {
+		if (!docFile) return;
+		goto(`/patients/${entry.patient_id}/ceph?file=${encodeURIComponent(docFile.path)}`);
+	}
+
+	// Image src: getFileDisplayUrl is async (connected mode fetches bytes over HTTP and
+	// returns a blob: URL — see files.ts), so this can't be the plain fileToAssetUrl call
+	// resolvedDocPath still uses for the native "open" action. The effect's cleanup revokes
+	// the blob URL when docFile changes or the card unmounts.
+	let docImageUrl = $state('');
+	$effect(() => {
+		if (!docFile || !isImageMime(docFile.mime)) {
+			docImageUrl = '';
+			return;
+		}
+		let cancelled = false;
+		let objectUrl: string | null = null;
+		getFileDisplayUrl(docFile.path, vault.path ?? '')
+			.then((url) => {
+				if (cancelled) return;
+				docImageUrl = url;
+				if (url.startsWith('blob:')) objectUrl = url;
+			})
+			.catch(() => {});
+		return () => {
+			cancelled = true;
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+		};
+	});
 
 	// ── Image preview state ───────────────────────────────────────────────
 	let imageExpanded = $state(false);
@@ -352,7 +385,7 @@
 						class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted hover:opacity-75 transition-opacity"
 						title="Click to preview"
 					>
-						<img src={fileToAssetUrl(resolvedDocPath)} alt={docFile.name} class="h-full w-full object-cover"/>
+						<img src={docImageUrl} alt={docFile.name} class="h-full w-full object-cover"/>
 					</button>
 				{:else}
 					<span class="shrink-0 text-sm leading-none select-none text-muted-foreground/50">{mimeIcon(docFile?.mime ?? '')}</span>
@@ -392,6 +425,28 @@
 					{/if}
 					{#if docFile?.size}<span>· {formatFileSize(docFile.size)}</span>{/if}
 				</div>
+
+				<!-- Open in Cephalyzer — a saved .ceph analysis file's only useful "open" action;
+				     the OS has no app registered for .ceph, so this stays visible rather than
+				     hiding behind the generic hover-reveal Open button below. -->
+				{#if isCephFile}
+					<button
+						type="button"
+						onclick={(e) => { e.stopPropagation(); openInCephalyzer(); }}
+						ondblclick={(e) => e.stopPropagation()}
+						class="shrink-0 flex items-center gap-1 rounded-full border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/30 px-2 py-0.5 text-[11px] font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
+						title={i18n.t.ceph.openButton}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 shrink-0">
+							<circle cx="12" cy="5" r="2"/>
+							<path d="m3 21 8.02-14.26"/>
+							<path d="m12.99 6.74 1.93 3.44"/>
+							<path d="M19 12c-3.87 4-7.74 8.61-16 4.61"/>
+							<path d="m21 21-2.16-3.84"/>
+						</svg>
+						{i18n.t.ceph.openButton}
+					</button>
+				{/if}
 
 				<!-- Open — icon-only, fades in on row hover -->
 				{#if docFile && resolvedDocPath}
@@ -468,7 +523,7 @@
 						title="Click to close · Double-click to open in app"
 					>
 						<img
-							src={fileToAssetUrl(resolvedDocPath)}
+							src={docImageUrl}
 							alt={docFile.name}
 							class="w-full max-h-[480px] object-contain"
 						/>

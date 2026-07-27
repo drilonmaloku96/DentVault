@@ -985,7 +985,7 @@
 					{#if upcomingAppointments.length === 0}
 						<p class="text-sm text-muted-foreground text-center py-4">{i18n.t.dashboard.noData}</p>
 					{:else}
-						<div class="flex flex-col gap-2">
+						<div class="flex flex-col gap-2 max-h-[336px] overflow-y-auto pr-1 -mr-1">
 							{#each upcomingAppointments as patient}
 								<a
 									href="/patients/{patient.patient_id}"
@@ -1020,7 +1020,7 @@
 					{#if recentEntries.length === 0}
 						<p class="text-sm text-muted-foreground text-center py-4">{i18n.t.dashboard.noData}</p>
 					{:else}
-						<div class="flex flex-col gap-1">
+						<div class="flex flex-col gap-1 max-h-[336px] overflow-y-auto pr-1 -mr-1">
 							{#each recentEntries as entry}
 								<a
 									href="/patients/{entry.patient_id}?tab=timeline"
