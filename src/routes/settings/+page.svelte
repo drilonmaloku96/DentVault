@@ -1929,7 +1929,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				</div>
 				<div>
 					<p class="text-sm font-medium">DentVault</p>
-					<p class="text-xs text-muted-foreground">{i18n.t.settings.about.version} 0.9.1 · Tauri 2 + SvelteKit + SQLite</p>
+					<p class="text-xs text-muted-foreground">{i18n.t.settings.about.version} 0.9.2 · Tauri 2 + SvelteKit + SQLite</p>
 				</div>
 			</div>
 			<Separator />
@@ -2188,7 +2188,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 
 					<div class="flex gap-2 justify-end">
 						<button type="button" onclick={() => { showAddStaff = false; addStaffError = ''; newStaffHours = []; }} class="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors">{i18n.t.actions.cancel}</button>
-						<button type="button" onclick={handleAddStaff} disabled={staffSaving || !newStaffName.trim()} class="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity">{staffSaving ? i18n.t.common.loading : i18n.t.staff.add}</button>
+						<button type="button" onclick={handleAddStaff} disabled={staffSaving || !newStaffName.trim()} class="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity">{staffSaving ? i18n.t.common.loading : i18n.t.actions.add}</button>
 					</div>
 				</div>
 			{/if}
@@ -2508,7 +2508,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						{/if}
 
 						<div class="flex gap-2">
-							<Button size="sm" onclick={handleAddCategory}>{i18n.t.settings.docCategories.add}</Button>
+							<Button size="sm" onclick={handleAddCategory}>{i18n.t.actions.add}</Button>
 							<Button size="sm" variant="outline" onclick={resetAddForm}>{i18n.t.actions.cancel}</Button>
 						</div>
 					</div>
@@ -4066,7 +4066,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
 					{/if}
 					<Button size="sm" variant="outline" onclick={() => (showAddRoom = !showAddRoom)}>
-						{i18n.t.actions.add}
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5"><path d="M12 5v14M5 12h14"/></svg>
+						{i18n.t.actions.new}
 					</Button>
 				</div>
 			</div>
@@ -4136,7 +4137,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						<span class="text-xs text-emerald-600">{i18n.t.settings.saved}!</span>
 					{/if}
 					<Button size="sm" variant="outline" onclick={() => (showAddApptType = !showAddApptType)}>
-						{i18n.t.actions.add}
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5"><path d="M12 5v14M5 12h14"/></svg>
+						{i18n.t.actions.new}
 					</Button>
 				</div>
 			</div>
@@ -4205,7 +4207,10 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
 			<div class="flex items-center justify-between">
 				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.apptStatusesTitle}</span>
-				<Button size="sm" variant="outline" onclick={() => (showAddStatus = !showAddStatus)}>{i18n.t.actions.add}</Button>
+				<Button size="sm" variant="outline" onclick={() => (showAddStatus = !showAddStatus)}>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 h-3.5 w-3.5"><path d="M12 5v14M5 12h14"/></svg>
+					{i18n.t.actions.new}
+				</Button>
 			</div>
 			{#if showAddStatus}
 				<div class="flex flex-col gap-2 border border-border rounded p-3 bg-muted/30">
