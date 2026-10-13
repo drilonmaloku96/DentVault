@@ -91,7 +91,7 @@
 
 	const formattedDate = $derived(() => {
 		const d = new Date(currentDate + 'T12:00:00');
-		const locale = 'en-GB';
+		const locale = i18n.locale;
 		return d.toLocaleDateString(locale, {
 			weekday: 'long',
 			day: 'numeric',
@@ -409,7 +409,7 @@
 	}
 
 	function printScheduleDay() {
-		const locale = 'en-GB';
+		const locale = i18n.locale;
 		const dateLabel = new Date(currentDate + 'T12:00:00').toLocaleDateString(locale, {
 			weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 		});
@@ -555,7 +555,7 @@
 			<button
 				class="px-2 py-1 rounded hover:bg-accent transition-colors"
 				onclick={prevDay}
-				aria-label="Previous day"
+				aria-label={i18n.t.ui.schedule.prevDay}
 			>◀</button>
 			<input
 				type="date"
@@ -565,7 +565,7 @@
 			<button
 				class="px-2 py-1 rounded hover:bg-accent transition-colors"
 				onclick={nextDay}
-				aria-label="Next day"
+				aria-label={i18n.t.ui.schedule.nextDay}
 			>▶</button>
 		</div>
 	</div>

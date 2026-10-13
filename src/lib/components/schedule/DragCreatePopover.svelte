@@ -131,7 +131,7 @@
 	class="fixed inset-0 z-[199]"
 	role="button"
 	tabindex="-1"
-	aria-label="Close"
+	aria-label={i18n.t.actions.close}
 	onclick={onClose}
 	onkeydown={(e) => e.key === 'Escape' && onClose?.()}
 ></div>
@@ -180,7 +180,7 @@
 		</div>
 	{:else}
 		<div class="flex items-center gap-2">
-			<button class="text-muted-foreground hover:text-foreground text-xs" onclick={() => (mode = 'choose')}>← Back</button>
+			<button class="text-muted-foreground hover:text-foreground text-xs" onclick={() => (mode = 'choose')}>{i18n.t.ui.arrowBack}</button>
 			<span class="text-xs font-medium">{i18n.t.schedule.blocks.title}</span>
 			<span class="text-xs text-muted-foreground ml-auto">{summaryLabel()}</span>
 		</div>

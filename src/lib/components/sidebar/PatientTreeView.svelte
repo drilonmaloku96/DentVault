@@ -656,7 +656,7 @@
 
 	async function deleteFile(file: VaultFileInfo) {
 		if (!vault.path || !patientFolder) return;
-		if (!confirm(`Delete "${file.filename}"?`)) return;
+		if (!confirm(i18n.t.ui.common.deleteNamed.replace('{name}', file.filename))) return;
 
 		try {
 			await invoke('delete_patient_file', {
@@ -948,7 +948,7 @@
 			}}
 			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
 		>
-			Open
+			{i18n.t.actions.open}
 		</button>
 		<div class="border-t border-border/50"></div>
 		<button
@@ -958,7 +958,7 @@
 			}}
 			class="w-full px-3 py-1.5 text-left text-xs text-critical hover:bg-critical/10 transition-colors"
 		>
-			Delete
+			{i18n.t.actions.delete}
 		</button>
 	</div>
 {/if}
@@ -980,7 +980,7 @@
 			}}
 			class="w-full px-3 py-1.5 text-left text-xs hover:bg-sidebar-accent/60 transition-colors"
 		>
-			{fcm.kind === 'folder' ? 'New subfolder' : 'New folder'}
+			{fcm.kind === 'folder' ? i18n.t.timeline.vaultDrop.newSubfolder : i18n.t.timeline.vaultDrop.newFolder}
 		</button>
 	</div>
 {/if}
@@ -997,7 +997,7 @@
 		<input
 			type="text"
 			autofocus
-			placeholder="Folder name"
+			placeholder={i18n.t.timeline.vaultDrop.folderNamePlaceholder}
 			bind:value={folderNameInput}
 			onkeydown={(e) => {
 				if (e.key === 'Enter') { e.preventDefault(); submitFolderNamePrompt(); }
@@ -1011,7 +1011,7 @@
 				onclick={closeFolderNamePrompt}
 				class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-muted transition-colors"
 			>
-				Cancel
+				{i18n.t.actions.cancel}
 			</button>
 			<button
 				type="button"
@@ -1019,7 +1019,7 @@
 				disabled={!folderNameInput.trim()}
 				class="px-2 py-1 text-xs rounded bg-primary text-primary-foreground disabled:opacity-50 hover:opacity-90 transition-colors"
 			>
-				Create
+				{i18n.t.patients.createCondition}
 			</button>
 		</div>
 	</div>
@@ -1194,7 +1194,7 @@
 			<!-- Create subfolder button (hover only) -->
 			<button
 				type="button"
-				title="Create subfolder"
+				title={i18n.t.timeline.vaultDrop.newSubfolder}
 				onclick={(e) => openFolderNamePrompt(node.folderPath, e.clientX, e.clientY)}
 				class="shrink-0 opacity-0 group-hover:opacity-100 rounded p-0.5 text-sidebar-primary/60 hover:bg-sidebar-primary/10 hover:text-sidebar-primary transition-all"
 			>

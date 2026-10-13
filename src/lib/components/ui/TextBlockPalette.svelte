@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n';
 	import { textBlocks, type TextBlock } from '$lib/stores/textBlocks.svelte';
 
 	let {
@@ -65,7 +66,7 @@
 		class="flex flex-col overflow-hidden rounded-lg border border-border bg-popover shadow-lg"
 		style="min-width:260px; max-width:340px;"
 		role="listbox"
-		aria-label="Text blocks"
+		aria-label={i18n.t.onboarding.defaultsSections.textBlocks}
 	>
 		<!-- Header hint -->
 		<div class="flex items-center gap-1.5 border-b border-border px-3 py-1.5">

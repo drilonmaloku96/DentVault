@@ -230,7 +230,7 @@
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div class="flex flex-col gap-1.5 sm:col-span-2">
 				<Label for="plan-title">{i18n.t.plans.fields.name}</Label>
-				<Input id="plan-title" bind:value={editingTitle} placeholder="e.g. Full mouth rehabilitation" />
+				<Input id="plan-title" bind:value={editingTitle} placeholder={i18n.t.ui.plan.titleExample} />
 			</div>
 			<div class="flex flex-col gap-1.5">
 				<Label for="plan-status">{i18n.t.plans.status.active}</Label>
@@ -242,7 +242,7 @@
 			</div>
 			<div class="flex flex-col gap-1.5 sm:col-span-2">
 				<Label for="plan-desc">{i18n.t.plans.fields.description}</Label>
-				<Textarea id="plan-desc" bind:value={editingDescription} placeholder="Treatment goals, patient consent notes…" class="min-h-[70px]" />
+				<Textarea id="plan-desc" bind:value={editingDescription} placeholder={i18n.t.ui.plan.descPlaceholder} class="min-h-[70px]" />
 			</div>
 		</div>
 
@@ -261,7 +261,7 @@
 		<div class="flex items-center gap-6 rounded-lg border bg-card px-5 py-4">
 			<div class="flex flex-1 flex-col gap-1.5">
 				<div class="flex items-center justify-between text-xs text-muted-foreground">
-					<span>Progress</span>
+					<span>{i18n.t.ui.plan.progress}</span>
 					<span class="font-medium">{completedCount} / {totalCount} items</span>
 				</div>
 				<div class="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -272,7 +272,7 @@
 				</div>
 			</div>
 			<div class="text-right shrink-0">
-				<p class="text-xs text-muted-foreground">Estimated Total</p>
+				<p class="text-xs text-muted-foreground">{i18n.t.ui.plan.estimatedTotal}</p>
 				<p class="text-lg font-bold tabular-nums">{formatCost(totalCost)}</p>
 			</div>
 		</div>
@@ -293,7 +293,7 @@
 			</div>
 		{:else if items.length === 0}
 			<div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-				No procedures yet — add one below.
+				{i18n.t.ui.plan.noProceduresBelow}
 			</div>
 		{:else}
 			<div class="flex flex-col gap-2">
@@ -314,7 +314,7 @@
 
 		<!-- Add item form -->
 		<div class="rounded-lg border bg-muted/30 p-4 flex flex-col gap-3">
-			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add Procedure</h3>
+			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.ui.plan.addProcedure}</h3>
 
 			{#if addError}
 				<p class="text-xs text-destructive">{addError}</p>
@@ -325,13 +325,13 @@
 					<Label class="text-xs" for="new-desc">{i18n.t.plans.fields.description} <span class="text-destructive">*</span></Label>
 					<Input
 						id="new-desc"
-						placeholder="e.g. Root canal treatment #14"
+						placeholder={i18n.t.ui.plan.procExample}
 						bind:value={newDescription}
 						class="h-8 text-sm"
 					/>
 				</div>
 				<div class="flex flex-col gap-1">
-					<Label class="text-xs" for="new-cdt">CDT Code</Label>
+					<Label class="text-xs" for="new-cdt">{i18n.t.ui.plan.cdtCode}</Label>
 					<Input id="new-cdt" placeholder="D3330" bind:value={newProcedureCode} class="h-8 text-sm" />
 				</div>
 				<div class="flex flex-col gap-1">
@@ -360,7 +360,7 @@
 		<DialogHeader>
 			<DialogTitle>{i18n.t.actions.delete}</DialogTitle>
 			<DialogDescription>
-				Are you sure you want to permanently delete <strong>"{plan.title}"</strong> and all its procedures? This cannot be undone.
+				{i18n.t.ui.plan.deleteBefore} <strong>"{plan.title}"</strong> {i18n.t.ui.plan.deleteAfter}
 			</DialogDescription>
 		</DialogHeader>
 		<DialogFooter>

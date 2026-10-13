@@ -143,11 +143,11 @@
 			</svg>
 			{#if searchQuery}
 				<h3 class="text-lg font-medium text-muted-foreground">{i18n.t.patients.noResults}</h3>
-				<p class="mt-1 text-sm text-muted-foreground/70">Try a different name, ID, or phone number.</p>
+				<p class="mt-1 text-sm text-muted-foreground/70">{i18n.t.ui.patient.tryDifferentSearch}</p>
 			{:else}
 				<h3 class="text-lg font-medium text-muted-foreground">{i18n.t.patients.noPatients}</h3>
 				<p class="mt-1 text-sm text-muted-foreground/70">
-					Click <strong>+ {i18n.t.patients.new}</strong> to get started.
+					{i18n.t.ui.common.click} <strong>+ {i18n.t.patients.new}</strong> {i18n.t.ui.patient.toGetStarted}
 				</p>
 			{/if}
 		</div>

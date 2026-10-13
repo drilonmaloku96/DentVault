@@ -151,7 +151,7 @@
 								value={tag.label ?? ''}
 								oninput={(e) => updateTag(i, 'label', (e.target as HTMLInputElement).value)}
 								class="border-input bg-transparent h-8 min-w-0 flex-1 rounded border px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
-								placeholder="Tag name"
+								placeholder={i18n.t.ui.chart.tagName}
 							/>
 						{:else}
 							<span class="min-w-0 flex-1 truncate px-2 text-sm text-foreground/70">
@@ -176,7 +176,7 @@
 						/>
 
 						<!-- Fill colour -->
-						<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title="Fill colour">
+						<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title={i18n.t.ui.chart.fillColor}>
 							<input
 								type="color"
 								value={tag.color}
@@ -186,7 +186,7 @@
 						</label>
 
 						<!-- Border colour -->
-						<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title="Border colour">
+						<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title={i18n.t.ui.chart.borderColor}>
 							<input
 								type="color"
 								value={tag.strokeColor}
@@ -205,7 +205,7 @@
 									? 'border-primary bg-primary/5'
 									: 'border-border hover:border-foreground/40',
 							].join(' ')}
-							title="Change fill pattern"
+							title={i18n.t.ui.chart.changePattern}
 						>
 							{@render patIcon(tag.pattern, tag.color, tag.strokeColor)}
 							<svg
@@ -222,7 +222,7 @@
 							type="button"
 							onclick={() => removeTag(i)}
 							class="shrink-0 rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-							aria-label="Remove tag"
+							aria-label={i18n.t.ui.chart.removeTag}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 								<path d="M18 6L6 18M6 6l12 12"/>
@@ -233,7 +233,7 @@
 					<!-- Pattern picker panel (inline expansion) -->
 					{#if openPatternIdx === i}
 						<div class="border-t border-border/50 px-3 py-2.5 flex items-center gap-2 flex-wrap rounded-b-md bg-muted/30">
-							<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">Choose fill pattern:</span>
+							<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">{i18n.t.ui.chart.choosePattern}</span>
 							{#each PATTERNS as p}
 								<button
 									type="button"

@@ -93,7 +93,7 @@
 				</div>
 
 				<div class="flex flex-col gap-1">
-					<label class="text-xs font-medium text-muted-foreground">Farbe / Color</label>
+					<label class="text-xs font-medium text-muted-foreground">{i18n.t.settings.schedule.colorLabel}</label>
 					<div class="flex gap-1.5 flex-wrap">
 						{#each PRESET_COLORS as c}
 							<button

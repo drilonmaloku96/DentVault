@@ -226,7 +226,7 @@
 	preserveAspectRatio="xMidYMid meet"
 	style="min-width:680px"
 	role="img"
-	aria-label="Periodontal probing chart"
+	aria-label={i18n.t.ui.perio.chartAria}
 >
 <defs>
 	<style>
@@ -672,7 +672,7 @@
 	<circle cx="163" cy="-3" r="4.5" fill="#ef4444" opacity="0.9"/>
 	<text x="171" y="0">BAS</text>
 	<rect x="198" y="-8" width="10" height="8" fill="#fbbf24" opacity="0.75" rx="1"/>
-	<text x="211" y="0">Plaque</text>
+	<text x="211" y="0">{i18n.t.par.hud.plaque}</text>
 	<line x1="248" y1="-3" x2="268" y2="-3" stroke="#6366f1" stroke-width="2" opacity="0.75"/>
 	<text x="272" y="0">{i18n.t.perio.legendTtTrend}</text>
 	<line x1="330" y1="-3" x2="350" y2="-3" stroke="#f43f5e" stroke-width="1.8" opacity="0.75"/>

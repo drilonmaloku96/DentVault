@@ -98,23 +98,31 @@ exportPatient()           ← orchestrator: gather → render → copy files →
 
 ---
 
-## Language (English-only)
+## Language (multi-language: English + Albanian)
 
-**`de.ts` deleted — English only.** `LangCode = 'en'`, no language switching.
+UI languages: **English (`en`) and Albanian / Shqip (`sq`)**. The user picks one on the first onboarding screen (language pill row above the display-scale picker) and can switch any time in Settings → General → Language; the switch is live, no reload.
 
-Files: `src/lib/i18n/types.ts` (source of truth) + `en.ts` + `index.svelte.ts` + `index.ts`.
-Usage: `import { i18n } from '$lib/i18n'` → `{i18n.t.nav.patients}`
+Files: `src/lib/i18n/types.ts` (source of truth — the `Translations` interface) + one dictionary per language (`en.ts`, `sq.ts`) + `index.svelte.ts` (store + `LANGUAGES` registry) + `index.ts` (re-export).
+Usage: `import { i18n } from '$lib/i18n'` → `{i18n.t.nav.patients}`. `i18n.locale` is the BCP 47 tag (`en-GB`/`sq-AL`) for `toLocaleDateString`/`Intl.*` — never hardcode `'en-GB'`.
+
+- **Storage**: per device in `localStorage` (`dentvault.lang`), like sidebar width — it must be readable before a vault exists (onboarding), and in connected mode each station can run its own language. Not in the vault DB.
+- **Reactivity**: `i18n.t` is `$state.raw` and is swapped wholesale on change, so every `i18n.t.*` read in templates/`$derived` re-renders. Don't copy `i18n.t.x` into a module-level/top-level `const` — read it at render time.
+- **Seeded defaults** (`i18n.t.defaults.*`: appointment types, text blocks, roles, tag lists) are written into the vault in the language active at onboarding and are user data from then on — switching language later does not rename them. Built-in keyed labels (chart tags, statuses, categories) do follow the language because they resolve via `i18n.t` at render time.
+- **Never translate data identifiers**: `key`, `defaultShortcut`, surface/canal codes, PAR step codes, and `docCategories[].folder` (on-disk directory names) stay identical in every dictionary.
+
+### Adding a language
+1. Copy `en.ts` → `xx.ts`, rename the export, translate the values (TypeScript fails `npm run check` on any missing or extra key).
+2. Add `{ code: 'xx', name: '<native name>', intl: '<bcp47>', dict: xx }` to `LANGUAGES` in `index.svelte.ts`. The pickers render from that list automatically.
 
 ### Rules
-1. Add keys to `types.ts` first — TS errors catch missing keys in `en.ts`
-2. Add to `en.ts` only — do not recreate `de.ts`
-3. No hardcoded UI strings — use `i18n.t.*` (exceptions: console logs, DB column names, code constants)
-4. User-configurable defaults → `{ key, label? }[]` pattern; built-in keys resolve via `i18n.t.defaults.*`
-5. Parameterized strings: `.replace('{n}', String(value))`
+1. Add keys to `types.ts` first, then to **every** dictionary (`en.ts` and `sq.ts`) — TS errors catch missing keys
+2. No hardcoded UI strings — use `i18n.t.*` (exceptions: console logs, DB column names, code constants, file/folder paths). Small one-off strings live under `i18n.t.ui.<area>.*`
+3. User-configurable defaults → `{ key, label? }[]` pattern; built-in keys resolve via `i18n.t.defaults.*`
+4. Parameterized strings: `.replace('{n}', String(value))`; sentences around inline markup are split into `…Before` / `…After` keys
 
 ### Checklist
-- [ ] Keys in `types.ts` and `en.ts`
-- [ ] Component uses `i18n.t.*`
+- [ ] Keys in `types.ts`, `en.ts` and `sq.ts`
+- [ ] Component uses `i18n.t.*`; dates/numbers use `i18n.locale`
 - [ ] `npm run check` passes 0 errors
 
 ---
@@ -149,7 +157,7 @@ Migrations in `shared/schema-statements.json` (read by both `db-local.ts` and `d
 
 **`appointment_types`** has an `icon TEXT NOT NULL DEFAULT ''` column (v64) — emoji displayed in appointment blocks. Joined as `type_icon` on `Appointment`. Note the app has exactly ONE type list, not two — `entryTypes.svelte.ts` is a thin derived view over `appointmentTypes` ("One list controls both timeline entry categories and appointment types," per its own doc comment and `settings.entryTypes.description`); there's no separate `entry_types` table. `icon` (emoji) is what `AppointmentBlock.svelte` renders on calendar blocks; `short_name` (2-3 chars) is what `entryTypes.iconFor()`/`TimelineEntryCard`'s dynamic badge config renders in the timeline — the two fields serve different UI surfaces, both exist so a type is identifiable either way, and both are user-editable per type in Settings › Entry & Appointment Types (`maxlength="3"` enforced on the short_name input; the section description spells out the 2-3 char + emoji convention for anyone adding a custom type).
 
-**Default seed set** (July 2026 — `i18n.t.defaults.appointmentTypes`, English-only per the i18n rules, `AppointmentType.icon` populated for the first time): 14 entries — Check-up 🦷 Cu, Cleaning 🪥 Cl, Consultation 💬 Co, X-ray 🩻 Xr, Filling 🔧 Fi, Root Canal 🩹 RC, Extraction ⛏️ Ex, Crown 👑 Cr, Denture 😬 De, Implant 🔩 Im, Perio Therapy 🩸 Pe, Ortho Check 📐 Or, Emergency 🚨 Em, Follow-up 📋 Fu — chosen to cover every `TreatmentCategory` (types.ts) at least once and ordered roughly by real-world frequency in general dental practice. `appointmentTypes.svelte.ts`'s `load()` only seeds these into a brand-new, empty `appointment_types` table — existing vaults are never retroactively touched, and every field stays fully user-editable/deletable afterward (Customizability First rule).
+**Default seed set** (July 2026 — `i18n.t.defaults.appointmentTypes`, one set per UI language (`sq.ts` has the Albanian names/codes), `AppointmentType.icon` populated for the first time): 14 entries — Check-up 🦷 Cu, Cleaning 🪥 Cl, Consultation 💬 Co, X-ray 🩻 Xr, Filling 🔧 Fi, Root Canal 🩹 RC, Extraction ⛏️ Ex, Crown 👑 Cr, Denture 😬 De, Implant 🔩 Im, Perio Therapy 🩸 Pe, Ortho Check 📐 Or, Emergency 🚨 Em, Follow-up 📋 Fu — chosen to cover every `TreatmentCategory` (types.ts) at least once and ordered roughly by real-world frequency in general dental practice. `appointmentTypes.svelte.ts`'s `load()` only seeds these into a brand-new, empty `appointment_types` table — existing vaults are never retroactively touched, and every field stays fully user-editable/deletable afterward (Customizability First rule).
 
 **`AppointmentStatus`** is `string` (open type) — built-in values are `scheduled | waiting | in_chair | completed | cancelled | no_show`. Custom statuses are stored in settings key `'appointment_statuses'` via `appointmentStatuses` store.
 

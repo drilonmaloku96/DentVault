@@ -125,9 +125,9 @@
 				class="h-7 rounded-md border border-border bg-background px-2 text-xs outline-none focus:border-ring focus:ring-1 focus:ring-ring/30"
 			>
 				<option value="all">{i18n.t.common.all}</option>
-				<option value="7">Last 7 days</option>
-				<option value="30">Last 30 days</option>
-				<option value="90">Last 90 days</option>
+				<option value="7">{i18n.t.ui.audit.last7}</option>
+				<option value="30">{i18n.t.ui.audit.last30}</option>
+				<option value="90">{i18n.t.ui.audit.last90}</option>
 			</select>
 
 			<!-- Search -->
@@ -161,7 +161,7 @@
 					</svg>
 					<p class="text-sm">{i18n.t.audit.noRecords}</p>
 					{#if filterAction || filterEntityType || filterDateRange !== 'all' || filterSearch}
-						<p class="text-xs mt-1 opacity-70">Try adjusting the filters.</p>
+						<p class="text-xs mt-1 opacity-70">{i18n.t.ui.audit.tryFilters}</p>
 					{/if}
 				</div>
 			{:else}
@@ -180,7 +180,7 @@
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
 					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
 				</svg>
-				<span>Verifying integrity...</span>
+				<span>{i18n.t.ui.audit.verifying}</span>
 			{:else if integrity}
 				{#if integrity.valid}
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 text-emerald-600 shrink-0">

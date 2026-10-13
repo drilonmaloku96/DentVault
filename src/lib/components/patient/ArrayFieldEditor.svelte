@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
@@ -73,7 +74,7 @@
 			{/each}
 		</div>
 	{:else}
-		<p class="text-xs text-muted-foreground">None recorded.</p>
+		<p class="text-xs text-muted-foreground">{i18n.t.ui.patient.noneRecorded}</p>
 	{/if}
 
 	<!-- Add new item -->
@@ -85,7 +86,7 @@
 			class="h-8 text-sm"
 		/>
 		<Button type="button" variant="outline" size="sm" onclick={addItem} class="shrink-0">
-			Add
+			{i18n.t.actions.add}
 		</Button>
 	</div>
 </div>

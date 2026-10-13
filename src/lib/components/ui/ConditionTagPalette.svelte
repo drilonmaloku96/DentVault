@@ -66,7 +66,7 @@
 	class="flex flex-col overflow-hidden rounded-lg border border-border bg-popover shadow-lg"
 	style="min-width:220px; max-width:300px;"
 	role="listbox"
-	aria-label="Conditions"
+	aria-label={i18n.t.patients.conditions}
 >
 	<div class="flex items-center gap-1.5 border-b border-border px-3 py-1.5">
 		<span class="text-[10px] text-muted-foreground">
@@ -95,7 +95,7 @@
 						? 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400'
 						: 'bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
 				].join(' ')}>
-					{entry.category === 'acute' ? 'Acute' : 'Medical'}
+					{entry.category === 'acute' ? i18n.t.ui.patient.acute : i18n.t.ui.patient.medical}
 				</span>
 			</div>
 		{/each}

@@ -331,7 +331,7 @@
 		<DialogHeader>
 			<DialogTitle>{dialogTitle}</DialogTitle>
 			<DialogDescription>
-				{isEdit ? 'Update this timeline entry.' : "Record a new event in this patient's timeline."}
+				{isEdit ? i18n.t.ui.timeline.formEditDesc : i18n.t.ui.timeline.formNewDesc}
 			</DialogDescription>
 		</DialogHeader>
 
@@ -350,7 +350,7 @@
 					<input
 						id="entry-date"
 						type="text"
-						placeholder="DD/MM/YYYY"
+						placeholder={i18n.t.ui.timeline.datePlaceholder}
 						value={isoToDisplay(entryDate)}
 						oninput={(e) => {
 							const iso = displayToISO(e.currentTarget.value);
@@ -388,7 +388,7 @@
 				<Label for="entry-title">{i18n.t.common.name} <span class="text-destructive">*</span></Label>
 				<Input
 					id="entry-title"
-					placeholder="e.g. Annual checkup, Root canal #14…"
+					placeholder={i18n.t.ui.timeline.titleExample}
 					bind:value={entryTitle}
 					class={errors.entryTitle ? 'border-destructive' : ''}
 				/>
@@ -414,7 +414,7 @@
 									? 'border-[var(--doc-color)] bg-[var(--doc-color)] text-white shadow-sm'
 									: 'border-border bg-transparent text-muted-foreground hover:border-[var(--doc-color)] hover:text-foreground',
 							].join(' ')}
-							title={active && idx === 0 ? 'Primary (click to remove)' : active ? 'Colleague (click to remove)' : 'Click to add'}
+							title={active && idx === 0 ? i18n.t.ui.timeline.primaryRemove : active ? i18n.t.ui.timeline.colleagueRemove : i18n.t.ui.timeline.clickAdd}
 						>
 							{#if active && idx > 0}
 								<span class="opacity-75 text-[9px] font-bold leading-none">+</span>
@@ -423,7 +423,7 @@
 						</button>
 					{/each}
 					{#if doctors.list.filter(d => d.show_in_doc_bar !== 0).length === 0}
-						<p class="text-[10px] text-muted-foreground/60">Add staff in Settings → Staff</p>
+						<p class="text-[10px] text-muted-foreground/60">{i18n.t.ui.timeline.addStaffHint}</p>
 					{/if}
 				</div>
 			</div>
@@ -492,7 +492,7 @@
 								type="button"
 								onclick={() => { relatedEntryId = null; }}
 								class="shrink-0 rounded-md border border-input bg-background p-1.5 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors"
-								title="Unlink"
+								title={i18n.t.ui.timeline.unlink}
 							>
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
 									<path d="M18 6L6 18M6 6l12 12"/>
@@ -516,7 +516,7 @@
 					{#if showRelatedPicker && !relatedEntryId}
 						<div class="rounded-md border border-border bg-background overflow-hidden">
 							{#if relatedOptions.length === 0}
-								<p class="text-xs text-muted-foreground px-3 py-2">No prior procedures found for this tooth.</p>
+								<p class="text-xs text-muted-foreground px-3 py-2">{i18n.t.ui.timeline.noPriorProcedures}</p>
 							{:else}
 								{#each relatedOptions as opt}
 									<button

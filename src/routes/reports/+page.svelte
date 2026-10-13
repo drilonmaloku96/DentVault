@@ -94,7 +94,7 @@
 
 	function monthLabel(month: string): string {
 		const [year, mon] = month.split('-');
-		return new Date(Number(year), Number(mon) - 1, 1).toLocaleString('en-GB', { month: 'short' });
+		return new Date(Number(year), Number(mon) - 1, 1).toLocaleString(i18n.locale, { month: 'short' });
 	}
 
 	// ── DoW chart helpers ────────────────────────────────────────────────

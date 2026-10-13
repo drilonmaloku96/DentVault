@@ -78,7 +78,7 @@
 			type="button"
 			onclick={onClose}
 			class="ml-auto text-muted-foreground hover:text-foreground transition-colors"
-			aria-label="Close"
+			aria-label={i18n.t.actions.close}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 				<path d="M18 6L6 18M6 6l12 12"/>
@@ -94,7 +94,7 @@
 			<table class="w-full text-xs border-collapse">
 				<thead>
 					<tr class="text-[10px] text-muted-foreground uppercase tracking-wide">
-						<th class="text-left py-1 pr-3 font-medium w-24">Tag</th>
+						<th class="text-left py-1 pr-3 font-medium w-24">{i18n.t.ui.schedule.day}</th>
 						<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colActive}</th>
 						<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colStart}</th>
 						<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colBreakStart}</th>

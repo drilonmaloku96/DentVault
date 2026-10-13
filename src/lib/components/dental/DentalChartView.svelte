@@ -831,7 +831,7 @@
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3 text-amber-500 shrink-0">
 								<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
 							</svg>
-							<span class="text-xs font-medium text-amber-600 dark:text-amber-400">Editing snapshot</span>
+							<span class="text-xs font-medium text-amber-600 dark:text-amber-400">{i18n.t.ui.chart.editingSnapshot}</span>
 						</div>
 					{/if}
 					{#if planningMode}
@@ -840,7 +840,7 @@
 							<span class="text-xs font-semibold text-amber-600 dark:text-amber-400">{i18n.t.chart.planningMode}</span>
 						</div>
 					{/if}
-					<h3 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Dental Chart</h3>
+					<h3 class="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{i18n.t.chart.title}</h3>
 					{#if dmftEnabled && !isSnapshotMode && chartData.length > 0}
 						<div class="flex items-center gap-2 mt-1 flex-wrap">
 							<span class="inline-flex items-center gap-1 rounded-full bg-muted/70 border border-border/60 px-2 py-0.5 text-[11px] font-medium text-foreground/80">

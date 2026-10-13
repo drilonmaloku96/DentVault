@@ -63,7 +63,7 @@
 
 	<div>
 		<h1 class="text-2xl font-bold tracking-tight">{i18n.t.patients.new}</h1>
-		<p class="text-sm text-muted-foreground">Add a new patient record to DentVault</p>
+		<p class="text-sm text-muted-foreground">{i18n.t.ui.patient.newSubtitle}</p>
 	</div>
 
 	<PatientForm onSubmit={handleCreate} submitLabel={i18n.t.patients.new} />
