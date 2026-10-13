@@ -66,7 +66,7 @@
 
 	async function handleJoinServer() {
 		if (!joinUrl.trim() || !joinToken.trim()) {
-			joinError = 'Server URL and token are both required.';
+			joinError = i18n.t.ui.server.required;
 			return;
 		}
 		isJoining = true;
@@ -289,6 +289,28 @@
 					</p>
 				</div>
 
+				<!-- Language picker — shown first so everything after it is in the chosen language -->
+				<div class="flex flex-col items-center gap-2">
+					<p class="text-xs text-muted-foreground">{i18n.t.settings.languageLabel}</p>
+					<div class="flex items-center gap-1 rounded-full border bg-muted p-1">
+						{#each i18n.languages as lang}
+							<button
+								type="button"
+								onclick={() => i18n.setLang(lang.code)}
+								class={[
+									'rounded-full px-4 py-1.5 text-sm font-medium transition-all',
+									i18n.code === lang.code
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground',
+								].join(' ')}
+								aria-pressed={i18n.code === lang.code}
+							>
+								{lang.name}
+							</button>
+						{/each}
+					</div>
+				</div>
+
 				<!-- Display scale picker -->
 				<div class="flex flex-col items-center gap-2">
 					<p class="text-xs text-muted-foreground">{i18n.t.onboarding.scaleLabel}</p>
@@ -313,7 +335,7 @@
 				<!-- Get started button -->
 				<button
 					type="button"
-					onclick={() => goTo(1)}
+					onclick={() => { i18n.setLang(i18n.code); goTo(1); }}
 					class="mt-2 rounded-xl bg-primary px-10 py-3 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
 				>
 					{i18n.t.onboarding.getStarted}
@@ -455,23 +477,21 @@
 							onclick={() => { joinMode = true; joinError = ''; }}
 							class="mt-4 w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-2"
 						>
-							Setting up a new station for a clinic that already runs DentVault? Connect to a server instead →
+							{i18n.t.ui.server.joinLink}
 						</button>
 
 					<!-- ─────────────────────────────────────────────── -->
 					<!-- STEP 1 (alternate) — Join an existing server    -->
 					<!-- ─────────────────────────────────────────────── -->
 					{:else if step === 1 && joinMode}
-						<h2 class="text-xl font-bold text-foreground">Connect to a DentVault Server</h2>
+						<h2 class="text-xl font-bold text-foreground">{i18n.t.ui.server.joinTitle}</h2>
 						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">
-							This station will use the clinic's existing patients, schedule, and settings —
-							no local setup needed. Ask whoever runs the server for its address and token
-							(printed when the server starts).
+							{i18n.t.ui.server.joinDesc}
 						</p>
 
 						<div class="my-5 flex flex-col gap-3">
 							<div class="flex flex-col gap-1.5">
-								<span class="text-xs font-medium text-muted-foreground">Server address</span>
+								<span class="text-xs font-medium text-muted-foreground">{i18n.t.ui.server.address}</span>
 								<input
 									type="text"
 									bind:value={joinUrl}
@@ -480,11 +500,11 @@
 								/>
 							</div>
 							<div class="flex flex-col gap-1.5">
-								<span class="text-xs font-medium text-muted-foreground">Token</span>
+								<span class="text-xs font-medium text-muted-foreground">{i18n.t.ui.server.token}</span>
 								<input
 									type="text"
 									bind:value={joinToken}
-									placeholder="the token printed at server startup"
+									placeholder={i18n.t.ui.server.tokenPlaceholder}
 									class="rounded-lg border bg-background px-3 py-2.5 text-sm font-mono"
 								/>
 							</div>
@@ -502,7 +522,7 @@
 								onclick={() => { joinMode = false; joinError = ''; }}
 								class="text-sm text-muted-foreground hover:text-foreground transition-colors"
 							>
-								← Back
+								← {i18n.t.actions.back}
 							</button>
 							<button
 								type="button"
@@ -510,7 +530,7 @@
 								disabled={isJoining || !joinUrl.trim() || !joinToken.trim()}
 								class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
-								{isJoining ? i18n.t.common.loading : 'Connect'}
+								{isJoining ? i18n.t.common.loading : i18n.t.ui.server.connect}
 							</button>
 						</div>
 
@@ -544,7 +564,7 @@
 									<button
 										type="button"
 										onclick={() => removeMember(member.id)}
-										aria-label="Remove"
+										aria-label={i18n.t.actions.remove}
 										class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
 									>
 										<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

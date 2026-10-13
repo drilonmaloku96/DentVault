@@ -664,7 +664,7 @@
 		</svg>
 		{#if typeFilters.size > 0}
 			<h3 class="text-sm font-medium text-muted-foreground">{i18n.t.common.noData}</h3>
-			<p class="mt-1 text-xs text-muted-foreground/70">Try a different filter or add a new entry.</p>
+			<p class="mt-1 text-xs text-muted-foreground/70">{i18n.t.ui.timeline.tryFilter}</p>
 		{:else}
 			<h3 class="text-sm font-medium text-muted-foreground">{i18n.t.timeline.noEntries}</h3>
 			<p class="mt-1 text-xs text-muted-foreground/70">{i18n.t.timeline.addEntry}</p>
@@ -759,11 +759,11 @@
 											<span class="text-muted-foreground/40">·</span>
 											<span>Max {parMeta.max_pocket}mm</span>
 											{#if parMeta.risk === 'stable'}
-												<span class="rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 text-[9px] font-medium">Stable</span>
+												<span class="rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 text-[9px] font-medium">{i18n.t.par.risk.stable}</span>
 											{:else if parMeta.risk === 'high_risk'}
-												<span class="rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 text-[9px] font-medium">High risk</span>
+												<span class="rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 text-[9px] font-medium">{i18n.t.par.risk.highRisk}</span>
 											{:else}
-												<span class="rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 text-[9px] font-medium">Maintenance</span>
+												<span class="rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 text-[9px] font-medium">{i18n.t.par.risk.maintenance}</span>
 											{/if}
 										{/if}
 									</div>
@@ -834,7 +834,7 @@
 	<DialogContent>
 		<DialogHeader>
 			<DialogTitle>{i18n.t.actions.delete}</DialogTitle>
-			<DialogDescription>Are you sure you want to delete <strong>"{deletingEntry?.title}"</strong>? This cannot be undone.</DialogDescription>
+			<DialogDescription>{i18n.t.ui.common.confirmDeleteBefore} <strong>"{deletingEntry?.title}"</strong>{i18n.t.ui.common.confirmDeleteAfter}</DialogDescription>
 		</DialogHeader>
 		<DialogFooter>
 			<Button variant="outline" onclick={() => (deleteDialogOpen = false)} disabled={isDeleting}>{i18n.t.actions.cancel}</Button>

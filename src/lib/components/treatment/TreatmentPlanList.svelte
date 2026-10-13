@@ -195,7 +195,7 @@
 				</svg>
 				<h3 class="text-sm font-medium text-muted-foreground">{i18n.t.plans.noPlans}</h3>
 				<p class="mt-1 text-xs text-muted-foreground/70">
-					Click <strong>New Plan</strong> to create one.
+					{i18n.t.ui.common.click} <strong>{i18n.t.plans.new}</strong> {i18n.t.ui.plan.toCreateOne}
 				</p>
 			</div>
 
@@ -242,7 +242,7 @@
 								</div>
 							</div>
 						{:else}
-							<p class="text-xs text-muted-foreground/60 italic">No procedures added yet</p>
+							<p class="text-xs text-muted-foreground/60 italic">{i18n.t.ui.plan.noProceduresYet}</p>
 						{/if}
 
 						<!-- Bottom row: cost + date -->
@@ -262,7 +262,7 @@
 	<DialogContent class="max-w-md">
 		<DialogHeader>
 			<DialogTitle>{i18n.t.plans.new}</DialogTitle>
-			<DialogDescription>Create a plan to track multi-step treatment for this patient.</DialogDescription>
+			<DialogDescription>{i18n.t.ui.plan.createHint}</DialogDescription>
 		</DialogHeader>
 
 		<div class="flex flex-col gap-4 py-2">
@@ -273,7 +273,7 @@
 				<Label for="new-plan-title">{i18n.t.plans.fields.name} <span class="text-destructive">*</span></Label>
 				<Input
 					id="new-plan-title"
-					placeholder="e.g. Full mouth rehabilitation"
+					placeholder={i18n.t.ui.plan.titleExample}
 					bind:value={newTitle}
 				/>
 			</div>
@@ -281,7 +281,7 @@
 				<Label for="new-plan-desc">{i18n.t.plans.fields.description}</Label>
 				<Textarea
 					id="new-plan-desc"
-					placeholder="Optional notes about this plan…"
+					placeholder={i18n.t.ui.plan.notesPlaceholder}
 					class="min-h-[70px]"
 					bind:value={newDescription}
 				/>

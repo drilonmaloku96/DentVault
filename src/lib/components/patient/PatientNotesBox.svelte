@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n';
 	import { onMount, onDestroy } from 'svelte';
 	import { getMiscNotes, upsertMiscNotes } from '$lib/services/db';
 
@@ -48,9 +49,9 @@
 	{#if saveStatus !== 'idle'}
 		<div class="text-[10px] px-4 py-1 text-right">
 			{#if saveStatus === 'saving'}
-				<span class="text-muted-foreground/50">Saving…</span>
+				<span class="text-muted-foreground/50">{i18n.t.timeline.vaultDrop.saving}</span>
 			{:else if saveStatus === 'saved'}
-				<span class="text-emerald-500">Saved ✓</span>
+				<span class="text-emerald-500">{i18n.t.ui.patient.savedCheck}</span>
 			{/if}
 		</div>
 	{/if}
@@ -62,7 +63,7 @@
 		<textarea
 			bind:value={content}
 			oninput={handleInput}
-			placeholder="Anything goes — allergies, personal context, reminders, observations…"
+			placeholder={i18n.t.ui.patient.notesPlaceholder}
 			class="w-full flex-1 min-h-[96px] resize-none px-4 py-2 pb-3 text-sm bg-transparent outline-none
 			       placeholder:text-muted-foreground/35 leading-relaxed text-foreground
 			       focus:outline-none"

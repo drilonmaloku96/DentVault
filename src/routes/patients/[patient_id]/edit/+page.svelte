@@ -62,7 +62,7 @@
 
 {:else if notFound || !patient}
 	<div class="flex flex-col items-center justify-center gap-4 py-16">
-		<p class="text-lg font-medium text-muted-foreground">Patient not found</p>
+		<p class="text-lg font-medium text-muted-foreground">{i18n.t.ui.patient.notFound}</p>
 		<Button href="/patients" variant="outline">← {i18n.t.nav.patients}</Button>
 	</div>
 
@@ -70,7 +70,7 @@
 	<div class="flex flex-col gap-6">
 		<!-- Breadcrumb -->
 		<nav class="flex items-center gap-2 text-sm text-muted-foreground">
-			<a href="/patients" class="hover:text-foreground transition-colors">Patients</a>
+			<a href="/patients" class="hover:text-foreground transition-colors">{i18n.t.nav.patients}</a>
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
 				<path d="M9 18l6-6-6-6" />
 			</svg>
@@ -80,11 +80,11 @@
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
 				<path d="M9 18l6-6-6-6" />
 			</svg>
-			<span class="text-foreground font-medium">Edit</span>
+			<span class="text-foreground font-medium">{i18n.t.actions.edit}</span>
 		</nav>
 
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight">Edit Patient</h1>
+			<h1 class="text-2xl font-bold tracking-tight">{i18n.t.patients.editPatient}</h1>
 			<p class="text-sm text-muted-foreground">{patient.patient_id}</p>
 		</div>
 

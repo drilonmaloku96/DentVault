@@ -195,7 +195,7 @@
 				{/if}
 
 				<div class="flex flex-col gap-1">
-					<label class="text-xs font-medium text-muted-foreground">Grund / Reason</label>
+					<label class="text-xs font-medium text-muted-foreground">{i18n.t.ui.schedule.reason}</label>
 					<select class={inputClass} bind:value={fReason} onchange={onReasonChange}>
 						{#each (['vacation', 'sick', 'conference', 'training', 'other'] as const) as r}
 							<option value={r}>{reasonLabel(r)}</option>

@@ -127,7 +127,7 @@
 	function formatApptDateTime(iso: string): string {
 		const d = new Date(iso);
 		if (isNaN(d.getTime())) return iso;
-		const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
+		const weekday = d.toLocaleDateString(i18n.locale, { weekday: 'short' });
 		return weekday + ' ' + formatDate(d) + ' · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 	}
 
@@ -145,7 +145,7 @@
 <!-- Not found -->
 {:else if notFound || !patient}
 	<div class="flex flex-col items-center justify-center gap-4 py-16">
-		<p class="text-lg font-medium text-muted-foreground">Patient not found</p>
+		<p class="text-lg font-medium text-muted-foreground">{i18n.t.ui.patient.notFound}</p>
 		<Button href="/patients" variant="outline">← {i18n.t.nav.patients}</Button>
 	</div>
 
@@ -174,7 +174,7 @@
 				<a
 					href="/patients/{patient.patient_id}/info"
 					class="flex items-center gap-2.5 flex-1 min-w-0 rounded-md px-2 py-1.5 hover:bg-muted/50 transition-colors group"
-					title="View patient details"
+					title={i18n.t.ui.patient.viewDetails}
 				>
 					<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs shrink-0 transition-colors group-hover:bg-primary/15">
 						{patient.firstname[0]?.toUpperCase()}{patient.lastname[0]?.toUpperCase()}
@@ -323,7 +323,7 @@
 						<button
 							type="button"
 							onclick={() => (showMedical = !showMedical)}
-							title="Medical History"
+							title={i18n.t.patients.medicalHistory}
 							aria-pressed={showMedical}
 							class={[
 								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',
@@ -346,7 +346,7 @@
 						<button
 							type="button"
 							onclick={() => (showNotes = !showNotes)}
-							title="Notes"
+							title={i18n.t.common.notes}
 							aria-pressed={showNotes}
 							class={[
 								'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all border',

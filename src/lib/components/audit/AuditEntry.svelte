@@ -84,7 +84,7 @@
 						? 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400'
 						: 'bg-sky-50 text-sky-600 dark:bg-sky-950/30 dark:text-sky-400',
 				].join(' ')}>
-					{record.action === 'delete' ? 'Deleted' : 'Edited'}
+					{record.action === 'delete' ? i18n.t.audit.actions.delete : i18n.t.plans.status.edited}
 				</span>
 				{#if record.entity_type !== 'timeline_entry'}
 					<span>· {(i18n.t.audit.entityTypes as Record<string, string>)[record.entity_type] ?? record.entity_type}</span>
@@ -104,7 +104,7 @@
 	{#if expanded}
 		<div class="border-t px-4 pb-3 pt-2.5">
 			{#if diffFields().length === 0}
-				<p class="text-xs text-muted-foreground italic">No field details recorded.</p>
+				<p class="text-xs text-muted-foreground italic">{i18n.t.ui.audit.noFieldDetails}</p>
 			{:else}
 				<div class="flex flex-col gap-2">
 					{#each diffFields() as field (field.key)}

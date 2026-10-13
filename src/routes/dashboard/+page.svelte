@@ -546,7 +546,7 @@
 								<th class="text-left px-5 py-2.5 font-medium text-muted-foreground">{i18n.t.reports.columns.doctor}</th>
 								<th class="text-center px-4 py-2.5 font-medium text-muted-foreground">{i18n.t.dashboard.stats.patientsServed}</th>
 								<th class="text-center px-4 py-2.5 font-medium text-muted-foreground">{i18n.t.dashboard.stats.treatments}</th>
-								<th class="text-right px-5 py-2.5 font-medium text-muted-foreground">Ø / Patient</th>
+								<th class="text-right px-5 py-2.5 font-medium text-muted-foreground">{i18n.t.ui.dashboard.avgPerPatient}</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-border/40">

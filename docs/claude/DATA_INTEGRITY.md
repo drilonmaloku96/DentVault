@@ -188,18 +188,20 @@ ones.
 
 ---
 
-## 11. English only — no exceptions
+## 11. Languages — every string in every dictionary
 
-**The bugs:** German survived deletion of `de.ts` in scattered places: tooth names,
-plan-procedure defaults, a dashboard label, dialog fallbacks, comments.
+**The bugs:** German survived the deletion of the old `de.ts` in scattered places: tooth names,
+plan-procedure defaults, a dashboard label, dialog fallbacks, comments. A hardcoded string is
+invisible in one language and glaring in the other.
 
 **Rules:**
-- All UI strings via `i18n.t.*` (key in `types.ts` first, then `en.ts`). No hardcoded
-  UI strings — including *fallbacks* after `??` and default labels in stores.
-- Comments, placeholders, example names: English.
-- German statutory keys that are domain identifiers (PAR step types `AIT/BEV/UPT`,
-  `kasse/privat`) are data keys, not UI text — they stay, but their *labels* are English.
-- Never recreate `de.ts` or add language switching.
+- All UI strings via `i18n.t.*` (key in `types.ts` first, then `en.ts` **and** `sq.ts`). No
+  hardcoded UI strings — including *fallbacks* after `??` and default labels in stores.
+- Comments and code identifiers: English.
+- Data identifiers are never translated: `key` fields, shortcuts, surface/canal codes, folder
+  names, German statutory keys (PAR step types `AIT/BEV/UPT`, `kasse/privat`) — only their
+  *labels* are translated.
+- Dates/numbers format with `i18n.locale`, never a hardcoded locale string.
 
 ---
 
@@ -216,6 +218,6 @@ plan-procedure defaults, a dashboard label, dialog fallbacks, comments.
 - [ ] Derived scores computed in one shared place?
 - [ ] Dates: `'localtime'` in SQL, `toLocalISODate()` in TS?
 - [ ] Migration appended (not edited), `LATEST_VERSION` + CLAUDE.md bumped, data migration included if semantics changed?
-- [ ] All strings English, via i18n keys (fallbacks included)?
+- [ ] All strings via i18n keys in every dictionary (fallbacks included)?
 - [ ] Export updated per CLAUDE.md's mandatory compatibility rule?
 - [ ] `npm run check` — 0 errors?

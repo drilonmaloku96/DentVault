@@ -69,11 +69,11 @@
 		<div class="flex flex-col gap-1 mt-2">
 			<!-- Header row -->
 			<div class="grid grid-cols-[80px_1fr_1fr_1fr_1fr_32px] gap-1.5 px-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-				<span>Tag</span>
-				<span>Von</span>
-				<span>Bis</span>
-				<span>Pause von</span>
-				<span>Pause bis</span>
+				<span>{i18n.t.ui.schedule.day}</span>
+				<span>{i18n.t.staff.colStart}</span>
+				<span>{i18n.t.staff.colEnd}</span>
+				<span>{i18n.t.staff.colBreakStart}</span>
+				<span>{i18n.t.staff.colBreakEnd}</span>
 				<span></span>
 			</div>
 			{#each hours as h}

@@ -383,7 +383,7 @@
 						onclick={handleImageClick}
 						ondblclick={(e) => e.stopPropagation()}
 						class="shrink-0 h-5 w-5 rounded overflow-hidden border bg-muted hover:opacity-75 transition-opacity"
-						title="Click to preview"
+						title={i18n.t.ui.timeline.clickPreview}
 					>
 						<img src={docImageUrl} alt={docFile.name} class="h-full w-full object-cover"/>
 					</button>
@@ -413,7 +413,7 @@
 							type="button"
 							onclick={onDateChange ? startDateEdit : undefined}
 							class={onDateChange ? 'hover:text-foreground hover:underline cursor-pointer group/date flex items-center gap-1 transition-colors' : 'cursor-default'}
-							title={onDateChange ? 'Click to change date' : undefined}
+							title={onDateChange ? i18n.t.ui.timeline.clickChangeDate : undefined}
 						>
 							{formatDate(entry.entry_date)}
 							{#if onDateChange}
@@ -470,7 +470,7 @@
 						type="button"
 						onclick={() => (menuOpen = !menuOpen)}
 						class="h-5 w-5 flex items-center justify-center rounded opacity-0 group-hover/doc:opacity-100 text-muted-foreground/40 hover:text-muted-foreground transition-all"
-						title="More options"
+						title={i18n.t.ui.common.moreOptions}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
 							<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
@@ -520,7 +520,7 @@
 						onclick={handleImageClick}
 						ondblclick={(e) => { e.preventDefault(); handleOpenFile(); }}
 						class="block w-full cursor-zoom-in"
-						title="Click to close · Double-click to open in app"
+						title={i18n.t.ui.timeline.clickCloseDbl}
 					>
 						<img
 							src={docImageUrl}
@@ -599,7 +599,7 @@
 							'text-[10px] text-muted-foreground/50 transition-colors ml-0.5',
 							onDateChange ? 'hover:text-muted-foreground hover:underline cursor-pointer' : 'cursor-default',
 						].join(' ')}
-						title={onDateChange ? 'Click to change date' : undefined}
+						title={onDateChange ? i18n.t.ui.timeline.clickChangeDate : undefined}
 					>
 						{formatDate(entry.entry_date)}
 					</button>
@@ -611,7 +611,7 @@
 						type="button"
 						onclick={() => (menuOpen = !menuOpen)}
 						class="h-5 w-5 flex items-center justify-center rounded text-muted-foreground/30 hover:text-muted-foreground transition-colors"
-						title="More options"
+						title={i18n.t.ui.common.moreOptions}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
 							<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
@@ -652,7 +652,7 @@
 			{#if (!primaryDoc && entry.provider) || entry.tooth_numbers}
 				<div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 ml-[22px] text-[11px] text-muted-foreground/60">
 					{#if !primaryDoc && entry.provider}
-						<span class="text-muted-foreground/40">{entry.provider} <span class="text-[9px]">(legacy)</span></span>
+						<span class="text-muted-foreground/40">{entry.provider} <span class="text-[9px]">{i18n.t.ui.timeline.legacyParen}</span></span>
 					{/if}
 					{#if entry.tooth_numbers}
 						<span>{i18n.t.common.tooth} {entry.tooth_numbers}</span>

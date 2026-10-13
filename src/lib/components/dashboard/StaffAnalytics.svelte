@@ -336,10 +336,10 @@
 					{/each}
 					<!-- Legend -->
 					<div class="flex gap-3 flex-wrap pt-1">
-						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-emerald-400 dark:bg-emerald-500"></span> Completed</span>
-						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-blue-300 dark:bg-blue-500"></span> Scheduled</span>
-						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-red-300 dark:bg-red-500"></span> Cancelled</span>
-						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-red-200 dark:bg-red-400"></span> No-show</span>
+						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-emerald-400 dark:bg-emerald-500"></span> {i18n.t.schedule.statuses.completed}</span>
+						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-blue-300 dark:bg-blue-500"></span> {i18n.t.schedule.statuses.scheduled}</span>
+						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-red-300 dark:bg-red-500"></span> {i18n.t.schedule.statuses.cancelled}</span>
+						<span class="flex items-center gap-1 text-[10px] text-muted-foreground"><span class="w-2 h-2 rounded-full bg-red-200 dark:bg-red-400"></span> {i18n.t.schedule.statuses.no_show}</span>
 					</div>
 				</div>
 			{/if}

@@ -102,7 +102,7 @@
 				type="button"
 				onclick={handleOpen}
 				class="rounded-lg bg-white/90 dark:bg-black/70 text-foreground px-3 py-1.5 text-xs font-medium shadow hover:bg-white dark:hover:bg-black transition-colors"
-				title="Open with default app"
+				title={i18n.t.ui.common.openDefaultApp}
 			>
 				{i18n.t.documents.openFile}
 			</button>

@@ -178,12 +178,12 @@
 			</div>
 			<div class="flex items-center gap-2">
 				{#if savedPulse}
-					<span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-pulse">✓ saved</span>
+					<span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-pulse">{i18n.t.ui.perio.savedCheck}</span>
 				{/if}
 				<button
 					onclick={onClose}
 					class="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none w-6 h-6 flex items-center justify-center rounded"
-					aria-label="Deselect tooth"
+					aria-label={i18n.t.ui.perio.deselectTooth}
 				>×</button>
 			</div>
 		</div>
@@ -215,7 +215,7 @@
 					{/each}
 
 					<!-- Recession row -->
-					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">Rec</div>
+					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">{i18n.t.perio.recession}</div>
 					{#each BUCCAL_SITES as site}
 						<input
 							type="number"
@@ -244,7 +244,7 @@
 								type="button"
 								onclick={() => onBopToggle(toothNumber!, site)}
 								class="w-7 h-7 rounded-full border-2 transition-colors {bopSites[`${toothNumber}_${site}`] ? 'bg-red-500 border-red-500 text-white' : 'border-border bg-background hover:border-red-300'}"
-								title="Bleeding on probing — {site}"
+								title="{i18n.t.ui.perio.bop} — {site}"
 								aria-label="BOP {site}"
 							>
 								{#if bopSites[`${toothNumber}_${site}`]}
@@ -255,7 +255,7 @@
 					{/each}
 
 					<!-- Plaque row -->
-					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">Plq</div>
+					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">{i18n.t.ui.perio.plaqueShort}</div>
 					{#each BUCCAL_SITES as site}
 						<div class="flex justify-center">
 							<button
@@ -300,7 +300,7 @@
 					{/each}
 
 					<!-- Recession row -->
-					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">Rec</div>
+					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">{i18n.t.perio.recession}</div>
 					{#each LINGUAL_SITES as site}
 						<input
 							type="number"
@@ -340,7 +340,7 @@
 					{/each}
 
 					<!-- Plaque row -->
-					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">Plq</div>
+					<div class="text-right pr-1 text-muted-foreground flex items-center justify-end text-[9px]">{i18n.t.ui.perio.plaqueShort}</div>
 					{#each LINGUAL_SITES as site}
 						<div class="flex justify-center">
 							<button
@@ -417,7 +417,7 @@
 					value={toothData?.notes ?? ''}
 					rows="2"
 					class="w-full rounded border border-border bg-background px-2 py-1.5 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-primary/50"
-					placeholder="Optional notes for this tooth…"
+					placeholder={i18n.t.ui.perio.toothNotesPlaceholder}
 				></textarea>
 			</div>
 		</div>
@@ -427,14 +427,14 @@
 			<button
 				onclick={onBack}
 				class="flex items-center gap-1 hover:text-foreground transition-colors"
-				title="Previous tooth (Shift+Enter)"
+				title={i18n.t.chart.prevToothHint}
 			>
 				← {i18n.t.actions.prev} <kbd class="ml-1 px-1 py-0.5 rounded bg-border text-[9px]">⇧↵</kbd>
 			</button>
 			<button
 				onclick={onAdvance}
 				class="flex items-center gap-1 hover:text-foreground transition-colors"
-				title="Next tooth (Enter)"
+				title={i18n.t.ui.perio.nextToothHint}
 			>
 				{i18n.t.actions.next} → <kbd class="ml-1 px-1 py-0.5 rounded bg-border text-[9px]">↵</kbd>
 			</button>

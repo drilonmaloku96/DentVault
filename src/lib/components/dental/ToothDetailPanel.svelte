@@ -783,7 +783,7 @@
 			class={['flex flex-col gap-1 select-none', hasCanals ? (isUpperTooth ? 'order-3' : 'order-1') : ''].join(' ')}
 			style="touch-action:none; cursor:crosshair;"
 			role="group"
-			aria-label="Tooth surfaces"
+			aria-label={i18n.t.ui.chart.toothSurfaces}
 			onpointerdown={onGridPointerDown}
 			onpointerup={() => { isDragging = false; }}
 		>
@@ -820,13 +820,13 @@
 				activeSurfaces.has('Cv') ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
 			].join(' ')}
 			style="touch-action:none; cursor:crosshair; background:{surfFill('Cv')};border-color:{activeSurfaces.has('Cv') ? '#2563eb' : surfStroke('Cv')};color:{activeSurfaces.has('Cv') ? '#1d4ed8' : surfStroke('Cv')};"
-			title="Cervical"
+			title={i18n.t.ui.chart.cervical}
 			onpointerdown={onGridPointerDown}
 			onpointerup={() => { isDragging = false; }}
 			onpointerenter={() => { if (isDragging) applySurfaceDragMode('Cv'); }}
 		>
 			<span class="font-mono text-[10px] font-bold">Cv</span>
-			<span class="text-[10px] opacity-70">Cervical</span>
+			<span class="text-[10px] opacity-70">{i18n.t.ui.chart.cervical}</span>
 		</div>
 
 		<!-- Root triangles -->
@@ -991,7 +991,7 @@
 					class="cursor-pointer"
 					role="button"
 					tabindex="0"
-					aria-label="Occlusal"
+					aria-label={i18n.t.ui.chart.occlusal}
 					aria-pressed={oActive}
 				/>
 				{#if oActive}
@@ -1014,13 +1014,13 @@
 				cvActive ? 'ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-700' : '',
 			].join(' ')}
 			style="touch-action:none; cursor:crosshair; background:{cvFind ? cvFind.color : '#f1f5f9'};border-color:{cvActive ? '#2563eb' : (cvFind ? cvFind.strokeColor : '#cbd5e1')};color:{cvActive ? '#1d4ed8' : (cvFind ? cvFind.strokeColor : '#94a3b8')};"
-			title="Cervical margin"
+			title={i18n.t.ui.chart.cervicalMargin}
 			onpointerdown={onGridPointerDown}
 			onpointerup={() => { isDragging = false; }}
 			onpointerenter={() => { if (isDragging) applySurfaceDragMode('Cv'); }}
 		>
 			<span class="font-mono text-[10px] font-bold">Cv</span>
-			<span class="text-[10px] opacity-70">Cervical margin</span>
+			<span class="text-[10px] opacity-70">{i18n.t.ui.chart.cervicalMargin}</span>
 		</div>
 
 		<!-- Root canal triangles: order-1 (upper, above crown) / order-3 (lower, below crown) -->
@@ -1107,7 +1107,7 @@
 					type="button"
 					onclick={() => { activeSurfaces = new Set(); }}
 					class="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-					title="Deselect surfaces"
+					title={i18n.t.ui.chart.deselectSurfaces}
 				>✕</button>
 			{/if}
 		</div>
@@ -1271,7 +1271,7 @@
 			<span class="text-[11px] text-muted-foreground">{i18n.t.chart.applyingTo}:</span>
 			{#if activeSurfaces.size > 0}
 				<span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">{targetLabel}</span>
-				<button type="button" onclick={() => { activeSurfaces = new Set(); }} class="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors" title="Deselect surfaces">✕</button>
+				<button type="button" onclick={() => { activeSurfaces = new Set(); }} class="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors" title={i18n.t.ui.chart.deselectSurfaces}>✕</button>
 			{:else}
 				<span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{i18n.t.chart.crown.wholeCrown}</span>
 			{/if}
@@ -1460,14 +1460,14 @@
 						<span class="text-[10px] font-semibold text-muted-foreground">{canalNames[canal] ?? canal}</span>
 						<textarea
 							rows={2}
-							placeholder="Notes…"
+							placeholder={i18n.t.ui.common.notesPlaceholder}
 							value={cdata.notes ?? ''}
 							oninput={(e) => { rootDataMap[canal] = { ...getCanalData(canal), notes: (e.target as HTMLTextAreaElement).value }; }}
 							onblur={() => doSave()}
 							class="text-xs border border-border rounded px-2 py-1 bg-background resize-none focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/40"
 						></textarea>
 						<div class="flex items-center gap-1.5">
-							<label class="text-[10px] text-muted-foreground shrink-0">Length</label>
+							<label class="text-[10px] text-muted-foreground shrink-0">{i18n.t.ui.chart.length}</label>
 							<input
 								type="number"
 								step={0.5}
@@ -1499,12 +1499,12 @@
 					<input
 						type="text"
 						bind:value={addCanalInput}
-						placeholder="Canal name (e.g. MB2)"
+						placeholder={i18n.t.ui.chart.canalNamePlaceholder}
 						class="text-xs border border-border rounded px-2 py-1 bg-background flex-1 focus:outline-none focus:ring-1 focus:ring-ring"
 						onkeydown={(e) => { if (e.key === 'Enter') addExtraCanal(); if (e.key === 'Escape') { showCanalInput = false; addCanalInput = ''; } }}
 					/>
 					<button type="button" onclick={addExtraCanal} disabled={!addCanalInput.trim()}
-						class="text-[10px] px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors">Add</button>
+						class="text-[10px] px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors">{i18n.t.actions.add}</button>
 					<button type="button" onclick={() => { showCanalInput = false; addCanalInput = ''; }}
 						class="text-[10px] text-muted-foreground hover:text-foreground transition-colors">✕</button>
 				</div>
@@ -1515,7 +1515,7 @@
 					class="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground border border-dashed border-border/60 rounded px-2.5 py-1 w-full justify-center transition-colors hover:border-foreground/30"
 				>
 					<svg class="size-2.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
-					Add canal
+					{i18n.t.chart.endo.addCanal}
 				</button>
 			{/if}
 		</div>
@@ -1780,7 +1780,7 @@
 		'text-xs font-medium transition-all duration-300',
 		isSaving   ? 'text-muted-foreground opacity-100' :
 		savedPulse ? 'text-emerald-600 opacity-100'      : 'opacity-0',
-	].join(' ')}>{isSaving ? 'Saving…' : '✓ Saved'}</span>
+	].join(' ')}>{isSaving ? i18n.t.timeline.vaultDrop.saving : '✓ ' + i18n.t.settings.saved}</span>
 {/snippet}
 
 <!-- ── Layouts ──────────────────────────────────────────────────────── -->
@@ -1813,7 +1813,7 @@
 			<div class="shrink-0 flex flex-col gap-2">
 				<Label class="text-xs">
 					{isCrowned ? i18n.t.chart.crown.surfacePickerLabel : isPontic ? i18n.t.chart.pontic : i18n.t.chart.selectSurfaces}
-					{#if !isPontic}<span class="text-muted-foreground font-normal">(shift to add)</span>{/if}
+					{#if !isPontic}<span class="text-muted-foreground font-normal">{i18n.t.ui.chart.shiftToAdd}</span>{/if}
 				</Label>
 				{#if isCrowned}
 					{@render crownSurfacePickerWidget()}

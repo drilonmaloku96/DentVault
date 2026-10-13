@@ -113,7 +113,7 @@
 				<a
 					href="#entry-{item.timeline_entry_id}"
 					class="flex items-center gap-1 text-[10px] text-primary hover:underline"
-					title="View linked timeline entry"
+					title={i18n.t.ui.plan.viewLinked}
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 						<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
@@ -145,7 +145,7 @@
 			class="h-6 w-6"
 			disabled={index === 0}
 			onclick={() => onMoveUp(item.id)}
-			title="Move up"
+			title={i18n.t.ui.common.moveUp}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 				<path d="M18 15l-6-6-6 6" />
@@ -157,7 +157,7 @@
 			class="h-6 w-6"
 			disabled={index === totalItems - 1}
 			onclick={() => onMoveDown(item.id)}
-			title="Move down"
+			title={i18n.t.ui.common.moveDown}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 				<path d="M6 9l6 6 6-6" />
@@ -168,7 +168,7 @@
 			size="icon"
 			class="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
 			onclick={() => onDelete(item.id)}
-			title="Remove item"
+			title={i18n.t.ui.common.removeItem}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 				<path d="M18 6L6 18M6 6l12 12" />

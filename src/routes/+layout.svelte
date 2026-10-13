@@ -97,9 +97,9 @@
 	});
 
 	// Keep html[lang] in sync with the current language so <input type="date">
-	// renders in DD/MM/YYYY (en-GB) or DD.MM.YYYY (de) — not US MM/DD/YYYY.
+	// renders in the locale's day-first order (en-GB / sq-AL) — not US MM/DD/YYYY.
 	$effect(() => {
-		document.documentElement.lang = 'en-GB';
+		document.documentElement.lang = i18n.locale;
 	});
 
 	// Sidebar ref (so other parts of the app can trigger a reload)
@@ -163,7 +163,7 @@
 					type="button"
 					onclick={() => { activePatient.clear(); goto('/dashboard'); }}
 					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
-					title="Go to Dashboard"
+					title={i18n.t.ui.common.goDashboard}
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

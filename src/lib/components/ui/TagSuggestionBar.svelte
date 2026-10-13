@@ -69,7 +69,7 @@
 				title={s.confidence === 'low' ? 'Possible match — hedging language detected near keyword' : ''}
 			>
 				{s.icon}
-				{#if s.confidence === 'low'}<em class="not-italic opacity-70">Possible:</em>{/if}
+				{#if s.confidence === 'low'}<em class="not-italic opacity-70">{i18n.t.ui.timeline.possible}</em>{/if}
 				{s.displayLabel}
 
 				<!-- Accept -->

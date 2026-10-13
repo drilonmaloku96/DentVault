@@ -185,12 +185,12 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="flex flex-col gap-1.5">
 					<Label for="firstname">{i18n.t.patients.fields.firstName} <span class="text-destructive">*</span></Label>
-					<Input id="firstname" placeholder="Jane" bind:value={firstname} aria-invalid={!!errors.firstname} />
+					<Input id="firstname" placeholder={i18n.t.ui.patient.phFirstName} bind:value={firstname} aria-invalid={!!errors.firstname} />
 					{#if errors.firstname}<p class="text-destructive text-xs">{errors.firstname}</p>{/if}
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="lastname">{i18n.t.patients.fields.lastName} <span class="text-destructive">*</span></Label>
-					<Input id="lastname" placeholder="Doe" bind:value={lastname} aria-invalid={!!errors.lastname} />
+					<Input id="lastname" placeholder={i18n.t.ui.patient.phLastName} bind:value={lastname} aria-invalid={!!errors.lastname} />
 					{#if errors.lastname}<p class="text-destructive text-xs">{errors.lastname}</p>{/if}
 				</div>
 			</div>
@@ -228,7 +228,7 @@
 							type="text"
 							inputmode="numeric"
 							maxlength="4"
-							placeholder="YYYY"
+							placeholder={i18n.t.ui.patient.phYear}
 							bind:value={dobYear}
 							oninput={syncDob}
 							aria-invalid={dobInvalid}
@@ -284,7 +284,7 @@
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="email">{i18n.t.patients.fields.email}</Label>
-					<Input id="email" type="email" placeholder="jane.doe@example.com" bind:value={email} aria-invalid={!!errors.email} />
+					<Input id="email" type="email" placeholder={i18n.t.ui.patient.phEmail} bind:value={email} aria-invalid={!!errors.email} />
 					{#if errors.email}<p class="text-destructive text-xs">{errors.email}</p>{/if}
 				</div>
 			</div>
@@ -297,7 +297,7 @@
 		<CardContent class="flex flex-col gap-4">
 			<div class="flex flex-col gap-1.5">
 				<Label for="address">{i18n.t.patients.fields.address}</Label>
-				<Input id="address" placeholder="123 Main St" bind:value={address} />
+				<Input id="address" placeholder={i18n.t.ui.patient.phStreet} bind:value={address} />
 			</div>
 			<div class="grid grid-cols-3 gap-4">
 				<div class="flex flex-col gap-1.5 col-span-1">
@@ -306,11 +306,11 @@
 				</div>
 				<div class="flex flex-col gap-1.5 col-span-1">
 					<Label for="city">{i18n.t.patients.fields.city}</Label>
-					<Input id="city" placeholder="Vienna" bind:value={city} />
+					<Input id="city" placeholder={i18n.t.ui.patient.phCity} bind:value={city} />
 				</div>
 				<div class="flex flex-col gap-1.5 col-span-1">
 					<Label for="country">{i18n.t.patients.fields.country}</Label>
-					<Input id="country" placeholder="Austria" bind:value={country} />
+					<Input id="country" placeholder={i18n.t.ui.patient.phCountry} bind:value={country} />
 				</div>
 			</div>
 		</CardContent>
@@ -323,11 +323,11 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div class="flex flex-col gap-1.5">
 					<Label for="ec_name">{i18n.t.patients.fields.emergencyContactName}</Label>
-					<Input id="ec_name" placeholder="Anna Doe" bind:value={emergency_contact_name} />
+					<Input id="ec_name" placeholder={i18n.t.ui.patient.phEmergencyName} bind:value={emergency_contact_name} />
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="ec_relation">{i18n.t.patients.fields.emergencyContactRelation}</Label>
-					<Input id="ec_relation" placeholder="Spouse" bind:value={emergency_contact_relation} />
+					<Input id="ec_relation" placeholder={i18n.t.ui.patient.phRelation} bind:value={emergency_contact_relation} />
 				</div>
 			</div>
 			<div class="flex flex-col gap-1.5">
@@ -343,12 +343,12 @@
 		<CardContent class="flex flex-col gap-4">
 			<div class="grid grid-cols-2 gap-4">
 				<div class="flex flex-col gap-1.5">
-					<Label for="insurance_provider">Insurance Provider</Label>
-					<Input id="insurance_provider" placeholder="Blue Cross Blue Shield" bind:value={insurance_provider} />
+					<Label for="insurance_provider">{i18n.t.ui.patient.insuranceProvider}</Label>
+					<Input id="insurance_provider" placeholder={i18n.t.ui.patient.phInsurer} bind:value={insurance_provider} />
 				</div>
 				<div class="flex flex-col gap-1.5">
-					<Label for="insurance_id">Member / Policy ID</Label>
-					<Input id="insurance_id" placeholder="ABC-123456" bind:value={insurance_id} />
+					<Label for="insurance_id">{i18n.t.ui.patient.policyId}</Label>
+					<Input id="insurance_id" placeholder={i18n.t.ui.patient.phPolicy} bind:value={insurance_id} />
 				</div>
 			</div>
 		</CardContent>
@@ -360,26 +360,26 @@
 		<CardContent class="flex flex-col gap-4">
 			<div class="flex flex-col gap-1.5">
 				<Label for="primary_physician">{i18n.t.patients.fields.primaryPhysician}</Label>
-				<Input id="primary_physician" placeholder="Dr. Smith" bind:value={primary_physician} />
+				<Input id="primary_physician" placeholder={i18n.t.ui.patient.phPhysician} bind:value={primary_physician} />
 			</div>
 			<ArrayFieldEditor
 				items={allergies}
 				label={i18n.t.patients.fields.allergies}
-				placeholder="e.g. Penicillin, Latex"
+				placeholder={i18n.t.ui.patient.phAllergies}
 				variant="danger"
 				onUpdate={(items) => (allergies = items)}
 			/>
 			<ArrayFieldEditor
 				items={medications}
 				label={i18n.t.patients.fields.medications}
-				placeholder="e.g. Warfarin, Metformin"
+				placeholder={i18n.t.ui.patient.phMedications}
 				variant="info"
 				onUpdate={(items) => (medications = items)}
 			/>
 			<ArrayFieldEditor
 				items={risk_flags}
 				label={i18n.t.patients.fields.riskFlags}
-				placeholder="e.g. Diabetic, Pregnant"
+				placeholder={i18n.t.ui.patient.phRiskFlags}
 				variant="warning"
 				onUpdate={(items) => (risk_flags = items)}
 			/>
@@ -400,21 +400,21 @@
 			<CardContent class="flex flex-col gap-4">
 				<div class="flex flex-col gap-1.5">
 					<Label for="referral_source">{i18n.t.patients.fields.referralSource}</Label>
-					<Input id="referral_source" placeholder="e.g. Dr. Smith, Google, Walk-in" bind:value={referral_source} />
+					<Input id="referral_source" placeholder={i18n.t.ui.patient.phReferral} bind:value={referral_source} />
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="smoking_status">{i18n.t.patients.fields.smokingStatus}</Label>
 					<select id="smoking_status" class={sel} bind:value={smoking_status}>
 						<option value="">—</option>
-						<option value="never">Never</option>
-						<option value="former">Former smoker</option>
-						<option value="current_light">Current — Light (&lt;10/day)</option>
-						<option value="current_heavy">Current — Heavy (≥10/day)</option>
+						<option value="never">{i18n.t.ui.patient.smokeNever}</option>
+						<option value="former">{i18n.t.ui.patient.smokeFormer}</option>
+						<option value="current_light">{i18n.t.ui.patient.smokeLight}</option>
+						<option value="current_heavy">{i18n.t.ui.patient.smokeHeavy}</option>
 					</select>
 				</div>
 				<div class="flex flex-col gap-1.5">
 					<Label for="occupation">{i18n.t.patients.fields.occupation}</Label>
-					<Input id="occupation" placeholder="e.g. Teacher, Engineer" bind:value={occupation} />
+					<Input id="occupation" placeholder={i18n.t.ui.patient.phOccupation} bind:value={occupation} />
 				</div>
 			</CardContent>
 		{/if}

@@ -71,7 +71,7 @@
 
 {:else if notFound || !patient}
 	<div class="flex flex-col items-center justify-center gap-4 py-16">
-		<p class="text-lg font-medium text-muted-foreground">Patient not found</p>
+		<p class="text-lg font-medium text-muted-foreground">{i18n.t.ui.patient.notFound}</p>
 		<Button href="/patients" variant="outline">← {i18n.t.nav.patients}</Button>
 	</div>
 
@@ -83,7 +83,7 @@
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 					<path d="M19 12H5M12 5l-7 7 7 7"/>
 				</svg>
-				Back
+				{i18n.t.actions.back}
 			</Button>
 			<div class="flex items-center gap-2.5">
 				<div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
@@ -175,8 +175,8 @@
 			<div class="rounded-lg border bg-card p-4 flex flex-col gap-3">
 				<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{i18n.t.patients.formSections.insurance}</h3>
 				<div class="grid grid-cols-2 gap-3">
-					<div class={infoRowClass}><span class={infoLabelClass}>Provider</span><span class={infoValueClass}>{patient.insurance_provider || '—'}</span></div>
-					<div class={infoRowClass}><span class={infoLabelClass}>Policy ID</span><span class={infoValueClass}>{patient.insurance_id || '—'}</span></div>
+					<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.schedule.doctor}</span><span class={infoValueClass}>{patient.insurance_provider || '—'}</span></div>
+					<div class={infoRowClass}><span class={infoLabelClass}>{i18n.t.ui.patient.policyIdShort}</span><span class={infoValueClass}>{patient.insurance_id || '—'}</span></div>
 				</div>
 				{#if patient.primary_physician}
 					<div class={infoRowClass}>
@@ -186,7 +186,7 @@
 				{/if}
 				{#if patient.upcoming_appointment}
 					<div class={infoRowClass}>
-						<span class={infoLabelClass}>Next Appointment</span>
+						<span class={infoLabelClass}>{i18n.t.schedule.nextAppointment}</span>
 						<span class={infoValueClass}>{formatDateTime(patient.upcoming_appointment)}</span>
 					</div>
 				{/if}
@@ -214,7 +214,7 @@
 						{/if}
 						{#if medications.length > 0}
 							<div class={infoRowClass}>
-								<span class={infoLabelClass}>Medications</span>
+								<span class={infoLabelClass}>{i18n.t.patients.fields.medications}</span>
 								<div class="flex flex-wrap gap-1 mt-0.5">
 									{#each medications as m}
 										<span class="rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 px-2 py-0.5 text-xs">{m}</span>
@@ -224,7 +224,7 @@
 						{/if}
 						{#if riskFlags.length > 0}
 							<div class={infoRowClass}>
-								<span class={infoLabelClass}>Risk Flags</span>
+								<span class={infoLabelClass}>{i18n.t.patients.fields.riskFlags}</span>
 								<div class="flex flex-wrap gap-1 mt-0.5">
 									{#each riskFlags as r}
 										<span class="rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 px-2 py-0.5 text-xs">{r}</span>

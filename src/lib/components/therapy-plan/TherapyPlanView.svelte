@@ -1056,7 +1056,7 @@
 											class="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded border border-red-300/70 dark:border-red-800/60 text-destructive hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors font-medium"
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-2.5 w-2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-											Entfernen
+											{i18n.t.actions.remove}
 										</button>
 									</div>
 								</div>
@@ -1074,7 +1074,7 @@
 											<button
 												onclick={() => removeProcFromTooth(selectedTooth!, procKey)}
 												class="opacity-60 hover:opacity-100 ml-0.5 leading-none font-bold"
-												aria-label="Entfernen"
+												aria-label={i18n.t.actions.remove}
 											>✕</button>
 										</span>
 									{/each}

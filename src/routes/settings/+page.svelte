@@ -80,7 +80,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			await ensureDocTemplatesFolder(path).catch(() => {/* non-fatal */});
 			window.location.reload();
 		} catch (e) {
-			vaultChangeMsg = 'Error: ' + String(e);
+			vaultChangeMsg = i18n.t.ui.common.errorPrefix + ' ' + String(e);
 			isChangingVault = false;
 		}
 	}
@@ -98,7 +98,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 
 	async function handleConnectServer() {
 		if (!serverUrlInput.trim() || !serverTokenInput.trim()) {
-			serverConnectionMsg = 'Server URL and token are both required.';
+			serverConnectionMsg = i18n.t.ui.server.required;
 			return;
 		}
 		isConnectingServer = true;
@@ -216,14 +216,14 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		const trimLabel = newLabel.trim();
 		const trimKey   = newKey.trim();
 
-		if (!trimLabel) { addError = 'Label is required.'; return; }
-		if (!trimKey)   { addError = 'Key is required.'; return; }
+		if (!trimLabel) { addError = i18n.t.ui.settings.labelRequired; return; }
+		if (!trimKey)   { addError = i18n.t.ui.settings.keyRequiredMsg; return; }
 		if (!/^[a-z0-9_]+$/.test(trimKey)) {
-			addError = 'Key may only contain lowercase letters, digits, and underscores.';
+			addError = i18n.t.ui.settings.keyFormat;
 			return;
 		}
 		if (localCategories.some(c => c.key === trimKey)) {
-			addError = `Key "${trimKey}" already exists.`;
+			addError = i18n.t.ui.settings.keyExists.replace('{key}', trimKey);
 			return;
 		}
 
@@ -325,7 +325,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	async function handleAddStaff() {
 		addStaffError = '';
 		const name = newStaffName.trim();
-		if (!name) { addStaffError = 'Name is required.'; return; }
+		if (!name) { addStaffError = i18n.t.ui.settings.nameRequired; return; }
 		staffSaving = true;
 		try {
 			const newDoc = await doctors.add({ name, role: newStaffRole, specialty: newStaffSpec.trim(), color: newStaffColor });
@@ -382,10 +382,10 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		addRoleError = '';
 		const trimKey   = newRoleKey.trim();
 		const trimLabel = newRoleLabel.trim();
-		if (!trimLabel) { addRoleError = 'Label is required.'; return; }
-		if (!trimKey)   { addRoleError = 'Key is required.'; return; }
-		if (!/^[a-z0-9_]+$/.test(trimKey)) { addRoleError = 'Key may only contain lowercase letters, digits, and underscores.'; return; }
-		if (localRoles.some(r => r.key === trimKey)) { addRoleError = `Key "${trimKey}" already exists.`; return; }
+		if (!trimLabel) { addRoleError = i18n.t.ui.settings.labelRequired; return; }
+		if (!trimKey)   { addRoleError = i18n.t.ui.settings.keyRequiredMsg; return; }
+		if (!/^[a-z0-9_]+$/.test(trimKey)) { addRoleError = i18n.t.ui.settings.keyFormat; return; }
+		if (localRoles.some(r => r.key === trimKey)) { addRoleError = i18n.t.ui.settings.keyExists.replace('{key}', trimKey); return; }
 		localRoles = [...localRoles, { key: trimKey, label: trimLabel, prefix: newRolePrefix.trim() }];
 		resetRoleForm();
 	}
@@ -1464,6 +1464,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 				</button>
 				<div class="px-2 py-1.5 flex flex-col gap-px">
 					{#each [
+						{ label: i18n.t.settings.language },
 						{ label: i18n.t.settings.sections.appearance },
 						{ label: i18n.t.settings.sections.vault },
 						{ label: i18n.t.settings.sections.backup },
@@ -1591,6 +1592,29 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		</div>
 		<Separator />
 
+		<!-- Language -->
+		<div class="rounded-lg border bg-card p-5 flex items-center justify-between gap-6">
+			<div class="flex flex-col gap-0.5">
+				<span class="text-sm font-medium">{i18n.t.settings.languageLabel}</span>
+				<span class="text-xs text-muted-foreground">{i18n.languages.find(l => l.code === i18n.code)?.name}</span>
+			</div>
+			<div class="flex items-center gap-1 rounded-full border bg-muted p-1">
+				{#each i18n.languages as lang}
+					<button
+						type="button"
+						onclick={() => i18n.setLang(lang.code)}
+						class={[
+							'rounded-full px-3 py-1 text-xs font-medium transition-all',
+							i18n.code === lang.code ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+						].join(' ')}
+						aria-pressed={i18n.code === lang.code}
+					>
+						{lang.name}
+					</button>
+				{/each}
+			</div>
+		</div>
+
 		<!-- UI Scale -->
 		<div class="rounded-lg border bg-card p-5 flex items-center justify-between gap-6">
 			<div class="flex flex-col gap-0.5">
@@ -1666,7 +1690,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.vault}</h2>
-			<p class="text-sm text-muted-foreground">The folder where all patient data and files are stored.</p>
+			<p class="text-sm text-muted-foreground">{i18n.t.ui.settings.vaultDesc}</p>
 		</div>
 		<Separator />
 
@@ -1674,7 +1698,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			<div class="flex flex-col gap-1.5">
 				<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.settings.vault.path}</span>
 				<code class="rounded bg-muted px-3 py-2 text-xs break-all">
-					{vault.path ?? '(not configured)'}
+					{vault.path ?? i18n.t.ui.settings.notConfigured}
 				</code>
 			</div>
 
@@ -1699,13 +1723,9 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	<div class="pt-6 pb-2"><Separator /></div>
 	<section class="flex flex-col gap-4">
 		<div>
-			<h2 class="text-base font-semibold">Server Connection <span class="ml-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground align-middle">Beta</span></h2>
+			<h2 class="text-base font-semibold">{i18n.t.ui.server.title} <span class="ml-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground align-middle">Beta</span></h2>
 			<p class="text-sm text-muted-foreground">
-				Connect this station to a clinic's DentVault server instead of a local vault
-				(ROADMAP_MULTI_COMPUTER.md Phase 1). Patients, timeline entries, appointments, and
-				settings work over the network once connected — document/X-ray/photo file access
-				still needs the vault folder to be locally reachable; that's not wired over the
-				network yet.
+				{i18n.t.ui.server.settingsDesc}
 			</p>
 		</div>
 		<Separator />
@@ -1713,7 +1733,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		<div class="rounded-lg border bg-card p-5 flex flex-col gap-4">
 			{#if serverConnection.isConnected}
 				<div class="flex flex-col gap-1.5">
-					<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Connected to</span>
+					<span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{i18n.t.ui.server.connectedTo}</span>
 					<code class="rounded bg-muted px-3 py-2 text-xs break-all">{serverConnection.url}</code>
 				</div>
 				{#if serverConnectionMsg}
@@ -1725,17 +1745,17 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					disabled={isConnectingServer}
 					class="self-start rounded-md border bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80 transition-colors disabled:opacity-50"
 				>
-					{isConnectingServer ? i18n.t.common.loading : 'Disconnect'}
+					{isConnectingServer ? i18n.t.common.loading : i18n.t.ui.server.disconnect}
 				</button>
 			{:else}
 				<div class="flex flex-col gap-3 max-w-md">
 					<div class="flex flex-col gap-1.5">
-						<span class="text-xs font-medium text-muted-foreground">Server address</span>
+						<span class="text-xs font-medium text-muted-foreground">{i18n.t.ui.server.address}</span>
 						<input type="text" bind:value={serverUrlInput} placeholder="http://192.168.1.50:8420" class="rounded-md border bg-background px-3 py-2 text-sm" />
 					</div>
 					<div class="flex flex-col gap-1.5">
-						<span class="text-xs font-medium text-muted-foreground">Token</span>
-						<input type="text" bind:value={serverTokenInput} placeholder="the token printed at server startup" class="rounded-md border bg-background px-3 py-2 text-sm font-mono" />
+						<span class="text-xs font-medium text-muted-foreground">{i18n.t.ui.server.token}</span>
+						<input type="text" bind:value={serverTokenInput} placeholder={i18n.t.ui.server.tokenPlaceholder} class="rounded-md border bg-background px-3 py-2 text-sm font-mono" />
 					</div>
 				</div>
 				{#if serverConnectionMsg}
@@ -1747,7 +1767,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					disabled={isConnectingServer}
 					class="self-start rounded-md border bg-muted px-4 py-2 text-sm font-medium hover:bg-muted/80 transition-colors disabled:opacity-50"
 				>
-					{isConnectingServer ? i18n.t.common.loading : 'Connect'}
+					{isConnectingServer ? i18n.t.common.loading : i18n.t.ui.server.connect}
 				</button>
 			{/if}
 		</div>
@@ -1916,7 +1936,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 	<section class="flex flex-col gap-4">
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.about}</h2>
-			<p class="text-sm text-muted-foreground">Application information.</p>
+			<p class="text-sm text-muted-foreground">{i18n.t.ui.settings.aboutDesc}</p>
 		</div>
 		<Separator />
 
@@ -2023,9 +2043,9 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					<span></span>
 					<span>{i18n.t.staff.fields.name}</span>
 					<span>{i18n.t.staff.fields.role}</span>
-					<span>Specialty</span>
-					<span>Color</span>
-					<span title="Doc Bar">Bar</span>
+					<span>{i18n.t.ui.settings.specialty}</span>
+					<span>{i18n.t.settings.schedule.colorLabel}</span>
+					<span title={i18n.t.ui.settings.docBar}>{i18n.t.ui.settings.bar}</span>
 					<span title={i18n.t.staff.workingHours}>⏰</span>
 					<span></span>
 					<span></span>
@@ -2041,7 +2061,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								<div class="grid grid-cols-2 gap-2">
 									<div class="flex flex-col gap-1">
 										<label for="staff-edit-name" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.name}</label>
-										<input id="staff-edit-name" type="text" bind:value={editStaffName} class="{inputClass} w-full" placeholder="Full name" />
+										<input id="staff-edit-name" type="text" bind:value={editStaffName} class="{inputClass} w-full" placeholder={i18n.t.ui.settings.fullName} />
 									</div>
 									<div class="flex flex-col gap-1">
 										<label for="staff-edit-role" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.role}</label>
@@ -2052,11 +2072,11 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 										</select>
 									</div>
 									<div class="flex flex-col gap-1">
-										<label for="staff-edit-spec" class="text-[10px] text-muted-foreground uppercase tracking-wide">Specialty</label>
-										<input id="staff-edit-spec" type="text" bind:value={editStaffSpec} class="{inputClass} w-full" placeholder="e.g. Orthodontics" />
+										<label for="staff-edit-spec" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.ui.settings.specialty}</label>
+										<input id="staff-edit-spec" type="text" bind:value={editStaffSpec} class="{inputClass} w-full" placeholder={i18n.t.ui.settings.specialtyExample} />
 									</div>
 									<div class="flex flex-col gap-1">
-										<label for="staff-edit-color" class="text-[10px] text-muted-foreground uppercase tracking-wide">Color</label>
+										<label for="staff-edit-color" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.colorLabel}</label>
 										<div class="flex items-center gap-2">
 											<input id="staff-edit-color" type="color" bind:value={editStaffColor} class="h-8 w-12 rounded border border-input cursor-pointer" />
 											<span class="text-xs text-muted-foreground">{editStaffColor}</span>
@@ -2086,7 +2106,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									type="button"
 									onclick={() => doctors.update(doc.id, { show_in_doc_bar: doc.show_in_doc_bar === 0 ? 1 : 0 })}
 									class={['flex items-center justify-center h-5 w-5 rounded border transition-colors', doc.show_in_doc_bar !== 0 ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground/40 hover:border-foreground/30'].join(' ')}
-									title={doc.show_in_doc_bar !== 0 ? 'Shown in doc bar (click to hide)' : 'Hidden from doc bar (click to show)'}
+									title={doc.show_in_doc_bar !== 0 ? i18n.t.ui.settings.docBarShown : i18n.t.ui.settings.docBarHidden}
 								>
 									{#if doc.show_in_doc_bar !== 0}
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-3 w-3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2102,11 +2122,11 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 								</button>
 								<!-- Edit button -->
-								<button type="button" onclick={() => startEditStaff(doc)} class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground" aria-label="Edit">
+								<button type="button" onclick={() => startEditStaff(doc)} class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground" aria-label={i18n.t.actions.edit}>
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
 								</button>
 								<!-- Delete button -->
-								<button type="button" onclick={() => handleDeleteStaff(doc.id)} class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive" aria-label="Delete">
+								<button type="button" onclick={() => handleDeleteStaff(doc.id)} class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive" aria-label={i18n.t.actions.delete}>
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
 								</button>
 							</div>
@@ -2125,7 +2145,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					<div class="grid grid-cols-2 gap-3">
 						<div class="flex flex-col gap-1">
 							<label for="staff-new-name" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.name} *</label>
-							<input id="staff-new-name" type="text" bind:value={newStaffName} class="{inputClass} w-full" placeholder="e.g. Anna Smith" />
+							<input id="staff-new-name" type="text" bind:value={newStaffName} class="{inputClass} w-full" placeholder={i18n.t.ui.settings.nameExample} />
 						</div>
 						<div class="flex flex-col gap-1">
 							<label for="staff-new-role" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.staff.fields.role} *</label>
@@ -2136,11 +2156,11 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							</select>
 						</div>
 						<div class="flex flex-col gap-1">
-							<label for="staff-new-spec" class="text-[10px] text-muted-foreground uppercase tracking-wide">Specialty</label>
-							<input id="staff-new-spec" type="text" bind:value={newStaffSpec} class="{inputClass} w-full" placeholder="e.g. Orthodontics" />
+							<label for="staff-new-spec" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.ui.settings.specialty}</label>
+							<input id="staff-new-spec" type="text" bind:value={newStaffSpec} class="{inputClass} w-full" placeholder={i18n.t.ui.settings.specialtyExample} />
 						</div>
 						<div class="flex flex-col gap-1">
-							<label for="staff-new-color" class="text-[10px] text-muted-foreground uppercase tracking-wide">Color</label>
+							<label for="staff-new-color" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.settings.schedule.colorLabel}</label>
 							<div class="flex items-center gap-2">
 								<input id="staff-new-color" type="color" bind:value={newStaffColor} class="h-8 w-12 rounded border border-input cursor-pointer" />
 								<span class="text-xs text-muted-foreground">{newStaffColor}</span>
@@ -2155,7 +2175,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							<table class="w-full text-xs border-collapse">
 								<thead>
 									<tr class="text-[10px] text-muted-foreground uppercase tracking-wide">
-										<th class="text-left py-1 pr-3 font-medium w-20">Day</th>
+										<th class="text-left py-1 pr-3 font-medium w-20">{i18n.t.ui.schedule.day}</th>
 										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colActive}</th>
 										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colStart}</th>
 										<th class="text-center py-1 px-1 font-medium">{i18n.t.staff.colBreakStart}</th>
@@ -2244,7 +2264,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									type="button"
 									onclick={() => handleDeleteRole(role.key)}
 									class="opacity-0 group-hover/rolerow:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-									aria-label="Delete role"
+									aria-label={i18n.t.ui.settings.deleteRole}
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 										<path d="M18 6L6 18M6 6l12 12"/>
@@ -2263,10 +2283,10 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							<div class="grid grid-cols-3 gap-2">
 								<div class="flex flex-col gap-1">
 									<label for="role-new-label" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.settings.staffRoles.roleLabel} *</label>
-									<input id="role-new-label" type="text" bind:value={newRoleLabel} class="{inputClass} w-full" placeholder="e.g. Hygienist" />
+									<input id="role-new-label" type="text" bind:value={newRoleLabel} class="{inputClass} w-full" placeholder={i18n.t.ui.settings.roleExample} />
 								</div>
 								<div class="flex flex-col gap-1">
-									<label for="role-new-key" class="text-[10px] text-muted-foreground uppercase tracking-wide">Key *</label>
+									<label for="role-new-key" class="text-[10px] text-muted-foreground uppercase tracking-wide">{i18n.t.ui.settings.keyRequired}</label>
 									<input id="role-new-key" type="text" value={newRoleKey} oninput={handleRoleKeyInput} class="{inputClass} w-full font-mono" placeholder="e.g. hygienist" />
 								</div>
 								<div class="flex flex-col gap-1">
@@ -2274,7 +2294,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									<input id="role-new-prefix" type="text" bind:value={newRolePrefix} class="{inputClass} w-full" placeholder="e.g. Dr." />
 								</div>
 							</div>
-							<p class="text-[10px] text-muted-foreground/60">Prefix shown before name (e.g. "Dr. Smith"). Leave empty to show role in parentheses.</p>
+							<p class="text-[10px] text-muted-foreground/60">{i18n.t.ui.settings.prefixHint}</p>
 							<div class="flex gap-2 justify-end">
 								<button type="button" onclick={resetRoleForm} class="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors">{i18n.t.actions.cancel}</button>
 								<button type="button" onclick={handleAddRole} class="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:opacity-90 transition-opacity">{i18n.t.settings.staffRoles.add}</button>
@@ -2358,7 +2378,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						type="button"
 						onclick={() => openDocumentFile(`${vault.path}/${TEMPLATE_FOLDER}`)}
 						class="shrink-0 flex items-center gap-1.5 rounded border border-amber-200 dark:border-amber-800 bg-amber-100/60 dark:bg-amber-900/20 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-200/60 dark:hover:bg-amber-800/30 transition-colors"
-						title="Open !TEMPLATE folder in Finder/Explorer"
+						title={i18n.t.ui.settings.openTemplateFolder}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -2397,7 +2417,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								class={iconInputClass}
 								value={cat.icon}
 								oninput={(e) => handleIconChange(cat.key, (e.target as HTMLInputElement).value)}
-								title="Emoji icon"
+								title={i18n.t.ui.settings.emojiIcon}
 								maxlength="4"
 							/>
 							<!-- Label -->
@@ -2406,7 +2426,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								class="{inputClass} w-full"
 								value={cat.label}
 								oninput={(e) => handleLabelChange(cat.key, (e.target as HTMLInputElement).value)}
-								placeholder="Category name"
+								placeholder={i18n.t.ui.settings.categoryName}
 							/>
 							<!-- Folder name on disk -->
 							<div class="flex items-center h-8">
@@ -2421,7 +2441,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 										type="button"
 										onclick={() => vault.path && openDocumentFile(`${vault.path}/${TEMPLATE_FOLDER}/${catFolder}`)}
 										class="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-800/60 transition-colors"
-										title="Open template subfolder"
+										title={i18n.t.ui.settings.openTemplateSub}
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 											<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
@@ -2433,7 +2453,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 										type="button"
 										onclick={() => vault.path && openDocumentFile(`${vault.path}/${TEMPLATE_FOLDER}/${catFolder}`)}
 										class="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors"
-										title="Open template subfolder (empty)"
+										title={i18n.t.ui.settings.openTemplateSubEmpty}
 									>
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 											<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
@@ -2447,7 +2467,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								type="button"
 								onclick={() => handleDeleteCategory(cat.key)}
 								class="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-								title="Remove category"
+								title={i18n.t.ui.settings.removeCategory}
 							>
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
 									<path d="M18 6L6 18M6 6l12 12"/>
@@ -2464,7 +2484,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 
 						<div class="grid grid-cols-[auto_1fr_auto] gap-2 items-start">
 							<div class="flex flex-col gap-1">
-								<label for="new-cat-icon" class="text-[10px] text-muted-foreground">Icon</label>
+								<label for="new-cat-icon" class="text-[10px] text-muted-foreground">{i18n.t.settings.docCategories.iconField}</label>
 								<input
 									id="new-cat-icon"
 									type="text"
@@ -2475,13 +2495,13 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								/>
 							</div>
 							<div class="flex flex-col gap-1">
-								<label for="new-cat-label" class="text-[10px] text-muted-foreground">Label <span class="text-destructive">*</span></label>
+								<label for="new-cat-label" class="text-[10px] text-muted-foreground">{i18n.t.settings.docCategories.labelField} <span class="text-destructive">*</span></label>
 								<input
 									id="new-cat-label"
 									type="text"
 									class="{inputClass} w-full"
 									bind:value={newLabel}
-									placeholder="e.g. CBCT Scans"
+									placeholder={i18n.t.ui.settings.categoryExample}
 								/>
 							</div>
 							<div class="flex flex-col gap-1">
@@ -2561,7 +2581,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 					type="button"
 					onclick={() => openDocumentFile(`${vault.path}/!Documents`)}
 					class="shrink-0 flex items-center gap-1.5 rounded border border-teal-200 dark:border-teal-800 bg-teal-100/60 dark:bg-teal-900/20 px-2.5 py-1 text-[11px] font-medium text-teal-700 dark:text-teal-400 hover:bg-teal-200/60 dark:hover:bg-teal-800/30 transition-colors"
-					title="Open !Documents folder"
+					title={i18n.t.ui.settings.openDocumentsFolder}
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
 						<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -2632,8 +2652,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 		<div>
 			<h2 class="text-base font-semibold">{i18n.t.settings.sections.clinicalTags}</h2>
 			<p class="text-sm text-muted-foreground">
-				Configure the tag chips available in Acute Problems and Medical History notes.
-				These tags are used for statistical filtering across patients.
+				{i18n.t.ui.settings.clinicalTagsDesc}
 			</p>
 		</div>
 		<Separator />
@@ -2664,7 +2683,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							type="button"
 							onclick={() => { draftAcuteTags = draftAcuteTags.filter((_, idx) => idx !== i); }}
 							class="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
-							aria-label="Remove tag"
+							aria-label={i18n.t.ui.chart.removeTag}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-2.5 w-2.5">
 								<path d="M18 6L6 18M6 6l12 12"/>
@@ -2715,7 +2734,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							type="button"
 							onclick={() => { draftMedicalTags = draftMedicalTags.filter((_, idx) => idx !== i); }}
 							class="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
-							aria-label="Remove tag"
+							aria-label={i18n.t.ui.chart.removeTag}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-2.5 w-2.5">
 								<path d="M18 6L6 18M6 6l12 12"/>
@@ -2773,7 +2792,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 							type="button"
 							onclick={() => { draftComplicationTypes = draftComplicationTypes.filter((_, idx) => idx !== i); }}
 							class="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
-							aria-label="Remove"
+							aria-label={i18n.t.actions.remove}
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="h-2.5 w-2.5">
 								<path d="M18 6L6 18M6 6l12 12"/>
@@ -2869,7 +2888,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 											type="text"
 											value={block.key}
 											oninput={(e) => updateBlock(i, 'key', slugifyBlockKey((e.target as HTMLInputElement).value))}
-											placeholder="fuellung"
+											placeholder="filling"
 											class="h-8 flex-1 rounded-md border font-mono text-sm px-2.5 outline-none focus:border-ring focus:ring-1 focus:ring-ring/30 {hasDupeKey ? 'border-destructive bg-destructive/5' : 'border-input bg-background'}"
 										/>
 									</div>
@@ -3061,7 +3080,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 											value={tag.label}
 											oninput={(e) => updateTag(i, 'label', (e.target as HTMLInputElement).value)}
 											class="border-input bg-transparent h-8 min-w-0 flex-1 rounded border px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
-											placeholder="Tag name"
+											placeholder={i18n.t.ui.chart.tagName}
 										/>
 										{#if isAppearanceManaged}
 											<!-- Shortcut only — color/fill managed by dedicated appearance settings -->
@@ -3077,7 +3096,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 														: 'border-input bg-background focus:border-ring focus:ring-1 focus:ring-ring/50',
 												].join(' ')}
 												placeholder="—"
-												title={tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase()) ? 'Duplicate shortcut' : 'Shortcut key'}
+												title={tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase()) ? i18n.t.ui.chart.duplicateShortcut : i18n.t.ui.chart.shortcutKey}
 											/>
 											<button
 												type="button"
@@ -3101,10 +3120,10 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 														: 'border-input bg-background focus:border-ring focus:ring-1 focus:ring-ring/50',
 												].join(' ')}
 												placeholder="—"
-												title={tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase()) ? 'Duplicate shortcut' : 'Shortcut key'}
+												title={tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase()) ? i18n.t.ui.chart.duplicateShortcut : i18n.t.ui.chart.shortcutKey}
 											/>
 											<!-- Fill colour -->
-											<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title="Fill colour">
+											<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title={i18n.t.ui.chart.fillColor}>
 												<input
 													type="color"
 													value={tag.color}
@@ -3113,7 +3132,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 												/>
 											</label>
 											<!-- Border colour -->
-											<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title="Border colour">
+											<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title={i18n.t.ui.chart.borderColor}>
 												<input
 													type="color"
 													value={tag.strokeColor}
@@ -3129,7 +3148,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 													'flex items-center gap-1 rounded border px-1.5 h-8 shrink-0 transition-colors',
 													openPatternIdx === i ? 'border-primary bg-primary/5' : 'border-border hover:border-foreground/40',
 												].join(' ')}
-												title="Change fill pattern"
+												title={i18n.t.ui.chart.changePattern}
 											>
 												{@render patIcon(tag.pattern, tag.color, tag.strokeColor)}
 												<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
@@ -3156,8 +3175,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 											onclick={() => removeTag(i)}
 											disabled={isRenderCritical}
 											class="shrink-0 rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
-											aria-label={isRenderCritical ? 'Cannot delete — affects chart rendering' : 'Remove tag'}
-											title={isRenderCritical ? 'Cannot delete — this tag is used by the chart rendering engine or a clinical module (endo docs, filling materials). Color, pattern, label and shortcut can still be changed.' : 'Remove tag'}
+											aria-label={isRenderCritical ? i18n.t.ui.chart.cannotDeleteShort : i18n.t.ui.chart.removeTag}
+											title={isRenderCritical ? i18n.t.ui.chart.cannotDeleteLong : i18n.t.ui.chart.removeTag}
 										>
 											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
 												<path d="M18 6L6 18M6 6l12 12"/>
@@ -3167,7 +3186,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									<!-- Pattern picker panel — only for non-appearance-managed tags -->
 									{#if !isAppearanceManaged && openPatternIdx === i}
 										<div transition:slide={{ duration: 120 }} class="border-t border-border/50 px-3 py-2.5 flex items-center gap-2 flex-wrap rounded-b-md bg-muted/30">
-											<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">Choose fill pattern:</span>
+											<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">{i18n.t.ui.chart.choosePattern}</span>
 											{#each PATTERNS as p}
 												<button
 													type="button"
@@ -3206,24 +3225,24 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 									<input type="text" value={tag.label}
 										oninput={(e) => updateTag(i, 'label', (e.target as HTMLInputElement).value)}
 										class="border-input bg-transparent h-8 min-w-0 flex-1 rounded border px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
-										placeholder="Tag name"/>
+										placeholder={i18n.t.ui.chart.tagName}/>
 									<input type="text" maxlength="1" value={tag.shortcut ?? ''}
 										oninput={(e) => updateTag(i, 'shortcut', (e.target as HTMLInputElement).value.slice(-1))}
 										class={['h-8 w-9 shrink-0 rounded border text-center font-mono text-sm outline-none',
 											tag.shortcut && duplicateShortcuts.has(tag.shortcut.toLowerCase())
 												? 'border-destructive bg-destructive/10 text-destructive' : 'border-input bg-background focus:border-ring focus:ring-1 focus:ring-ring/50'
 										].join(' ')} placeholder="—"/>
-									<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title="Fill colour">
+									<label class="relative h-8 w-8 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{tag.color}" title={i18n.t.ui.chart.fillColor}>
 										<input type="color" value={tag.color} oninput={(e) => updateTag(i, 'color', (e.target as HTMLInputElement).value)}
 											class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
 									</label>
-									<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title="Border colour">
+									<label class="relative h-8 w-8 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{tag.strokeColor};border-color:{tag.strokeColor}" title={i18n.t.ui.chart.borderColor}>
 										<input type="color" value={tag.strokeColor} oninput={(e) => updateTag(i, 'strokeColor', (e.target as HTMLInputElement).value)}
 											class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
 									</label>
 									<button type="button" onclick={() => { openPatternIdx = openPatternIdx === i ? null : i; }}
 										class={['flex items-center gap-1 rounded border px-1.5 h-8 shrink-0 transition-colors',
-											openPatternIdx === i ? 'border-primary bg-primary/5' : 'border-border hover:border-foreground/40'].join(' ')} title="Change fill pattern">
+											openPatternIdx === i ? 'border-primary bg-primary/5' : 'border-border hover:border-foreground/40'].join(' ')} title={i18n.t.ui.chart.changePattern}>
 										{@render patIcon(tag.pattern, tag.color, tag.strokeColor)}
 										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
 											class={['h-3 w-3 text-muted-foreground transition-transform duration-150', openPatternIdx === i ? 'rotate-180' : ''].join(' ')}>
@@ -3239,7 +3258,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								</div>
 								{#if openPatternIdx === i}
 									<div transition:slide={{ duration: 120 }} class="border-t border-border/50 px-3 py-2.5 flex items-center gap-2 flex-wrap rounded-b-md bg-muted/30">
-										<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">Choose fill pattern:</span>
+										<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">{i18n.t.ui.chart.choosePattern}</span>
 										{#each PATTERNS as p}
 											<button type="button" onclick={() => selectPattern(i, p.key)}
 												class={['flex flex-col items-center gap-1 rounded border p-1.5 transition-all',
@@ -3297,8 +3316,8 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 			<!-- Column headers -->
 			<div class="grid grid-cols-[1fr_2rem_2rem_5rem_3rem] items-center gap-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground px-1">
 				<span>{i18n.t.common.name}</span>
-				<span>Fill</span>
-				<span>Border</span>
+				<span>{i18n.t.settings.canalStatusSettings.bgColor}</span>
+				<span>{i18n.t.settings.canalStatusSettings.borderColor}</span>
 				<span>{i18n.t.settings.crownFindingSettings.scope}</span>
 				<span></span>
 			</div>
@@ -3319,11 +3338,11 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 								/>
 							</div>
 							<!-- Fill color -->
-							<label class="relative h-7 w-7 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{f.color}" title="Fill color">
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 border-border overflow-hidden cursor-pointer" style="background:{f.color}" title={i18n.t.ui.chart.fillColor}>
 								<input type="color" value={f.color} oninput={(e) => updateCf(i, 'color', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
 							</label>
 							<!-- Border color -->
-							<label class="relative h-7 w-7 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{f.strokeColor};border-color:{f.strokeColor}" title="Border color">
+							<label class="relative h-7 w-7 shrink-0 rounded border-2 overflow-hidden cursor-pointer" style="background:{f.strokeColor};border-color:{f.strokeColor}" title={i18n.t.ui.chart.borderColor}>
 								<input type="color" value={f.strokeColor} oninput={(e) => updateCf(i, 'strokeColor', (e.target as HTMLInputElement).value)} class="absolute inset-0 h-[200%] w-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer opacity-0"/>
 							</label>
 							<!-- Scope toggle (wholeCrown) -->
@@ -3537,7 +3556,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						<!-- Pattern picker panel -->
 						{#if openPtPatternIdx === i}
 							<div transition:slide={{ duration: 120 }} class="border-t border-border/50 px-3 py-2.5 flex items-center gap-2 flex-wrap rounded-b-md bg-muted/30">
-								<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">Choose fill pattern:</span>
+								<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">{i18n.t.ui.chart.choosePattern}</span>
 								{#each PATTERNS as p}
 									<button
 										type="button"
@@ -3663,7 +3682,7 @@ import { planProcedures, DEFAULT_PLAN_PROCEDURES, type PlanProcedureConfig } fro
 						<!-- Pattern picker panel -->
 						{#if openBrPatternIdx === i}
 							<div transition:slide={{ duration: 120 }} class="border-t border-border/50 px-3 py-2.5 flex items-center gap-2 flex-wrap rounded-b-md bg-muted/30">
-								<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">Choose fill pattern:</span>
+								<span class="text-[10px] font-medium text-muted-foreground w-full mb-0.5">{i18n.t.ui.chart.choosePattern}</span>
 								{#each PATTERNS as p}
 									<button
 										type="button"
